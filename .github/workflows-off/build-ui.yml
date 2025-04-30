@@ -1,0 +1,33 @@
+name: Build and Generate Routes
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install UI dependencies
+        working-directory: packages/ui
+        run: npm install
+
+      - name: Generate TanStack router tree
+        working-directory: packages/ui
+        run: npx @tanstack/router-cli generate-routefiles --routesDirectory src/routes
+
+      - name: Build UI only
+        working-directory: packages/ui
+        run: npm run build

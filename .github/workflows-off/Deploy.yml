@@ -1,0 +1,67 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+# Concurrency group name ensures concurrent workflow runs wait for any in-progress job to finish
+concurrency:
+   group: merge-${{ github.ref }}
+
+jobs:
+  Validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Validate Configuration
+        run: |
+          if grep -q 'const PROJECT_NAME: string = "";' sst.config.ts || grep -q 'const CUSTOMER: string = "";' sst.config.ts; then
+            echo "::error::Project configuration is not set. Please set PROJECT_NAME and CUSTOMER in sst.config.ts"
+            echo "Example configuration:"
+            echo "const PROJECT_NAME = \"testing-monorepo-1\";"
+            echo "const CUSTOMER = \"testing\";"
+            exit 1
+          fi
+
+  Deploy:
+    needs: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: sa-east-1
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy
+        run: |
+          # Set detailed log level
+          export SST_LOG_LEVEL=debug
+          
+          # Run with --verbose for more details
+          if ! npx sst deploy --stage ${{ github.ref_name }} --verbose; then
+            echo "::group::Deployment Error"
+            echo "Deployment failed. Error details:"
+            cat .sst/log/sst.log || echo "No log file found"
+            echo "::endgroup::"
+            exit 1
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
