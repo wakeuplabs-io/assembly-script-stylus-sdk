@@ -1,45 +1,140 @@
-# React Monorepo Template
+# Stylus AssemblyScript SDK
 
-## Node and NPM version
+This SDK enables developers to write **Arbitrum Stylus contracts** using **AssemblyScript**, offering a familiar and lightweight development environment for JavaScript/TypeScript users.
 
-TL;DR
+It provides tooling to:
 
-- Node version: 18.18.2
-- npm version: 9.8.1
+- Scaffold a new Stylus-compatible project
+- Generate dynamic entrypoints for the Stylus VM
+- Compile AssemblyScript to WASM
+- Validate and deploy contracts via `cargo stylus`
 
-For now, **API breaks with Node > 18.18**. Node 18.18.2 is required.
+---
 
-Also, Node 18.18.2 comes with npm 9.8.1, so the project should work properly with it. In any case, npm workspaces were added in npm 7.0.0, so you should have at least that version (9.8.1 strongly recommended).
+## 🧠 Developer Workflow
 
-## Create user for deployment (AWS)
+```mermaid
+flowchart TD
+    subgraph as-sdk CLI
+        A[npx as-sdk generate my-contract]
+        B[Creates contract folder with boilerplate]
+        C[Run npm run build inside the project]
+        D[Generates .dist/ with wrapped entrypoint]
+        E[npm run compile → asc to WASM]
+        F[npm run check → cargo stylus check]
+        G[npm run deploy → cargo stylus deploy]
+    end
 
-1. Go to IAM service
-2. Click Users --> `Create User`
+    A --> B --> C --> D --> E --> F --> G
+```
 
-   ![image info](assets/create-user.png)
+---
 
-3. Fill the user name and click on `Next`
-4. Click `Attach policies directly`, click on `AdministratorAccess` and click on `Next`
-5. Click on `Create user`
-6. View the created user.
-7. Click on the tab `Security credentials` and click on `Create access key`
-8. Click on the option `Command Line Interface (CLI)` and click on `Next`
-9. Click on the button `Create access key`
-10. Copy the keys `Access key` and `Secret access key`
+## 📁 Project Structure
 
-## Useful information if you fork this monorepo
+```
+stylus-sdk/
+│
+├── core/             # AssemblyScript modules (host bindings, memory, storage)
+├── cli/              # Node CLI: build & generate commands
+├── templates/        # Templates for index.ts, config files, etc
+├── contracts/        # (Optional) Dev playground for testing generated contracts
+│   └── hello-world/
+│       ├── index.ts
+│       ├── .dist/
+│       ├── package.json
+│       └── ...
+```
 
-### Package lock is git ignored
+---
 
-Intended in order to avoid merge conflicts on this repo
+## 🚀 CLI Commands
 
-**Don't forget to remove it from git ignore!**
-Package versions should always be defined specifically (without the simbol ^)
-This ensures that even if the lock is deleted, same versions would be reinstalled.
+> The SDK exposes two main commands via `npx as-sdk ...`
 
-Having the lock inside your repo is useful for CI package caching and to avoid version diff on fresh install.
+### 1. `generate`
 
-### Github workflow is deactivated
+Scaffolds a new Stylus-ready project with a `package.json`, `index.ts`, configs, and example functions.
 
-We don't want to trigger the workflow here, but you probably want to.
-You should rename the .github/workflows-off folder to **.github/workflow**
+```bash
+npx as-sdk generate hello-world
+```
+
+Result:
+
+```
+hello-world/
+├── index.ts
+├── asconfig.json
+├── tsconfig.json
+├── package.json
+```
+
+### 2. `build`
+
+Generates a `.dist/index.ts` file with the `user_entrypoint` wrapper for Stylus, based on your exported functions.
+
+```bash
+cd hello-world
+npm run build
+```
+
+---
+
+## 📦 Scripts in Generated Projects
+
+| Script    | Description                                     |
+| --------- | ----------------------------------------------- |
+| `build`   | Generate `.dist/index.ts` from user contract    |
+| `compile` | Compile `.dist/index.ts` to `build/module.wasm` |
+| `check`   | Run `cargo stylus check` on the generated WASM  |
+| `deploy`  | Deploy contract via `cargo stylus deploy`       |
+
+Make sure to export your `PRIVATE_KEY` before deploying:
+
+```bash
+export PRIVATE_KEY=your_key_here
+npm run deploy
+```
+
+---
+
+## 🧪 Example Contract
+
+```ts
+// index.ts
+import { counter } from "as-stylus";
+
+export function increment(): void {
+  const value = counter.load();
+  counter.store(value + 1);
+}
+
+export function decrement(): void {
+  const value = counter.load();
+  counter.store(value - 1);
+}
+
+export function get(): u64 {
+  return counter.load();
+}
+```
+
+After running `npm run build`, the SDK will wrap this logic in a valid Stylus entrypoint with function dispatching.
+
+---
+
+## ✅ Requirements
+
+- Node.js ≥ 18.x
+- AssemblyScript ≥ 0.27.x
+- `cargo stylus` (Globally installed Rust CLI)
+
+---
+
+## 📋 Resources
+
+- [Stylus Docs](https://docs.arbitrum.io/stylus)
+- [AssemblyScript](https://www.assemblyscript.org/)
+- [cargo stylus CLI](https://docs.arbitrum.io/stylus/tools/stylus-cli)
+

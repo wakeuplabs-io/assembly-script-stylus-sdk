@@ -1,4 +1,4 @@
-import { malloc } from "./memory";
+import { malloc } from "../modules/memory";
 
 export type address = usize;
 

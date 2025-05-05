@@ -9,24 +9,37 @@ import { generateEntrypoint } from "./builder/generate-entrypoint.js";
 import { applyTransforms } from "./transformers/index.js";
 
 
-const USER_CONTRACT_PATH = "../contracts/test-1/index.ts";
-
 export function runBuild() {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
 
-  const userFilePath = path.resolve(__dirname, USER_CONTRACT_PATH);
-  const contractBasePath = path.dirname(userFilePath);
-  const targetPath = path.join(contractBasePath, ".dist");
+  // const projectRoot   = process.cwd();}
+  
+  // const userIndexPath = fs.existsSync(path.resolve(projectRoot, "index.ts"))
+  // ? path.resolve(projectRoot, "index.ts")
+  // : fallbackContractPath;
 
-  if (fs.existsSync(targetPath)) {
-    fs.rmSync(targetPath, { recursive: true, force: true });
+  const fallbackProjectRoot = path.resolve("/Users/francoperez/repos/wakeup/assembly-script-stylus-sdk/packages/contracts/test-1");
+  const fallbackContractPath = path.resolve("/Users/francoperez/repos/wakeup/assembly-script-stylus-sdk/packages/contracts/test-1/index.ts");
+  const userIndexPath = fallbackContractPath;
+
+  if (!fs.existsSync(userIndexPath)) {
+    console.error(
+      `[as‑stylus] Error: cannot find "index.ts" in ${userIndexPath}.
+       Make sure you run "npx as-stylus build" inside a contract
+       folder that contains an AssemblyScript entry file named index.ts.`
+    );
+    process.exit(1);
   }
+
+  const targetPath = path.join(fallbackProjectRoot, ".dist");
+  if (fs.existsSync(targetPath)) fs.rmSync(targetPath, { recursive: true, force: true });
   fs.mkdirSync(targetPath, { recursive: true });
-  applyTransforms()
+
+  const transformedPath = path.join(targetPath, "index.transformed.ts");
+  fs.copyFileSync(userIndexPath, transformedPath);
+  applyTransforms(transformedPath);   
 
 
-  generateEntrypoint();
+  generateEntrypoint(targetPath);
   generateAsconfig(targetPath);
   generateTsconfig(targetPath);
   generatePackageJson(targetPath);

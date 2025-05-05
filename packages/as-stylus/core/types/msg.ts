@@ -1,7 +1,6 @@
-import { debugLogI32, debugLogI64 } from "../modules/console";
 import { msg_sender } from "../modules/hostio";
+import { malloc } from "../modules/memory";
 import { address } from "./address";
-import { malloc } from "./memory";
 
 export class Msg {
   private constructor() { }

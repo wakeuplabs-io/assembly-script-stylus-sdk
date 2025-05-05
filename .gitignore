@@ -42,3 +42,5 @@ packages/ui/cache
 
 # sst
 .sst
+
+contracts

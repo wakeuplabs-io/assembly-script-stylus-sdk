@@ -1,5 +1,5 @@
 {
-  "name": "test-sdk",
+  "name": "as-stylus",
   "version": "1.0.0",
   "description": "SDK to build AssemblyScript contracts for Stylus",
   "main": "dist/index.js",
