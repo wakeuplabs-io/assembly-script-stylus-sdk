@@ -2,12 +2,13 @@ import fs from "fs";
 import path from "path";
 import { applyTransforms } from "./transformers/index.js";
 import { applyValidations } from "./validators/index.js";
-import { generateEntrypoint } from "./builder/build-entrypoint.js";
-import { generateAsconfig } from "./builder/build-asconfig.js";
-import { generatePackageJson } from "./builder/build-package-json.js";
-import { generateRustToolchain } from "./builder/build-rust-toolchain.js";
-import { generateTsconfig } from "./builder/build-tsconfig.js";
-
+import { buildEntrypoint } from "./builder/build-entrypoint.js";
+import { buildAsconfig } from "./builder/build-asconfig.js";
+import { buildTsconfig } from "./builder/build-tsconfig.js";
+import { buildPackageJson } from "./builder/build-package-json.js";
+import { buildRustToolchain } from "./builder/build-rust-toolchain.js";
+import { AnalyzedContract } from "../../types/types.js";
+import { buildAbi } from "./builder/build-abi.js";
 
 export function runBuild() {
 
@@ -36,14 +37,17 @@ export function runBuild() {
 
   const transformedPath = path.join(targetPath, "index.transformed.ts");
   fs.copyFileSync(userIndexPath, transformedPath);
-  applyTransforms(transformedPath);  
-  applyValidations(transformedPath) 
+  // applyTransforms(transformedPath);  
 
-  generateEntrypoint(userIndexPath);
-  generateAsconfig(targetPath);
-  generateTsconfig(targetPath);
-  generatePackageJson(targetPath);
-  generateRustToolchain(targetPath);
+  const contract: AnalyzedContract = applyValidations(transformedPath) 
+
+  buildEntrypoint(userIndexPath, contract);
+
+  buildAsconfig(targetPath);
+  buildTsconfig(targetPath);
+  buildPackageJson(targetPath);
+  buildRustToolchain(targetPath);
+  buildAbi(targetPath, contract);
 
   console.log(`Generated new contract project at: ${targetPath}`);
 }

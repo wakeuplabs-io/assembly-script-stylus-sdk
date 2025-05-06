@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function generatePackageJson(targetPath: string) {
+export function buildPackageJson(targetPath: string) {
   fs.writeFileSync(
     path.join(targetPath, "package.json"),
     JSON.stringify(

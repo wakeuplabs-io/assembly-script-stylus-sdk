@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function generateAsconfig(targetPath: string) {
+export function buildAsconfig(targetPath: string) {
   fs.writeFileSync(
     path.join(targetPath, "asconfig.json"),
     JSON.stringify(

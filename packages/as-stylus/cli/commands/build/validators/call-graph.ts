@@ -1,9 +1,8 @@
 import { SourceFile } from "ts-morph";
-import { analyzeContract, AnalyzedMethod } from "./analyze-contract";
+import { analyzeContract } from "./analyze-contract";
+import { AnalyzedMethod } from "../../../types/types";
 
-/**
- * Construye un grafo de llamadas entre métodos por nombre.
- */
+
 export function buildCallGraph(analyzed: AnalyzedMethod[]): Map<string, Set<string>> {
   const graph = new Map<string, Set<string>>();
 
@@ -25,9 +24,6 @@ export function buildCallGraph(analyzed: AnalyzedMethod[]): Map<string, Set<stri
   return graph;
 }
 
-/**
- * Verifica que ninguna función llame a métodos @external.
- */
 export function validateExternalCalls(analyzed: AnalyzedMethod[], graph: Map<string, Set<string>>): void {
   const externalFuncs = new Set(
     analyzed.filter(fn => fn.visibility === "external").map(fn => fn.name)
@@ -50,8 +46,8 @@ export function validateExternalCalls(analyzed: AnalyzedMethod[], graph: Map<str
 /**
  * Entrada unificada
  */
-export function analyzeCallGraph(sourceFile: SourceFile): void {
-  const analyzed = analyzeContract(sourceFile);
-  const graph = buildCallGraph(analyzed);
-  validateExternalCalls(analyzed, graph);
-}
+// export function analyzeCallGraph(sourceFile: SourceFile): void {
+//   const analyzed = analyzeContract(sourceFile);
+//   const graph = buildCallGraph(analyzed);
+//   validateExternalCalls(analyzed, graph);
+// }

@@ -1,18 +1,17 @@
-import { Project } from "ts-morph";
 import fs from "fs";
 import path from "path";
-import { analyzeContract, AnalyzedMethod } from "../validators/analyze-contract";
+import { AnalyzedContract, AnalyzedMethod } from "../../../types/types";
+import { fileURLToPath } from "url";
 
-export function generateUserEntrypoint(analyzed: AnalyzedMethod[]) {
+export function generateUserEntrypoint(methods: AnalyzedMethod[]) {
   const imports: string[] = [];
   const entries: string[] = [];
-
-  for (const { name, visibility } of analyzed) {
-    if (visibility !== "external") continue;
-
-    const sig = `0x${Buffer.from(name).toString("hex").slice(0, 8)}`;
-    imports.push(`import { ${name} } from "./index.transformed";`);
-    entries.push(`if (selector == ${sig}) { ${name}(); return 0; }`);
+  for (const { name, visibility } of methods) {
+    if (visibility  === "external" || visibility === "public"){
+      const sig = `0x${Buffer.from(name).toString("hex").slice(0, 8)}`;
+      imports.push(`import { ${name} } from "./index.transformed";`);
+      entries.push(`if (selector == ${sig}) { ${name}(); return 0; }`);
+    }
   }
 
   return {
@@ -21,16 +20,15 @@ export function generateUserEntrypoint(analyzed: AnalyzedMethod[]) {
   };
 }
 
-export function generateEntrypoint(userFilePath: string): void {
-  const project = new Project();
-  const sourceFile = project.addSourceFileAtPath(userFilePath);
+export function buildEntrypoint(userFilePath: string, contract: AnalyzedContract): void {
 
-  const analyzed = analyzeContract(sourceFile);
-  const { imports, entrypointBody } = generateUserEntrypoint(analyzed);
+  const { imports, entrypointBody } = generateUserEntrypoint(contract.methods);
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const templatePath = path.resolve(__dirname, "../../../../templates/index.template.ts");
 
   const contractBasePath = path.dirname(userFilePath);
   const targetPath = path.join(contractBasePath, ".dist");
-  const templatePath = path.resolve(__dirname, "../../templates/index.template.ts");
 
   let indexTemplate = fs.readFileSync(templatePath, "utf-8");
   indexTemplate = indexTemplate.replace("// @logic_imports", imports);
