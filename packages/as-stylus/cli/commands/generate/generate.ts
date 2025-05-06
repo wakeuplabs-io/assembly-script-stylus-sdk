@@ -78,8 +78,7 @@ fs.writeFileSync(
     description: "",
     main: "index.js",
     scripts: {
-      build: "npx as-sdk build",
-      compile: "cd .dist && npm run build",
+      build: "cd .dist && npm run build",
       check: "cd .dist && npm run check",
       deploy: "cd .dist && npm run deploy",
     },

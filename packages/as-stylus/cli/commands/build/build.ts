@@ -1,18 +1,18 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
-import { generateAsconfig } from "./builder/generate-asconfig.js";
-import { generatePackageJson } from "./builder/generate-package-json.js";
-import { generateRustToolchain } from "./builder/generate-rust-toolchain.js";
-import { generateTsconfig } from "./builder/generate-tsconfig.js";
-import { generateEntrypoint } from "./builder/generate-entrypoint.js";
 import { applyTransforms } from "./transformers/index.js";
+import { applyValidations } from "./validators/index.js";
+import { generateEntrypoint } from "./builder/build-entrypoint.js";
+import { generateAsconfig } from "./builder/build-asconfig.js";
+import { generatePackageJson } from "./builder/build-package-json.js";
+import { generateRustToolchain } from "./builder/build-rust-toolchain.js";
+import { generateTsconfig } from "./builder/build-tsconfig.js";
 
 
 export function runBuild() {
 
   // const projectRoot   = process.cwd();}
-  
+
   // const userIndexPath = fs.existsSync(path.resolve(projectRoot, "index.ts"))
   // ? path.resolve(projectRoot, "index.ts")
   // : fallbackContractPath;
@@ -36,10 +36,10 @@ export function runBuild() {
 
   const transformedPath = path.join(targetPath, "index.transformed.ts");
   fs.copyFileSync(userIndexPath, transformedPath);
-  applyTransforms(transformedPath);   
+  applyTransforms(transformedPath);  
+  applyValidations(transformedPath) 
 
-
-  generateEntrypoint(targetPath);
+  generateEntrypoint(userIndexPath);
   generateAsconfig(targetPath);
   generateTsconfig(targetPath);
   generatePackageJson(targetPath);

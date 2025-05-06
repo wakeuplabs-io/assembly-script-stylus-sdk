@@ -1,3 +1,5 @@
+
+
 # 🧪 Stylus AssemblyScript PoC
 
 This is a simple Proof of Concept demonstrating how to build, deploy, and interact with a smart contract written in AssemblyScript for Arbitrum Stylus.
@@ -86,3 +88,46 @@ cast call --rpc-url http://localhost:8547 $CONTRACT_ADDRESS 0x03
 
 - `0x01`, `0x02`, and `0x03` are method selectors for `increment`, `decrement`, and `get` respectively.
 - The contract uses `write_result` to return a `u32` counter value.
+
+
+```mermaid
+flowchart TD
+  Start([Start: User runs `npx as-stylus build`])
+
+  subgraph Parsing & AST
+    Parsing["Parse TypeScript (ts-morph)"]
+    AST["Build AST with context"]
+  end
+
+  subgraph Analysis
+    ParseMetadata["parsers/: extract metadata from AST"]
+    Semantic["validators/: validate decorators, exports, etc."]
+    Static["call-graph/: validate external calls and call graphs"]
+  end
+
+  subgraph Transformation
+    Transform["transformers/: replace syntactic sugar (e.g. new U256())"]
+  end
+
+  subgraph CodeGen
+    Generator["builders/: generate"]
+    Entrypoint["builders/: generate entrypoint.ts"]
+    Asconfig["builders/: generate asconfig.json"]
+    Tsconfig["builders/: generate tsconfig.json"]
+    PkgJson["builders/: generate package.json"]
+    RustToolchain["builders/: generate rust-toolchain.toml"]
+  end
+
+  subgraph Output
+    Emit["Write to .dist/ folder"]
+  end
+
+  Start --> Parsing --> AST --> ParseMetadata --> Semantic --> Static --> Transform
+  Transform --> Generator
+  Generator --> Entrypoint --> Emit
+  Generator --> Asconfig --> Emit
+  Generator --> Asconfig --> Emit
+  Generator --> Tsconfig --> Emit
+  Generator --> PkgJson --> Emit
+  Generator --> RustToolchain --> Emit
+```
