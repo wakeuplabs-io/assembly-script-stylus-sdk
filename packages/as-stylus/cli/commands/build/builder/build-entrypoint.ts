@@ -1,16 +1,20 @@
 import fs from "fs";
 import path from "path";
-import { AnalyzedContract, AnalyzedMethod } from "../../../types/types";
 import { fileURLToPath } from "url";
+import { IRMethod, IRContract } from "../../../types/ir.types";
 
-export function generateUserEntrypoint(methods: AnalyzedMethod[]) {
+export function generateUserEntrypoint(methods: IRMethod[]) {
   const imports: string[] = [];
   const entries: string[] = [];
-  for (const { name, visibility } of methods) {
+  for (const { name, visibility, stateMutability } of methods) {
     if (visibility  === "external" || visibility === "public"){
       const sig = `0x${Buffer.from(name).toString("hex").slice(0, 8)}`;
-      imports.push(`import { ${name} } from "./index.transformed";`);
-      entries.push(`if (selector == ${sig}) { ${name}(); return 0; }`);
+      imports.push(`import { ${name} } from "./contract.transformed";`);
+      if (stateMutability === "view" || stateMutability === "pure") {
+        entries.push(`if (selector == ${sig}) { result = ${name}(); }`);
+      } else {
+        entries.push(`if (selector == ${sig}) { ${name}(); return 0; }`);
+      }
     }
   }
 
@@ -20,7 +24,7 @@ export function generateUserEntrypoint(methods: AnalyzedMethod[]) {
   };
 }
 
-export function buildEntrypoint(userFilePath: string, contract: AnalyzedContract): void {
+export function buildEntrypoint(userFilePath: string, contract: IRContract): void {
 
   const { imports, entrypointBody } = generateUserEntrypoint(contract.methods);
   const __filename = fileURLToPath(import.meta.url);

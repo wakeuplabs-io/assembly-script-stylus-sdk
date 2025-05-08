@@ -1,4 +1,4 @@
-import { malloc } from "../types/memory";
+import { malloc } from "./memory";
 import {
   storage_load_bytes32,
   storage_cache_bytes32,
@@ -6,7 +6,7 @@ import {
 } from "./hostio";
 
 /** Creates a 32-byte storage key from a u64 (BigEndian) */
-function createStorageKey(slot: u64): usize {
+export function createStorageKey(slot: u64): usize {
   const key = malloc(32);
   for (let i = 0; i < 24; i++) store<u8>(key + i, 0);
   for (let i = 0; i < 8; i++) store<u8>(key + 31 - i, <u8>(slot >> (8 * i)));

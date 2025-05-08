@@ -2,9 +2,9 @@
 import { Project } from "ts-morph";
 import path from "path";
 import { analyzeContract } from "./analyze-contract.js";
-import { AnalyzedContract } from "../../../types/types";
+import { IRContract } from "../../../types/ir.types.js";
 
-export function applyValidations(transformedFile: string): AnalyzedContract {
+export function applyValidations(transformedFile: string): IRContract {
   console.log("[as‑stylus] Validating…");
 
   const project = new Project({
@@ -12,8 +12,8 @@ export function applyValidations(transformedFile: string): AnalyzedContract {
   });
 
   const sourceFile = project.addSourceFileAtPath(transformedFile);
-  const contractAnalyzed: AnalyzedContract = analyzeContract(sourceFile);
+  const contractIR: IRContract = analyzeContract(sourceFile);
   console.log("[as‑stylus] ✔ Structural validation completed.");
 
-  return contractAnalyzed;
+  return contractIR;
 }

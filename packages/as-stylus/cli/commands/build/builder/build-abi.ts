@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { AnalyzedContract, AbiItem, AbiInput, AbiOutput } from "../../../types/types";
+import { AbiItem, AbiInput, AbiOutput } from "../../../types/abi.types";
+import { IRContract } from "../../../types/ir.types";
 
-export function buildAbi(targetPath: string, contract: AnalyzedContract) {
+export function buildAbi(targetPath: string, contract: IRContract) {
   const abi: AbiItem[] = [];
 
   for (const method of contract.methods) {

@@ -1,10 +1,19 @@
-import { SourceFile } from "ts-morph";
-import { AnalyzedConstructor, AnalyzedContract, AnalyzedMethod, STATE_MUTABILITY_DECORATORS, StateMutability, Visibility, VISIBILITY_DECORATORS } from "../../../types/types.js";
+import { Block, SourceFile } from "ts-morph";
+import { AbiStateMutability, AbiVisibility,STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "../../../types/abi.types.js";
+import { IRConstructor, IRContract, IRMethod, IRStatement, IRVariable } from "../../../types/ir.types.js";
+import { toIRStmt } from "./helpers.js";
 
-export function analyzeContract(sourceFile: SourceFile): AnalyzedContract {
-  const classDecl = sourceFile.getClassOrThrow("Main");
-  const methods: AnalyzedMethod[] = [];
-  let constructor: AnalyzedConstructor | undefined;
+export function analyzeContract(sourceFile: SourceFile): IRContract {
+  const classDecl = sourceFile.getClasses().find(cls =>
+    cls.getDecorators().some(dec => dec.getName().toLowerCase() === "contract")
+  );
+  
+  if (!classDecl) {
+    throw new Error(`[semantic] No class decorated with @Contract was found.`);
+  }
+
+  const methods: IRMethod[] = [];
+  let constructor: IRConstructor | undefined;
 
   const constructors = classDecl.getConstructors();
   if (constructors.length > 1) {
@@ -16,9 +25,12 @@ export function analyzeContract(sourceFile: SourceFile): AnalyzedContract {
       name: param.getName(),
       type: param.getType().getText(),
     }));
+    const body = constructorData.getBodyOrThrow() as Block;
+    const irBody = body.getStatements().map(toIRStmt);
     constructor = {
       constructor: constructorData,
       inputs,
+      ir: irBody
     };
   }
 
@@ -36,9 +48,8 @@ export function analyzeContract(sourceFile: SourceFile): AnalyzedContract {
       throw new Error(`[semantic] Method "${name}" has multiple mutability decorators: ${stateDecorators.map(d => d.getName()).join(", ")}`);
     }
 
-    const visibility: Visibility = visDecorators[0]?.getName() as Visibility ?? "public";
-
-    const stateMutability = stateDecorators[0]?.getName() as StateMutability ?? "nonpayable";
+    const visibility: AbiVisibility = visDecorators[0]?.getName()?.toLowerCase() ?? "public";
+    const stateMutability: AbiStateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? "nonpayable";
 
     const inputs = method.getParameters().map((param) => {
       return {
@@ -48,7 +59,12 @@ export function analyzeContract(sourceFile: SourceFile): AnalyzedContract {
     });
 
     const returnType = method.getReturnType().getText();
-    console.log({ returnType })
+
+
+
+    const body = method.getBodyOrThrow() as Block;
+    const irBody = body.getStatements().map(toIRStmt);
+
     methods.push({
       name,
       visibility,
@@ -56,12 +72,27 @@ export function analyzeContract(sourceFile: SourceFile): AnalyzedContract {
       outputs: returnType === "void" ? [] : [{ type: returnType }],
       stateMutability,
       method,
+      ir: irBody 
     });
   }
+
+  const variables: IRVariable[] = classDecl.getStaticProperties()
+  .filter(prop => prop.getKindName() === "PropertyDeclaration")
+  .map((prop, index) => {
+    const name = prop.getName();
+    const type = prop.getType().getText();
+    return { name, type, slot: index };
+  });
+
+
 
   return {
     name: classDecl.getName() ?? "Main",
     methods,
     constructor,
+    variables
   };
 }
+
+
+

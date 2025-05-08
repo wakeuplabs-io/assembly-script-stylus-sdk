@@ -124,10 +124,5 @@ flowchart TD
 
   Start --> Parsing --> AST --> ParseMetadata --> Semantic --> Static --> Transform
   Transform --> Generator
-  Generator --> Entrypoint --> Emit
-  Generator --> Asconfig --> Emit
-  Generator --> Asconfig --> Emit
-  Generator --> Tsconfig --> Emit
-  Generator --> PkgJson --> Emit
-  Generator --> RustToolchain --> Emit
+  Generator --> Entrypoint --> Asconfig --> Tsconfig --> PkgJson -->  RustToolchain --> Abi --> Emit
 ```
