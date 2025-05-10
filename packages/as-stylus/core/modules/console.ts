@@ -1,4 +1,4 @@
-import { malloc } from "../types/memory";
+import { malloc } from "./memory";
 
 @external("console", "log_i32")
 declare function log_i32(val: i32): void;

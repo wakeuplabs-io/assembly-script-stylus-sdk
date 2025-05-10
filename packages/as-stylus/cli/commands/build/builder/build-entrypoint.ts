@@ -8,10 +8,11 @@ export function generateUserEntrypoint(methods: IRMethod[]) {
   const entries: string[] = [];
   for (const { name, visibility, stateMutability } of methods) {
     if (visibility  === "external" || visibility === "public"){
-      const sig = `0x${Buffer.from(name).toString("hex").slice(0, 8)}`;
+      const hex = Buffer.from(name).toString("hex").slice(0, 8).padEnd(8, "0");
+      const sig = `0x${hex}`;
       imports.push(`import { ${name} } from "./contract.transformed";`);
       if (stateMutability === "view" || stateMutability === "pure") {
-        entries.push(`if (selector == ${sig}) { result = ${name}(); }`);
+        entries.push(`if (selector == ${sig}) { let ptr = ${name}(); write_result(ptr, 32); return 0; }`);
       } else {
         entries.push(`if (selector == ${sig}) { ${name}(); return 0; }`);
       }
