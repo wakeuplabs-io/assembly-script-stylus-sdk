@@ -8,7 +8,11 @@ export class U256Transformer {
   static for(sf: SourceFile) { return new U256Transformer(sf); }
 
   factory() { transformFactoryCalls(this.sf);  return this; }
-  methods() { transformInstanceCalls(this.sf); return this; }
+  methods() { 
+    transformInstanceCalls(this.sf);
+    transformViewPureMethods(this.sf);
+    return this; 
+  }
 
   apply() { ensureNoCheck(this.sf); this.sf.saveSync(); }
 }
@@ -22,6 +26,23 @@ export class ContractTransformer {
 }
 
 let strCounter = 0;
+
+function transformViewPureMethods(sf: SourceFile): void {
+  sf.getDescendantsOfKind(SyntaxKind.MethodDeclaration).forEach(method => {
+    const decorators = method.getDecorators().map(d => d.getName());
+    const isViewOrPure = decorators.includes("View") || decorators.includes("Pure");
+    if (!isViewOrPure) return;
+
+    const returnType = method.getReturnType().getText();
+    if (
+      returnType === "U256" ||
+      (returnType === "u64")
+    ) {
+      method.setReturnType("usize");
+      method.setBodyText("return load_counter();");
+    }
+  });
+}
 
 function transformFactoryCalls(sf: SourceFile): void {
   sf.getDescendantsOfKind(SyntaxKind.CallExpression).forEach(call => {

@@ -67,19 +67,19 @@ Take note of this deployed address and replace {{CONTRACT_ADDRESS}} in the examp
 ### Increment Counter
 
 ```bash
-export CONTRACT_ADDRESS = "..."
-cast send --rpc-url http://localhost:8547   --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 $CONTRACT_ADDRESS 0x01
+export CONTRACT_ADDRESS=0xexample
+cast send --rpc-url http://localhost:8547   --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 $CONTRACT_ADDRESS 0x696e6372
 ```
 ### Decrement Counter
 
 ```bash
-cast send --rpc-url http://localhost:8547   --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 $CONTRACT_ADDRESS 0x02
+cast send --rpc-url http://localhost:8547   --private-key 0xb6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659 $CONTRACT_ADDRESS 0x64656372
 ```
 
 ### Read Counter Value
 
 ```bash
-cast call --rpc-url http://localhost:8547 $CONTRACT_ADDRESS 0x03
+cast call --rpc-url http://localhost:8547 $CONTRACT_ADDRESS 0x67657400
 ```
 
 ---
