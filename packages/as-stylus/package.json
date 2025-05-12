@@ -8,8 +8,8 @@
     "test-sdk": "dist/cli/build.js"
   },
   "scripts": {
-    "generate": "tsc && node dist/generate.js",
-    "build": "tsc && node dist/build.js"
+    "generate": "tsc && node dist/commands/generate/generate.js",
+    "build": "tsc && node dist/commands/build/build.js"
   },
   "exports": {
     ".": {

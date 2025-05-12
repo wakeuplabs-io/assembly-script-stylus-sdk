@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function generatePackageJson(targetPath: string) {
+export function buildPackageJson(targetPath: string) {
   fs.writeFileSync(
     path.join(targetPath, "package.json"),
     JSON.stringify(
@@ -9,7 +9,7 @@ export function generatePackageJson(targetPath: string) {
         name: "generated-contract",
         version: "0.1.0",
         scripts: {
-          build: "asc index.ts --config asconfig.json",
+          compile: "asc index.ts --config asconfig.json",
           check: "cargo stylus check --wasm-file build/module.wasm",
           deploy:
             "PRIVATE_KEY=$PRIVATE_KEY cargo stylus deploy --wasm-file build/module.wasm --private-key $PRIVATE_KEY",

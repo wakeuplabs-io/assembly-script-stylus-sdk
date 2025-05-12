@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function generateTsconfig(targetPath: string) {
+export function buildTsconfig(targetPath: string) {
   fs.writeFileSync(
     path.join(targetPath, "tsconfig.json"),
     JSON.stringify(

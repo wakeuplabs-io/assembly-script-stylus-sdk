@@ -2,7 +2,6 @@
 
 import { malloc } from "../modules/memory";
 
-// // Utilities for handling U256 values (32-byte integers) in Stylus AssemblyScript.
 export class U256 {
   static create(): usize {
     const ptr = malloc(32);
@@ -49,13 +48,24 @@ export class U256 {
     }
   }
 
-  static add(dest: usize, src: usize): void {
+  static add(dest: usize, src: usize): usize {
     let carry: u16 = 0;
     for (let i = 31; i >= 0; i--) {
       const sum: u16 = <u16>load<u8>(dest + i) + load<u8>(src + i) + carry;
       store<u8>(dest + i, sum as u8);
       carry = sum > 0xFF ? 1 : 0;
     }
+    return dest;
+  }
+
+  static sub(dest: usize, src: usize): usize {
+    let borrow: u16 = 0;
+    for (let i = 31; i >= 0; i--) {
+      const diff: u16 = <u16>load<u8>(dest + i) - load<u8>(src + i) - borrow;
+      store<u8>(dest + i, diff as u8);
+      borrow = diff < 0 ? 1 : 0;
+    }
+    return dest;
   }
 }
 

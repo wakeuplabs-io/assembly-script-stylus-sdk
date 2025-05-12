@@ -1,9 +1,10 @@
 // cli/transformers/index.ts
 import { Project } from "ts-morph";
 import path from "path";
-import { analyzeCallGraph } from "./call-graph";
+import { analyzeContract } from "./analyze-contract.js";
+import { IRContract } from "../../../types/ir.types.js";
 
-export function applyValidations(transformedFile: string): void {
+export function applyValidations(transformedFile: string): IRContract {
   console.log("[as‑stylus] Validating…");
 
   const project = new Project({
@@ -11,8 +12,8 @@ export function applyValidations(transformedFile: string): void {
   });
 
   const sourceFile = project.addSourceFileAtPath(transformedFile);
-
-  analyzeCallGraph(sourceFile);
-  sourceFile.saveSync();
+  const contractIR: IRContract = analyzeContract(sourceFile);
   console.log("[as‑stylus] ✔ Structural validation completed.");
+
+  return contractIR;
 }

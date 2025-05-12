@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const baseContractsPath = path.resolve(__dirname, "../../contracts");
+const baseContractsPath = path.resolve(__dirname, "../../../../contracts");
 
 const contractName = process.argv[2];
 
@@ -58,13 +58,32 @@ fs.writeFileSync(
 
 // index.ts
 fs.writeFileSync(
-  path.join(targetPath, "index.ts"),
-`export function increment(): void { }
+  path.join(targetPath, "contract.ts"),
+  `// @ts-nocheck
+@Contract
+export class Counter {
+  static counter: U256;
 
-export function decrement(): void { }
+  constructor() {
+    Counter.counter = U256Factory.create();
+  }
 
-export function get(): u64 {
-  return 1;
+  @External
+  static increment(): void {
+    const delta: U256 = U256Factory.fromString("1");
+    Counter.counter = Counter.counter.add(delta);
+  }
+
+  @External
+  static decrement(): void {
+    const delta: U256 = U256Factory.fromString("1");
+    Counter.counter = Counter.counter.sub(delta);
+  }
+
+  @View
+  static get(): u64 {
+    return Counter.counter.toString();
+  }
 }
 `
 );
@@ -78,7 +97,7 @@ fs.writeFileSync(
     description: "",
     main: "index.js",
     scripts: {
-      build: "cd .dist && npm run build",
+      compile: "cd .dist && npm run compile",
       check: "cd .dist && npm run check",
       deploy: "cd .dist && npm run deploy",
     },
@@ -102,7 +121,7 @@ fs.writeFileSync(
   path.join(targetPath, "tsconfig.json"),
   JSON.stringify({
     extends: "assemblyscript/std/assembly.json",
-    include: ["index.ts"],
+    include: ["contract.ts"],
   }, null, 2)
 );
 

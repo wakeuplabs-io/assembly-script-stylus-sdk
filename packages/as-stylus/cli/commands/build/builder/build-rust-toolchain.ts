@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function generateRustToolchain(targetPath: string) {
+export function buildRustToolchain(targetPath: string) {
   fs.writeFileSync(
     path.join(targetPath, "rust-toolchain.toml"),
     `[toolchain]
