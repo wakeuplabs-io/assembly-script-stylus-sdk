@@ -97,7 +97,7 @@ fs.writeFileSync(
     description: "",
     main: "index.js",
     scripts: {
-      build: "cd .dist && npm run build",
+      compile: "cd .dist && npm run compile",
       check: "cd .dist && npm run check",
       deploy: "cd .dist && npm run deploy",
     },
