@@ -1,3 +1,7 @@
+<p align="right">
+  <img src="assets/light-logo.png" class="logo-light" alt="Logo Light" width=200 height=60>
+</p>
+
 # Milestone Report: AssemblyScript Integration for Stylus (Milestone #3)
 
 This milestone aims to establish the foundational components required for supporting AssemblyScript-based smart contract development in the Stylus environment on Arbitrum. The deliverables are focused on enabling a smooth compilation workflow, exposing essential SDK functionalities through preliminary APIs, and providing basic developer tooling for creating a project and a basic contract interaction.
@@ -507,3 +511,9 @@ This milestone also complements the research stage by validating design assumpti
 - [AssemblyScript](https://www.assemblyscript.org/)
 - [cargo stylus CLI](https://docs.arbitrum.io/stylus/tools/stylus-cli)
 - [GitHub Repository](https://github.com/wakeuplabs-io/assembly-script-stylus-sdk)
+
+---
+<p align="center">
+   Made by WakeUp Labs team <br/>
+   <img src="assets/light-logo.png" class="logo-light" alt="Logo Light" width=200 height=60>
+ </p>
