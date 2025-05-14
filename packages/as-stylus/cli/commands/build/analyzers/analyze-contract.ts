@@ -90,7 +90,7 @@ export function analyzeContract(sourceFile: SourceFile): IRContract {
     name: classDecl.getName() ?? "Main",
     methods,
     constructor,
-    variables
+    storage: variables
   };
 }
 

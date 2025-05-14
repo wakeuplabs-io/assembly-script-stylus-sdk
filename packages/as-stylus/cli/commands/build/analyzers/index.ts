@@ -4,7 +4,7 @@ import path from "path";
 import { analyzeContract } from "./analyze-contract.js";
 import { IRContract } from "../../../types/ir.types.js";
 
-export function applyValidations(transformedFile: string): IRContract {
+export function applyAnalysis(transformedFile: string): IRContract {
   console.log("[as‑stylus] Validating…");
 
   const project = new Project({

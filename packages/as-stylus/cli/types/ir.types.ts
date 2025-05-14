@@ -5,7 +5,8 @@ export type IRStatement =
   | { kind: "assign"; target: string; expr: IRExpression }
   | { kind: "expr"; expr: IRExpression }
   | { kind: "return"; expr: IRExpression }
-  | { kind: "if"; condition: IRExpression; then: IRStatement[]; else?: IRStatement[] };
+  | { kind: "if"; condition: IRExpression; then: IRStatement[]; else?: IRStatement[] }
+  | { kind: "block"; body: IRStatement[] };
 
 // Expresiones
 export type IRExpression =
@@ -15,7 +16,7 @@ export type IRExpression =
   | { kind: "member"; object: IRExpression; property: string }
   | { kind: "binary"; op: string; left: IRExpression; right: IRExpression }; 
 
-  export type IRMethod = {
+export type IRMethod = {
     name: string;
     visibility: AbiVisibility;
     method: import("ts-morph").MethodDeclaration;
@@ -23,23 +24,23 @@ export type IRExpression =
     inputs: AbiInput[];
     outputs: AbiOutput[];
     ir: IRStatement[];
-  };
+};
   
-  export type IRConstructor = {
+export type IRConstructor = {
     inputs: AbiInput[];
     constructor: import("ts-morph").ConstructorDeclaration;
     ir: IRStatement[];
-  };
+};
   
-  export type IRVariable = {
+export type IRVariable = {
     name: string;
     type: string;
     slot: number;
-  };
+};
   
-  export type IRContract = {
+export type IRContract = {
     name: string;
     methods: IRMethod[];
     constructor?: IRConstructor;
-    variables: IRVariable[];
-  }
+    storage: IRVariable[];
+}

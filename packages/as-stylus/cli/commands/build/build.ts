@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { applyValidations } from "./validators/index.js";
+import { applyAnalysis } from "./analyzers/index.js";
 import { buildProject } from "./builder/index.js";
 import { applyTransforms } from "./transformers/index.js";
 import { IRContract } from "../../types/ir.types.js";
+import { generateFromIR } from "./transformers/transform-from-ir.js";
 
 export function runBuild() {
 
@@ -32,8 +33,11 @@ export function runBuild() {
   const transformedPath = path.join(targetPath, "contract.transformed.ts");
   fs.copyFileSync(userIndexPath, transformedPath);
 
-  const contract: IRContract = applyValidations(userIndexPath) 
-  applyTransforms(transformedPath, contract);  
+  const contract: IRContract = applyAnalysis(transformedPath) 
+  console.log(contract.methods[0].ir[0])
+  console.log((contract.methods[0].ir[0] as any).expr)
+  generateFromIR(contract, path.dirname(transformedPath));
+  // applyTransforms(transformedPath, contract);  
   buildProject(userIndexPath, contract);
 
   console.log(`Generated new contract project at: ${targetPath}`);
