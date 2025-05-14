@@ -72,6 +72,10 @@ export function detectExpressionType(expr: any): string | null {
     }
   }
   
+  return detectExpressionTypeFallback(expr);
+}
+
+function detectExpressionTypeFallback(expr: any): string | null {
   if (expr.kind === "call") {
     const target = expr.target || "";
     
