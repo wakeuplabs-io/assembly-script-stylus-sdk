@@ -1,4 +1,4 @@
-import { emitExpression, getU256FromStringInfo, globalContext } from "./expressions.js";
+import { emitExpression, globalContext } from "./expressions.js";
 
 /**
  * Emits code for a list of statements with indentation
@@ -26,16 +26,20 @@ function emitStatement(s: any, indent: string): string {
      * Example: `let x = 5;`
      * 
      * Generates code to declare a variable and assign it a value.
+     * Improved case that takes advantage of setupLines from transformers
+     * This allows each transformer to decide how to initialize its type
+     * without needing special cases here
      */
-    case "let": { 
-      const u256Info = getU256FromStringInfo(s.expr);
-      if (u256Info) {
-        const lines = [...u256Info.code];
-        lines.push(`const ${s.name}: usize = ${u256Info.varName};`);
-        return lines.map(line => `${indent}${line}`).join('\n');
+    case "let": {
+      const result = emitExpression(s.expr, true);
+      
+      if (result.setupLines && result.setupLines.length > 0) {
+        const lines = [...result.setupLines.map(line => `${indent}${line}`)];
+        lines.push(`${indent}const ${s.name} = ${result.valueExpr};`);
+        return lines.join('\n');
       }
       
-      code = `${indent}const ${s.name} = ${emitExpression(s.expr, true)};`;
+      code = `${indent}const ${s.name} = ${result.valueExpr};`;
       break;
     }
     
@@ -50,25 +54,37 @@ function emitStatement(s: any, indent: string): string {
      * generates code that stores the results in storage.
      */
     case "expr": {
-      if (s.expr.kind === "call") {
-        const target = s.expr.target || "";
-        
-        if ((target.endsWith(".add") || target.endsWith(".sub"))) {
-          const fullTarget = target.substring(0, target.lastIndexOf('.'));
-          const parts = fullTarget.split('.');
-          
-          if (parts.length >= 2 && parts[0] === globalContext.contractName) {
-            const property = parts[1];
-            const operation = target.endsWith(".add") ? "add" : "sub";
+      if (s.expr.kind === "call" && (s.expr.target.endsWith(".add") || s.expr.target.endsWith(".sub"))) {
+        const parts = s.expr.target.split(".");
+        if (parts.length === 3 && parts[0] === globalContext.contractName) {
+          const property = parts[1];
+          const operation = parts[2];
+          if (operation === "add" || operation === "sub") {
+            const exprResult = emitExpression(s.expr.args[0]);
             const ptrName = `ptr${globalContext.ptrCounter++}`;
             
-            return `${indent}const ${ptrName} = U256.${operation}(load_${property}(), ${emitExpression(s.expr.args[0])});
-${indent}store_${property}(${ptrName});`;
+            let lines: string[] = [];
+            if (exprResult.setupLines.length > 0) {
+              lines = [...exprResult.setupLines.map(line => `${indent}${line}`)];
+            }
+            
+            lines.push(`${indent}const ${ptrName} = U256.${operation}(load_${property}(), ${exprResult.valueExpr});`);
+            lines.push(`${indent}store_${property}(${ptrName});`);
+            
+            return lines.join('\n');
           }
         }
       }
       
-      code = `${indent}${emitExpression(s.expr)};`;
+      const exprResult = emitExpression(s.expr);
+      
+      if (exprResult.setupLines.length > 0) {
+        const lines: string[] = [...exprResult.setupLines.map(line => `${indent}${line}`)];
+        lines.push(`${indent}${exprResult.valueExpr};`);
+        return lines.join('\n');
+      }
+      
+      code = `${indent}${exprResult.valueExpr};`;
       break;
     }
     
@@ -83,7 +99,15 @@ ${indent}store_${property}(${ptrName});`;
      */
     case "return": {
       if (s.expr) {
-        code = `${indent}return ${emitExpression(s.expr)};`;
+        const exprResult = emitExpression(s.expr);
+        
+        if (exprResult.setupLines.length > 0) {
+          const lines: string[] = [...exprResult.setupLines.map(line => `${indent}${line}`)];
+          lines.push(`${indent}return ${exprResult.valueExpr};`);
+          return lines.join('\n');
+        }
+        
+        code = `${indent}return ${exprResult.valueExpr};`;
       } else {
         code = `${indent}return;`;
       }
@@ -114,16 +138,24 @@ ${indent}store_${property}(${ptrName});`;
      * 'then' block and the optional 'else' block.
      */
     case "if": {
-      code = `${indent}if (${emitExpression(s.condition)}) {\n`;
-      code += emitStatements(s.then).split('\n').map(line => `${indent}${line}`).join('\n');
-      code += `\n${indent}}`;
+      const condResult = emitExpression(s.condition);
+      
+      let lines: string[] = [];
+      if (condResult.setupLines.length > 0) {
+        lines = [...condResult.setupLines.map(line => `${indent}${line}`)];
+      }
+      
+      lines.push(`${indent}if (${condResult.valueExpr}) {`);
+      lines.push(emitStatements(s.then).split('\n').map(line => `${indent}${line}`).join('\n'));
+      lines.push(`${indent}}`);
       
       if (s.else && s.else.length > 0) {
-        code += ` else {\n`;
-        code += emitStatements(s.else).split('\n').map(line => `${indent}${line}`).join('\n');
-        code += `\n${indent}}`;
+        lines[lines.length - 1] += ` else {`; // Añadir el 'else' a la línea del cierre de '}'        
+        lines.push(emitStatements(s.else).split('\n').map(line => `${indent}${line}`).join('\n'));
+        lines.push(`${indent}}`);
       }
-      break;
+      
+      return lines.join('\n');
     }
     
     /**
@@ -190,18 +222,31 @@ ${indent}store_${property}(${ptrName});`;
      * Otherwise, it emits a regular assignment statement.
      */
     case "assign": {
+      const exprResult = emitExpression(s.expr);
+      let lines: string[] = [];
+      
+      if (exprResult.setupLines.length > 0) {
+        lines = [...exprResult.setupLines.map(line => `${indent}${line}`)];
+      }
+      
       if (s.target.indexOf('.') === -1) {
-        code = `${indent}${s.target} = ${emitExpression(s.expr)};`;
+        lines.push(`${indent}${s.target} = ${exprResult.valueExpr};`);
       } else {
         const parts = s.target.split('.');
         
-        if (parts.length === 2 && parts[0] === globalContext.contractName) {
+        if (parts[0] === globalContext.contractName) {
           const property = parts[1];
-          code = `${indent}store_${property}(${emitExpression(s.expr)});`;
+          lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);
         } else {
-          code = `${indent}${s.target} = ${emitExpression(s.expr)};`;
+          lines.push(`${indent}${s.target} = ${exprResult.valueExpr};`);
         }
       }
+      
+      if (lines.length > 1) {
+        return lines.join('\n');
+      }
+      
+      code = lines[0];
       break;
     }
     

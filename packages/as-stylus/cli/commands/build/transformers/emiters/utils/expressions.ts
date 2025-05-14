@@ -1,4 +1,4 @@
-import { EmitContext, typeTransformers, detectExpressionType } from '../types/transformers.js';
+import { EmitContext, typeTransformers, detectExpressionType, EmitResult } from '../types/transformers.js';
 import '../transformers/u256.transformer.js';
 
 export const globalContext: EmitContext = {
@@ -12,48 +12,40 @@ export function initExpressionContext(name: string): void {
   globalContext.contractName = name;
 }
 
-export function emitExpression(expr: any, isInStatement: boolean = false): string {
+/**
+ * Main function to emit code from an expression.
+ * Returns an EmitResult object with setup lines and value expression.
+ * 
+ * @param expr - The expression to emit
+ * @param isInStatement - Whether the expression is inside a statement
+ * @returns EmitResult with setup lines and final expression
+ */
+function emitExpressionWrapper(expr: any, ctx: EmitContext): EmitResult {
+  return emitExpression(expr, ctx.isInStatement);
+}
+
+export function emitExpression(expr: any, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
   
   const typeName = detectExpressionType(expr);
   const transformer = typeName ? typeTransformers[typeName] : null;
   
-  if (transformer) {
-    return handleWithTransformer(expr, transformer);
-  }
-  
-  return handleFallbackExpression(expr);
+  if (transformer && typeof transformer.emit === 'function') {
+    return transformer.emit(expr, globalContext, emitExpressionWrapper);
+  } 
+  return { 
+    setupLines: [], 
+    valueExpr: handleFallbackExpression(expr) 
+  };
 }
 
-function handleWithTransformer(expr: any, transformer: any): string {
-  if (expr.kind === "call") {
-    const target = expr.target || "";
-    
-    if (target === `${transformer.typeName}Factory.create`) {
-      return transformer.emitCreateExpression(expr.args, globalContext);
-    }
-    
-    if (target === `${transformer.typeName}Factory.fromString`) {
-      return transformer.emitFromStringExpression(expr.args[0], globalContext);
-    }
-    
-    if (target.includes(".")) {
-      const parts = target.split(".");
-      const methodName = parts[parts.length - 1];
-      
-      if (transformer.canHandleMethodCall(methodName, target)) {
-        return transformer.emitMethodCall(
-          methodName,
-          target,
-          expr.args,
-          globalContext,
-          emitExpression
-        );
-      }
-    }
-  }
-  
-  return handleFallbackExpression(expr);
+/**
+ * Compatibility function for existing code that expects a string.
+ * @deprecated Use emitExpression that returns EmitResult
+ */
+export function emitExpressionAsString(expr: any, isInStatement: boolean = false): string {
+  const result = emitExpression(expr, isInStatement);
+  return result.valueExpr;
 }
 
 function handleFallbackExpression(expr: any): string {
@@ -89,7 +81,8 @@ function handleFallbackExpression(expr: any): string {
     case "member":
       if (expr.object.kind === "var" && expr.object.name === globalContext.contractName)
         return `load_${expr.property}()`;
-      return `${emitExpression(expr.object)}.${expr.property}`;
+      const objResult = emitExpression(expr.object);
+      return `${objResult.valueExpr}.${expr.property}`;
 
     /**
      * Case "call": Function or method call
@@ -99,7 +92,8 @@ function handleFallbackExpression(expr: any): string {
      *   U256.add(a, b)
      */
     case "call":
-      return `${expr.target}(${expr.args.map((a: any) => emitExpression(a)).join(", ")})`;
+      const argResults = expr.args.map((a: any) => emitExpression(a));
+      return `${expr.target}(${argResults.map((r: EmitResult) => r.valueExpr).join(", ")})`;
 
     /**
      * Case "binary": Binary operation (e.g., assignment, arithmetic)
@@ -119,11 +113,16 @@ function handleFallbackExpression(expr: any): string {
             expr.left.object.kind === "var" && 
             expr.left.object.name === globalContext.contractName) {
           const property = expr.left.property;
-          return `store_${property}(${emitExpression(expr.right)})`;
+          const rightResult = emitExpression(expr.right);
+          return `store_${property}(${rightResult.valueExpr})`;
         }
-        return `${emitExpression(expr.left)} = ${emitExpression(expr.right)}`;
+        const leftResult = emitExpression(expr.left);
+        const rightResult = emitExpression(expr.right);
+        return `${leftResult.valueExpr} = ${rightResult.valueExpr}`;
       }
-      return `${emitExpression(expr.left)} ${expr.op} ${emitExpression(expr.right)}`;
+      const leftResult = emitExpression(expr.left);
+      const rightResult = emitExpression(expr.right);
+      return `${leftResult.valueExpr} ${expr.op} ${rightResult.valueExpr}`;
 
     /**
      * Default: Unsupported expression kind

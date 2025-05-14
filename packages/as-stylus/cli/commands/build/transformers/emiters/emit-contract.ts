@@ -35,10 +35,8 @@ export function emitContract(contract: IRContract): string {
 
   // Methods
   contract.methods.forEach((m) => {
-    // Determinar el tipo de retorno - por defecto es void
     let returnType = "void";
     
-    // Para las funciones de tipo view, comprobar si deberían devolver usize
     if (m.stateMutability === "view" || m.stateMutability === "pure") {
       if (m.outputs && m.outputs.length > 0 && 
          (m.outputs[0].type === "U256" || m.outputs[0].type === "u64")) {

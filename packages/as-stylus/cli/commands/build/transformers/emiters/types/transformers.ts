@@ -1,3 +1,17 @@
+/**
+ * EmitResult is the result of emitting code for an expression.
+ *
+ * It contains:
+ * - setupLines: an array of strings with code lines that must be executed before using the expression
+ * - valueExpr: the final expression that represents the value
+ * - valueType: the type of the value (optional, for type checking)
+ */
+export interface EmitResult {
+  setupLines: string[];
+  valueExpr: string;
+  valueType?: string;
+}
+
 export interface EmitContext {
   isInStatement: boolean;
   contractName: string;
@@ -10,6 +24,21 @@ export interface TypeTransformer {
   
   matchesType: (expr: any) => boolean;
   
+  /**
+   * Método principal para emitir código para cualquier expresión de este tipo
+   * @param expr - La expresión a emitir
+   * @param context - El contexto de emisión
+   * @param emitExprFn - Función para emitir expresiones anidadas
+   * @returns EmitResult con líneas de configuración y expresión de valor
+   */
+  emit: (expr: any, context: EmitContext, emitExprFn: (expr: any, ctx: EmitContext) => EmitResult) => EmitResult;
+  
+  /**
+   * Specific methods - These are kept for compatibility, but they will be
+   * replaced gradually by the more generic emit method
+   *
+   * TODO: Remove these methods when no longer needed
+   */
   emitCreateExpression: (args: any[], context: EmitContext) => string;
   emitFromStringExpression: (stringArg: any, context: EmitContext) => string;
   
