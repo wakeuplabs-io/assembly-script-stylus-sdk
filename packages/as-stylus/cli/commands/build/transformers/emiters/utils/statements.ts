@@ -44,7 +44,7 @@ function emitStatement(s: any, indent: string): string {
     }
     
     /**
-     * Case "expr": Standalone expression
+     * Case "expr": Expression statement
      * 
      * Example in IR: { kind: "expr", expr: { kind: "call", target: "Counter.counter.add", args: [{ kind: "var", name: "delta" }] } }
      * Example in source code: `Counter.counter.add(delta);`
@@ -54,39 +54,21 @@ function emitStatement(s: any, indent: string): string {
      * generates code that stores the results in storage.
      */
     case "expr": {
-      if (s.expr.kind === "call" && (s.expr.target.endsWith(".add") || s.expr.target.endsWith(".sub"))) {
-        const parts = s.expr.target.split(".");
-        if (parts.length === 3 && parts[0] === globalContext.contractName) {
-          const property = parts[1];
-          const operation = parts[2];
-          if (operation === "add" || operation === "sub") {
-            const exprResult = emitExpression(s.expr.args[0]);
-            const ptrName = `ptr${globalContext.ptrCounter++}`;
-            
-            let lines: string[] = [];
-            if (exprResult.setupLines.length > 0) {
-              lines = [...exprResult.setupLines.map(line => `${indent}${line}`)];
-            }
-            
-            lines.push(`${indent}const ${ptrName} = U256.${operation}(load_${property}(), ${exprResult.valueExpr});`);
-            lines.push(`${indent}store_${property}(${ptrName});`);
-            
-            return lines.join('\n');
-          }
-        }
+      const exprResult = emitExpression(s.expr, true);
+    
+      if (exprResult.statementLines?.length) {
+        return exprResult.statementLines.map(l => indent + l).join("\n");
       }
-      
-      const exprResult = emitExpression(s.expr);
-      
-      if (exprResult.setupLines.length > 0) {
-        const lines: string[] = [...exprResult.setupLines.map(line => `${indent}${line}`)];
+    
+      if (exprResult.setupLines.length) {
+        const lines = exprResult.setupLines.map(l => indent + l);
         lines.push(`${indent}${exprResult.valueExpr};`);
-        return lines.join('\n');
+        return lines.join("\n");
       }
-      
-      code = `${indent}${exprResult.valueExpr};`;
-      break;
+    
+      return `${indent}${exprResult.valueExpr};`;
     }
+    
     
     /**
      * Case "return": Return statement

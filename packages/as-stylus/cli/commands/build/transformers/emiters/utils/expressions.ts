@@ -1,5 +1,6 @@
-import { EmitContext, typeTransformers, detectExpressionType, EmitResult } from '../types/transformers.js';
+import { typeTransformers, detectExpressionType } from '../types/transformers.js';
 import '../transformers/u256.transformer.js';
+import { EmitContext, EmitResult } from '../../../../../types/emit.types.js';
 
 export const globalContext: EmitContext = {
   isInStatement: false,
@@ -130,38 +131,4 @@ function handleFallbackExpression(expr: any): string {
     default:
       return `/* Unsupported expression: ${expr.kind} */`;
   }
-}
-
-export function getU256FromStringInfo(expr: any): {
-  code: string[], 
-  varName: string 
-} | null {
-  if (expr.kind !== "call" || expr.target !== "U256Factory.fromString") {
-    return null;
-  }
-  
-  const stringArg = expr.args[0];
-  if (stringArg.kind !== "literal") {
-    return null;
-  }
-  
-  const stringValue = stringArg.value;
-  const strId = globalContext.strCounter++;
-  const u256Id = `__u256${strId}`;
-  const mallocId = `__str${strId}`;
-  
-  const code: string[] = [];
-  code.push(`const ${mallocId} = malloc(${stringValue.length});`);
-  
-  for (let i = 0; i < stringValue.length; i++) {
-    code.push(`store<u8>(${mallocId} + ${i}, ${stringValue.charCodeAt(i)});`);
-  }
-  
-  code.push(`const ${u256Id}: usize = U256.create();`);
-  code.push(`U256.setFromString(${u256Id}, ${mallocId}, ${stringValue.length});`);
-  
-  return {
-    code,
-    varName: u256Id
-  };
 }
