@@ -26,10 +26,10 @@ export interface TypeTransformer {
   
   /**
    * Método principal para emitir código para cualquier expresión de este tipo
-   * @param expr - La expresión a emitir
-   * @param context - El contexto de emisión
-   * @param emitExprFn - Función para emitir expresiones anidadas
-   * @returns EmitResult con líneas de configuración y expresión de valor
+   * @param expr - The expression to emit
+   * @param context - The emission context
+   * @param emitExprFn - Function to emit nested expressions
+   * @returns EmitResult with setup lines and value expression
    */
   emit: (expr: any, context: EmitContext, emitExprFn: (expr: any, ctx: EmitContext) => EmitResult) => EmitResult;
   
