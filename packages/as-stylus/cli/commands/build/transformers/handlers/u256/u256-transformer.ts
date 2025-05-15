@@ -1,10 +1,12 @@
-import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
-import { registerTransformer } from "../types.js";
-import { BaseTypeTransformer } from "../handlers/base-transformer.js";
-import { U256CreateHandler } from "../handlers/u256/create-handler.js";
-import { U256FromStringHandler } from "../handlers/u256/from-string-handler.js";
-import { U256OperationHandler } from "../handlers/u256/operation-handler.js";
-import { U256ToStringHandler } from "../handlers/u256/to-string-handler.js";
+import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
+import { registerTransformer } from "../../types.js";
+import { BaseTypeTransformer } from "../base-transformer.js";
+import { U256CreateHandler } from "./create-handler.js";
+import { U256FromStringHandler } from "./from-string-handler.js";
+import { U256OperationHandler } from "./operation-handler.js";
+import { U256ToStringHandler } from "./to-string-handler.js";
+
+// Make sure to import this file in the main transformer index
 
 /**
  * U256 transformer implementation using the modular handler pattern
