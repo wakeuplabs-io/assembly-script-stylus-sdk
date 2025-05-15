@@ -1,9 +1,17 @@
 import { Expression, SyntaxKind, StringLiteral, NumericLiteral, Identifier, CallExpression, PropertyAccessExpression, Statement, VariableStatement, ExpressionStatement, BinaryExpression, ReturnStatement, IfStatement } from "ts-morph";
 import { IRExpression, IRStatement } from "../../../types/ir.types";
 
+/**
+ * Converts TypeScript expressions to Intermediate Representation (IR)
+ * 
+ * @param expr - The TypeScript expression to convert
+ * @returns The IR representation of the expression
+ */
+
 export function toIRExpr(expr: Expression): IRExpression {
   switch (expr.getKind()) {
-    /* ---------- literales ---------- */
+    /* ---------- Literal values ---------- */
+    // Example: "hello", 42, true, false
     case SyntaxKind.StringLiteral: {
       const lit = expr as StringLiteral;
       return { kind: "literal", value: lit.getLiteralText() };
@@ -17,13 +25,15 @@ export function toIRExpr(expr: Expression): IRExpression {
     case SyntaxKind.FalseKeyword:
       return { kind: "literal", value: false };
 
-    /* ---------- variable ---------- */
+    /* ---------- Variables ---------- */
+    // Example: counter, value, amount
     case SyntaxKind.Identifier: {
       const id = expr as Identifier;
       return { kind: "var", name: id.getText() };
     }
 
-    /* ---------- llamada ---------- */
+    /* ---------- Function calls ---------- */
+    // Example: increment(), U256Factory.create()
     case SyntaxKind.CallExpression: {
       const call = expr as CallExpression;
       const target = call.getExpression().getText();
@@ -31,8 +41,10 @@ export function toIRExpr(expr: Expression): IRExpression {
       return { kind: "call", target, args };
     }
 
-    /* ---------- acceso a miembro ---------- */
-    case SyntaxKind.PropertyAccessExpression: {
+    /* ---------- Member access ---------- */
+    // For method access obj.prop, this is a PropertyAccessExpression
+    // For property access obj["prop"], this is an ElementAccessExpression
+    case SyntaxKind.PropertyAccessExpression: { // Example: contract.balance, u256value.toString()
       const pa = expr as PropertyAccessExpression;
       return {
         kind: "member",
@@ -43,7 +55,7 @@ export function toIRExpr(expr: Expression): IRExpression {
 
     case SyntaxKind.BinaryExpression: {
       const bin = expr.asKindOrThrow(SyntaxKind.BinaryExpression);
-      const op  = bin.getOperatorToken().getText();      // "+", "-", ">", "="…
+      const op  = bin.getOperatorToken().getText();  // Gets the operator token ("+", "-", "*", "/", "=", etc.)
       return {
         kind:  "binary",
         op,
@@ -57,8 +69,18 @@ export function toIRExpr(expr: Expression): IRExpression {
   }
 }
 
+/**
+ * Converts TypeScript statements to Intermediate Representation (IR)
+ * 
+ * @param stmt - The TypeScript statement to convert
+ * @returns The IR representation of the statement
+ */
 export function toIRStmt(stmt: Statement): IRStatement {
   switch (stmt.getKind()) {
+    /**
+     * Variable declaration statement
+     * Example: "let counter = 0;", "const value = u256.create();"
+     */ 
     case SyntaxKind.VariableStatement: {
       const decl = (stmt as VariableStatement).getDeclarations()[0];
       return {
@@ -71,7 +93,11 @@ export function toIRStmt(stmt: Statement): IRStatement {
     case SyntaxKind.ExpressionStatement: {
       const expr = (stmt as ExpressionStatement).getExpression();
 
-      /** ---------- ASIGNACIÓN:  x = <expr> ---------- */
+      /**
+     * Expression statement represents function calls, assignments, etc.
+     * Examples: "increment();", "counter = counter + 1;"
+     */ 
+      /** ---------- ASSIGNMENT: x = <expr> ---------- */
       if (expr.getKind() === SyntaxKind.BinaryExpression) {
         const bin = expr as BinaryExpression;
 
@@ -79,7 +105,7 @@ export function toIRStmt(stmt: Statement): IRStatement {
           const lhsNode  = bin.getLeft();
           const rhsNode  = bin.getRight();
 
-          // sólo tratamos como asignación si el LHS es un identificador
+          // Only treat as assignment if the LHS is an identifier
           if (lhsNode.getKind() === SyntaxKind.Identifier) {
             const lhsId = lhsNode as Identifier;
             return {
@@ -91,20 +117,29 @@ export function toIRStmt(stmt: Statement): IRStatement {
         }
       }
 
-      /** ---------- EXPR SUELTA ---------- */
+      /** ---------- SIMPLE CALL: fn() ---------- */
       return { kind: "expr", expr: toIRExpr(expr) };
     }
 
+    /**
+     * Return statement for returning values from functions
+     * Examples: "return 0;", "return counter.toString();"
+     */
     case SyntaxKind.ReturnStatement: {
       const ret = stmt as ReturnStatement;
+      // Skip edge cases: when using destructuring, etc.
       return { kind: "return", expr: toIRExpr(ret.getExpressionOrThrow()) };
     }
 
+    /**
+     * If statement for conditional execution
+     * Example: "if (counter > 10) { reset(); } else { increment(); }"
+     */
     case SyntaxKind.IfStatement: {
       const ifs = stmt as IfStatement;
       const cond = toIRExpr(ifs.getExpression());
       const thenStmts = ifs.getThenStatement()
-                          .asKindOrThrow(SyntaxKind.Block)
+                          .asKindOrThrow(SyntaxKind.Block) 
                           .getStatements()
                           .map(toIRStmt);
       const elseNode = ifs.getElseStatement();

@@ -1,3 +1,7 @@
+/**
+ * Utilities for handling storage in the IR-to-AssemblyScript transformation
+ */
+
 // Constants for imports
 export const IMPORT_BLOCK = [
   "import { U256 } from '../../../as-stylus/core/types/u256';",

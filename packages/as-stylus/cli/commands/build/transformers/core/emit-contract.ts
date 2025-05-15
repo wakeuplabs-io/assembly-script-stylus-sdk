@@ -1,7 +1,8 @@
 import { IRContract } from "../../../../types/ir.types.js";
-import { IMPORT_BLOCK, slotConst, loadFn, storeFn } from "./utils/storage.js";
-import { initExpressionContext } from "./utils/expressions.js";
-import { emitStatements } from "./utils/statements.js";
+import { initExpressionContext } from "../utils/expressions.js";
+import { emitStatements } from "../utils/statements.js";
+import { IMPORT_BLOCK, slotConst, loadFn, storeFn } from "../utils/storage.js";
+
 
 /**
  * Generates the AssemblyScript code for a contract from its IR representation

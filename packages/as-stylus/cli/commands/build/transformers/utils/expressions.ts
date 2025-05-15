@@ -1,6 +1,5 @@
-import { typeTransformers, detectExpressionType } from '../types/transformers.js';
-import '../transformers/u256.transformer.js';
-import { EmitContext, EmitResult } from '../../../../../types/emit.types.js';
+import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
+import { detectExpressionType, typeTransformers } from "../types.js";
 
 export const globalContext: EmitContext = {
   isInStatement: false,
@@ -27,10 +26,9 @@ function emitExpressionWrapper(expr: any, ctx: EmitContext): EmitResult {
 
 export function emitExpression(expr: any, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
-  
   const typeName = detectExpressionType(expr);
   const transformer = typeName ? typeTransformers[typeName] : null;
-  
+
   if (transformer && typeof transformer.emit === 'function') {
     return transformer.emit(expr, globalContext, emitExpressionWrapper);
   } 
