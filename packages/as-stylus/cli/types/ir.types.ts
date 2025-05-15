@@ -19,7 +19,6 @@ export type IRExpression =
 export type IRMethod = {
     name: string;
     visibility: AbiVisibility;
-    method: import("ts-morph").MethodDeclaration;
     stateMutability: AbiStateMutability
     inputs: AbiInput[];
     outputs: AbiOutput[];
@@ -28,7 +27,6 @@ export type IRMethod = {
   
 export type IRConstructor = {
     inputs: AbiInput[];
-    constructor: import("ts-morph").ConstructorDeclaration;
     ir: IRStatement[];
 };
   

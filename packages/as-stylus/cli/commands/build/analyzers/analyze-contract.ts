@@ -28,7 +28,6 @@ export function analyzeContract(sourceFile: SourceFile): IRContract {
     const body = constructorData.getBodyOrThrow() as Block;
     const irBody = body.getStatements().map(toIRStmt);
     constructor = {
-      constructor: constructorData,
       inputs,
       ir: irBody
     };
@@ -71,7 +70,6 @@ export function analyzeContract(sourceFile: SourceFile): IRContract {
       inputs,
       outputs: returnType === "void" ? [] : [{ type: returnType }],
       stateMutability,
-      method,
       ir: irBody 
     });
   }
