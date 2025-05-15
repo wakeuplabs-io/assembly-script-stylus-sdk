@@ -35,6 +35,6 @@ function store_${name}(ptr: usize): void {
   storage_cache_bytes32(createStorageKey(__SLOT${slotIdx
     .toString(16)
     .padStart(2, "0")}), ptr);
-  storage_flush_cache();
+  storage_flush_cache(0);
 }`;
 }
