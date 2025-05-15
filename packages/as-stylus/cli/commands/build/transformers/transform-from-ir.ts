@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { IRContract } from "../../../types/ir.types.js";
-import { emitContract } from "./emiters/emit-contract.js";
+import { emitContract } from "./core/emit-contract.js";
 
 
 export function transformFromIR(contract: IRContract, outDir: string) {

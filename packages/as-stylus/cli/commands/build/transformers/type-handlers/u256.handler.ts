@@ -1,5 +1,5 @@
-import { EmitContext, EmitResult } from "../../../../types/emit.types";
-import { registerTransformer, TypeTransformer } from "../types";
+import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
+import { registerTransformer, TypeTransformer } from "../types.js";
 
 export const U256Transformer: TypeTransformer = {
   typeName: "U256",
@@ -7,7 +7,7 @@ export const U256Transformer: TypeTransformer = {
   emit: (expr: any, context: EmitContext, emitExprFn: (expr: any, ctx: EmitContext) => EmitResult): EmitResult => {
     // U256Factory.create()
     if (expr.kind === "call" && expr.target === "U256Factory.create") {
-      return { 
+      return {  
         setupLines: [], 
         valueExpr: "U256.create()",
         valueType: "U256"

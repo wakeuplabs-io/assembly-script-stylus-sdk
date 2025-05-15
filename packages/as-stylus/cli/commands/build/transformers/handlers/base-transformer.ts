@@ -1,6 +1,6 @@
-import { EmitContext, EmitResult } from "../../../../types/emit.types";
-import { TypeTransformer } from "../types";
-import { ExpressionHandler } from "./expression-handler";
+import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
+import { TypeTransformer } from "../types.js";
+import { ExpressionHandler } from "./expression-handler.js";
 
 /**
  * Base class for type transformers that implements shared functionality
