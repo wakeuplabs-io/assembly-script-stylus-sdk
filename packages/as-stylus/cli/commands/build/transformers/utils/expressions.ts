@@ -26,10 +26,9 @@ function emitExpressionWrapper(expr: any, ctx: EmitContext): EmitResult {
 
 export function emitExpression(expr: any, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
-  
   const typeName = detectExpressionType(expr);
   const transformer = typeName ? typeTransformers[typeName] : null;
-  
+
   if (transformer && typeof transformer.emit === 'function') {
     return transformer.emit(expr, globalContext, emitExpressionWrapper);
   } 

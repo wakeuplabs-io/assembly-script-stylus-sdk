@@ -11,7 +11,7 @@ import { U256ToStringHandler } from "./to-string-handler.js";
 /**
  * U256 transformer implementation using the modular handler pattern
  */
-export class U256TransformerImpl extends BaseTypeTransformer {
+export class U256Transformer extends BaseTypeTransformer {
   /**
    * Creates and initializes a new U256 transformer with its handlers
    */
@@ -76,5 +76,5 @@ export class U256TransformerImpl extends BaseTypeTransformer {
 }
 
 // Export concrete instance and register it
-export const U256Transformer = new U256TransformerImpl();
-registerTransformer(U256Transformer);
+export const U256TransformerInstance = new U256Transformer();
+registerTransformer(U256TransformerInstance);

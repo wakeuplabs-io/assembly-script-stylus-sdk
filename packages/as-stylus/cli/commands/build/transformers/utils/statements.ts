@@ -82,7 +82,6 @@ function emitStatement(s: any, indent: string): string {
     case "return": {
       if (s.expr) {
         const exprResult = emitExpression(s.expr);
-        
         if (exprResult.setupLines.length > 0) {
           const lines: string[] = [...exprResult.setupLines.map(line => `${indent}${line}`)];
           lines.push(`${indent}return ${exprResult.valueExpr};`);

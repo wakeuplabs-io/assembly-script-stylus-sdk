@@ -30,7 +30,7 @@ export class U256ToStringHandler implements ExpressionHandler {
     if (cls === context.contractName && prop) {
       return {
         setupLines: [],
-        valueExpr: `U256.toString(load_${prop}())`,
+        valueExpr: `load_${prop}()`,
         valueType: "string"
       };
     }
