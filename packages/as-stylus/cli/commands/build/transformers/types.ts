@@ -1,4 +1,4 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types";
+import { EmitContext, EmitResult } from "../../../types/emit.types";
 
 
 export interface TypeTransformer {

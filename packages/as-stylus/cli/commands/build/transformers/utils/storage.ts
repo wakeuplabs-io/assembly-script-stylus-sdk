@@ -1,3 +1,7 @@
+/**
+ * Utilities for handling storage in the IR-to-AssemblyScript transformation
+ */
+
 // Constants for imports
 export const IMPORT_BLOCK = [
   "import { U256 } from '../../../as-stylus/core/types/u256';",
@@ -31,6 +35,6 @@ function store_${name}(ptr: usize): void {
   storage_cache_bytes32(createStorageKey(__SLOT${slotIdx
     .toString(16)
     .padStart(2, "0")}), ptr);
-  storage_flush_cache(0);
+  storage_flush_cache();
 }`;
 }

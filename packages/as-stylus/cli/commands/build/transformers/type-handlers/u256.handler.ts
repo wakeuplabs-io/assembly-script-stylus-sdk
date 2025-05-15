@@ -1,5 +1,5 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { TypeTransformer, registerTransformer } from "../types/transformers.js";
+import { EmitContext, EmitResult } from "../../../../types/emit.types";
+import { registerTransformer, TypeTransformer } from "../types";
 
 export const U256Transformer: TypeTransformer = {
   typeName: "U256",

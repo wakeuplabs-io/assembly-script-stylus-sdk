@@ -1,4 +1,4 @@
-import { emitExpression, globalContext } from "./expressions.js";
+import { emitExpression, globalContext } from "./expressions";
 
 /**
  * Emits code for a list of statements with indentation
