@@ -44,3 +44,4 @@ packages/ui/cache
 .sst
 
 contracts
+/packages/as-stylus/generated
