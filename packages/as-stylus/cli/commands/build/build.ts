@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import { applyAnalysis } from "./analyzers/index.js";
 import { buildProject } from "./builder/index.js";
-import { applyTransforms } from "./transformers/index.js";
 import { IRContract } from "../../types/ir.types.js";
 import { generateFromIR } from "./transformers/transform-from-ir.js";
 
