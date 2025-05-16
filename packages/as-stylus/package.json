@@ -7,6 +7,9 @@
   "bin": {
     "test-sdk": "dist/cli/build.js"
   },
+  "engines": {
+    "node": ">=22.x"
+  },
   "scripts": {
     "generate": "tsc && node dist/commands/generate/generate.js",
     "build": "tsc && node dist/commands/build/build.js"
