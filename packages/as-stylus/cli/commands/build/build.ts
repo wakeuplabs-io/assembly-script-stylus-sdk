@@ -3,7 +3,7 @@ import path from "path";
 import { applyAnalysis } from "./analyzers/index.js";
 import { IRContract } from "../../types/ir.types.js";
 import { buildProject } from "./builder/index.js";
-import { transformFromIR } from "./transformers/index.js";
+import { transformFromIR } from "./transformers/core/index.js";
 export function runBuild() {
 
   // const projectRoot   = process.cwd();}

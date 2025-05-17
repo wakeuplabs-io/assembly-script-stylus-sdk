@@ -1,5 +1,5 @@
 import { EmitContext, EmitResult } from "../../../../../types/emit.types";
-import { ExpressionHandler } from "../expression-handler";
+import { ExpressionHandler } from "../../core/interfaces";
 
 /**
  * Handler for U256 toString method calls
