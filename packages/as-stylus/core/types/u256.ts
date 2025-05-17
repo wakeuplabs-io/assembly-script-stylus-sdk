@@ -1,172 +1,122 @@
-// // u256.ts
+// ASCII constants
+const ASCII_0: u8 = 0x30;        // '0'
+const ASCII_a: u8 = 0x61;        // 'a'
+const ASCII_X_LOWER: u8 = 0x78;        // 'x'
+const ASCII_CASE_MASK: u8 = 0x20;        // toLower bit
+const HEX_ALPHA_OFFSET: u8 = ASCII_a - 10; // 0x61-0x0A = 0x57
 
 import { malloc } from "../modules/memory";
 
 export class U256 {
+  /*──────────────────────────*
+   *  Memory helpers           *
+   *──────────────────────────*/
   static create(): usize {
     const ptr = malloc(32);
-    for (let i = 0; i < 32; i++) {
-      store<u8>(ptr + i, 0);
-    }
+    for (let i = 0; i < 32; ++i) store<u8>(ptr + i, 0);
     return ptr;
   }
 
-  static setFromString(destPtr: usize, strPtr: usize, length: u32): void {
-    for (let i = 0; i < 32; i++) {
-      store<u8>(destPtr + i, 0);
-    }
-
-    for (let i: u32 = 0; i < length; i++) {
-      const digit = load<u8>(strPtr + i) - 48;
-      this.mul10(destPtr);
-      this.addSmall(destPtr, digit);
-    }
+  /** raw‐byte copy (src must already be a 32-byte big-endian buffer) */
+  static copy(dest: usize, src: usize): void {
+    for (let i = 0; i < 32; ++i) store<u8>(dest + i, load<u8>(src + i));
   }
 
-  private static mul10(ptr: usize): void {
-    const tmp = this.create();
-    this.copy(tmp, ptr);   
-    this.add(ptr, tmp);    // *2
-    this.add(ptr, tmp);    // *4
-    this.add(ptr, tmp);    // *8
-    this.add(ptr, ptr);    // *16
-    // Adjust to *10 manually if needed
-  }
+  /*──────────────────────────*
+   *  Constructors             *
+   *──────────────────────────*/
+  /** decimal string → U256 */
+  static setFromString(dest: usize, str: usize, len: u32): void {
+    for (let i = 0; i < 32; ++i) store<u8>(dest + i, 0);
 
-  private static addSmall(ptr: usize, value: u8): void {
-    let carry = value;
-    for (let i = 31; i >= 0; i--) {
-      const sum = <u16>load<u8>(ptr + i) + carry;
-      store<u8>(ptr + i, sum as u8);
-      carry = sum > 0xFF ? 1 : 0;
+    for (let i: u32 = 0; i < len; ++i) {
+      const digit: u8 = load<u8>(str + i) - ASCII_0;
+      this.mul10(dest);
+      this.addSmall(dest, digit);
     }
   }
 
-  private static copy(dest: usize, src: usize): void {
-    for (let i = 0; i < 32; i++) {
-      store<u8>(dest + i, load<u8>(src + i));
+  /** hexadecimal string → U256 (accepts “0x” prefix) */
+  static setFromStringHex(dest: usize, str: usize, len: u32): void {
+    let off: u32 = 0;
+    if (len >= 2 &&
+      load<u8>(str) === ASCII_0 &&
+      (load<u8>(str + 1) | ASCII_CASE_MASK) === ASCII_X_LOWER) {
+      off = 2;
+    }
+
+    const nibs = len - off;
+    const odd = (nibs & 1) !== 0;
+
+    for (let i = 0; i < 32; ++i) store<u8>(dest + i, 0);
+
+    let d: i32 = 31;
+    let s: i32 = <i32>(off + nibs - 1);
+
+    if (odd) {
+      store<u8>(dest + d--, this.hexChar(load<u8>(str + s--)));
+    }
+    while (d >= 0 && s >= (<i32>off + 1)) {
+      const low = this.hexChar(load<u8>(str + s));
+      const high = this.hexChar(load<u8>(str + s - 1));
+      store<u8>(dest + d--, (high << 4) | low);
+      s -= 2;
     }
   }
 
+  /*──────────────────────────*
+   *  Public arithmetic        *
+   *──────────────────────────*/
   static add(dest: usize, src: usize): usize {
     let carry: u16 = 0;
-    for (let i = 31; i >= 0; i--) {
-      const sum: u16 = <u16>load<u8>(dest + i) + load<u8>(src + i) + carry;
-      store<u8>(dest + i, sum as u8);
+    for (let i: i32 = 31; i >= 0; --i) {
+      const sum: u16 = load<u8>(dest + i) + load<u8>(src + i) + carry;
+      store<u8>(dest + i, <u8>sum);
       carry = sum > 0xFF ? 1 : 0;
     }
     return dest;
   }
 
   static sub(dest: usize, src: usize): usize {
-    let borrow: u16 = 0;
-    for (let i = 31; i >= 0; i--) {
-      const diff: u16 = <u16>load<u8>(dest + i) - load<u8>(src + i) - borrow;
-      store<u8>(dest + i, diff as u8);
-      borrow = diff < 0 ? 1 : 0;
+    let borrow: u8 = 0;
+    for (let i: i32 = 31; i >= 0; --i) {
+      const d: u16 = load<u8>(dest + i);
+      const s: u16 = load<u8>(src + i) + borrow;
+      if (d < s) {
+        store<u8>(dest + i, <u8>(d + 256 - s));
+        borrow = 1;
+      } else {
+        store<u8>(dest + i, <u8>(d - s));
+        borrow = 0;
+      }
     }
     return dest;
   }
+
+  /*──────────────────────────*
+   *  Internal helpers         *
+   *──────────────────────────*/
+  private static mul10(ptr: usize): void {
+    let carry: u16 = 0;
+    for (let i: i32 = 31; i >= 0; --i) {
+      const prod: u16 = load<u8>(ptr + i) * 10 + carry;
+      store<u8>(ptr + i, <u8>prod);
+      carry = prod >> 8;
+    }
+  }
+
+  private static addSmall(ptr: usize, val: u8): void {
+    let carry: u16 = val;
+    for (let i: i32 = 31; i >= 0 && carry; --i) {
+      const sum: u16 = load<u8>(ptr + i) + carry;
+      store<u8>(ptr + i, <u8>sum);
+      carry = sum > 0xFF ? 1 : 0;
+    }
+  }
+
+  private static hexChar(c: u8): u8 {
+    const lo = c | ASCII_CASE_MASK;
+    return (lo >= ASCII_a) ? lo - HEX_ALPHA_OFFSET
+      : c - ASCII_0;
+  }
 }
-
-
-
-// -----
-
-
-// import { malloc } from "./memory";
-
-// export type U256 = usize;
-
-// /** Allocates 32 bytes of zeroed memory for a new U256 */
-// export function allocU256(): usize {
-//   const ptr = malloc(32);
-//   for (let i = 0; i < 32; i++) store<u8>(ptr + i, 0);
-//   return ptr;
-// }
-
-// /** Sets U256 from a u64 (big endian padded) */
-// export function setU256FromU64(ptr: U256, value: u64): void {
-//   for (let i = 0; i < 24; i++) store<u8>(ptr + i, 0);
-//   for (let i = 0; i < 8; i++) store<u8>(ptr + 31 - i, <u8>(value >> (8 * i)));
-// }
-
-// /** Reads a u64 from U256 (assuming fits) */
-// export function getU64FromU256(ptr: U256): u64 {
-//   let value: u64 = 0;
-//   for (let i = 0; i < 8; i++) {
-//     value |= (<u64>load<u8>(ptr + 31 - i)) << (8 * i);
-//   }
-//   return value;
-// }
-
-// /** Copies a U256 from src to dest */
-// export function copyU256(dest: U256, src: U256): void {
-//   for (let i = 0; i < 32; i++) store<u8>(dest + i, load<u8>(src + i));
-// }
-
-// /** Adds src into dest (big endian) - no overflow handling */
-// export function addU256(dest: U256, src: U256): void {
-//   let carry: u16 = 0;
-//   for (let i = 31; i >= 0; i--) {
-//     const sum: u16 = <u16>load<u8>(dest + i) + load<u8>(src + i) + carry;
-//     store<u8>(dest + i, <u8>sum);
-//     carry = sum > 0xFF ? 1 : 0;
-//   }
-// }
-
-// /** Compares lhs vs rhs
-//  * Returns:
-//  *  -1 if lhs < rhs
-//  *   0 if lhs == rhs
-//  *   1 if lhs > rhs
-//  */
-// export function cmpU256(lhs: U256, rhs: U256): i32 {
-//   for (let i = 0; i < 32; i++) {
-//     const a = load<u8>(lhs + i);
-//     const b = load<u8>(rhs + i);
-//     if (a < b) return -1;
-//     if (a > b) return 1;
-//   }
-//   return 0;
-// }
-
-// export function createU256FromU64(value: u64): U256 {
-//   const ptr = allocU256();
-//   setU256FromU64(ptr, value);
-//   return ptr;
-// }
-
-
-
-// export namespace U256 {
-//   export function create(): usize {
-//     const ptr = malloc(32);
-//     for (let i = 0; i < 32; i++) store<u8>(ptr + i, 0);
-//     return ptr;
-//   }
-
-//   export function fromU64(value: u64): usize {
-//     const ptr = create();
-//     for (let i = 0; i < 24; i++) store<u8>(ptr + i, 0);
-//     for (let i = 0; i < 8; i++) store<u8>(ptr + 31 - i, <u8>(value >> (8 * i)));
-//     return ptr;
-//   }
-
-//   export function add(dest: usize, src: usize): void {
-//     let carry: u16 = 0;
-//     for (let i = 31; i >= 0; i--) {
-//       const sum: u16 = <u16>load<u8>(dest + i) + load<u8>(src + i) + carry;
-//       store<u8>(dest + i, <u8>sum);
-//       carry = sum > 0xFF ? 1 : 0;
-//     }
-//   }
-
-//   export function toU64(ptr: usize): u64 {
-//     let result: u64 = 0;
-//     for (let i = 0; i < 8; i++) {
-//       result |= (<u64>load<u8>(ptr + 31 - i)) << (8 * i);
-//     }
-//     return result;
-//   }
-// }
