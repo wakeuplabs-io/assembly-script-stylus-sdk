@@ -1,5 +1,5 @@
 import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { registerTransformer } from "../../types.js";
+import { registerTransformer } from "../../core/base-transformer.js";
 import { BaseTypeTransformer } from "../base-transformer.js";
 import { U256CreateHandler } from "./create-handler.js";
 import { U256FromStringHandler } from "./from-string-handler.js";

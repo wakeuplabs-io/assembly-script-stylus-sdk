@@ -1,5 +1,5 @@
 import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
-import { TypeTransformer } from "../types.js";
+import { TypeTransformer } from "../core/interfaces.js";
 import { ExpressionHandler } from "./expression-handler.js";
 
 /**
