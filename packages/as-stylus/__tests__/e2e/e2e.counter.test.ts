@@ -7,7 +7,6 @@ import path from "path";
 import { config } from "dotenv";
 config();
 
-/* ─ Helpers ────────────────────────────────────────────────── */
 const ROOT      = path.resolve(__dirname, "../");
 const RPC_URL   = process.env.RPC_URL     ?? "http://localhost:8547";
 const PK        = process.env.PRIVATE_KEY;
@@ -20,7 +19,6 @@ function stripAnsi(s: string): string {
   return s.replace(/\x1B\[[0-9;]*m/g, "");
 }
 
-/* ─ Selector constants ─────────────────────────────────────── */
 const SELECTOR = {
   GET: "0x67657400",
   INC: "0x696e6372",
@@ -35,7 +33,6 @@ const ONE64 =
 const TWO64 =
   "0x0000000000000000000000000000000000000000000000000000000000000002";
 
-/* ─ Deploy once ────────────────────────────────────────────── */
 let contractAddr = "";
 
 beforeAll(() => {
@@ -63,13 +60,13 @@ function expectHex(sel: string, expected: string) {
   expect(castCall(sel).toLowerCase()).toBe(expected.toLowerCase());
 }
 
-/* ─ Suite ──────────────────────────────────────────────────── */
 describe("Counter (U256) exhaustive but tx-light", () => {
   it("0 → underflow → MAX → wrap-back", () => {
     expectHex(SELECTOR.GET, ZERO64);
     castSend(SELECTOR.DEC);
 
     expectHex(SELECTOR.GET, MAX_U256_HEX);
+
     castSend(SELECTOR.INC);
 
     expectHex(SELECTOR.GET, ZERO64);
@@ -79,6 +76,7 @@ describe("Counter (U256) exhaustive but tx-light", () => {
     castSend(SELECTOR.INC);
     castSend(SELECTOR.INC);
     castSend(SELECTOR.DEC);
+
     expectHex(SELECTOR.GET, ONE64);
   });
 });
