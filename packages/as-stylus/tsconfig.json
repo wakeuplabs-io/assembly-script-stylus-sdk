@@ -5,12 +5,15 @@
     "moduleResolution": "node",
     "outDir": "dist/",
     "rootDir": "cli",
+    "paths": {
+      "@/*": ["./*"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "experimentalDecorators": true,
+    "experimentalDecorators": true
   },
   "include": ["cli/**/*"]
 }
