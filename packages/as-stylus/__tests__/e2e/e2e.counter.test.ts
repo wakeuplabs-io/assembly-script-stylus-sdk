@@ -7,9 +7,9 @@ import path from "path";
 import { config } from "dotenv";
 config();
 
-const ROOT      = path.resolve(__dirname, "../");
-const RPC_URL   = process.env.RPC_URL     ?? "http://localhost:8547";
-const PK        = process.env.PRIVATE_KEY;
+const ROOT = path.resolve(__dirname, "../");
+const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
+const PK = process.env.PRIVATE_KEY;
 if (!PK) throw new Error("Set PRIVATE_KEY in .env");
 
 function run(cmd: string, cwd = ROOT): string {
@@ -39,10 +39,10 @@ beforeAll(() => {
   run("npm run build");
   const testPkg = path.join(ROOT, "../../contracts/test");
   run("npm run compile", testPkg);
-  run("npm run check",   testPkg);
+  run("npm run check", testPkg);
 
   const log = stripAnsi(run(`PRIVATE_KEY=${PK} npm run deploy`, testPkg));
-  const m   = log.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
+  const m = log.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
   if (!m) throw new Error("Could not scrape contract address");
   contractAddr = m[1];
   console.log("📍 Deployed at", contractAddr);

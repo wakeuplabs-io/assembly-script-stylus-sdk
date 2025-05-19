@@ -1,4 +1,5 @@
 import { IRContract } from "../../../../types/ir.types.js";
+import { generateArgsLoadBlock } from "../utils/args.js";
 import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
 import { IMPORT_BLOCK, slotConst, loadFn, storeFn } from "../utils/storage.js";
@@ -27,28 +28,32 @@ export function emitContract(contract: IRContract): string {
 
   // Constructor
   if (contract.constructor) {
+    const { inputs } = contract.constructor;
+    const { argLines, callArgs } = generateArgsLoadBlock(inputs);
+    const argsSignature = callArgs.map(arg => `${arg}: usize`).join(", ");
+    const body = emitStatements(contract.constructor.ir);
+  
     parts.push(
-      `export function deploy(): void {\n${emitStatements(
-        contract.constructor.ir
-      )}\n}`
+      `export function deploy(${argsSignature}): void {\n${body}\n}`
     );
   }
-
+  
   // Methods
   contract.methods.forEach((m) => {
     let returnType = "void";
-    
-    if (m.stateMutability === "view" || m.stateMutability === "pure") {
-      if (m.outputs && m.outputs.length > 0 && 
-         (m.outputs[0].type === "U256" || m.outputs[0].type === "u64")) {
-        returnType = "usize";
-      }
+  
+    if ((m.stateMutability === "view" || m.stateMutability === "pure") &&
+        m.outputs && m.outputs.length > 0 &&
+        (m.outputs[0].type === "U256" || m.outputs[0].type === "u64")) {
+      returnType = "usize";
     }
-    
+  
+    const { argLines, callArgs } = generateArgsLoadBlock(m.inputs);
+    const argsSignature = callArgs.map(arg => `${arg}: usize`).join(", ");
+    const body = emitStatements(m.ir);
+  
     parts.push(
-      `export function ${m.name}(): ${returnType} {\n${emitStatements(
-        m.ir
-      )}\n}`
+      `export function ${m.name}(${argsSignature}): ${returnType} {\n${body}\n}`
     );
   });
 
