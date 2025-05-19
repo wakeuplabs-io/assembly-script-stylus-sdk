@@ -137,4 +137,3 @@ After running `npm run build`, the SDK will wrap this logic in a valid Stylus en
 - [Stylus Docs](https://docs.arbitrum.io/stylus)
 - [AssemblyScript](https://www.assemblyscript.org/)
 - [cargo stylus CLI](https://docs.arbitrum.io/stylus/tools/stylus-cli)
-

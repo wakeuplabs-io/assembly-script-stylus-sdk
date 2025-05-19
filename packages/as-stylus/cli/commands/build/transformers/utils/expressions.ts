@@ -1,5 +1,5 @@
 import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
-import { detectExpressionType, typeTransformers } from "../types.js";
+import { detectExpressionType, typeTransformers } from "../core/base-transformer.js";
 
 export const globalContext: EmitContext = {
   isInStatement: false,
