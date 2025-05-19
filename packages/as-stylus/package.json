@@ -11,7 +11,7 @@
     "node": ">=22.x"
   },
   "scripts": {
-    "generate": "tsc && node dist/commands/generate/generate.js",
+    "generate": "tsc && tsc-alias && node dist/commands/generate/generate.js",
     "build": "tsc && tsc-alias && node dist/commands/build/build.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -24,13 +24,13 @@
     }
   },
   "devDependencies": {
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.11.19",
     "assemblyscript": "^0.27.35",
+    "dotenv": "^16.4.7",
     "jest": "^29.7.0",
-    "ts-jest": "^29.1.2",
-    "tsc-alias": "^1.8.8",
-    "typescript": "^5.3.3"
+    "ts-jest": "^29.3.4",
+    "typescript": "^5.8.2"
   },
   "dependencies": {
     "keccak256": "^1.0.6",

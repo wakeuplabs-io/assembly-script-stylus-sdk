@@ -15,8 +15,8 @@ export function applyAnalysis(transformedFile: string): IRContract {
   const sourceFile = project.addSourceFileAtPath(transformedFile);
   const contractIR: IRContract = analyzeContract(sourceFile);
 
-  exportContractToJSON(contractIR);
-  generateContractTree(contractIR);
+  // exportContractToJSON(contractIR);
+  // generateContractTree(contractIR);
   
   console.log("[as\u2011stylus] \u2714 Structural validation completed.");
 

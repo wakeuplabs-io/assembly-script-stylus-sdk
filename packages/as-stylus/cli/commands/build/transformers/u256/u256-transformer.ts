@@ -1,10 +1,10 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { registerTransformer } from "../../core/base-transformer.js";
-import { BaseTypeTransformer } from "../base-transformer.js";
-import { U256CreateHandler } from "./create-handler.js";
-import { U256FromStringHandler } from "./from-string-handler.js";
-import { U256OperationHandler } from "./operation-handler.js";
-import { U256ToStringHandler } from "./to-string-handler.js";
+
+import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
+import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+import { U256CreateHandler } from "./handlers/create-handler.js";
+import { U256FromStringHandler } from "./handlers/from-string-handler.js";
+import { U256OperationHandler } from "./handlers/operation-handler.js";
+import { U256ToStringHandler } from "./handlers/to-string-handler.js";
 
 // Make sure to import this file in the main transformer index
 
