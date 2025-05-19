@@ -4,6 +4,7 @@ import { IRContract } from "@/cli/types/ir.types.js";
 import { SemanticValidator } from "../validators/contract-semantic-validator.js";
 import { SyntaxValidator } from "../validators/contract-syntax-validator.js";
 import { toIRStmt } from "../helpers.js";
+import { ErrorManager } from "../errors/error-manager.js";
 
 export interface ContractVisitor {
   visitSourceFile(sourceFile: SourceFile): IRContract;
@@ -23,15 +24,18 @@ export class ContractAnalyzer implements ContractVisitor {
   private semanticValidator: SemanticValidator;
   private syntaxValidator: SyntaxValidator;
 
-  constructor(sourceFile: SourceFile) {
-    this.semanticValidator = new SemanticValidator(sourceFile);
-    this.syntaxValidator = new SyntaxValidator(sourceFile);
+  constructor(sourceFile: SourceFile, errorManager: ErrorManager) {
+    this.semanticValidator = new SemanticValidator(sourceFile, errorManager);
+    this.syntaxValidator = new SyntaxValidator(sourceFile, errorManager);
   }
 
   visitSourceFile(): IRContract {
     this.syntaxValidator.validateSourceFile();
     
     const classDecl = this.semanticValidator.validateSourceFile();
+    if (!classDecl) {
+      return this.contract;
+    }
     
     this.contract.name = classDecl.getName() ?? "Main";
     this.semanticValidator.validateContractClass(classDecl);
