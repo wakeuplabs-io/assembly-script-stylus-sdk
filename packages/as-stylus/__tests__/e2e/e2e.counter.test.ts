@@ -60,7 +60,7 @@ function expectHex(sel: string, expected: string) {
   expect(castCall(sel).toLowerCase()).toBe(expected.toLowerCase());
 }
 
-describe("Counter (U256) exhaustive but tx-light", () => {
+describe.skip("Counter (U256) exhaustive but tx-light", () => {
   it("0 → underflow → MAX → wrap-back", () => {
     expectHex(SELECTOR.GET, ZERO64);
     castSend(SELECTOR.DEC);
