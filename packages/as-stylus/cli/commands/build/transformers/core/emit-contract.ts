@@ -29,14 +29,18 @@ export function emitContract(contract: IRContract): string {
   // Constructor
   if (contract.constructor) {
     const { inputs } = contract.constructor;
-    const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-    const argsSignature = callArgs.map(arg => `${arg}: usize`).join(", ");
+    const { callArgs } = generateArgsLoadBlock(inputs);
+    const argsSignature = callArgs.map(a => `${a}: usize`).join(", ");
+    const aliasLines = inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
     const body = emitStatements(contract.constructor.ir);
   
     parts.push(
-      `export function deploy(${argsSignature}): void {\n${body}\n}`
+      `export function deploy(${argsSignature}): void {\n` +
+      aliasLines.join("\n") + "\n" +
+      body + "\n}"
     );
   }
+  
   
   // Methods
   contract.methods.forEach((m) => {
@@ -51,9 +55,12 @@ export function emitContract(contract: IRContract): string {
     const { argLines, callArgs } = generateArgsLoadBlock(m.inputs);
     const argsSignature = callArgs.map(arg => `${arg}: usize`).join(", ");
     const body = emitStatements(m.ir);
-  
+    const aliasLines = m.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
+
     parts.push(
-      `export function ${m.name}(${argsSignature}): ${returnType} {\n${body}\n}`
+      `export function ${m.name}(${argsSignature}): ${returnType} {\n` +
+      aliasLines.join("\n") + "\n" +
+      body + "\n}"
     );
   });
 
