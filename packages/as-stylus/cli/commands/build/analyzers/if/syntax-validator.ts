@@ -1,5 +1,6 @@
 import { IfStatement, SyntaxKind } from "ts-morph";
-import { ErrorManager } from "../shared/error-manager";
+
+import { ErrorManager } from "../shared/error-manager.js";
 
 export class IfSyntaxValidator {
   private statement: IfStatement;
@@ -21,7 +22,7 @@ export class IfSyntaxValidator {
       this.errorManager.addSyntaxError(
         `If condition must be a boolean expression, got ${conditionType}`,
         this.filePath,
-        this.statement.getStartLineNumber()
+        this.statement.getStartLineNumber(),
       );
       hasError = true;
     }
@@ -32,7 +33,7 @@ export class IfSyntaxValidator {
       this.errorManager.addSyntaxError(
         "Then clause must be a block statement",
         this.filePath,
-        thenStmt.getStartLineNumber()
+        thenStmt.getStartLineNumber(),
       );
       hasError = true;
     }
@@ -43,11 +44,11 @@ export class IfSyntaxValidator {
       this.errorManager.addSyntaxError(
         "Else clause must be a block statement",
         this.filePath,
-        elseStmt.getStartLineNumber()
+        elseStmt.getStartLineNumber(),
       );
       hasError = true;
     }
 
     return !hasError;
   }
-} 
+}

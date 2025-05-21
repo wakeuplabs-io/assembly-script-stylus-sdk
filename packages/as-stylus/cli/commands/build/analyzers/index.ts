@@ -1,7 +1,9 @@
 // cli/transformers/index.ts
-import { Project } from "ts-morph";
 import path from "path";
-import { IRContract } from "../../../types/ir.types";
+import { Project } from "ts-morph";
+
+import { IRContract } from "@/cli/types/ir.types.js";
+
 import { analyzeContract } from "./analyze-contract.js";
 import { exportContractToJSON, generateContractTree } from "./tree-builder.js";
 
@@ -17,7 +19,7 @@ export function applyAnalysis(transformedFile: string): IRContract {
 
   // exportContractToJSON(contractIR);
   // generateContractTree(contractIR);
-  
+
   console.log("[as\u2011stylus] \u2714 Structural validation completed.");
 
   return contractIR;

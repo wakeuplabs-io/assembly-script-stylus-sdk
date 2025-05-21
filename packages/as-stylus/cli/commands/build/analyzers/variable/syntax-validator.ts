@@ -1,13 +1,14 @@
 import { VariableDeclaration } from "ts-morph";
-import { ErrorManager } from "../shared/error-manager";
-import { BaseValidator } from "../shared/base-validator";
+
+import { BaseValidator } from "../shared/base-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
 
 export class VariableSyntaxValidator extends BaseValidator {
   private filePath: string;
 
   constructor(
     private declaration: VariableDeclaration,
-    errorManager: ErrorManager
+    errorManager: ErrorManager,
   ) {
     super(errorManager);
     this.filePath = declaration.getSourceFile().getFilePath();
@@ -20,7 +21,7 @@ export class VariableSyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         "Variable declaration must have an initializer",
         this.filePath,
-        this.declaration.getEndLineNumber()
+        this.declaration.getEndLineNumber(),
       );
       hasErrors = true;
     }
@@ -31,7 +32,7 @@ export class VariableSyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         "Variable must have a valid name",
         this.filePath,
-        this.declaration.getEndLineNumber()
+        this.declaration.getEndLineNumber(),
       );
       hasErrors = true;
     }
@@ -43,11 +44,11 @@ export class VariableSyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         `Unsupported variable type: ${type}. Supported types are: ${supportedTypes.join(", ")}`,
         this.filePath,
-        this.declaration.getEndLineNumber()
+        this.declaration.getEndLineNumber(),
       );
       hasErrors = true;
     }
 
     return !hasErrors;
   }
-} 
+}

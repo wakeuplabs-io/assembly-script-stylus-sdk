@@ -1,13 +1,12 @@
-import { Block } from "ts-morph";
+import { Block, MethodDeclaration } from "ts-morph";
 
-import { MethodDeclaration } from "ts-morph";
-import { ErrorManager } from "../shared/error-manager";
-import { IRBuilder } from "../shared/ir-builder";
+import { STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types.js";
+import { IRMethod } from "@/cli/types/ir.types.js";
 
-import { IRMethod } from "@/cli/types/ir.types";
-import { STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types";
-import { StatementIRBuilder } from "../statement/ir-builder";
-import { MethodSyntaxValidator } from "./syntax-validator";
+import { MethodSyntaxValidator } from "./syntax-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
+import { IRBuilder } from "../shared/ir-builder.js";
+import { StatementIRBuilder } from "../statement/ir-builder.js";
 
 export class MethodIRBuilder extends IRBuilder<IRMethod> {
   private methodDecl: MethodDeclaration;
@@ -26,8 +25,10 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     const name = this.methodDecl.getName();
     const decorators = this.methodDecl.getDecorators();
 
-    const visDecorators = decorators.filter(d => VISIBILITY_DECORATORS.includes(d.getName()));
-    const stateDecorators = decorators.filter(d => STATE_MUTABILITY_DECORATORS.includes(d.getName()));
+    const visDecorators = decorators.filter((d) => VISIBILITY_DECORATORS.includes(d.getName()));
+    const stateDecorators = decorators.filter((d) =>
+      STATE_MUTABILITY_DECORATORS.includes(d.getName()),
+    );
 
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? "public";
     const stateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? "nonpayable";
@@ -39,8 +40,8 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
 
     const returnType = this.methodDecl.getReturnType().getText();
     const body = this.methodDecl.getBodyOrThrow() as Block;
-    
-    const irBody = body.getStatements().map(stmt => {
+
+    const irBody = body.getStatements().map((stmt) => {
       const statementBuilder = new StatementIRBuilder(stmt, this.errorManager);
       return statementBuilder.build();
     });
@@ -51,7 +52,7 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       inputs,
       outputs: returnType === "void" ? [] : [{ type: returnType }],
       stateMutability,
-      ir: irBody
+      ir: irBody,
     };
   }
 }

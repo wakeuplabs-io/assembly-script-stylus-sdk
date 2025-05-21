@@ -1,9 +1,5 @@
+import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "./hostio";
 import { malloc } from "./memory";
-import {
-  storage_load_bytes32,
-  storage_cache_bytes32,
-  storage_flush_cache,
-} from "./hostio";
 
 /** Creates a 32-byte storage key from a u64 (BigEndian) */
 export function createStorageKey(slot: u64): usize {

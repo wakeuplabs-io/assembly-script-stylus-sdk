@@ -1,6 +1,7 @@
 import { ConstructorDeclaration } from "ts-morph";
-import { BaseValidator } from "../shared/base-validator";
-import { ErrorManager } from "../shared/error-manager";
+
+import { BaseValidator } from "../shared/base-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
 
 export class ConstructorSyntaxValidator extends BaseValidator {
   private constructorDecl: ConstructorDeclaration;
@@ -16,7 +17,7 @@ export class ConstructorSyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         "Constructor must have a body",
         this.constructorDecl.getSourceFile().getFilePath(),
-        this.constructorDecl.getStartLineNumber()
+        this.constructorDecl.getStartLineNumber(),
       );
       hasErrors = true;
     }
@@ -26,7 +27,7 @@ export class ConstructorSyntaxValidator extends BaseValidator {
         this.errorManager.addSyntaxError(
           `Parameter "${param.getName()}" in constructor must have a type`,
           param.getSourceFile().getFilePath(),
-          param.getStartLineNumber()
+          param.getStartLineNumber(),
         );
         hasErrors = true;
       }

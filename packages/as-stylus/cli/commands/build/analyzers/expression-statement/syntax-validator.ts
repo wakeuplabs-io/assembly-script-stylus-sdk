@@ -1,5 +1,12 @@
-import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, SymbolFlags } from "ts-morph";
-import { ErrorManager } from "../shared/error-manager";
+import {
+  ExpressionStatement,
+  SyntaxKind,
+  BinaryExpression,
+  Identifier,
+  SymbolFlags,
+} from "ts-morph";
+
+import { ErrorManager } from "../shared/error-manager.js";
 
 export class ExpressionStatementSyntaxValidator {
   private statement: ExpressionStatement;
@@ -21,13 +28,13 @@ export class ExpressionStatementSyntaxValidator {
       const bin = expr as BinaryExpression;
       if (bin.getOperatorToken().getKind() === SyntaxKind.EqualsToken) {
         const lhsNode = bin.getLeft();
-        
+
         // Validate that LHS is an identifier
         if (lhsNode.getKind() !== SyntaxKind.Identifier) {
           this.errorManager.addSyntaxError(
             "Left-hand side of assignment must be an identifier",
             this.filePath,
-            this.statement.getEndLineNumber()
+            this.statement.getEndLineNumber(),
           );
           hasError = true;
         }
@@ -39,7 +46,7 @@ export class ExpressionStatementSyntaxValidator {
           this.errorManager.addSyntaxError(
             "Cannot assign to a constant variable",
             this.filePath,
-            lhsId.getEndLineNumber()
+            lhsId.getEndLineNumber(),
           );
           hasError = true;
         }
@@ -48,4 +55,4 @@ export class ExpressionStatementSyntaxValidator {
 
     return !hasError;
   }
-} 
+}

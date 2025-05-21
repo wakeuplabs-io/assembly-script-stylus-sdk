@@ -1,4 +1,4 @@
-let heapPointer: usize = memory.size() << 16; 
+let heapPointer: usize = memory.size() << 16;
 
 export function malloc(size: usize): usize {
   const alignedSize: usize = (size + 7) & ~7;

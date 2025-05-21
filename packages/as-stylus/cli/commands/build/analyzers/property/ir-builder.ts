@@ -1,8 +1,10 @@
 import { PropertyDeclaration } from "ts-morph";
-import { ErrorManager } from "../shared/error-manager";
-import { IRBuilder } from "../shared/ir-builder";
-import { IRVariable } from "@/cli/types/ir.types";
-import { PropertySyntaxValidator } from "./syntax-validator";
+
+import { IRVariable } from "@/cli/types/ir.types.js";
+
+import { PropertySyntaxValidator } from "./syntax-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
+import { IRBuilder } from "../shared/ir-builder.js";
 
 export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   private property: PropertyDeclaration;
@@ -22,12 +24,11 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   build() {
     const name = this.property.getName();
     const type = this.property.getType().getText();
-    
+
     return {
       name,
       type,
-      slot: this.slot
+      slot: this.slot,
     };
   }
 }
-

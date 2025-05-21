@@ -21,9 +21,7 @@ export function loadFn(name: string, slotIdx: number): string {
   return `
 function load_${name}(): usize {
   const ptr = U256.create();
-  storage_load_bytes32(createStorageKey(__SLOT${slotIdx
-    .toString(16)
-    .padStart(2, "0")}), ptr);
+  storage_load_bytes32(createStorageKey(__SLOT${slotIdx.toString(16).padStart(2, "0")}), ptr);
   return ptr;
 }`;
 }
@@ -32,9 +30,7 @@ function load_${name}(): usize {
 export function storeFn(name: string, slotIdx: number): string {
   return `
 function store_${name}(ptr: usize): void {
-  storage_cache_bytes32(createStorageKey(__SLOT${slotIdx
-    .toString(16)
-    .padStart(2, "0")}), ptr);
+  storage_cache_bytes32(createStorageKey(__SLOT${slotIdx.toString(16).padStart(2, "0")}), ptr);
   storage_flush_cache(0);
 }`;
 }

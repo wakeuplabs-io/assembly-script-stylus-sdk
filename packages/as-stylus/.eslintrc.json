@@ -19,11 +19,10 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint", "react", "react-hooks", "react-refresh", "prettier", "import"],
+  "plugins": ["@typescript-eslint", "react", "react-refresh", "prettier", "import"],
   "rules": {
     "prettier/prettier": "error",
     "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "double"],
     "semi": ["error", "always"],
     "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }],
 
@@ -70,4 +69,4 @@
       }
     }
   }
-} 
+}

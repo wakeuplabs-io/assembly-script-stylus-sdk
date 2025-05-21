@@ -1,9 +1,11 @@
 import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier } from "ts-morph";
-import { IRBuilder } from "../shared/ir-builder";
-import { ErrorManager } from "../shared/error-manager";
-import { IRStatement } from "@/cli/types/ir.types";
-import { toIRExpr } from "../helpers";
-import { ExpressionStatementSyntaxValidator } from "./syntax-validator";
+
+import { IRStatement } from "@/cli/types/ir.types.js";
+
+import { toIRExpr } from "../helpers.js";
+import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
+import { IRBuilder } from "../shared/ir-builder.js";
 
 export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
   private statement: ExpressionStatement;
@@ -14,7 +16,10 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
   }
 
   validate(): boolean {
-    const syntaxValidator = new ExpressionStatementSyntaxValidator(this.statement, this.errorManager);
+    const syntaxValidator = new ExpressionStatementSyntaxValidator(
+      this.statement,
+      this.errorManager,
+    );
     return syntaxValidator.validate();
   }
 
@@ -34,16 +39,16 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
           return {
             kind: "assign",
             target: lhsId.getText(),
-            expr: toIRExpr(rhsNode)
+            expr: toIRExpr(rhsNode),
           };
         }
       }
     }
 
     // Handle simple expressions (function calls, etc.)
-    return { 
-      kind: "expr", 
-      expr: toIRExpr(expr) 
+    return {
+      kind: "expr",
+      expr: toIRExpr(expr),
     };
   }
-} 
+}

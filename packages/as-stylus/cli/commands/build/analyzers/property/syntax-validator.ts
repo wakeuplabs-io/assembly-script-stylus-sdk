@@ -1,6 +1,7 @@
 import { PropertyDeclaration } from "ts-morph";
-import { BaseValidator } from "../shared/base-validator";
-import { ErrorManager } from "../shared/error-manager";
+
+import { BaseValidator } from "../shared/base-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
 
 export class PropertySyntaxValidator extends BaseValidator {
   private property: PropertyDeclaration;
@@ -16,7 +17,7 @@ export class PropertySyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         "Property must have a name",
         this.property.getSourceFile().getFilePath(),
-        this.property.getStartLineNumber()
+        this.property.getStartLineNumber(),
       );
       hasErrors = true;
     }
@@ -25,7 +26,7 @@ export class PropertySyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         `Property "${this.property.getName()}" must have a type`,
         this.property.getSourceFile().getFilePath(),
-        this.property.getStartLineNumber()
+        this.property.getStartLineNumber(),
       );
       hasErrors = true;
     }
@@ -34,7 +35,7 @@ export class PropertySyntaxValidator extends BaseValidator {
       this.errorManager.addSemanticError(
         `Property "${this.property.getName()}" must be static`,
         this.property.getSourceFile().getFilePath(),
-        this.property.getStartLineNumber()
+        this.property.getStartLineNumber(),
       );
       hasErrors = true;
     }

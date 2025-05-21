@@ -1,32 +1,36 @@
-import { ClassDeclaration, MethodDeclaration, SourceFile } from "ts-morph";
-import { STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types.js";
+import { SourceFile } from "ts-morph";
+
 import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
-import { BaseValidator } from "../shared/base-validator";
+
+import { BaseValidator } from "../shared/base-validator.js";
 
 export class ContractSemanticValidator extends BaseValidator {
   private sourceFile: SourceFile;
 
   constructor(sourceFile: SourceFile, errorManager: ErrorManager) {
-    super(errorManager)
+    super(errorManager);
     this.sourceFile = sourceFile;
   }
 
   validate(): boolean {
     let hasErrors = false;
 
-    const classesDefined = this.sourceFile.getClasses().filter(
-      cls => cls.getDecorators().some(dec => dec.getName().toLowerCase() === "contract")
-    );
+    const classesDefined = this.sourceFile
+      .getClasses()
+      .filter((cls) =>
+        cls.getDecorators().some((dec) => dec.getName().toLowerCase() === "contract"),
+      );
 
     if (classesDefined.length === 0 || classesDefined.length > 1) {
-      const errorMessage = classesDefined.length === 0
-        ? "No class decorated with @Contract was found"
-        : "Only one class decorated with @Contract is allowed";
+      const errorMessage =
+        classesDefined.length === 0
+          ? "No class decorated with @Contract was found"
+          : "Only one class decorated with @Contract is allowed";
 
       this.errorManager.addSemanticError(
         errorMessage,
         this.sourceFile.getFilePath(),
-        this.sourceFile.getStartLineNumber()
+        this.sourceFile.getStartLineNumber(),
       );
 
       hasErrors = true;
@@ -37,7 +41,7 @@ export class ContractSemanticValidator extends BaseValidator {
       this.errorManager.addSemanticError(
         `Contract class "${classDefined.getName()}" has multiple @Contract decorators`,
         classDefined.getSourceFile().getFilePath(),
-        classDefined.getStartLineNumber()
+        classDefined.getStartLineNumber(),
       );
 
       hasErrors = true;
@@ -45,8 +49,7 @@ export class ContractSemanticValidator extends BaseValidator {
 
     return !hasErrors;
   }
-} 
-
+}
 
 /*
   private validateConstructor(classDecl: ClassDeclaration): void {

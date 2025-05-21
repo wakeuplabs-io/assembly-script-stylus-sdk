@@ -1,7 +1,9 @@
 import { MethodDeclaration } from "ts-morph";
-import { BaseValidator } from "../shared/base-validator";
+
 import { VISIBILITY_DECORATORS, STATE_MUTABILITY_DECORATORS } from "@/cli/types/abi.types.js";
-import { ErrorManager } from "../shared/error-manager";
+
+import { BaseValidator } from "../shared/base-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
 
 export class MethodSyntaxValidator extends BaseValidator {
   private method: MethodDeclaration;
@@ -18,7 +20,7 @@ export class MethodSyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         "Method must have a name",
         this.method.getSourceFile().getFilePath(),
-        this.method.getStartLineNumber()
+        this.method.getStartLineNumber(),
       );
       hasErrors = true;
     }
@@ -27,29 +29,31 @@ export class MethodSyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         `Method "${this.method.getName()}" must have a body`,
         this.method.getSourceFile().getFilePath(),
-        this.method.getStartLineNumber()
+        this.method.getStartLineNumber(),
       );
       hasErrors = true;
     }
 
     const decorators = this.method.getDecorators();
-    const visDecorators = decorators.filter(d => VISIBILITY_DECORATORS.includes(d.getName()));
-    const stateDecorators = decorators.filter(d => STATE_MUTABILITY_DECORATORS.includes(d.getName()));
+    const visDecorators = decorators.filter((d) => VISIBILITY_DECORATORS.includes(d.getName()));
+    const stateDecorators = decorators.filter((d) =>
+      STATE_MUTABILITY_DECORATORS.includes(d.getName()),
+    );
 
     if (visDecorators.length > 1) {
       this.errorManager.addSemanticError(
-        `Method "${this.method.getName()}" has multiple visibility decorators: ${visDecorators.map(d => d.getName()).join(", ")}`,
+        `Method "${this.method.getName()}" has multiple visibility decorators: ${visDecorators.map((d) => d.getName()).join(", ")}`,
         this.method.getSourceFile().getFilePath(),
-        this.method.getStartLineNumber()
+        this.method.getStartLineNumber(),
       );
       hasErrors = true;
     }
 
     if (stateDecorators.length > 1) {
       this.errorManager.addSemanticError(
-        `Method "${this.method.getName()}" has multiple mutability decorators: ${stateDecorators.map(d => d.getName()).join(", ")}`,
+        `Method "${this.method.getName()}" has multiple mutability decorators: ${stateDecorators.map((d) => d.getName()).join(", ")}`,
         this.method.getSourceFile().getFilePath(),
-        this.method.getStartLineNumber()
+        this.method.getStartLineNumber(),
       );
       hasErrors = true;
     }

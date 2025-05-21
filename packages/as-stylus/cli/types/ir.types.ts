@@ -1,4 +1,4 @@
-import { AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "./abi.types";
+import { AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "@/cli/types/abi.types.js";
 
 export type IRStatement =
   | { kind: "let"; name: string; expr: IRExpression }
@@ -14,31 +14,31 @@ export type IRExpression =
   | { kind: "var"; name: string }
   | { kind: "call"; target: string; args: IRExpression[] }
   | { kind: "member"; object: IRExpression; property: string }
-  | { kind: "binary"; op: string; left: IRExpression; right: IRExpression }; 
+  | { kind: "binary"; op: string; left: IRExpression; right: IRExpression };
 
 export type IRMethod = {
-    name: string;
-    visibility: AbiVisibility;
-    stateMutability: AbiStateMutability
-    inputs: AbiInput[];
-    outputs: AbiOutput[];
-    ir: IRStatement[];
+  name: string;
+  visibility: AbiVisibility;
+  stateMutability: AbiStateMutability;
+  inputs: AbiInput[];
+  outputs: AbiOutput[];
+  ir: IRStatement[];
 };
-  
+
 export type IRConstructor = {
-    inputs: AbiInput[];
-    ir: IRStatement[];
+  inputs: AbiInput[];
+  ir: IRStatement[];
 };
-  
+
 export type IRVariable = {
-    name: string;
-    type: string;
-    slot: number;
+  name: string;
+  type: string;
+  slot: number;
 };
-  
+
 export type IRContract = {
-    name: string;
-    methods: IRMethod[];
-    constructor?: IRConstructor;
-    storage: IRVariable[];
-}
+  name: string;
+  methods: IRMethod[];
+  constructor?: IRConstructor;
+  storage: IRVariable[];
+};

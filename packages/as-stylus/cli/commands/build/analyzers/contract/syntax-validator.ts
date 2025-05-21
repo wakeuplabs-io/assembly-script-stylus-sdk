@@ -1,6 +1,7 @@
-import { SourceFile, ClassDeclaration, MethodDeclaration, PropertyDeclaration } from "ts-morph";
-import { ErrorManager } from "../shared/error-manager";
-import { BaseValidator } from "../shared/base-validator";
+import { SourceFile, ClassDeclaration } from "ts-morph";
+
+import { BaseValidator } from "../shared/base-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
 
 export class ContractSyntaxValidator extends BaseValidator {
   private sourceFile: SourceFile;
@@ -17,7 +18,7 @@ export class ContractSyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         "Source file is empty",
         this.sourceFile.getFilePath(),
-        this.sourceFile.getStartLineNumber()
+        this.sourceFile.getStartLineNumber(),
       );
       hasErrors = true;
     }
@@ -27,7 +28,7 @@ export class ContractSyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         "No class declarations found in source file",
         this.sourceFile.getFilePath(),
-        this.sourceFile.getStartLineNumber()
+        this.sourceFile.getStartLineNumber(),
       );
       hasErrors = true;
     }
@@ -46,11 +47,11 @@ export class ContractSyntaxValidator extends BaseValidator {
       this.errorManager.addSyntaxError(
         "Class declaration must have a name",
         classDecl.getSourceFile().getFilePath(),
-        classDecl.getStartLineNumber()
+        classDecl.getStartLineNumber(),
       );
       hasErrors = true;
     }
 
     return !hasErrors;
   }
-} 
+}

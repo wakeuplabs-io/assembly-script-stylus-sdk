@@ -1,9 +1,11 @@
 import { VariableDeclaration } from "ts-morph";
-import { IRBuilder } from "../shared/ir-builder";
-import { ErrorManager } from "../shared/error-manager";
-import { IRStatement } from "@/cli/types/ir.types";
-import { toIRExpr } from "../helpers";
-import { VariableSyntaxValidator } from "./syntax-validator";
+
+import { IRStatement } from "@/cli/types/ir.types.js";
+
+import { toIRExpr } from "../helpers.js";
+import { VariableSyntaxValidator } from "./syntax-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
+import { IRBuilder } from "../shared/ir-builder.js";
 
 export class VariableIRBuilder extends IRBuilder<IRStatement> {
   private declaration: VariableDeclaration;
@@ -22,7 +24,7 @@ export class VariableIRBuilder extends IRBuilder<IRStatement> {
     return {
       kind: "let",
       name: this.declaration.getName(),
-      expr: toIRExpr(this.declaration.getInitializerOrThrow())
+      expr: toIRExpr(this.declaration.getInitializerOrThrow()),
     };
   }
-} 
+}

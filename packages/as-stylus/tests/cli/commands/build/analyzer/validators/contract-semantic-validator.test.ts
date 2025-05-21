@@ -1,6 +1,7 @@
-import { ErrorManager } from "../../../../../../cli/commands/build/analyzers/shared/error-manager";
 import { Project, SourceFile } from "ts-morph";
+
 import { ContractSemanticValidator } from "../../../../../../cli/commands/build/analyzers/contract/semantic-validator";
+import { ErrorManager } from "../../../../../../cli/commands/build/analyzers/shared/error-manager";
 describe("SemanticValidator", () => {
   let project: Project;
   let sourceFile: SourceFile;
@@ -84,7 +85,7 @@ describe("SemanticValidator", () => {
       const classDecl = sourceFile.getClass("MyContract");
       expect(classDecl).toBeDefined();
 
-      validator.validate()
+      validator.validate();
 
       expect(errorManager.getErrors()).toHaveLength(1);
       expect(errorManager.getErrors()[0].message).toBe(
