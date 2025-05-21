@@ -3,7 +3,7 @@ import { ConstructorSyntaxValidator } from "./syntax-validator";
 import { IRBuilder } from "../shared/ir-builder";
 import { IRConstructor } from "@/cli/types/ir.types";
 import { ErrorManager } from "../shared/error-manager";
-import { toIRStmt } from "../helpers";
+import { StatementIRBuilder } from "../statement/ir-builder";
 
 export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
   private constructorDecl: ConstructorDeclaration;
@@ -27,8 +27,12 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
       type: param.getType().getText(),
     }));
     const body = this.constructorDecl.getBodyOrThrow() as Block;
-    // TODO: implement statements IR builder
-    const irBody = body.getStatements().map(toIRStmt);
+    
+    // Convert each statement using StatementIRBuilder
+    const irBody = body.getStatements().map(stmt => {
+      const statementBuilder = new StatementIRBuilder(stmt, this.errorManager);
+      return statementBuilder.build();
+    });
     
     return {
       inputs,

@@ -6,7 +6,7 @@ import { IRBuilder } from "../shared/ir-builder";
 
 import { IRMethod } from "@/cli/types/ir.types";
 import { STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types";
-import { toIRStmt } from "../helpers";
+import { StatementIRBuilder } from "../statement/ir-builder";
 import { MethodSyntaxValidator } from "./syntax-validator";
 
 export class MethodIRBuilder extends IRBuilder<IRMethod> {
@@ -39,7 +39,11 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
 
     const returnType = this.methodDecl.getReturnType().getText();
     const body = this.methodDecl.getBodyOrThrow() as Block;
-    const irBody = body.getStatements().map(toIRStmt);
+    
+    const irBody = body.getStatements().map(stmt => {
+      const statementBuilder = new StatementIRBuilder(stmt, this.errorManager);
+      return statementBuilder.build();
+    });
 
     return {
       name,
