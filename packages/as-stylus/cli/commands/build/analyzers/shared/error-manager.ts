@@ -12,23 +12,36 @@ export class ValidationError {
 }
 
 export class ErrorManager {
-  private errors: ValidationError[] = [];
+  private semanticErrors: ValidationError[] = [];
+  private syntaxErrors: ValidationError[] = [];
 
-  addError(message: string, code: string, location?: string, line?: number): void {
-    this.errors.push(new ValidationError(message, code, location, line));
+  addSemanticError(message: string, location?: string, line?: number): void {
+    this.semanticErrors.push(new ValidationError(message,"semantic", location, line));
+  }
+
+  addSyntaxError(message: string, location?: string, line?: number): void {
+    this.syntaxErrors.push(new ValidationError(message,"syntax", location, line));
   }
 
   hasErrors(): boolean {
-    return this.errors.length > 0;
+    return this.semanticErrors.length > 0 || this.syntaxErrors.length > 0;
+  }
+
+  getSemanticErrors(): ValidationError[] {
+    return this.semanticErrors;
+  }
+
+  getSyntaxErrors(): ValidationError[] {
+    return this.syntaxErrors;
   }
 
   getErrors(): ValidationError[] {
-    return this.errors;
+    return [...this.semanticErrors, ...this.syntaxErrors];
   }
 
   throwIfErrors(): void {
     if (this.hasErrors()) {
-      const errorMessages = this.errors
+      const errorMessages = this.getErrors()
         .map(error => {
           let locationInfo = error.location ? ` at ${error.location}` : '';
           locationInfo += error.line ? `:${error.line}` : '';

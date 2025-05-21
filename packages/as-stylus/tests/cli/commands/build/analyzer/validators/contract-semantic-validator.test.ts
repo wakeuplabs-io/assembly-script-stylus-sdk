@@ -1,11 +1,10 @@
-import { ErrorManager } from "../../../../../../cli/commands/build/analyzers/errors/error-manager";
-import { SemanticValidator } from "../../../../../../cli/commands/build/analyzers/validators/contract-semantic-validator";
+import { ErrorManager } from "../../../../../../cli/commands/build/analyzers/shared/error-manager";
 import { Project, SourceFile } from "ts-morph";
-
+import { ContractSemanticValidator } from "../../../../../../cli/commands/build/analyzers/contract/semantic-validator";
 describe("SemanticValidator", () => {
   let project: Project;
   let sourceFile: SourceFile;
-  let validator: SemanticValidator;
+  let validator: ContractSemanticValidator;
   let errorManager: ErrorManager;
 
   beforeEach(() => {
@@ -24,8 +23,8 @@ describe("SemanticValidator", () => {
         }
         `,
       );
-      validator = new SemanticValidator(sourceFile, errorManager);
-      const result = validator.validateSourceFile();
+      validator = new ContractSemanticValidator(sourceFile, errorManager);
+      const result = validator.validate();
       expect(result).toBeNull();
       expect(errorManager.getErrors()).toHaveLength(1);
       expect(errorManager.getErrors()[0].message).toBe(
@@ -42,9 +41,9 @@ describe("SemanticValidator", () => {
         }
         `,
       );
-      validator = new SemanticValidator(sourceFile, errorManager);
-      const result = validator.validateSourceFile();
-      expect(result?.getName()).toBe("MyContract");
+      validator = new ContractSemanticValidator(sourceFile, errorManager);
+      const result = validator.validate();
+      expect(result).toBe(true);
     });
   });
   describe("validateContractClass", () => {
@@ -59,10 +58,10 @@ describe("SemanticValidator", () => {
         }
         `,
       );
-      validator = new SemanticValidator(sourceFile, errorManager);
+      validator = new ContractSemanticValidator(sourceFile, errorManager);
       const classDecl = sourceFile.getClass("MyContract");
       expect(classDecl).toBeDefined();
-      validator.validateContractClass(classDecl!);
+      validator.validate();
       expect(errorManager.getErrors()).toHaveLength(1);
       expect(errorManager.getErrors()[0].message).toBe(
         'Contract class "MyContract" has more than one constructor',
@@ -81,11 +80,11 @@ describe("SemanticValidator", () => {
         `,
       );
       errorManager = new ErrorManager();
-      validator = new SemanticValidator(sourceFile, errorManager);
+      validator = new ContractSemanticValidator(sourceFile, errorManager);
       const classDecl = sourceFile.getClass("MyContract");
       expect(classDecl).toBeDefined();
 
-      validator.validateContractClass(classDecl!);
+      validator.validate()
 
       expect(errorManager.getErrors()).toHaveLength(1);
       expect(errorManager.getErrors()[0].message).toBe(
@@ -111,10 +110,10 @@ describe("SemanticValidator", () => {
         }
         `,
       );
-      validator = new SemanticValidator(sourceFile, errorManager);
+      validator = new ContractSemanticValidator(sourceFile, errorManager);
       const classDecl = sourceFile.getClass("MyContract");
       expect(classDecl).toBeDefined();
-      validator.validateContractClass(classDecl!);
+      validator.validate();
       expect(errorManager.getErrors()).toHaveLength(1);
       expect(errorManager.getErrors()[0].message).toBe(
         'Method "invalidMethod" has multiple visibility decorators: Public, Private',
@@ -136,11 +135,11 @@ describe("SemanticValidator", () => {
         }
         `,
       );
-      validator = new SemanticValidator(sourceFile, errorManager);
+      validator = new ContractSemanticValidator(sourceFile, errorManager);
       const classDecl = sourceFile.getClass("MyContract");
 
       expect(classDecl).toBeDefined();
-      validator.validateContractClass(classDecl!);
+      validator.validate();
       expect(errorManager.getErrors()).toHaveLength(1);
       expect(errorManager.getErrors()[0].message).toBe(
         'Method "invalidMethod" has multiple mutability decorators: View, Pure',
