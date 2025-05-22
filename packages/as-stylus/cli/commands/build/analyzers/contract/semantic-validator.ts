@@ -33,7 +33,7 @@ export class ContractSemanticValidator extends BaseValidator {
         this.sourceFile.getStartLineNumber(),
       );
 
-      hasErrors = true;
+      return true;
     }
 
     const classDefined = classesDefined[0];

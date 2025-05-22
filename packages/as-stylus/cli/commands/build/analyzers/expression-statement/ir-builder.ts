@@ -23,7 +23,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
     return syntaxValidator.validate();
   }
 
-  build(): IRStatement {
+  buildIR(): IRStatement {
     const expr = this.statement.getExpression();
 
     // Handle assignment expressions (x = y)

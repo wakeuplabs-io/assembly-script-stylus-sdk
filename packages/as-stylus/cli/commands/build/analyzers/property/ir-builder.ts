@@ -21,7 +21,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     return syntaxValidator.validate();
   }
 
-  build() {
+  buildIR() {
     const name = this.property.getName();
     const type = this.property.getType().getText();
 

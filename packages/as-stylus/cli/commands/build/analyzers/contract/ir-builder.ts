@@ -28,7 +28,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     return syntaxErrors || semanticErrors;
   }
 
-  build(): IRContract {
+  buildIR(): IRContract {
     const name = this.sourceFile.getBaseName() ?? "Main";
     const classes = this.sourceFile.getClasses();
     const classDefinition = classes[0];
@@ -36,16 +36,16 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     const constructorDecl: ConstructorDeclaration | undefined =
       classDefinition.getConstructors()[0];
     const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl, this.errorManager);
-    const constructor = constructorIRBuilder.build();
+    const constructor = constructorIRBuilder.validateAndBuildIR();
 
     const methods = classDefinition.getMethods().map((method) => {
       const methodIRBuilder = new MethodIRBuilder(method, this.errorManager);
-      return methodIRBuilder.build();
+      return methodIRBuilder.validateAndBuildIR();
     });
 
     const storage = classDefinition.getProperties().map((property, index) => {
       const propertyIRBuilder = new PropertyIRBuilder(property, index, this.errorManager);
-      return propertyIRBuilder.build();
+      return propertyIRBuilder.validateAndBuildIR();
     });
 
     return {

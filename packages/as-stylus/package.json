@@ -12,8 +12,8 @@
   },
   "scripts": {
     "pre:build": "tsc && tsc-alias",
-    "generate": "npm run pre:build && node dist/commands/generate/generate.js",
-    "build": "npm run pre:build && node dist/commands/build/build.js",
+    "generate": "npm run pre:build && node dist/cli/commands/generate/generate.js",
+    "build": "npm run pre:build && node dist/cli/commands/build/build.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "jest",

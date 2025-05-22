@@ -20,7 +20,7 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
     return syntaxValidator.validate();
   }
 
-  build(): IRConstructor {
+  buildIR(): IRConstructor {
     const inputs = this.constructorDecl.getParameters().map((param) => ({
       name: param.getName(),
       type: param.getType().getText(),
@@ -30,7 +30,7 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
     // Convert each statement using StatementIRBuilder
     const irBody = body.getStatements().map((stmt) => {
       const statementBuilder = new StatementIRBuilder(stmt, this.errorManager);
-      return statementBuilder.build();
+      return statementBuilder.validateAndBuildIR();
     });
 
     return {

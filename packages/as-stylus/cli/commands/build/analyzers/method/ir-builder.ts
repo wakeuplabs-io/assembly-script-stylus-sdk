@@ -21,7 +21,7 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     return syntaxValidator.validate();
   }
 
-  build(): IRMethod {
+  buildIR(): IRMethod {
     const name = this.methodDecl.getName();
     const decorators = this.methodDecl.getDecorators();
 
@@ -43,7 +43,7 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
 
     const irBody = body.getStatements().map((stmt) => {
       const statementBuilder = new StatementIRBuilder(stmt, this.errorManager);
-      return statementBuilder.build();
+      return statementBuilder.validateAndBuildIR();
     });
 
     return {

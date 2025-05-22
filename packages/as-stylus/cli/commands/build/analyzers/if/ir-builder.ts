@@ -21,19 +21,19 @@ export class IfIRBuilder extends IRBuilder<IRStatement> {
     return syntaxValidator.validate();
   }
 
-  build(): IRStatement {
+  buildIR(): IRStatement {
     const cond = toIRExpr(this.statement.getExpression());
     const thenBlock = this.statement.getThenStatement().asKindOrThrow(SyntaxKind.Block);
     const thenStmts = thenBlock
       .getStatements()
-      .map((blockStatement) => new StatementIRBuilder(blockStatement, this.errorManager).build());
+      .map((blockStatement) => new StatementIRBuilder(blockStatement, this.errorManager).validateAndBuildIR());
 
     const elseNode = this.statement.getElseStatement();
     const elseStmts = elseNode
       ? (elseNode.asKindOrThrow(SyntaxKind.Block) as Block)
           .getStatements()
           .map((blockStatement) =>
-            new StatementIRBuilder(blockStatement, this.errorManager).build(),
+            new StatementIRBuilder(blockStatement, this.errorManager).validateAndBuildIR(),
           )
       : undefined;
 

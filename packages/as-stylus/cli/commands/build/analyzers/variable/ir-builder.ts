@@ -20,7 +20,7 @@ export class VariableIRBuilder extends IRBuilder<IRStatement> {
     return syntaxValidator.validate();
   }
 
-  build(): IRStatement {
+  buildIR(): IRStatement {
     return {
       kind: "let",
       name: this.declaration.getName(),

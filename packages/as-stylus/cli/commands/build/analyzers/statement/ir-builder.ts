@@ -21,7 +21,7 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
     return true;
   }
 
-  build(): IRStatement {
+  buildIR(): IRStatement {
     switch (this.statement.getKind()) {
       /**
        * Variable declaration statement
@@ -32,7 +32,7 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
           .asKindOrThrow(SyntaxKind.VariableStatement)
           .getDeclarations()[0];
         const variableBuilder = new VariableIRBuilder(decl, this.errorManager);
-        return variableBuilder.build();
+        return variableBuilder.validateAndBuildIR();
       }
 
       /**
@@ -43,7 +43,7 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
         return new ReturnIRBuilder(
           this.statement.asKindOrThrow(SyntaxKind.ReturnStatement),
           this.errorManager,
-        ).build();
+        ).validateAndBuildIR();
 
       /**
        * If statement for conditional execution
@@ -53,7 +53,7 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
         return new IfIRBuilder(
           this.statement.asKindOrThrow(SyntaxKind.IfStatement),
           this.errorManager,
-        ).build();
+        ).validateAndBuildIR();
 
       /**
        * Expression statement represents function calls, assignments, etc.
@@ -63,7 +63,7 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
         return new ExpressionStatementIRBuilder(
           this.statement.asKindOrThrow(SyntaxKind.ExpressionStatement),
           this.errorManager,
-        ).build();
+        ).validateAndBuildIR();
 
       default:
         throw new Error(`Unsupported statement kind: ${this.statement.getKindName()}`);

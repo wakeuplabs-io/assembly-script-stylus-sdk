@@ -20,7 +20,7 @@ export class ReturnIRBuilder extends IRBuilder<IRStatement> {
     return syntaxValidator.validate();
   }
 
-  build(): IRStatement {
+  buildIR(): IRStatement {
     return {
       kind: "return",
       expr: toIRExpr(this.statement.getExpressionOrThrow()),
