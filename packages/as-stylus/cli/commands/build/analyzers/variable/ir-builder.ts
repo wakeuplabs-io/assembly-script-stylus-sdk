@@ -1,12 +1,17 @@
-import { VariableDeclaration } from "ts-morph";
+import { Expression, VariableDeclaration } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
-import { toIRExpr } from "../helpers.js";
 import { VariableSyntaxValidator } from "./syntax-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 
+/**
+ * Builds the IR for a variable declaration statement
+ * Example: "let counter = 0;"
+ */
+// TODO: rename to AssignmentIRBuilder
 export class VariableIRBuilder extends IRBuilder<IRStatement> {
   private declaration: VariableDeclaration;
 
@@ -21,11 +26,20 @@ export class VariableIRBuilder extends IRBuilder<IRStatement> {
   }
 
   buildIR(): IRStatement {
-    console.log("building ir for variable", this.declaration.getName());
+    const initializer = this.declaration.getInitializer();
+    if (!initializer) {
+      return {
+        kind: "let",
+        name: this.declaration.getName(),
+        expr: { kind: "literal", value: null },
+      };
+    }
+
+    const expression = new ExpressionIRBuilder(initializer as Expression, this.errorManager);
     return {
       kind: "let",
       name: this.declaration.getName(),
-      expr: toIRExpr(this.declaration.getInitializerOrThrow()),
+      expr: expression.validateAndBuildIR(),
     };
   }
 }

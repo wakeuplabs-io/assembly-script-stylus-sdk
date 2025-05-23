@@ -2,7 +2,7 @@ import { IfStatement, SyntaxKind, Block } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
-import { toIRExpr } from "../helpers.js";
+import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IfSyntaxValidator } from "./syntax-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
@@ -22,7 +22,8 @@ export class IfIRBuilder extends IRBuilder<IRStatement> {
   }
 
   buildIR(): IRStatement {
-    const cond = toIRExpr(this.statement.getExpression());
+    // TODO: create a condition builder
+    const cond = new ExpressionIRBuilder(this.statement.getExpression(), this.errorManager).validateAndBuildIR();
     const thenBlock = this.statement.getThenStatement().asKindOrThrow(SyntaxKind.Block);
     const thenStmts = thenBlock
       .getStatements()

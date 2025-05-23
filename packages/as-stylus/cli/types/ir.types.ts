@@ -1,20 +1,22 @@
 import { AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "@/cli/types/abi.types.js";
 
-export type IRStatement =
-  | { kind: "let"; name: string; expr: IRExpression }
-  | { kind: "assign"; target: string; expr: IRExpression }
-  | { kind: "expr"; expr: IRExpression }
-  | { kind: "return"; expr: IRExpression }
-  | { kind: "if"; condition: IRExpression; then: IRStatement[]; else?: IRStatement[] }
-  | { kind: "block"; body: IRStatement[] };
+// Statements
+export type Let = { kind: "let"; name: string; expr: IRExpression };
+export type Assignment = { kind: "assign"; target: string; expr: IRExpression };
+export type ExpressionStatement = { kind: "expr"; expr: IRExpression };
+export type Return = { kind: "return"; expr: IRExpression };
+export type If = { kind: "if"; condition: IRExpression; then: IRStatement[]; else?: IRStatement[] };
+export type Block = { kind: "block"; body: IRStatement[] };
 
-// Expresiones
-export type IRExpression =
-  | { kind: "literal"; value: string | number | boolean }
-  | { kind: "var"; name: string }
-  | { kind: "call"; target: string; args: IRExpression[] }
-  | { kind: "member"; object: IRExpression; property: string }
-  | { kind: "binary"; op: string; left: IRExpression; right: IRExpression };
+export type IRStatement = Let | Assignment | ExpressionStatement | Return | If | Block;
+
+// Expressions
+export type Literal = { kind: "literal"; value: string | number | boolean | null };
+export type Variable = { kind: "var"; name: string };
+export type Call = { kind: "call"; target: string; args: IRExpression[] };
+export type Member = { kind: "member"; object: IRExpression; property: string };
+export type Binary = { kind: "binary"; op: string; left: IRExpression; right: IRExpression };
+export type IRExpression = Literal | Variable | Call | Member | Binary;
 
 export type IRMethod = {
   name: string;

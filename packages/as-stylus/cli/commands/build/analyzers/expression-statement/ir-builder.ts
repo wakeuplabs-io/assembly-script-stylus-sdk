@@ -2,11 +2,12 @@ import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier } from "t
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
-import { toIRExpr } from "../helpers.js";
+import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
+// TODO: rename to AssignmentIRBuilder. Merge with VariableIRBuilder.
 export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
   private statement: ExpressionStatement;
 
@@ -39,7 +40,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
           return {
             kind: "assign",
             target: lhsId.getText(),
-            expr: toIRExpr(rhsNode),
+            expr: new ExpressionIRBuilder(rhsNode, this.errorManager).validateAndBuildIR(),
           };
         }
       }
@@ -48,7 +49,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
     // Handle simple expressions (function calls, etc.)
     return {
       kind: "expr",
-      expr: toIRExpr(expr),
+      expr: new ExpressionIRBuilder(expr, this.errorManager).validateAndBuildIR(),
     };
   }
 }

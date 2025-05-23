@@ -20,11 +20,6 @@ export class VariableSyntaxValidator extends BaseValidator {
 
   validate(): boolean {
     let hasErrors = false;
-    // Check if the variable has an initializer
-    if (!this.declaration.hasInitializer()) {
-      this.addSyntaxError(ERROR_MESSAGES.MISSING_INITIALIZER);
-      hasErrors = true;
-    }
 
     // Check if the variable name is valid
     const name = this.declaration.getName();
@@ -36,6 +31,11 @@ export class VariableSyntaxValidator extends BaseValidator {
     // Check if the variable type is supported
     const type = this.declaration.getType().getText();
     const supportedTypes = ["U256", "string", "boolean", "address"];
+    if (type === "any") {
+      this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(type, supportedTypes));
+      hasErrors = true;
+    }
+
     if (!supportedTypes.includes(type)) {
       this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(type, supportedTypes));
       hasErrors = true;
