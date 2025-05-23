@@ -12,7 +12,7 @@ const ERROR_MESSAGES = {
   MULTIPLE_STATE_MUTABILITY_DECORATORS: (decorators: string[]) => `Method has multiple mutability decorators: ${decorators.join(", ")}`,
 } as const;
 
-export class MethodSyntaxValidator extends BaseValidator {
+export class MethodSemanticValidator extends BaseValidator {
   private method: MethodDeclaration;
 
   constructor(method: MethodDeclaration, errorManager: ErrorManager) {
@@ -23,13 +23,19 @@ export class MethodSyntaxValidator extends BaseValidator {
   validate(): boolean {
     let hasErrors = false;
 
-    if (!this.method.getName()) {
-      this.addSyntaxError(ERROR_MESSAGES.MISSING_NAME);
+    const decorators = this.method.getDecorators();
+    const visDecorators = decorators.filter((d) => VISIBILITY_DECORATORS.includes(d.getName()));
+    const stateDecorators = decorators.filter((d) =>
+      STATE_MUTABILITY_DECORATORS.includes(d.getName()),
+    );
+
+    if (visDecorators.length > 1) {
+      this.addSemanticError(ERROR_MESSAGES.MULTIPLE_VISIBILITY_DECORATORS(visDecorators.map((d) => d.getName())));
       hasErrors = true;
     }
 
-    if (!this.method.isAbstract() && !this.method.getBody()) {
-      this.addSyntaxError(ERROR_MESSAGES.MISSING_BODY);
+    if (stateDecorators.length > 1) {
+      this.addSemanticError(ERROR_MESSAGES.MULTIPLE_STATE_MUTABILITY_DECORATORS(stateDecorators.map((d) => d.getName())));
       hasErrors = true;
     }
 

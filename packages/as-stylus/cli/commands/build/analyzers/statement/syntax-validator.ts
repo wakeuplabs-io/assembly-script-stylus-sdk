@@ -3,12 +3,16 @@ import { Statement, SyntaxKind } from "ts-morph";
 import { BaseValidator } from "../shared/base-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 
+const ERROR_MESSAGES = {
+  UNSUPPORTED_STATEMENT_KIND: (kind: string) => `Unsupported statement kind: ${kind}`,
+} as const;
+
 export class StatementSyntaxValidator extends BaseValidator {
   constructor(
     private statement: Statement,
     errorManager: ErrorManager,
   ) {
-    super(errorManager);
+    super(errorManager, statement.getSourceFile().getFilePath(), statement.getStartLineNumber());
   }
 
   validate(): boolean {
@@ -23,11 +27,7 @@ export class StatementSyntaxValidator extends BaseValidator {
         return true;
 
       default:
-        this.errorManager.addSyntaxError(
-          `Unsupported statement kind: ${this.statement.getKindName()}`,
-          this.statement.getSourceFile().getFilePath(),
-          this.statement.getEndLineNumber(),
-        );
+        this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_STATEMENT_KIND(this.statement.getKindName()));
         return false;
     }
   }

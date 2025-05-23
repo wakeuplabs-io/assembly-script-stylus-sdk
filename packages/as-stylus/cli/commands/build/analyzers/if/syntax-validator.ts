@@ -1,16 +1,20 @@
 import { IfStatement, SyntaxKind } from "ts-morph";
 
 import { ErrorManager } from "../shared/error-manager.js";
+import { BaseValidator } from "../shared/base-validator.js";
 
-export class IfSyntaxValidator {
+const ERROR_MESSAGES = {
+  CONDITION_NOT_BOOLEAN: (conditionType: string) => `If condition must be a boolean expression, got ${conditionType}`,
+  THEN_NOT_BLOCK: "Then clause must be a block statement",
+  ELSE_NOT_BLOCK: "Else clause must be a block statement",
+} as const;
+
+export class IfSyntaxValidator extends BaseValidator {
   private statement: IfStatement;
-  private errorManager: ErrorManager;
-  private filePath: string;
 
   constructor(statement: IfStatement, errorManager: ErrorManager) {
+    super(errorManager, statement.getSourceFile().getFilePath(), statement.getStartLineNumber());
     this.statement = statement;
-    this.errorManager = errorManager;
-    this.filePath = statement.getSourceFile().getFilePath();
   }
 
   validate(): boolean {
@@ -19,33 +23,21 @@ export class IfSyntaxValidator {
     const condition = this.statement.getExpression();
     const conditionType = condition.getType().getText();
     if (conditionType !== "boolean") {
-      this.errorManager.addSyntaxError(
-        `If condition must be a boolean expression, got ${conditionType}`,
-        this.filePath,
-        this.statement.getStartLineNumber(),
-      );
+      this.addSyntaxError(ERROR_MESSAGES.CONDITION_NOT_BOOLEAN(conditionType));
       hasError = true;
     }
 
     // Check if then block is a block statement
     const thenStmt = this.statement.getThenStatement();
     if (!thenStmt.isKind(SyntaxKind.Block)) {
-      this.errorManager.addSyntaxError(
-        "Then clause must be a block statement",
-        this.filePath,
-        thenStmt.getStartLineNumber(),
-      );
+      this.addSyntaxError(ERROR_MESSAGES.THEN_NOT_BLOCK);
       hasError = true;
     }
 
     // Check if else block is a block statement (if it exists)
     const elseStmt = this.statement.getElseStatement();
     if (elseStmt && !elseStmt.isKind(SyntaxKind.Block)) {
-      this.errorManager.addSyntaxError(
-        "Else clause must be a block statement",
-        this.filePath,
-        elseStmt.getStartLineNumber(),
-      );
+      this.addSyntaxError(ERROR_MESSAGES.ELSE_NOT_BLOCK);
       hasError = true;
     }
 
