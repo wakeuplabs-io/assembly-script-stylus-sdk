@@ -2,6 +2,7 @@ import { IfStatement, SyntaxKind } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
+import { BaseValidator } from "../shared/base-validator.js";
 
 const ERROR_MESSAGES = {
   CONDITION_NOT_BOOLEAN: (conditionType: string) => `If condition must be a boolean expression, got ${conditionType}`,
