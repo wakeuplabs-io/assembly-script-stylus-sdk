@@ -7,16 +7,19 @@ import {
 } from "ts-morph";
 
 import { ErrorManager } from "../shared/error-manager.js";
+import { BaseValidator } from "../shared/base-validator.js";
 
-export class ExpressionStatementSyntaxValidator {
+const ERROR_MESSAGES = {
+  MISSING_LHS: "Left-hand side of assignment must be an identifier",
+  CONST_ASSIGNMENT: "Cannot assign to a constant variable",
+} as const;
+
+export class ExpressionStatementSyntaxValidator extends BaseValidator {
   private statement: ExpressionStatement;
-  private errorManager: ErrorManager;
-  private filePath: string;
 
   constructor(statement: ExpressionStatement, errorManager: ErrorManager) {
+    super(errorManager, statement.getSourceFile().getFilePath(), statement.getStartLineNumber());
     this.statement = statement;
-    this.errorManager = errorManager;
-    this.filePath = statement.getSourceFile().getFilePath();
   }
 
   validate(): boolean {
@@ -31,11 +34,7 @@ export class ExpressionStatementSyntaxValidator {
 
         // Validate that LHS is an identifier
         if (lhsNode.getKind() !== SyntaxKind.Identifier) {
-          this.errorManager.addSyntaxError(
-            "Left-hand side of assignment must be an identifier",
-            this.filePath,
-            this.statement.getEndLineNumber(),
-          );
+          this.addSyntaxError(ERROR_MESSAGES.MISSING_LHS);
           hasError = true;
         }
 
@@ -43,11 +42,7 @@ export class ExpressionStatementSyntaxValidator {
         const lhsId = lhsNode as Identifier;
         const symbol = lhsId.getSymbol();
         if (symbol && symbol.getFlags() & SymbolFlags.ConstEnum) {
-          this.errorManager.addSyntaxError(
-            "Cannot assign to a constant variable",
-            this.filePath,
-            lhsId.getEndLineNumber(),
-          );
+          this.addSyntaxError(ERROR_MESSAGES.CONST_ASSIGNMENT);
           hasError = true;
         }
       }

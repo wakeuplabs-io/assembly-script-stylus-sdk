@@ -21,6 +21,7 @@ export class VariableIRBuilder extends IRBuilder<IRStatement> {
   }
 
   buildIR(): IRStatement {
+    console.log("building ir for variable", this.declaration.getName());
     return {
       kind: "let",
       name: this.declaration.getName(),
