@@ -1,11 +1,13 @@
+import { BinaryExpression, CallExpression, Expression, Identifier, PropertyAccessExpression, SyntaxKind } from "ts-morph";
+
 import { IRExpression } from "@/cli/types/ir.types.js";
-import { BinaryExpression, CallExpression, Expression, Identifier, NumericLiteral, PropertyAccessExpression, StringLiteral, SyntaxKind } from "ts-morph";
+
+import { BinaryExpressionIRBuilder } from "../binary-expression/ir-builder.js";
+import { CallFunctionIRBuilder } from "../call-function/ir-builder.js";
+import { LiteralIRBuilder } from "../literal/ir-builder.js";
+import { MemberIRBuilder } from "../member/ir-builder.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { LiteralIRBuilder } from "../literal/ir-builder.js";
-import { CallFunctionIRBuilder } from "../call-function/ir-builder.js";
-import { BinaryExpressionIRBuilder } from "../binary-expression/ir-builder.js";
-import { MemberIRBuilder } from "../member/ir-builder.js";
 
 /**
  * Builds the IR for an expression
@@ -31,8 +33,8 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       case SyntaxKind.NumericLiteral:
       case SyntaxKind.TrueKeyword:
       case SyntaxKind.FalseKeyword: {
-        const literal = new LiteralIRBuilder(this.expression, this.errorManager)
-        return literal.validateAndBuildIR()
+        const literal = new LiteralIRBuilder(this.expression, this.errorManager);
+        return literal.validateAndBuildIR();
       }
 
   
@@ -46,8 +48,8 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       /* ---------- Function calls ---------- */
       // Example: increment(), U256Factory.create()
       case SyntaxKind.CallExpression: {
-        const call = new CallFunctionIRBuilder(this.expression as CallExpression, this.errorManager)
-        return call.validateAndBuildIR()
+        const call = new CallFunctionIRBuilder(this.expression as CallExpression, this.errorManager);
+        return call.validateAndBuildIR();
       }
   
       /* ---------- Member access ---------- */
@@ -55,13 +57,13 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       // For property access obj["prop"], this is an ElementAccessExpression
       case SyntaxKind.PropertyAccessExpression: {
         // Example: contract.balance, u256value.toString()
-        const member = new MemberIRBuilder(this.expression as PropertyAccessExpression, this.errorManager)
-        return member.validateAndBuildIR()
+        const member = new MemberIRBuilder(this.expression as PropertyAccessExpression, this.errorManager);
+        return member.validateAndBuildIR();
       }
   
       case SyntaxKind.BinaryExpression: {
-        const bin = new BinaryExpressionIRBuilder(this.expression as BinaryExpression, this.errorManager)
-        return bin.validateAndBuildIR()
+        const bin = new BinaryExpressionIRBuilder(this.expression as BinaryExpression, this.errorManager);
+        return bin.validateAndBuildIR();
       }
   
       default:

@@ -2,8 +2,8 @@ import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier } from "t
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
-import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
+import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
