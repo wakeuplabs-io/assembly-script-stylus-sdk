@@ -1,12 +1,12 @@
-import { IfStatement, SyntaxKind, Block } from "ts-morph";
+import { IfStatement, SyntaxKind, Block, BinaryExpression } from "ts-morph";
 
-import { IRStatement } from "@/cli/types/ir.types.js";
+import { IRCondition, IRStatement } from "@/cli/types/ir.types.js";
 
-import { toIRExpr } from "../helpers.js";
 import { IfSyntaxValidator } from "./syntax-validator.js";
+import { BinaryExpressionIRBuilder } from "../binary-expression/ir-builder.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { StatementIRBuilder } from "../statement/ir-builder.js";
+import { StatementIRBuilder } from "../statement/ir-builder.js";  
 
 export class IfIRBuilder extends IRBuilder<IRStatement> {
   private statement: IfStatement;
@@ -22,7 +22,7 @@ export class IfIRBuilder extends IRBuilder<IRStatement> {
   }
 
   buildIR(): IRStatement {
-    const cond = toIRExpr(this.statement.getExpression());
+    const cond = new BinaryExpressionIRBuilder(this.statement.getExpression().asKindOrThrow(SyntaxKind.BinaryExpression) as BinaryExpression, this.errorManager, true).validateAndBuildIR() as IRCondition;
     const thenBlock = this.statement.getThenStatement().asKindOrThrow(SyntaxKind.Block);
     const thenStmts = thenBlock
       .getStatements()

@@ -2,15 +2,19 @@ import { ReturnStatement } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
+import { SUPPORTED_TYPES } from "../shared/supported-types.js";
+
+const ERROR_MESSAGES = {
+  MISSING_EXPRESSION: "Return statement must have an expression",
+  UNSUPPORTED_TYPE: (type: string, supportedTypes: string[]) => `Unsupported return type: ${type}. Supported types are: ${supportedTypes.join(", ")}`,
+} as const;
 
 export class ReturnSyntaxValidator extends BaseValidator {
   private statement: ReturnStatement;
-  private filePath: string;
 
   constructor(statement: ReturnStatement, errorManager: ErrorManager) {
-    super(errorManager);
+    super(errorManager, statement.getSourceFile().getFilePath(), statement.getStartLineNumber());
     this.statement = statement;
-    this.filePath = statement.getSourceFile().getFilePath();
   }
 
   validate(): boolean {
@@ -22,22 +26,12 @@ export class ReturnSyntaxValidator extends BaseValidator {
 
       // Check if the return type is supported
       const returnType = expr.getType().getText();
-      // TODO: Add types in other place
-      const supportedTypes = ["U256", "string", "boolean", "address", "void"];
-      if (!supportedTypes.includes(returnType)) {
-        this.errorManager.addSyntaxError(
-          `Unsupported return type: ${returnType}. Supported types are: ${supportedTypes.join(", ")}`,
-          this.filePath,
-          this.statement.getEndLineNumber(),
-        );
+      if (!SUPPORTED_TYPES.includes(returnType)) {
+        this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(returnType, SUPPORTED_TYPES ));
         hasErrors = true;
       }
     } catch (error) {
-      this.errorManager.addSyntaxError(
-        "Return statement must have an expression",
-        this.filePath,
-        this.statement.getEndLineNumber(),
-      );
+      this.addSyntaxError(ERROR_MESSAGES.MISSING_EXPRESSION);
       hasErrors = true;
     }
 

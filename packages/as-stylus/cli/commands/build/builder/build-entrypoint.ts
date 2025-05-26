@@ -54,7 +54,7 @@ export function buildEntrypoint(userFilePath: string, contract: IRContract): voi
   const { imports, entrypointBody } = generateUserEntrypoint(contract);
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const templatePath = path.resolve(__dirname, "../../../../templates/index.template.ts");
+  const templatePath = path.resolve(__dirname, "../../../../templates/index.template.js");
   const contractBasePath = path.dirname(userFilePath);
   const targetPath = path.join(contractBasePath, ".dist");
 

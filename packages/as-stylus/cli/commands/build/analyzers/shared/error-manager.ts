@@ -1,17 +1,4 @@
-export class ValidationError {
-  constructor(
-    public readonly message: string,
-    public readonly code: string,
-    public readonly location?: string,
-    public readonly line?: number,
-  ) {}
-
-  log() {
-    console.log(
-      `[${this.code}] ${this.message}${this.location ? ` at line ${this.line} of ${this.location}` : ""}`,
-    );
-  }
-}
+import { ValidationError } from "./validation-error.js";
 
 export class ErrorManager {
   private semanticErrors: ValidationError[] = [];
