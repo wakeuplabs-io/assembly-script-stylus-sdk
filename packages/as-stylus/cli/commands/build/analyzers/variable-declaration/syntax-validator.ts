@@ -10,7 +10,7 @@ const ERROR_MESSAGES = {
     `Unsupported variable type: ${type}. Supported types are: ${supportedTypes.join(", ")}`
 } as const;
 
-export class VariableSyntaxValidator extends BaseValidator {
+export class VariableDeclarationSyntaxValidator extends BaseValidator {
   constructor(
     private declaration: VariableDeclaration,
     errorManager: ErrorManager,

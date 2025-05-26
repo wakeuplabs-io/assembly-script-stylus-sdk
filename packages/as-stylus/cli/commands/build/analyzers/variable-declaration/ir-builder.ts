@@ -2,17 +2,16 @@ import { Expression, VariableDeclaration } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
-import { VariableSyntaxValidator } from "./syntax-validator.js";
+import { VariableDeclarationSyntaxValidator } from "./syntax-validator.js";
+import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 
 /**
  * Builds the IR for a variable declaration statement
  * Example: "let counter = 0;"
  */
-// TODO: rename to AssignmentIRBuilder
-export class VariableIRBuilder extends IRBuilder<IRStatement> {
+export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
   private declaration: VariableDeclaration;
 
   constructor(declaration: VariableDeclaration, errorManager: ErrorManager) {
@@ -21,7 +20,7 @@ export class VariableIRBuilder extends IRBuilder<IRStatement> {
   }
 
   validate(): boolean {
-    const syntaxValidator = new VariableSyntaxValidator(this.declaration, this.errorManager);
+    const syntaxValidator = new VariableDeclarationSyntaxValidator(this.declaration, this.errorManager);
     return syntaxValidator.validate();
   }
 
