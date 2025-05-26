@@ -1,15 +1,20 @@
-// ASCII constants
-const ASCII_0: u8 = 0x30;        // '0'
-const ASCII_a: u8 = 0x61;        // 'a'
-const ASCII_X_LOWER: u8 = 0x78;        // 'x'
-const ASCII_CASE_MASK: u8 = 0x20;        // toLower bit
-const HEX_ALPHA_OFFSET: u8 = ASCII_a - 10; // 0x61-0x0A = 0x57
+/******************************************************************
+ * U256 — low-level implementation (32-byte big-endian buffer)    *
+ ******************************************************************/
+
+// ── ASCII constants ─────────────────────────────────────────────
+const ASCII_0: u8 = 0x30;
+const ASCII_a: u8 = 0x61;
+const ASCII_X_LOWER: u8 = 0x78;
+const ASCII_CASE_MASK: u8 = 0x20;
+const HEX_ALPHA_OFFSET: u8 = ASCII_a - 10;
 
 import { malloc } from "../modules/memory";
 
 export class U256 {
+
   /*──────────────────────────*
-   *  Memory helpers           *
+   *  Memory helpers          *
    *──────────────────────────*/
   static create(): usize {
     const ptr = malloc(32);
@@ -17,15 +22,13 @@ export class U256 {
     return ptr;
   }
 
-  /** raw‐byte copy (src must already be a 32-byte big-endian buffer) */
   static copy(dest: usize, src: usize): void {
     for (let i = 0; i < 32; ++i) store<u8>(dest + i, load<u8>(src + i));
   }
 
   /*──────────────────────────*
-   *  Constructors             *
+   *  Constructors            *
    *──────────────────────────*/
-  /** decimal string → U256 */
   static setFromString(dest: usize, str: usize, len: u32): void {
     for (let i = 0; i < 32; ++i) store<u8>(dest + i, 0);
 
@@ -36,7 +39,6 @@ export class U256 {
     }
   }
 
-  /** hexadecimal string → U256 (accepts “0x” prefix) */
   static setFromStringHex(dest: usize, str: usize, len: u32): void {
     let off: u32 = 0;
     if (len >= 2 &&
@@ -65,8 +67,9 @@ export class U256 {
   }
 
   /*──────────────────────────*
-   *  Public arithmetic        *
+   *  Public arithmetic       *
    *──────────────────────────*/
+
   static add(dest: usize, src: usize): usize {
     let carry: u16 = 0;
     for (let i: i32 = 31; i >= 0; --i) {
@@ -96,6 +99,7 @@ export class U256 {
   /*──────────────────────────*
    *  Internal helpers         *
    *──────────────────────────*/
+
   private static mul10(ptr: usize): void {
     let carry: u16 = 0;
     for (let i: i32 = 31; i >= 0; --i) {
