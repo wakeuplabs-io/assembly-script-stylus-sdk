@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
-import { AbiItem, AbiInput, AbiOutput } from "../../../types/abi.types";
-import { IRContract } from "../../../types/ir.types";
+
+import { AbiItem, AbiInput, AbiOutput } from "@/cli/types/abi.types.js";
+import { IRContract } from "@/cli/types/ir.types.js";
 
 export function buildAbi(targetPath: string, contract: IRContract) {
   const abi: AbiItem[] = [];
@@ -31,7 +32,7 @@ export function buildAbi(targetPath: string, contract: IRContract) {
     });
   }
 
-  if(contract.constructor) {
+  if (contract.constructor) {
     abi.push({
       type: "constructor",
       stateMutability: "nonpayable",
@@ -43,10 +44,7 @@ export function buildAbi(targetPath: string, contract: IRContract) {
     });
   }
 
-  fs.writeFileSync(
-    path.join(targetPath, "abi.json"),
-    JSON.stringify(abi, null, 2)
-  );
+  fs.writeFileSync(path.join(targetPath, "abi.json"), JSON.stringify(abi, null, 2));
 }
 
 function convertType(type: string): string {
@@ -66,4 +64,3 @@ function convertType(type: string): string {
       return "uint256";
   }
 }
-

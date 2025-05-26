@@ -26,34 +26,38 @@ fs.mkdirSync(targetPath);
 // asconfig.json
 fs.writeFileSync(
   path.join(targetPath, "asconfig.json"),
-  JSON.stringify({
-    targets: {
-      debug: {
-        outFile: "build/module.wasm",
-        textFile: "build/module.wat",
-        jsFile: "build/module.js",
-        optimizeLevel: 0,
-        shrinkLevel: 0,
-        sourceMap: true,
-        noAssert: true,
-        debug: true,
+  JSON.stringify(
+    {
+      targets: {
+        debug: {
+          outFile: "build/module.wasm",
+          textFile: "build/module.wat",
+          jsFile: "build/module.js",
+          optimizeLevel: 0,
+          shrinkLevel: 0,
+          sourceMap: true,
+          noAssert: true,
+          debug: true,
+        },
+        release: {
+          outFile: "build/module.wasm",
+          textFile: "build/module.wat",
+          jsFile: "build/module.js",
+          sourceMap: true,
+          optimizeLevel: 0,
+          shrinkLevel: 0,
+          noAssert: true,
+          converge: true,
+        },
       },
-      release: {
-        outFile: "build/module.wasm",
-        textFile: "build/module.wat",
-        jsFile: "build/module.js",
-        sourceMap: true,
-        optimizeLevel: 0,
-        shrinkLevel: 0,
-        noAssert: true,
-        converge: true,
+      options: {
+        bindings: "esm",
+        runtime: "stub",
       },
     },
-    options: {
-      bindings: "esm",
-      runtime: "stub",
-    },
-  }, null, 2)
+    null,
+    2,
+  ),
 );
 
 // index.ts
@@ -85,44 +89,52 @@ export class Counter {
     return Counter.counter.toString();
   }
 }
-`
+`,
 );
 
 // package.json
 fs.writeFileSync(
   path.join(targetPath, "package.json"),
-  JSON.stringify({
-    name: contractName,
-    version: "1.0.0",
-    description: "",
-    main: "index.js",
-    scripts: {
-      compile: "cd .dist && npm run compile",
-      check: "cd .dist && npm run check",
-      deploy: "cd .dist && npm run deploy",
-    },
-    author: "",
-    license: "ISC",
-    type: "module",
-    exports: {
-      ".": {
-        import: "./build/release.js",
-        types: "./build/release.d.ts",
+  JSON.stringify(
+    {
+      name: contractName,
+      version: "1.0.0",
+      description: "",
+      main: "index.js",
+      scripts: {
+        compile: "cd .dist && npm run compile",
+        check: "cd .dist && npm run check",
+        deploy: "cd .dist && npm run deploy",
+      },
+      author: "",
+      license: "ISC",
+      type: "module",
+      exports: {
+        ".": {
+          import: "./build/release.js",
+          types: "./build/release.d.ts",
+        },
+      },
+      devDependencies: {
+        assemblyscript: "^0.27.35",
       },
     },
-    devDependencies: {
-      assemblyscript: "^0.27.35",
-    },
-  }, null, 2)
+    null,
+    2,
+  ),
 );
 
 // tsconfig.json
 fs.writeFileSync(
   path.join(targetPath, "tsconfig.json"),
-  JSON.stringify({
-    extends: "assemblyscript/std/assembly.json",
-    include: ["contract.ts"],
-  }, null, 2)
+  JSON.stringify(
+    {
+      extends: "assemblyscript/std/assembly.json",
+      include: ["contract.ts"],
+    },
+    null,
+    2,
+  ),
 );
 
 console.log(`Contract "${contractName}" created successfully at ${targetPath}`);

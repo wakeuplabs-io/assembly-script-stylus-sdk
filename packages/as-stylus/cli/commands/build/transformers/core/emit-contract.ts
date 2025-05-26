@@ -4,7 +4,6 @@ import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
 import { IMPORT_BLOCK, slotConst, loadFn, storeFn } from "../utils/storage.js";
 
-
 /**
  * Generates the AssemblyScript code for a contract from its IR representation
  * @param contract IR representation of the contract
@@ -12,7 +11,7 @@ import { IMPORT_BLOCK, slotConst, loadFn, storeFn } from "../utils/storage.js";
  */
 export function emitContract(contract: IRContract): string {
   initExpressionContext(contract.name);
-  
+
   const parts: string[] = [IMPORT_BLOCK];
 
   // Storage slots

@@ -47,16 +47,14 @@ function castCallData(data: string): string {
 let contractAddr = "";
 
 beforeAll(() => {
-  // run("npm run build");
+  run("npm run build");
   const testPkg = path.join(ROOT, "../../contracts/test");
   run("npm run compile", testPkg);
   run("npm run check", testPkg);
 
 
   const init = u256(5n);
-  console.log("📍 Init", init);
   const dataDeploy = calldata(SELECTOR.DEPLOY, init);
-  console.log("📍 Data deploy", dataDeploy);
 
   const deployLog = stripAnsi(run(`PRIVATE_KEY=${PK} npm run deploy`, testPkg));
   const m = deployLog.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
@@ -70,21 +68,21 @@ beforeAll(() => {
 describe("Storage (U256) — operaciones básicas", () => {
   it("get() → 5 al inicio", () => {
     const data = calldata(SELECTOR.GET);
-    console.log("📍 Data", data);
     const res = castCallData(data);
-    console.log("📍 Result", res);
+    console.log("📍 Result 1", res);
     expect(res.toLowerCase()).toBe(u256(5n).toLowerCase());
   });
 
-  // it("add(3) y luego get() → 8", () => {
-  //   castSendData(calldata(SELECTOR.ADD, u256(3n)));
-  //   const res = castCallData(calldata(SELECTOR.GET));
-  //   expect(res.toLowerCase()).toBe(u256(8n).toLowerCase());
-  // });
+  it("add(3) y luego get() → 8", () => {
+    castSendData(calldata(SELECTOR.ADD, u256(3n)));
+    const res = castCallData(calldata(SELECTOR.GET));
+    console.log("📍 Result 2", res);
+    expect(res.toLowerCase()).toBe(u256(8n).toLowerCase());
+  });
 
-  // it("sub(2) y luego get() → 6", () => {
-  //   castSendData(calldata(SELECTOR.SUB, u256(2n)));
-  //   const res = castCallData(calldata(SELECTOR.GET));
-  //   expect(res.toLowerCase()).toBe(u256(6n).toLowerCase());
-  // });
+  it("sub(2) y luego get() → 6", () => {
+    castSendData(calldata(SELECTOR.SUB, u256(2n)));
+    const res = castCallData(calldata(SELECTOR.GET));
+    expect(res.toLowerCase()).toBe(u256(6n).toLowerCase());
+  });
 });

@@ -52,7 +52,6 @@ export function emit_log_u256_with_topic(t1: usize, value: u64): void {
   emit_log(ptr, totalLen, 1);
 }
 
-
 export function emit_log_u256_with_topics(t1: usize, t2: usize, value: u64): void {
   const totalLen = 96;
   const ptr = memory.grow((totalLen + 0xffff) >> 16);
@@ -70,6 +69,3 @@ export function emit_log_u256_with_topics(t1: usize, t2: usize, value: u64): voi
 
   emit_log(ptr, totalLen, 2);
 }
-
-
-
