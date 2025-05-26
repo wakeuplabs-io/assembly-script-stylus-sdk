@@ -3,13 +3,14 @@
  */
 import fs from "fs";
 import path from "path";
-import { IRContract } from "../../../../types/ir.types.js";
+
 import { emitContract } from "./emit-contract.js";
+import { IRContract } from "../../../../types/ir.types.js";
 
 /**
  * Transform IR contract representation into AssemblyScript code
  * and write it to the specified output directory
- * 
+ *
  * @param contract The IR contract to transform
  * @param outDir Output directory for the generated code
  */

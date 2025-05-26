@@ -14,7 +14,6 @@ export namespace Address {
     return ptr;
   }
 
-
   /**
    * Allocates a 32-byte Address from raw 20-byte input
    */

@@ -2,14 +2,18 @@
 export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  testTimeout: 30000,
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/cli/$1'
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      useESM: true,
-    }]
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
   },
   testMatch: ['**/tests/**/*.test.ts'],
   coverageDirectory: 'coverage',

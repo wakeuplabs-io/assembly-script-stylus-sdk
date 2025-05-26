@@ -1,5 +1,5 @@
-import path from "path";
 import fs from "fs";
+import path from "path";
 
 import { buildAbi } from "./build-abi.js";
 import { buildAsconfig } from "./build-asconfig.js";

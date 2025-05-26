@@ -3,13 +3,13 @@
 // ---------------------------------------------------------------
 
 import { execSync } from "child_process";
-import path from "path";
 import { config } from "dotenv";
+import path from "path";
 config();
 
-const ROOT      = path.resolve(__dirname, "../");
-const RPC_URL   = process.env.RPC_URL     ?? "http://localhost:8547";
-const PK        = process.env.PRIVATE_KEY;
+const ROOT = path.resolve(__dirname, "../");
+const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
+const PK = process.env.PRIVATE_KEY;
 if (!PK) throw new Error("Set PRIVATE_KEY in .env");
 
 function run(cmd: string, cwd = ROOT): string {
@@ -22,16 +22,12 @@ function stripAnsi(s: string): string {
 const SELECTOR = {
   GET: "0x67657400",
   INC: "0x696e6372",
-  DEC: "0x64656372"
+  DEC: "0x64656372",
 };
-const MAX_U256_HEX =
-  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-const ZERO64 =
-  "0x0000000000000000000000000000000000000000000000000000000000000000";
-const ONE64 =
-  "0x0000000000000000000000000000000000000000000000000000000000000001";
-const TWO64 =
-  "0x0000000000000000000000000000000000000000000000000000000000000002";
+const MAX_U256_HEX = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+const ZERO64 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+const ONE64 = "0x0000000000000000000000000000000000000000000000000000000000000001";
+const TWO64 = "0x0000000000000000000000000000000000000000000000000000000000000002";
 
 let contractAddr = "";
 
@@ -39,19 +35,17 @@ beforeAll(() => {
   run("npm run build");
   const testPkg = path.join(ROOT, "../../contracts/test");
   run("npm run compile", testPkg);
-  run("npm run check",   testPkg);
+  run("npm run check", testPkg);
 
   const log = stripAnsi(run(`PRIVATE_KEY=${PK} npm run deploy`, testPkg));
-  const m   = log.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
+  const m = log.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
   if (!m) throw new Error("Could not scrape contract address");
   contractAddr = m[1];
   console.log("📍 Deployed at", contractAddr);
 }, 120_000);
 
 function castSend(sel: string) {
-  run(
-    `cast send --rpc-url ${RPC_URL} --private-key ${PK} ${contractAddr} ${sel}`
-  );
+  run(`cast send --rpc-url ${RPC_URL} --private-key ${PK} ${contractAddr} ${sel}`);
 }
 function castCall(sel: string): string {
   return run(`cast call --rpc-url ${RPC_URL} ${contractAddr} ${sel}`);
