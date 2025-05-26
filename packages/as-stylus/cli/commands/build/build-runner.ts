@@ -1,13 +1,14 @@
 import fs from "fs";
 import path from "path";
 
+import { Logger } from "@/cli/services/logger.js";
+import { ProjectFinder } from "@/cli/services/project-finder.js";
 import { IRContract } from "@/cli/types/ir.types.js";
+
+import { applyAnalysis } from "./analyzers/index.js";
 import { ErrorManager } from "./analyzers/shared/error-manager.js";
 import { IRBuilder } from "./analyzers/shared/ir-builder.js";
-import { applyAnalysis } from "./analyzers/index.js";
 import { buildProject } from "./builder/index.js";
-import { ProjectFinder } from "@/cli/services/project-finder.js";
-import { Logger } from "@/cli/services/logger.js";
 
 export class BuildRunner extends IRBuilder<void> {
   private projectFinder: ProjectFinder;

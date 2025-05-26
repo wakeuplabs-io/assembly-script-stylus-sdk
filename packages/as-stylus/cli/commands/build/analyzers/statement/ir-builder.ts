@@ -1,4 +1,4 @@
-import { Statement, SyntaxKind, VariableStatement } from "ts-morph";
+import { Statement, SyntaxKind } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
@@ -7,7 +7,7 @@ import { IfIRBuilder } from "../if/ir-builder.js";
 import { ReturnIRBuilder } from "../return/ir-builder.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { VariableIRBuilder } from "../variable/ir-builder.js";
+import { VariableDeclarationIRBuilder } from "../variable-declaration/ir-builder.js";
 
 export class StatementIRBuilder extends IRBuilder<IRStatement> {
   private statement: Statement;
@@ -31,7 +31,7 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
         const decl = this.statement
           .asKindOrThrow(SyntaxKind.VariableStatement)
           .getDeclarations()[0];
-        const variableBuilder = new VariableIRBuilder(decl, this.errorManager);
+        const variableBuilder = new VariableDeclarationIRBuilder(decl, this.errorManager);
         return variableBuilder.validateAndBuildIR();
       }
 

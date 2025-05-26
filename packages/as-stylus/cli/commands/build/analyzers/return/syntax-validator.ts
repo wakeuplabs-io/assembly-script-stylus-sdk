@@ -2,6 +2,7 @@ import { ReturnStatement } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
+import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
 const ERROR_MESSAGES = {
   MISSING_EXPRESSION: "Return statement must have an expression",
@@ -25,10 +26,8 @@ export class ReturnSyntaxValidator extends BaseValidator {
 
       // Check if the return type is supported
       const returnType = expr.getType().getText();
-      // TODO: Add types in other place
-      const supportedTypes = ["U256", "string", "boolean", "address", "void"];
-      if (!supportedTypes.includes(returnType)) {
-        this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(returnType, supportedTypes));
+      if (!SUPPORTED_TYPES.includes(returnType)) {
+        this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(returnType, SUPPORTED_TYPES ));
         hasErrors = true;
       }
     } catch (error) {

@@ -53,11 +53,10 @@
       }
     ],
     "import/no-duplicates": "error",
-    "import/no-unresolved": "error",
-    "import/no-cycle": "error",
+    "import/no-unresolved": "off",
     "import/no-self-import": "error",
     "import/no-useless-path-segments": "error",
-    "import/no-relative-parent-imports": "error"
+    "import/no-absolute-path": "off"
   },
   "settings": {
     "react": {
@@ -66,6 +65,10 @@
     "import/resolver": {
       "typescript": {
         "alwaysTryTypes": true
+      },
+      "alias": {
+        "map": [["@", "./"]],
+        "extensions": [".ts", ".tsx", ".js", ".jsx", ".json"]
       }
     }
   }

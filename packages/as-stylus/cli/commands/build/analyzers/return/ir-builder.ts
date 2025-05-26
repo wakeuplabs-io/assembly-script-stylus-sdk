@@ -2,7 +2,7 @@ import { ReturnStatement } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
-import { toIRExpr } from "../helpers.js";
+import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { ReturnSyntaxValidator } from "./syntax-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
@@ -21,9 +21,11 @@ export class ReturnIRBuilder extends IRBuilder<IRStatement> {
   }
 
   buildIR(): IRStatement {
+    const expr = new ExpressionIRBuilder(this.statement.getExpressionOrThrow(), this.errorManager)
+
     return {
       kind: "return",
-      expr: toIRExpr(this.statement.getExpressionOrThrow()),
+      expr: expr.validateAndBuildIR(),
     };
   }
 }
