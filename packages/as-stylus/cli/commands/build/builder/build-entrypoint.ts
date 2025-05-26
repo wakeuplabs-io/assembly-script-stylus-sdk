@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { IRContract } from "../../../types/ir.types";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
+import { IRContract } from "@/cli/types/ir.types.js";
 
 export function generateUserEntrypoint(contract: IRContract) {
   const imports: string[] = [];

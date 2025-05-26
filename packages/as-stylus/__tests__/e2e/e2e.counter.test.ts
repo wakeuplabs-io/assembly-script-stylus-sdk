@@ -3,8 +3,8 @@
 // ---------------------------------------------------------------
 
 import { execSync } from "child_process";
-import path from "path";
 import { config } from "dotenv";
+import path from "path";
 config();
 
 const ROOT = path.resolve(__dirname, "../");
@@ -22,16 +22,12 @@ function stripAnsi(s: string): string {
 const SELECTOR = {
   GET: "0x67657400",
   INC: "0x696e6372",
-  DEC: "0x64656372"
+  DEC: "0x64656372",
 };
-const MAX_U256_HEX =
-  "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-const ZERO64 =
-  "0x0000000000000000000000000000000000000000000000000000000000000000";
-const ONE64 =
-  "0x0000000000000000000000000000000000000000000000000000000000000001";
-const TWO64 =
-  "0x0000000000000000000000000000000000000000000000000000000000000002";
+const MAX_U256_HEX = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+const ZERO64 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+const ONE64 = "0x0000000000000000000000000000000000000000000000000000000000000001";
+const TWO64 = "0x0000000000000000000000000000000000000000000000000000000000000002";
 
 let contractAddr = "";
 
@@ -49,9 +45,7 @@ beforeAll(() => {
 }, 120_000);
 
 function castSend(sel: string) {
-  run(
-    `cast send --rpc-url ${RPC_URL} --private-key ${PK} ${contractAddr} ${sel}`
-  );
+  run(`cast send --rpc-url ${RPC_URL} --private-key ${PK} ${contractAddr} ${sel}`);
 }
 function castCall(sel: string): string {
   return run(`cast call --rpc-url ${RPC_URL} ${contractAddr} ${sel}`);

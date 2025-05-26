@@ -1,5 +1,6 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types";
-import { ExpressionHandler } from "../../core/interfaces";
+import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
+
+import { ExpressionHandler } from "../../core/interfaces.js";
 
 /**
  * Handler for U256Factory.create() expressions
@@ -11,19 +12,19 @@ export class U256CreateHandler implements ExpressionHandler {
   canHandle(expr: any): boolean {
     return expr.kind === "call" && expr.target === "U256Factory.create";
   }
-  
+
   /**
    * Processes U256Factory.create() expressions
    */
   handle(
-    expr: any, 
-    context: EmitContext, 
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult
+    expr: any,
+    context: EmitContext,
+    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
   ): EmitResult {
-    return { 
-      setupLines: [], 
+    return {
+      setupLines: [],
       valueExpr: "U256.create()",
-      valueType: "U256"
+      valueType: "U256",
     };
   }
 }

@@ -1,9 +1,9 @@
+import { address } from "./address";
 import { msg_sender } from "../modules/hostio";
 import { malloc } from "../modules/memory";
-import { address } from "./address";
 
 export class Msg {
-  private constructor() { }
+  private constructor() {}
 
   public static sender(): address {
     const msgSenderPtr = malloc(20);

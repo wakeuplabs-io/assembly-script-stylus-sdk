@@ -1,6 +1,7 @@
-import { IRContract } from "../../../types/ir.types";
 import fs from "fs";
 import path from "path";
+
+import { IRContract } from "@/cli/types/ir.types.js";
 
 /**
  * Exports the contract IR to a JSON file for visualization and analysis
@@ -23,8 +24,8 @@ export function exportContractToJSON(contract: IRContract, outputDir?: string): 
       exportedAt: new Date().toISOString(),
       version: "1.0.0",
       totalMethods: contract.methods.length,
-      storageVariables: contract.storage.length
-    }
+      storageVariables: contract.storage.length,
+    },
   };
 
   // Write complete contract to JSON file
@@ -35,7 +36,7 @@ export function exportContractToJSON(contract: IRContract, outputDir?: string): 
     const methodsDir = path.join(dir, `${contract.name}-methods`);
     fs.mkdirSync(methodsDir, { recursive: true });
 
-    contract.methods.forEach(method => {
+    contract.methods.forEach((method) => {
       const methodFilePath = path.join(methodsDir, `${method.name}.json`);
       fs.writeFileSync(methodFilePath, JSON.stringify(method, null, 2));
     });
@@ -45,15 +46,15 @@ export function exportContractToJSON(contract: IRContract, outputDir?: string): 
   const indexData = {
     contractName: contract.name,
     storageCount: contract.storage.length,
-    methods: contract.methods.map(m => ({
+    methods: contract.methods.map((m) => ({
       name: m.name,
       visibility: m.visibility,
       stateMutability: m.stateMutability,
       inputCount: m.inputs?.length || 0,
       outputCount: m.outputs?.length || 0,
-      irStatementsCount: m.ir?.length || 0
+      irStatementsCount: m.ir?.length || 0,
     })),
-    hasConstructor: !!contract.constructor
+    hasConstructor: !!contract.constructor,
   };
 
   const indexFilePath = path.join(dir, `${contract.name}-index.json`);
@@ -81,17 +82,18 @@ export function generateContractTree(contract: IRContract): any {
         children: contract.storage.map((item, index) => ({
           id: `storage-${index}`,
           name: `${item.name}: ${item.type}`,
-          data: { slot: item.slot }
-        }))
+          data: { slot: item.slot },
+        })),
       },
       {
         id: "constructor",
         name: "Constructor",
-        children: contract.constructor?.ir.map((stmt, index) => ({
-          id: `constructor-stmt-${index}`,
-          name: `Statement ${index + 1}: ${stmt.kind}`,
-          data: stmt
-        })) || []
+        children:
+          contract.constructor?.ir.map((stmt, index) => ({
+            id: `constructor-stmt-${index}`,
+            name: `Statement ${index + 1}: ${stmt.kind}`,
+            data: stmt,
+          })) || [],
       },
       {
         id: "methods",
@@ -101,16 +103,16 @@ export function generateContractTree(contract: IRContract): any {
           name: method.name,
           data: {
             visibility: method.visibility,
-            stateMutability: method.stateMutability
+            stateMutability: method.stateMutability,
           },
           children: method.ir.map((stmt, stmtIndex) => ({
             id: `method-${methodIndex}-stmt-${stmtIndex}`,
             name: `Statement ${stmtIndex + 1}: ${stmt.kind}`,
-            data: stmt
-          }))
-        }))
-      }
-    ]
+            data: stmt,
+          })),
+        })),
+      },
+    ],
   };
 
   // Save the tree structure for visualization
