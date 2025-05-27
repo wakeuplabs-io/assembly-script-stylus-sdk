@@ -63,3 +63,8 @@ export type IRContract = {
   constructor?: IRConstructor;
   storage: IRVariable[];
 };
+
+export type IRArgument = {
+  name: string;
+  type: string;
+};

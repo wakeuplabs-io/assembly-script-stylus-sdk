@@ -9,6 +9,7 @@ import { applyAnalysis } from "./analyzers/index.js";
 import { ErrorManager } from "./analyzers/shared/error-manager.js";
 import { IRBuilder } from "./analyzers/shared/ir-builder.js";
 import { buildProject } from "./builder/index.js";
+import { transformFromIR } from "./transformers/index.js";
 
 export class BuildRunner extends IRBuilder<void> {
   private projectFinder: ProjectFinder;
@@ -47,6 +48,7 @@ export class BuildRunner extends IRBuilder<void> {
 
         const contract: IRContract = applyAnalysis(transformedPath, this.errorManager);
         buildProject(transformedPath, contract);
+        transformFromIR(projectTargetPath, contract);
 
         Logger.getInstance().info(`Generated contract project at: ${projectTargetPath}`);
       });

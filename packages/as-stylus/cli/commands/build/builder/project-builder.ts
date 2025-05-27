@@ -25,7 +25,6 @@ export class ProjectBuilder {
   validate(): boolean {
     // Validate project structure
     const contractBasePath = path.dirname(this.userIndexPath);
-    const targetPath = path.join(contractBasePath, ".dist");
 
     if (!fs.existsSync(contractBasePath)) {
       this.errorManager.addSemanticError(
@@ -50,21 +49,20 @@ export class ProjectBuilder {
 
   build(): void {
     const contractBasePath = path.dirname(this.userIndexPath);
-    const targetPath = path.join(contractBasePath, ".dist");
 
     // Create target directory if it doesn't exist
-    if (!fs.existsSync(targetPath)) {
-      fs.mkdirSync(targetPath, { recursive: true });
+    if (!fs.existsSync(contractBasePath)) {
+      fs.mkdirSync(contractBasePath, { recursive: true });
     }
 
     // Build all project files
     buildEntrypoint(this.userIndexPath, this.contract);
-    buildAsconfig(targetPath);
-    buildTsconfig(targetPath);
-    buildPackageJson(targetPath);
-    buildRustToolchain(targetPath);
-    buildAbi(targetPath, this.contract);
+    buildAsconfig(contractBasePath);
+    buildTsconfig(contractBasePath);
+    buildPackageJson(contractBasePath);
+    buildRustToolchain(contractBasePath);
+    buildAbi(contractBasePath, this.contract);
 
-    Logger.getInstance().info(`Build artifacts generated at ${targetPath}`);
+    Logger.getInstance().info(`Build artifacts generated at ${contractBasePath}`);
   }
 } 

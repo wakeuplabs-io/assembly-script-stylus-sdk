@@ -56,11 +56,10 @@ export function buildEntrypoint(userFilePath: string, contract: IRContract): voi
   const __dirname = path.dirname(__filename);
   const templatePath = path.resolve(__dirname, "../../../../templates/index.template.js");
   const contractBasePath = path.dirname(userFilePath);
-  const targetPath = path.join(contractBasePath, ".dist");
 
   let indexTemplate = fs.readFileSync(templatePath, "utf-8");
   indexTemplate = indexTemplate.replace("// @logic_imports", imports);
   indexTemplate = indexTemplate.replace("// @user_entrypoint", entrypointBody);
 
-  fs.writeFileSync(path.join(targetPath, "entrypoint.ts"), indexTemplate);
+  fs.writeFileSync(path.join(contractBasePath, "entrypoint.ts"), indexTemplate);
 }

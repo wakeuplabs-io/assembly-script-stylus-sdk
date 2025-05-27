@@ -5,13 +5,17 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const baseContractsPath = path.resolve(__dirname, "../../../../contracts");
+const baseContractsPath = path.resolve(__dirname, "../../../../../contracts");
 
 const contractName = process.argv[2];
 
 if (!contractName) {
   console.error("Missing contract name. Usage: npm run generate <contract-name>");
   process.exit(1);
+}
+
+if (!fs.existsSync(baseContractsPath)) {
+  fs.mkdirSync(baseContractsPath);
 }
 
 const targetPath = path.join(baseContractsPath, contractName);
