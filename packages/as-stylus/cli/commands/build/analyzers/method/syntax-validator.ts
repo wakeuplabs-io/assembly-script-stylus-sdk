@@ -5,12 +5,10 @@ import { ErrorManager } from "../shared/error-manager.js";
 
 export class MethodSyntaxValidator extends BaseValidator {
   private method: MethodDeclaration;
-  private otherMethodNames: string[];
 
-  constructor(method: MethodDeclaration, otherMethodNames: string[], errorManager: ErrorManager) {
+  constructor(method: MethodDeclaration, errorManager: ErrorManager) {
     super(errorManager, method.getSourceFile().getFilePath(), method.getStartLineNumber());
     this.method = method;
-    this.otherMethodNames = otherMethodNames;
   }
 
   validate(): boolean {

@@ -32,17 +32,11 @@ const SYNTACTIC_ERRORS: Record<string, SyntacticError> = {
     suggestedFix: 'Remove extra constructors and consolidate logic into one.'
   },
   // Method errors
-  E006: {
-    code: 'E006',
+  E005: {
+    code: 'E005',
     message: () => 'Method must have a name',
     description: 'The method must have a name.',
     suggestedFix: 'Ensure the method has a name.'
-  },
-  E008: {
-    code: 'E008',
-    message: () => 'Invalid decorator syntax',
-    description: 'A decorator is malformed or used in the wrong context.',
-    suggestedFix: 'Ensure decorators use valid syntax and are placed correctly (before class or method declarations).'
   },
 };
 

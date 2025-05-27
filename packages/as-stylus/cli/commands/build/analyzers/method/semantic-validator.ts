@@ -8,10 +8,12 @@ import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
 export class MethodSemanticValidator extends BaseValidator {
   private method: MethodDeclaration;
+  private otherMethodNames: string[];
 
-  constructor(method: MethodDeclaration, errorManager: ErrorManager) {
+  constructor(method: MethodDeclaration, otherMethodNames: string[], errorManager: ErrorManager) {
     super(errorManager, method.getSourceFile().getFilePath(), method.getStartLineNumber());
     this.method = method;
+    this.otherMethodNames = otherMethodNames;
   }
 
   validate(): boolean {
@@ -36,6 +38,11 @@ export class MethodSemanticValidator extends BaseValidator {
     const returnType = this.method.getReturnType();
     if (returnType && !SUPPORTED_TYPES.includes(returnType.getText())) {
       this.addSemanticError("S007", [this.method.getName()]);
+      hasErrors = true;
+    }
+
+    if (this.method.getName() && this.otherMethodNames.includes(this.method.getName())) {
+      this.addSemanticError("S010", [this.method.getName()]);
       hasErrors = true;
     }
 
