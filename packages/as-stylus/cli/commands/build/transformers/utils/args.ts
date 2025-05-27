@@ -1,4 +1,4 @@
-import { AbiInput } from "@/cli/types/abi.types.js";
+import { AbiInput } from "../../../../types/abi.types";
 
 export function generateArgsLoadBlock(
   inputs: AbiInput[],

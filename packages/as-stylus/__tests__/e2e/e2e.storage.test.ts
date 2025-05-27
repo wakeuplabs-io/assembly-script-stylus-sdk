@@ -65,22 +65,22 @@ beforeAll(() => {
   console.log("📍 Deployed at", contractAddr);
 }, 120_000);
 
-describe.skip("Storage (U256) — operaciones básicas", () => {
-  it("get() → 5 al inicio", () => {
+describe("Storage (U256) — basic operations", () => {
+  it("get() → 5 at init", () => {
     const data = calldata(SELECTOR.GET);
     const res = castCallData(data);
     console.log("📍 Result 1", res);
     expect(res.toLowerCase()).toBe(u256(5n).toLowerCase());
   });
 
-  it("add(3) y luego get() → 8", () => {
+  it("add(3) → 8", () => {
     castSendData(calldata(SELECTOR.ADD, u256(3n)));
     const res = castCallData(calldata(SELECTOR.GET));
     console.log("📍 Result 2", res);
     expect(res.toLowerCase()).toBe(u256(8n).toLowerCase());
   });
 
-  it("sub(2) y luego get() → 6", () => {
+  it("sub(2) → 6", () => {
     castSendData(calldata(SELECTOR.SUB, u256(2n)));
     const res = castCallData(calldata(SELECTOR.GET));
     expect(res.toLowerCase()).toBe(u256(6n).toLowerCase());

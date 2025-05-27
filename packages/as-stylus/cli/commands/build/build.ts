@@ -32,7 +32,7 @@ export function runBuild() {
   fs.copyFileSync(userIndexPath, transformedPath);
 
   const contract: IRContract = applyAnalysis(transformedPath) 
-  transformFromIR(contract, path.dirname(transformedPath));
+  transformFromIR(path.dirname(transformedPath), contract);
   buildProject(userIndexPath, contract);
 
   console.log(`Generated new contract project at: ${targetPath}`);

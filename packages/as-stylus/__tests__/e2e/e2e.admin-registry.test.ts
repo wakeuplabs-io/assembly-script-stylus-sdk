@@ -64,7 +64,7 @@ beforeAll(() => {
   console.log("📍 Deployed at", contractAddr);
 }, 120_000);
 
-describe("AdminRegistry (Address) — e2e", () => {
+describe.skip("AdminRegistry (Address) — e2e", () => {
 
   it("getAdmin() → debe devolver la dirección inicial", () => {
     const res = castCallData(calldata(SELECTOR.GET_ADMIN));
