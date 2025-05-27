@@ -1,26 +1,22 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 export default {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
+  preset: "ts-jest",
+  testEnvironment: "node",
   testTimeout: 30000,
-  extensionsToTreatAsEsm: ['.ts'],
+  extensionsToTreatAsEsm: [".ts"],
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+    "^@/(.*)\\.js$": "<rootDir>/$1",
   },
   transform: {
-    '^.+\\.tsx?$': [
-      'ts-jest',
+    "^.+\\.tsx?$": [
+      "ts-jest",
       {
         useESM: true,
       },
     ],
   },
-  testMatch: ['**/tests/**/*.test.ts'],
-  coverageDirectory: 'coverage',
-  collectCoverageFrom: [
-    'cli/**/*.ts',
-    'core/**/*.ts',
-    '!**/node_modules/**',
-    '!**/dist/**'
-  ]
+  testMatch: ["**/tests/**/*.test.ts"],
+  coverageDirectory: "coverage",
+  collectCoverageFrom: ["cli/**/*.ts", "core/**/*.ts", "!**/node_modules/**", "!**/dist/**"],
 };

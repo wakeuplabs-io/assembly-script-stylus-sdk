@@ -2,7 +2,7 @@ import { Block, ConstructorDeclaration } from "ts-morph";
 
 import { IRConstructor } from "@/cli/types/ir.types.js";
 
-import { ConstructorSyntaxValidator } from "./syntax-validator.js";
+import { ConstructorSemanticValidator } from "./semantic-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { StatementIRBuilder } from "../statement/ir-builder.js";
@@ -16,11 +16,12 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
   }
 
   validate(): boolean {
-    const syntaxValidator = new ConstructorSyntaxValidator(this.constructorDecl, this.errorManager);
-    return syntaxValidator.validate();
+    const semanticValidator = new ConstructorSemanticValidator(this.constructorDecl, this.errorManager);
+    return semanticValidator.validate();
   }
 
   buildIR(): IRConstructor {
+    // TODO: Implement parameters IR builder
     const inputs = this.constructorDecl.getParameters().map((param) => ({
       name: param.getName(),
       type: param.getType().getText(),
