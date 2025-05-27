@@ -1,3 +1,5 @@
+export function getUserEntrypointTemplate(): string {
+  return `
 // @ts-nocheck
 /* eslint-disable */
 
@@ -25,4 +27,6 @@ export function user_entrypoint(args_len: usize): i32 {
   // @user_entrypoint
 
   return 0;
+}
+`;
 }
