@@ -17,5 +17,5 @@
     "resolveJsonModule": true,
     "plugins": [{ "transform": "typescript-transform-paths" }]
   },
-  "include": ["cli/**/*", "templates/**/*", "jest.config.js"]
+  "include": ["cli/**/*", "templates/**/*", "jest.config.js", "tests/**/*"]
 }
