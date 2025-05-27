@@ -1,0 +1,63 @@
+import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
+import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+
+import { AddressCreateHandler }   from "./handlers/create-handler.js";
+import { AddressEqualsHandler } from "./handlers/equals-handler.js";
+import { AddressFromStringHandler } from "./handlers/from-string-handler.js";
+import { AddressIsZeroHandler }   from "./handlers/is-zero-handler.js";
+import { AddressToStringHandler } from "./handlers/to-string-handler.js";
+
+
+export class AddressTransformer extends BaseTypeTransformer {
+  constructor() {
+    super("Address");
+
+    this.registerHandler(new AddressCreateHandler());
+    this.registerHandler(new AddressFromStringHandler());
+    this.registerHandler(new AddressToStringHandler());
+    this.registerHandler(new AddressEqualsHandler());
+    this.registerHandler(new AddressIsZeroHandler());
+  }
+
+  /** Determina si este transformer puede manejar la expresión */
+  matchesType(expr: any): boolean {
+    if (expr.kind !== "call") return false;
+
+    const target = expr.target || "";
+
+    // Factory
+    if (
+      target === "AddressFactory.create"   ||
+      target === "AddressFactory.fromString"
+    ) {
+      return true;
+    }
+
+    // Métodos de instancia
+    return (
+      target.endsWith(".equals")   ||
+      target.endsWith(".isZero")   ||
+      target.endsWith(".toString")
+    );
+  }
+
+  protected handleDefault(
+    expr: any,
+    _ctx: EmitContext,
+    _emit: (e: any, c: EmitContext) => EmitResult
+  ): EmitResult {
+    return {
+      setupLines: [],
+      valueExpr: `/* Unsupported Address expression: ${expr.kind} */`,
+      valueType: "Address"
+    };
+  }
+
+  generateLoadCode(prop: string): string  { return `load_${prop}()`; }
+  generateStoreCode(prop: string, val: string): string {
+    return `store_${prop}(${val});`;
+  }
+}
+
+export const AddressTransformerInstance = new AddressTransformer();
+registerTransformer(AddressTransformerInstance);
