@@ -64,6 +64,12 @@ const SEMANTIC_ERRORS: Record<string, SemanticError> = {
     message: ([methodName]: string[]) => `Method "${methodName}" is missing a return statement`,
     description: 'The method declares a return type but does not return a value.',
     suggestedFix: 'Add a return statement with the expected type.'
+  },
+  S010: {
+    code: 'S010',
+    message: ([methodName]: string[]) => `Method "${methodName}" has duplicate name in class`,
+    description: 'A method has the same name as another method in the same class.',
+    suggestedFix: 'Rename the method to avoid conflicts.'
   }
 };
 

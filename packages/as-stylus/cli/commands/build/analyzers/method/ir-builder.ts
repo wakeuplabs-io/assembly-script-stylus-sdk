@@ -3,6 +3,7 @@ import { Block, MethodDeclaration } from "ts-morph";
 import { STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types.js";
 import { IRMethod } from "@/cli/types/ir.types.js";
 
+import { MethodSemanticValidator } from "./semantic-validator.js";
 import { MethodSyntaxValidator } from "./syntax-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
@@ -20,8 +21,9 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
   }
 
   validate(): boolean {
-    const syntaxValidator = new MethodSyntaxValidator(this.methodDecl, this.names, this.errorManager);
-    return syntaxValidator.validate();
+    const syntaxValidator = new MethodSyntaxValidator(this.methodDecl, this.errorManager);
+    const semanticValidator = new MethodSemanticValidator(this.methodDecl, this.names, this.errorManager);
+    return syntaxValidator.validate() && semanticValidator.validate();
   }
 
   buildIR(): IRMethod {
