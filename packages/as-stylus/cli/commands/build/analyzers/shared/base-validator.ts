@@ -5,11 +5,11 @@ export abstract class BaseValidator {
 
   abstract validate(): boolean;
 
-  protected addSyntaxError(message: string): void {
-    this.errorManager.addSyntaxError(message, this.filePath, this.line);
+  protected addSyntaxError(code: string): void {
+    this.errorManager.addSyntaxError(code, this.filePath, this.line);
   }
 
-  protected addSemanticError(message: string): void {
-    this.errorManager.addSemanticError(message, this.filePath, this.line);
+  protected addSemanticError(code: string, args?: string[]): void {
+    this.errorManager.addSemanticError(code, this.filePath, this.line, args);
   }
 }

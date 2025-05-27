@@ -4,13 +4,7 @@ import { VISIBILITY_DECORATORS, STATE_MUTABILITY_DECORATORS } from "@/cli/types/
 
 import { BaseValidator } from "../shared/base-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
-
-const ERROR_MESSAGES = {
-  MISSING_NAME: "Method must have a name",
-  MISSING_BODY: "Method must have a body",
-  MULTIPLE_VISIBILITY_DECORATORS: (decorators: string[]) => `Method has multiple visibility decorators: ${decorators.join(", ")}`,
-  MULTIPLE_STATE_MUTABILITY_DECORATORS: (decorators: string[]) => `Method has multiple mutability decorators: ${decorators.join(", ")}`,
-} as const;
+import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
 export class MethodSemanticValidator extends BaseValidator {
   private method: MethodDeclaration;
@@ -30,12 +24,18 @@ export class MethodSemanticValidator extends BaseValidator {
     );
 
     if (visDecorators.length > 1) {
-      this.addSemanticError(ERROR_MESSAGES.MULTIPLE_VISIBILITY_DECORATORS(visDecorators.map((d) => d.getName())));
+      this.addSemanticError("S005", [visDecorators.map((d) => d.getName()).join(", ")]);
       hasErrors = true;
     }
 
     if (stateDecorators.length > 1) {
-      this.addSemanticError(ERROR_MESSAGES.MULTIPLE_STATE_MUTABILITY_DECORATORS(stateDecorators.map((d) => d.getName())));
+      this.addSemanticError("S006", [stateDecorators.map((d) => d.getName()).join(", ")]);
+      hasErrors = true;
+    }
+
+    const returnType = this.method.getReturnType();
+    if (returnType && !SUPPORTED_TYPES.includes(returnType.getText())) {
+      this.addSemanticError("S007", [this.method.getName()]);
       hasErrors = true;
     }
 

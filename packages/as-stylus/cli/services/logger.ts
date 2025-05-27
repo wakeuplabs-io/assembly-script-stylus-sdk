@@ -1,4 +1,4 @@
-import { ErrorCode, ValidationError } from "../commands/build/analyzers/shared/validation-error.js";
+import { LevelCode, ValidationError } from "../commands/build/analyzers/shared/validation-error.js";
 
 const COLORS = {
   reset: "\x1b[0m",
@@ -9,7 +9,7 @@ const COLORS = {
   green: "\x1b[32m",
 };
 
-const ERROR_TYPES: Record<ErrorCode, { color: string; label: string }> = {
+const ERROR_TYPES: Record<LevelCode, { color: string; label: string }> = {
   error: { color: COLORS.red, label: "ERROR" },
   warn: { color: COLORS.yellow, label: "WARNING" },
   info: { color: COLORS.blue, label: "INFO" },
@@ -37,20 +37,20 @@ export class Logger {
   }
 
   public info(message: string): void {
-    this.log(new ValidationError(message, "info"));
+    this.log(message, "info");
   }
 
   public warn(message: string): void {
-    this.log(new ValidationError(message, "warn"));
+    this.log(message, "warn");
   }
 
   public error(message: string, location?: string, line?: number): void {
-    this.log(new ValidationError(message, "error", location, line));
+    this.log(message, "error", location, line);
   }
 
   public debug(message: string): void {
     if (this.isDebugMode) {
-      this.log(new ValidationError(message, "debug"));
+      this.log(message, "debug");
     }
   }
 
@@ -74,23 +74,20 @@ export class Logger {
     console.log(`${COLORS.blue}=== End of Linting Results ===${COLORS.reset}\n`);
   }
 
-  private getErrorType(error: ValidationError, level?: ErrorCode): string {
-    const errorType = level || error.code;
+  private getErrorType(error: ValidationError, level?: LevelCode): string {
+    const errorType = level || error.level;
     const { color, label } = ERROR_TYPES[errorType] || ERROR_TYPES.unknown;
     return `${color}${label}${COLORS.reset}`;
   }
 
-  private log(error: ValidationError): void {
+  private log(message: string, level: LevelCode, location?: string, line?: number): void {
     const timestamp = new Date().toISOString();
-    const level = error.code;
     const color = ERROR_TYPES[level]?.color || COLORS.reset;
 
-    const location = error.location
-      ? ` [${error.location}${error.line ? `:${error.line}` : ""}]`
-      : "";
+    const locationPath = location ? ` [${location}${line ? `:${line}` : ""}]` : "";
 
     console.log(
-      `${COLORS.gray}[${timestamp}]${COLORS.reset} ${color}${level}${COLORS.reset}${location} ${error.message}`,
+      `${COLORS.gray}[${timestamp}]${COLORS.reset} ${color}${level}${COLORS.reset}${locationPath} ${message}`,
     );
   }
 }
