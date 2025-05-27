@@ -29,9 +29,9 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
   }
 
   buildIR(): IRContract {
-    const name = this.sourceFile.getBaseName() ?? "Main";
     const classes = this.sourceFile.getClasses();
     const classDefinition = classes[0];
+    const name = classDefinition.getName();
 
     const constructorDecl: ConstructorDeclaration | undefined =
       classDefinition.getConstructors()[0];
@@ -49,7 +49,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     return {
-      name,
+      name: name ?? "Main",
       constructor,
       methods,
       storage,

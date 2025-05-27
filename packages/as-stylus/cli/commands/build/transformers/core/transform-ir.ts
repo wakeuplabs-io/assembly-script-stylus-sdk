@@ -14,7 +14,7 @@ import { IRContract } from "../../../../types/ir.types.js";
  * @param contract The IR contract to transform
  * @param outDir Output directory for the generated code
  */
-export function transformFromIR(contract: IRContract, outDir: string) {
+export function transformFromIR(outDir: string, contract: IRContract) {
   if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
   const contractTs = emitContract(contract);
