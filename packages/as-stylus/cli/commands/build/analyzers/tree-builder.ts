@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 
 import { IRContract } from "@/cli/types/ir.types.js";
+import { INTERMEDIATE_REPRESENTATION_PATH } from "@/cli/utils/constants.js";
+import { Logger } from "@/cli/services/logger.js";
 
 /**
  * Exports the contract IR to a JSON file for visualization and analysis
@@ -11,7 +13,7 @@ import { IRContract } from "@/cli/types/ir.types.js";
  */
 export function exportContractToJSON(contract: IRContract, outputDir?: string): string {
   // Create the output directory if it doesn't exist
-  const dir = outputDir || path.resolve("generated", "json");
+  const dir = outputDir || path.resolve(INTERMEDIATE_REPRESENTATION_PATH, "json");
   fs.mkdirSync(dir, { recursive: true });
 
   // Create filenames for complete contract and individual methods
@@ -60,7 +62,7 @@ export function exportContractToJSON(contract: IRContract, outputDir?: string): 
   const indexFilePath = path.join(dir, `${contract.name}-index.json`);
   fs.writeFileSync(indexFilePath, JSON.stringify(indexData, null, 2));
 
-  console.log(`Contract IR exported as JSON to: ${contractFilePath}`);
+  Logger.getInstance().info(`Contract IR exported as JSON to: ${contractFilePath}`);
   return contractFilePath;
 }
 
@@ -116,11 +118,11 @@ export function generateContractTree(contract: IRContract): any {
   };
 
   // Save the tree structure for visualization
-  const dir = path.resolve("generated", "json");
+  const dir = path.resolve(INTERMEDIATE_REPRESENTATION_PATH, "json");
   fs.mkdirSync(dir, { recursive: true });
   const treeFilePath = path.join(dir, `${contract.name}-tree.json`);
   fs.writeFileSync(treeFilePath, JSON.stringify(tree, null, 2));
 
-  console.log(`Contract tree structure exported to: ${treeFilePath}`);
+  Logger.getInstance().info(`Contract tree structure exported to: ${treeFilePath}`);
   return tree;
 }
