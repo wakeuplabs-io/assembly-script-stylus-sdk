@@ -32,7 +32,6 @@ function emitStatement(s: any, indent: string): string {
      */
     case "let": {
       const result = emitExpression(s.expr, true);
-      
       if (result.setupLines && result.setupLines.length > 0) {
         const lines = [...result.setupLines.map(line => `${indent}${line}`)];
         lines.push(`${indent}const ${s.name} = ${result.valueExpr};`);

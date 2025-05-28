@@ -64,7 +64,7 @@ export function toIRExpr(expr: Expression): IRExpression {
       };
     }
 
-    default:
+    default: 
       throw new Error(`IRExpr: unsupported node kind ${expr.getKindName()}`);
   }
 }

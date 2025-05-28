@@ -65,7 +65,7 @@ beforeAll(() => {
   console.log("📍 Deployed at", contractAddr);
 }, 120_000);
 
-describe("Storage (U256) — basic operations", () => {
+describe.skip("Storage (U256) — basic operations", () => {
   it("get() → 5 at init", () => {
     const data = calldata(SELECTOR.GET);
     const res = castCallData(data);

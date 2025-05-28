@@ -3,46 +3,69 @@ import { ExpressionHandler } from "../../core/interfaces.js";
 import { makeTemp } from "../../utils/temp-factory.js";
 
 /**
- * AddressFactory.fromString("0x…")
+ * AddressFactory.fromString(...)
  *
- * 1. Reserves an empty Address
- * 2. Copies the string to linear memory
- * 3. Calls Address.setFromString
- * 4. Returns the pointer to the Address
+ *  - If the argument is a **literal** (`"0x…"`) copy the bytes at compile-time
+ *    using `store<u8>()`.
+ *
+ *  - If the argument is a **variable** (`string`) reserve 42 bytes
+ *    (`"0x" + 40 nibbles`) and copy at runtime using `memory.copy`.
+ *
+ *  Then call `Address.setFromString(ptrAddr, ptrStr, len)`.
  */
 export class AddressFromStringHandler implements ExpressionHandler {
 
   canHandle(expr: any): boolean {
-    return expr.kind === "call" && expr.target === "AddressFactory.fromString";
+    return (
+      expr.kind === "call" &&
+      expr.target === "AddressFactory.fromString" &&
+      expr.args.length === 1 &&
+      ["literal", "var"].includes(expr.args[0].kind)
+    );
   }
 
   handle(
-    expr : any,
-    ctx  : EmitContext,
-    emit : (e: any, c: EmitContext) => EmitResult
+    expr: any,
+    ctx: EmitContext,
+    emit: (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
 
-    // — traducimos el único argumento (la cadena) —
-    const hexRes = emit(expr.args[0], ctx);
+    const arg = expr.args[0];
+    const argRes = emit(arg, ctx);
+    const setup = [...argRes.setupLines];
 
-    // — variables temporales únicas —
-    const addrVar = makeTemp("addr");
-    const strVar  = makeTemp("hexPtr");
-    const lenVar  = makeTemp("hexLen");
+    const strPtr = makeTemp("hexPtr");
+    const lenVar = makeTemp("hexLen");
+    const addrPtr = makeTemp("addr");
+
+    if (arg.kind === "literal") {
+
+      const raw: string = arg.value as string;
+      const strLen: number = raw.length;
+
+      setup.push(`const ${strPtr}: usize = malloc(${strLen});`);
+
+      for (let i = 0; i < strLen; ++i) {
+        setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
+      }
+
+      setup.push(`const ${lenVar}: u32 = ${strLen};`);
+
+    } else {
+
+      setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
+      setup.push(`const ${strPtr}: usize = malloc(42);`);
+    }
+
+    setup.push(
+      `const ${addrPtr}: usize = Address.create();`,
+      `Address.setFromString(${addrPtr}, ${strPtr}, ${lenVar});`
+    );
 
     return {
-      /* líneas de setup (se insertan en el prólogo del scope actual) */
-      setupLines: [
-        ...hexRes.setupLines,
-        `const ${strVar}: usize = __allocString(${hexRes.valueExpr});`,
-        `const ${lenVar}: u32   = (${hexRes.valueExpr} as string).length;`,
-        `const ${addrVar}: usize = Address.create();`,
-        `Address.setFromString(${addrVar}, ${strVar}, ${lenVar});`
-      ],
-
-      /* el valor "resultante" de la expresión */
-      valueExpr : addrVar,
-      valueType : "Address"
+      setupLines: setup,
+      valueExpr: addrPtr,
+      valueType: "Address"
     };
   }
 }

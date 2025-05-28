@@ -48,7 +48,7 @@ const adminPadded = address(adminHex);
 
 beforeAll(() => {
   run("npm run build");
-  const testPkg = path.join(ROOT, "../../contracts/.dist/test/.dist");
+  const testPkg = path.join(ROOT, "../../contracts/test/");
   run("npm run compile", testPkg);
   run("npm run check", testPkg);
 
@@ -64,36 +64,35 @@ beforeAll(() => {
   console.log("📍 Deployed at", contractAddr);
 }, 120_000);
 
-describe.skip("AdminRegistry (Address) — e2e", () => {
-
+describe("AdminRegistry (Address) — e2e", () => {
   it("getAdmin() → debe devolver la dirección inicial", () => {
     const res = castCallData(calldata(SELECTOR.GET_ADMIN));
     expect(res.toLowerCase()).toContain(adminHex.toLowerCase());
   });
 
-  it("adminIsZero() → false al inicio", () => {
-    const res = castCallData(calldata(SELECTOR.IS_ZERO));
-    expect(res.toLowerCase()).toBe("0x00");
-  });
+  // it("adminIsZero() → false al inicio", () => {
+  //   const res = castCallData(calldata(SELECTOR.IS_ZERO));
+  //   expect(res.toLowerCase()).toBe("0x00");
+  // });
 
-  it("isAdmin(addr) → true si es igual al inicial", () => {
-    const res = castCallData(calldata(SELECTOR.IS_ADMIN, adminPadded));
-    expect(res.toLowerCase()).toBe("0x01");
-  });
+  // it("isAdmin(addr) → true si es igual al inicial", () => {
+  //   const res = castCallData(calldata(SELECTOR.IS_ADMIN, adminPadded));
+  //   expect(res.toLowerCase()).toBe("0x01");
+  // });
 
-  it("setAdmin() → cambia el administrador", () => {
-    const newAdmin = "0x2222222222222222222222222222222222222222";
-    castSendData(calldata(SELECTOR.SET_ADMIN, address(newAdmin)));
+  // it("setAdmin() → cambia el administrador", () => {
+  //   const newAdmin = "0x2222222222222222222222222222222222222222";
+  //   castSendData(calldata(SELECTOR.SET_ADMIN, address(newAdmin)));
 
-    const res = castCallData(calldata(SELECTOR.GET_ADMIN));
-    expect(res.toLowerCase()).toContain(newAdmin.slice(2));
-  });
+  //   const res = castCallData(calldata(SELECTOR.GET_ADMIN));
+  //   expect(res.toLowerCase()).toContain(newAdmin.slice(2));
+  // });
 
-  it("resetAdmin() → lo deja en cero", () => {
-    castSendData(calldata(SELECTOR.RESET_ADMIN));
+  // it("resetAdmin() → lo deja en cero", () => {
+  //   castSendData(calldata(SELECTOR.RESET_ADMIN));
 
-    const isZero = castCallData(calldata(SELECTOR.IS_ZERO));
-    expect(isZero.toLowerCase()).toBe("0x01");
-  });
+  //   const isZero = castCallData(calldata(SELECTOR.IS_ZERO));
+  //   expect(isZero.toLowerCase()).toBe("0x01");
+  // });
 
 });

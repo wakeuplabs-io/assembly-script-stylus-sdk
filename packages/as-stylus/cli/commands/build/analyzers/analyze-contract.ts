@@ -62,6 +62,7 @@ export function analyzeContract(sourceFile: SourceFile): IRContract {
 
 
     const body = method.getBodyOrThrow() as Block;
+
     const irBody = body.getStatements().map(toIRStmt);
 
     methods.push({

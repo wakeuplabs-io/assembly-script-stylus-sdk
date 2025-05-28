@@ -19,22 +19,14 @@ export class AddressTransformer extends BaseTypeTransformer {
     this.registerHandler(new AddressIsZeroHandler());
   }
 
-  /** Determina si este transformer puede manejar la expresión */
   matchesType(expr: any): boolean {
     if (expr.kind !== "call") return false;
 
     const target = expr.target || "";
 
-    // Factory
-    if (
-      target === "AddressFactory.create"   ||
-      target === "AddressFactory.fromString"
-    ) {
-      return true;
-    }
-
-    // Métodos de instancia
     return (
+      target === "AddressFactory.create"   ||
+      target === "AddressFactory.fromString" ||
       target.endsWith(".equals")   ||
       target.endsWith(".isZero")   ||
       target.endsWith(".toString")

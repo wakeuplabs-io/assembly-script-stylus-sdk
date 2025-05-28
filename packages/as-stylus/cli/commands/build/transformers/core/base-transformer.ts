@@ -31,6 +31,7 @@ export abstract class BaseTypeTransformer implements TypeTransformer {
     context: EmitContext, 
     emitExprFn: (expr: any, ctx: EmitContext) => EmitResult
   ): EmitResult {
+
     for (const handler of this.handlers) {
       if (handler.canHandle(expr)) {
         return handler.handle(expr, context, emitExprFn);
