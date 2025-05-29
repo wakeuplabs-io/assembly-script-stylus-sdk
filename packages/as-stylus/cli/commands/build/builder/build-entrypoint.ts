@@ -1,8 +1,8 @@
-import fs from "fs";
 import path from "path";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
+import { writeFile } from "@/cli/utils/fs.js";
 
 export function generateUserEntrypoint(contract: IRContract) {
   const imports: string[] = [];
@@ -58,5 +58,5 @@ export function buildEntrypoint(userFilePath: string, contract: IRContract): voi
   indexTemplate = indexTemplate.replace("// @logic_imports", imports);
   indexTemplate = indexTemplate.replace("// @user_entrypoint", entrypointBody);
 
-  fs.writeFileSync(path.join(contractBasePath, "entrypoint.ts"), indexTemplate);
+  writeFile(path.join(contractBasePath, "entrypoint.ts"), indexTemplate);
 }

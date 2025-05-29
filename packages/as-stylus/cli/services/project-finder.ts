@@ -8,6 +8,10 @@ export class ProjectFinder {
     private readonly errorManager: ErrorManager,
   ) {}
 
+  getCurrentProject(): string {
+    return path.resolve(process.cwd());
+  }
+
   getAllProjects(): string[] {
     const folders = fs.readdirSync(this.contractsRoot);
     if (folders.length === 0) {

@@ -5,9 +5,9 @@ export function getUserEntrypointTemplate(): string {
 
 // Auto-generated contract template
 
-import { __keep_imports } from "../../../as-stylus/core/modules/keep-imports";
-import { read_args, write_result } from "../../../as-stylus/core/modules/hostio";
-import { initHeap } from "../../../as-stylus/core/modules/memory";
+import { __keep_imports } from "as-stylus/core/modules/keep-imports";
+import { read_args, write_result } from "as-stylus/core/modules/hostio";
+import { initHeap } from "as-stylus/core/modules/memory";
 
 // @logic_imports
 
