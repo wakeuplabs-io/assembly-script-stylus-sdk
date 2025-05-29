@@ -23,7 +23,7 @@ export class Counter {
   }
 
   @View
-  static get(): u64 {
+  static get(): U256 {
     return Counter.counter.toString();
   }
 }

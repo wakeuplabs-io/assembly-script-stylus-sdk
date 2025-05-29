@@ -1,51 +1,51 @@
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
-
+import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
 import { ExpressionHandler } from "../../core/interfaces.js";
+import { makeTemp }                  from "../../utils/temp-factory.js";
 
 /**
- * Handler for U256Factory.fromString() expressions
+ * U256Factory.fromString("0x…")
+ *
  */
 export class U256FromStringHandler implements ExpressionHandler {
-  /**
-   * Determines if this handler can process the given expression
-   */
+
   canHandle(expr: any): boolean {
     return (
-      expr.kind === "call" &&
+      expr.kind   === "call" &&
       expr.target === "U256Factory.fromString" &&
-      expr.args.length > 0 &&
+      expr.args.length === 1 &&
       expr.args[0].kind === "literal"
     );
   }
 
-  /**
-   * Processes U256Factory.fromString() expressions
-   */
   handle(
-    expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
+    expr : any,
+    _ctx : EmitContext,
+    _emit: (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
-    const raw = expr.args[0].value as string;
-    const strId = context.strCounter++;
-    const mallocId = `__str${strId}`;
-    const u256Id = `__u256${strId}`;
 
-    const setupLines = [`const ${mallocId} = malloc(${raw.length});`];
+    const rawHex : string = expr.args[0].value as string;
+    const strLen : number = rawHex.length;
 
-    for (let i = 0; i < raw.length; i++) {
-      setupLines.push(`store<u8>(${mallocId} + ${i}, ${raw.charCodeAt(i)});`);
+    const strPtr  = makeTemp("hexPtr");
+    const u256Ptr = makeTemp("u256");
+
+    const setupLines: string[] = [
+      `const ${strPtr}: usize = malloc(${strLen});`
+    ];
+
+    for (let i = 0; i < strLen; ++i) {
+      const code = rawHex.charCodeAt(i);
+      setupLines.push(`store<u8>(${strPtr} + ${i}, ${code});`);
     }
 
+    setupLines.push(`const ${u256Ptr}: usize = U256.create();`);
     setupLines.push(
-      `const ${u256Id}: usize = U256.create();`,
-      `U256.setFromString(${u256Id}, ${mallocId}, ${raw.length});`,
+      `U256.setFromString(${u256Ptr}, ${strPtr}, ${strLen});`
     );
-
     return {
       setupLines,
-      valueExpr: u256Id,
-      valueType: "U256",
+      valueExpr: u256Ptr,
+      valueType: "U256"
     };
   }
 }

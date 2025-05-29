@@ -26,6 +26,5 @@ export function malloc(size: usize): usize {
   const neededPages: i32 = <i32>(((heapPointer + 0xffff) >> 16) - memory.size());
   if (neededPages > 0) memory.grow(neededPages);
 
-  debugLogI32(<i32>ptr);
   return ptr;
 }

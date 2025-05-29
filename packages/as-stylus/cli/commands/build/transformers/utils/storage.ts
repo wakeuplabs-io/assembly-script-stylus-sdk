@@ -5,6 +5,7 @@
 // Constants for imports
 export const IMPORT_BLOCK = [
   "import { U256 } from '../../../as-stylus/core/types/u256';",
+  "import { Address } from '../../../as-stylus/core/types/address';",
   "import { malloc } from '../../../as-stylus/core/modules/memory';",
   "import { createStorageKey } from '../../../as-stylus/core/modules/storage';",
   "import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from '../../../as-stylus/core/modules/hostio';",

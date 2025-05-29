@@ -28,8 +28,7 @@ export function emitExpression(expr: any, isInStatement: boolean = false): EmitR
   globalContext.isInStatement = isInStatement;
   const typeName = detectExpressionType(expr);
   const transformer = typeName ? typeTransformers[typeName] : null;
-
-  if (transformer && typeof transformer.emit === "function") {
+  if (transformer && typeof transformer.emit === 'function') {
     return transformer.emit(expr, globalContext, emitExpressionWrapper);
   }
   return {
