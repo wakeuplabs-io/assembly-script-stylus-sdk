@@ -1,8 +1,8 @@
 // ASCII constants
-const ASCII_0: u8 = 0x30;        // '0'
-const ASCII_a: u8 = 0x61;        // 'a'
-const ASCII_X_LOWER: u8 = 0x78;        // 'x'
-const ASCII_CASE_MASK: u8 = 0x20;        // toLower bit
+const ASCII_0: u8 = 0x30; // '0'
+const ASCII_a: u8 = 0x61; // 'a'
+const ASCII_X_LOWER: u8 = 0x78; // 'x'
+const ASCII_CASE_MASK: u8 = 0x20; // toLower bit
 const HEX_ALPHA_OFFSET: u8 = ASCII_a - 10; // 0x61-0x0A = 0x57
 
 import { malloc } from "../modules/memory";
@@ -39,9 +39,11 @@ export class U256 {
   /** hexadecimal string → U256 (accepts “0x” prefix) */
   static setFromStringHex(dest: usize, str: usize, len: u32): void {
     let off: u32 = 0;
-    if (len >= 2 &&
+    if (
+      len >= 2 &&
       load<u8>(str) === ASCII_0 &&
-      (load<u8>(str + 1) | ASCII_CASE_MASK) === ASCII_X_LOWER) {
+      (load<u8>(str + 1) | ASCII_CASE_MASK) === ASCII_X_LOWER
+    ) {
       off = 2;
     }
 
@@ -56,7 +58,7 @@ export class U256 {
     if (odd) {
       store<u8>(dest + d--, this.hexChar(load<u8>(str + s--)));
     }
-    while (d >= 0 && s >= (<i32>off + 1)) {
+    while (d >= 0 && s >= <i32>off + 1) {
       const low = this.hexChar(load<u8>(str + s));
       const high = this.hexChar(load<u8>(str + s - 1));
       store<u8>(dest + d--, (high << 4) | low);
@@ -72,7 +74,7 @@ export class U256 {
     for (let i: i32 = 31; i >= 0; --i) {
       const sum: u16 = load<u8>(dest + i) + load<u8>(src + i) + carry;
       store<u8>(dest + i, <u8>sum);
-      carry = sum > 0xFF ? 1 : 0;
+      carry = sum > 0xff ? 1 : 0;
     }
     return dest;
   }
@@ -110,13 +112,12 @@ export class U256 {
     for (let i: i32 = 31; i >= 0 && carry; --i) {
       const sum: u16 = load<u8>(ptr + i) + carry;
       store<u8>(ptr + i, <u8>sum);
-      carry = sum > 0xFF ? 1 : 0;
+      carry = sum > 0xff ? 1 : 0;
     }
   }
 
   private static hexChar(c: u8): u8 {
     const lo = c | ASCII_CASE_MASK;
-    return (lo >= ASCII_a) ? lo - HEX_ALPHA_OFFSET
-      : c - ASCII_0;
+    return lo >= ASCII_a ? lo - HEX_ALPHA_OFFSET : c - ASCII_0;
   }
 }

@@ -7,13 +7,23 @@
   "bin": {
     "test-sdk": "dist/cli/build.js"
   },
+  "engines": {
+    "node": ">=22.x"
+  },
   "scripts": {
-    "generate": "tsc && node dist/commands/generate/generate.js",
-    "build": "tsc && node dist/commands/build/build.js",
-    "test": "jest"
+    "pre:build": "tsc && tsc-alias",
+    "generate": "npm run pre:build && node dist/cli/commands/generate/generate.js",
+    "build": "npm run pre:build && node dist/cli/commands/build/build.js",
+    "lint": "npm run pre:build && node dist/cli/commands/lint/lint.js",
+    "lint:check": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "exports": {
     ".": {
+      "require": "./dist/index.js",
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
@@ -24,11 +34,13 @@
     "assemblyscript": "^0.27.35",
     "dotenv": "^16.4.7",
     "jest": "^29.7.0",
+    "rewrite-imports": "^3.0.0",
     "ts-jest": "^29.3.4",
     "typescript": "^5.8.2"
   },
   "dependencies": {
     "keccak256": "^1.0.6",
-    "ts-morph": "^25.0.1"
+    "ts-morph": "^25.0.1",
+    "tsc-alias": "^1.8.16"
   }
 }

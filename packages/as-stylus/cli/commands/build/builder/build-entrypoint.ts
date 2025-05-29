@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { IRContract } from "../../../types/ir.types";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
+import { IRContract } from "@/cli/types/ir.types.js";
 
 export function generateUserEntrypoint(contract: IRContract) {
   const imports: string[] = [];
@@ -54,7 +54,7 @@ export function buildEntrypoint(userFilePath: string, contract: IRContract): voi
   const { imports, entrypointBody } = generateUserEntrypoint(contract);
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const templatePath = path.resolve(__dirname, "../../../../templates/index.template.ts");
+  const templatePath = path.resolve(__dirname, "../../../../templates/index.template.js");
   const contractBasePath = path.dirname(userFilePath);
   const targetPath = path.join(contractBasePath, ".dist");
 

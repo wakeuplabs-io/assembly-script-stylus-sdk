@@ -1,16 +1,21 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "outDir": "dist/",
-    "rootDir": "cli",
+    "target": "ESNEXT",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "experimentalDecorators": true,
+    "plugins": [{ "transform": "typescript-transform-paths" }]
   },
-  "include": ["cli/**/*"]
+  "include": ["cli/**/*", "templates/**/*", "jest.config.js", "tests/**/*"]
 }

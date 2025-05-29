@@ -3,7 +3,7 @@ import { malloc } from "../modules/memory";
 import { Address } from "./address";
 
 export class Msg {
-  private constructor() { }
+  private constructor() {}
 
   public static sender(): Address {
     const msgSenderPtr = malloc(20);

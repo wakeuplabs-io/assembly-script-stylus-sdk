@@ -3,9 +3,9 @@ import { detectExpressionType, typeTransformers } from "../core/base-transformer
 
 export const globalContext: EmitContext = {
   isInStatement: false,
-  contractName: '',
+  contractName: "",
   strCounter: 0,
-  ptrCounter: 0
+  ptrCounter: 0,
 };
 
 export function initExpressionContext(name: string): void {
@@ -15,7 +15,7 @@ export function initExpressionContext(name: string): void {
 /**
  * Main function to emit code from an expression.
  * Returns an EmitResult object with setup lines and value expression.
- * 
+ *
  * @param expr - The expression to emit
  * @param isInStatement - Whether the expression is inside a statement
  * @returns EmitResult with setup lines and final expression
@@ -30,10 +30,10 @@ export function emitExpression(expr: any, isInStatement: boolean = false): EmitR
   const transformer = typeName ? typeTransformers[typeName] : null;
   if (transformer && typeof transformer.emit === 'function') {
     return transformer.emit(expr, globalContext, emitExpressionWrapper);
-  } 
-  return { 
-    setupLines: [], 
-    valueExpr: handleFallbackExpression(expr) 
+  }
+  return {
+    setupLines: [],
+    valueExpr: handleFallbackExpression(expr),
   };
 }
 
@@ -107,9 +107,11 @@ function handleFallbackExpression(expr: any): string {
      */
     case "binary":
       if (expr.op === "=") {
-        if (expr.left.kind === "member" && 
-            expr.left.object.kind === "var" && 
-            expr.left.object.name === globalContext.contractName) {
+        if (
+          expr.left.kind === "member" &&
+          expr.left.object.kind === "var" &&
+          expr.left.object.name === globalContext.contractName
+        ) {
           const property = expr.left.property;
           const rightResult = emitExpression(expr.right);
           return `store_${property}(${rightResult.valueExpr})`;
