@@ -1,8 +1,7 @@
 import { Project } from "ts-morph";
 
+import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
 import { MethodSemanticValidator } from "@/cli/commands/build/analyzers/method/semantic-validator.js";
-
-import { ErrorManager } from "../../cli/commands/build/analyzers/shared/error-manager.js";
 
 describe("Syntax Validation - Methods", () => {
   let project: Project;

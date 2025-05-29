@@ -5,8 +5,8 @@ import { IRConstructor } from "@/cli/types/ir.types.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { StatementIRBuilder } from "../statement/ir-builder.js";
-import { ConstructorSyntaxValidator } from "./syntax-validator.js";
 import { ArgumentIRBuilder } from "../argument/ir-builder.js";
+import { ConstructorSemanticValidator } from "./semantic-validator.js";
 
 export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
   private constructorDecl: ConstructorDeclaration;
@@ -17,8 +17,8 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
   }
 
   validate(): boolean {
-    const semanticValidator = new ConstructorSyntaxValidator(this.constructorDecl, this.errorManager);
-    return semanticValidator.validate();
+    const syntaxValidator = new ConstructorSemanticValidator(this.constructorDecl, this.errorManager);
+    return syntaxValidator.validate();
   }
 
   buildIR(): IRConstructor {
