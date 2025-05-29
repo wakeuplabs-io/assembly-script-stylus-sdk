@@ -1,5 +1,5 @@
-import { EmitContext, EmitResult }   from "../../../../../types/emit.types";
-import { ExpressionHandler }         from "../../core/interfaces";
+import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
+import { ExpressionHandler } from "../../core/interfaces.js";
 import { makeTemp }                  from "../../utils/temp-factory.js";
 
 /**
