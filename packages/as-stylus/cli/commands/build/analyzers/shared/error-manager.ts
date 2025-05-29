@@ -1,15 +1,21 @@
 import { ValidationError } from "./validation-error.js";
+import SEMANTIC_ERRORS from "../../errors/semantic-list.js";
+import SYNTACTIC_ERRORS from "../../errors/syntactic-list.js";
 
 export class ErrorManager {
   private semanticErrors: ValidationError[] = [];
   private syntaxErrors: ValidationError[] = [];
 
-  addSemanticError(message: string, location?: string, line?: number): void {
-    this.semanticErrors.push(new ValidationError(message, "semantic", location, line));
+  addSemanticError(code: string, location?: string, line?: number, args?: string[]): void {
+    // TODO: remove this once we have a proper error message
+    const message = SEMANTIC_ERRORS[code]?.message(args ?? []) ?? code;
+    this.semanticErrors.push(new ValidationError(message, code, "semantic", location, line));
   }
 
-  addSyntaxError(message: string, location?: string, line?: number): void {
-    this.syntaxErrors.push(new ValidationError(message, "syntax", location, line));
+  addSyntaxError(code: string, location?: string, line?: number, args?: string[]): void {
+    // TODO: remove this once we have a proper error message
+    const message = SYNTACTIC_ERRORS[code]?.message(args ?? []) ?? code;
+    this.syntaxErrors.push(new ValidationError(message, code, "syntax", location, line));
   }
 
   hasErrors(): boolean {
@@ -34,7 +40,7 @@ export class ErrorManager {
         .map((error) => {
           let locationInfo = error.location ? ` at ${error.location}` : "";
           locationInfo += error.line ? `:${error.line}` : "";
-          return `[${error.code}] ${error.message}${locationInfo}`;
+          return `[${error.level}] ${error.message}${locationInfo}`;
         })
         .join("\n");
       throw new Error(errorMessages);

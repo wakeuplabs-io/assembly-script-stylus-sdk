@@ -1,10 +1,13 @@
+#!/usr/bin/env node
+
 import { Command } from "commander";
-import { generateCommand } from "./commands/generate/generate.js";
-import { buildCommand } from "./commands/build/build.js";
-import { lintCommand } from "./commands/lint/lint.js";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
 import { readFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+import { buildCommand } from "./commands/build/build.js";
+import { generateCommand } from "./commands/generate/generate.js";
+import { lintCommand } from "./commands/lint/lint.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

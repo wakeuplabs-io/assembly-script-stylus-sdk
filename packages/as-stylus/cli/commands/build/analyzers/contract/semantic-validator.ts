@@ -4,12 +4,6 @@ import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manage
 
 import { BaseValidator } from "../shared/base-validator.js";
 
-const ERROR_MESSAGES = {
-  NO_CONTRACT_CLASS: "No class decorated with @Contract was found",
-  MULTIPLE_CONTRACT_CLASSES: "Only one class decorated with @Contract is allowed",
-  MULTIPLE_CONTRACT_DECORATORS: (className: string) => `Contract class "${className}" has multiple @Contract decorators`,
-} as const;
-
 export class ContractSemanticValidator extends BaseValidator {
   private sourceFile: SourceFile;
 
@@ -26,18 +20,18 @@ export class ContractSemanticValidator extends BaseValidator {
       );
 
     if (classesDefined.length === 0) {
-      this.addSemanticError(ERROR_MESSAGES.NO_CONTRACT_CLASS);
+      this.addSemanticError("S001");
       return true;
     } 
     
     if (classesDefined.length > 1) {
-      this.addSemanticError(ERROR_MESSAGES.MULTIPLE_CONTRACT_CLASSES);
+      this.addSemanticError("S002");
       return true;
     }
 
     const classDefined = classesDefined[0];
     if (classDefined.getDecorators().length > 1) {
-      this.addSemanticError(ERROR_MESSAGES.MULTIPLE_CONTRACT_DECORATORS(classDefined.getName()!));
+      this.addSemanticError("S003", [classDefined.getName()!]);
       return true;
     }
 
