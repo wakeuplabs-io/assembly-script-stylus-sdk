@@ -58,6 +58,8 @@
     ],
     "import/no-duplicates": "error", // Disallow importing the same module more than once
     "import/no-unresolved": "off", // Turn off unresolved import errors (e.g., for TypeScript aliases)
+    "@typescript-eslint/no-explicit-any": "warn", // Turn off any type errors
+    "import/namespace": "off", // Turn off namespace import errors
     "import/no-self-import": "error", // Prevent a file from importing itself
     "import/no-useless-path-segments": "error", // Avoid unnecessary path segments like `./../file`
     "import/no-absolute-path": "off" // Allow absolute paths (useful with custom resolvers)
