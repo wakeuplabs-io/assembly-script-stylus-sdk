@@ -2,8 +2,8 @@ import { Project, SourceFile } from "ts-morph";
 
 import { ContractSyntaxValidator } from "@/cli/commands/build/analyzers/contract/syntax-validator.js";
 
-import { ConstructorSemanticValidator } from "../../cli/commands/build/analyzers/constructor/semantic-validator.js";
-import { ErrorManager } from "../../cli/commands/build/analyzers/shared/error-manager.js";
+import { ConstructorSemanticValidator } from "@/cli/commands/build/analyzers/constructor/semantic-validator.js";
+import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
 
 describe("Syntax Validation - Constructor", () => {
   let project: Project;

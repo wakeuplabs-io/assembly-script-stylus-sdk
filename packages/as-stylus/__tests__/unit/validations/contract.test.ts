@@ -1,8 +1,8 @@
 import { Project } from "ts-morph";
 
-import { ContractSemanticValidator } from "../../cli/commands/build/analyzers/contract/semantic-validator.js";
-import { ContractSyntaxValidator } from "../../cli/commands/build/analyzers/contract/syntax-validator.js";
-import { ErrorManager } from "../../cli/commands/build/analyzers/shared/error-manager.js";
+import { ContractSemanticValidator } from "@/cli/commands/build/analyzers/contract/semantic-validator.js";
+import { ContractSyntaxValidator } from "@/cli/commands/build/analyzers/contract/syntax-validator.js";
+import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
 
 describe("Syntax Validation - Contract", () => {
   let project: Project;
@@ -21,14 +21,18 @@ describe("Syntax Validation - Contract", () => {
         const sourceFile = project.createSourceFile("test.ts", "");
         const validator = new ContractSyntaxValidator(sourceFile, errorManager);
         validator.validate();
-        expect(errorManager.getSyntaxErrors().some((e) => e.code === "E001")).toBe(true);
+        expect(
+          errorManager.getSyntaxErrors().some((e: { code: string }) => e.code === "E001"),
+        ).toBe(true);
       });
 
       it("should detect missing class declarations", () => {
         const sourceFile = project.createSourceFile("test.ts", "const x = 1;");
         const validator = new ContractSyntaxValidator(sourceFile, errorManager);
         validator.validate();
-        expect(errorManager.getSyntaxErrors().some((e) => e.code === "E002")).toBe(true);
+        expect(
+          errorManager.getSyntaxErrors().some((e: { code: string }) => e.code === "E002"),
+        ).toBe(true);
       });
     });
 
@@ -45,7 +49,9 @@ describe("Syntax Validation - Contract", () => {
         );
         const validator = new ContractSemanticValidator(sourceFile, errorManager);
         validator.validate();
-        expect(errorManager.getSemanticErrors().some((e) => e.code === "S001")).toBe(true);
+        expect(
+          errorManager.getSemanticErrors().some((e: { code: string }) => e.code === "S001"),
+        ).toBe(true);
       });
 
       it("should detect multiple contract classes", () => {
@@ -67,7 +73,9 @@ describe("Syntax Validation - Contract", () => {
         );
         const validator = new ContractSemanticValidator(sourceFile, errorManager);
         validator.validate();
-        expect(errorManager.getSemanticErrors().some((e) => e.code === "S002")).toBe(true);
+        expect(
+          errorManager.getSemanticErrors().some((e: { code: string }) => e.code === "S002"),
+        ).toBe(true);
       });
     });
   });
