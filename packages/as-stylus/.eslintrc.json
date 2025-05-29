@@ -1,74 +1,76 @@
 {
   "env": {
-    "browser": true,
-    "es2021": true,
-    "node": true
+    "browser": true, // Enables browser globals like `window` and `document`
+    "es2021": true, // Enables ES2021 syntax
+    "node": true // Enables Node.js globals like `process` and `require`
   },
+
   "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:react/recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:react/jsx-runtime",
-    "plugin:prettier/recommended",
-    "plugin:import/recommended",
-    "plugin:import/typescript"
+    "eslint:recommended", // Base ESLint recommended rules
+    "plugin:@typescript-eslint/recommended", // TypeScript-specific linting rules
+    "plugin:prettier/recommended", // Integrates Prettier formatting rules
+    "plugin:import/recommended", // Recommended rules for import/export syntax
+    "plugin:import/typescript" // TypeScript support for import plugin
   ],
-  "parser": "@typescript-eslint/parser",
+
+  "parser": "@typescript-eslint/parser", // Parses TypeScript code for ESLint
   "parserOptions": {
-    "ecmaVersion": "latest",
-    "sourceType": "module"
+    "ecmaVersion": "latest", // Use the latest ECMAScript version
+    "sourceType": "module" // Use ES modules (import/export)
   },
-  "plugins": ["@typescript-eslint", "react", "react-refresh", "prettier", "import"],
+
+  "plugins": [
+    "@typescript-eslint", // Adds TypeScript linting rules
+    "prettier", // Enables Prettier integration
+    "import" // Adds rules related to module import organization
+  ],
+
   "rules": {
-    "prettier/prettier": "error",
-    "linebreak-style": ["error", "unix"],
-    "semi": ["error", "always"],
-    "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }],
+    "prettier/prettier": "error", // Treat Prettier formatting issues as ESLint errors
+    "linebreak-style": ["error", "unix"], // Enforce LF (Unix-style) line endings
+    "semi": ["error", "always"], // Require semicolons at the end of statements
 
     // Import organization rules
     "import/order": [
       "error",
       {
         "groups": [
-          ["builtin", "external"],
-          "internal",
-          ["parent", "sibling", "index"],
-          "object",
-          "type"
+          ["builtin", "external"], // Built-in Node modules and external packages
+          "internal", // Internal paths, like aliases
+          ["parent", "sibling", "index"], // Relative imports (../, ./, etc.)
+          "object", // Imports like `import * as name from`
+          "type" // Type-only imports
         ],
         "pathGroups": [
           {
-            "pattern": "@/**",
+            "pattern": "@/**", // Treat `@/...` as internal paths
             "group": "internal",
             "position": "before"
           }
         ],
-        "pathGroupsExcludedImportTypes": ["builtin"],
-        "newlines-between": "always",
+        "pathGroupsExcludedImportTypes": ["builtin"], // Don't reclassify built-ins
+        "newlines-between": "always", // Always insert new lines between import groups
         "alphabetize": {
-          "order": "asc",
-          "caseInsensitive": true
+          "order": "asc", // Alphabetize imports A-Z
+          "caseInsensitive": true // Ignore case while alphabetizing
         }
       }
     ],
-    "import/no-duplicates": "error",
-    "import/no-unresolved": "off",
-    "import/no-self-import": "error",
-    "import/no-useless-path-segments": "error",
-    "import/no-absolute-path": "off"
+    "import/no-duplicates": "error", // Disallow importing the same module more than once
+    "import/no-unresolved": "off", // Turn off unresolved import errors (e.g., for TypeScript aliases)
+    "import/no-self-import": "error", // Prevent a file from importing itself
+    "import/no-useless-path-segments": "error", // Avoid unnecessary path segments like `./../file`
+    "import/no-absolute-path": "off" // Allow absolute paths (useful with custom resolvers)
   },
+
   "settings": {
-    "react": {
-      "version": "detect"
-    },
     "import/resolver": {
       "typescript": {
-        "alwaysTryTypes": true
+        "alwaysTryTypes": true // Also try to resolve `@types` packages
       },
       "alias": {
-        "map": [["@", "./"]],
-        "extensions": [".ts", ".tsx", ".js", ".jsx", ".json"]
+        "map": [["@", "./"]], // Set `@` as an alias for the root directory
+        "extensions": [".ts", ".tsx", ".js", ".jsx", ".json"] // File extensions to resolve
       }
     }
   }
