@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
 import { IRContract } from "@/cli/types/ir.types.js";
+import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 
 export function generateUserEntrypoint(contract: IRContract) {
   const imports: string[] = [];
@@ -52,15 +52,11 @@ export function generateUserEntrypoint(contract: IRContract) {
 
 export function buildEntrypoint(userFilePath: string, contract: IRContract): void {
   const { imports, entrypointBody } = generateUserEntrypoint(contract);
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const templatePath = path.resolve(__dirname, "../../../../templates/index.template.js");
   const contractBasePath = path.dirname(userFilePath);
-  const targetPath = path.join(contractBasePath, ".dist");
 
-  let indexTemplate = fs.readFileSync(templatePath, "utf-8");
+  let indexTemplate = getUserEntrypointTemplate()
   indexTemplate = indexTemplate.replace("// @logic_imports", imports);
   indexTemplate = indexTemplate.replace("// @user_entrypoint", entrypointBody);
 
-  fs.writeFileSync(path.join(targetPath, "entrypoint.ts"), indexTemplate);
+  fs.writeFileSync(path.join(contractBasePath, "entrypoint.ts"), indexTemplate);
 }

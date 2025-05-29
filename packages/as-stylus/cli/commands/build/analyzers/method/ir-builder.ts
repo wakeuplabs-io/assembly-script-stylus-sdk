@@ -7,6 +7,7 @@ import { MethodSyntaxValidator } from "./syntax-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { StatementIRBuilder } from "../statement/ir-builder.js";
+import { ArgumentIRBuilder } from "../argument/ir-builder.js";
 
 export class MethodIRBuilder extends IRBuilder<IRMethod> {
   private methodDecl: MethodDeclaration;
@@ -33,10 +34,10 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? "public";
     const stateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? "nonpayable";
 
-    const inputs = this.methodDecl.getParameters().map((param) => ({
-      name: param.getName(),
-      type: param.getType().getText(),
-    }));
+    const inputs = this.methodDecl.getParameters().map((param) => {
+      const argumentBuilder = new ArgumentIRBuilder(param, this.errorManager);
+      return argumentBuilder.validateAndBuildIR();
+    });
 
     const returnType = this.methodDecl.getReturnType().getText();
     const body = this.methodDecl.getBodyOrThrow() as Block;

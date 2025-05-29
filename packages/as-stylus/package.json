@@ -17,7 +17,8 @@
     "lint": "npm run pre:build && node dist/cli/commands/lint/lint.js",
     "lint:check": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "test": "jest",
+    "test:unit": "jest --testPathPattern=__tests__/unit",
+    "test:e2e": "jest --testPathPattern=__tests__/e2e",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
