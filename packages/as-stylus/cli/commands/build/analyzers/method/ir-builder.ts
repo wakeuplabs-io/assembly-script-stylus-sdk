@@ -3,22 +3,27 @@ import { Block, MethodDeclaration } from "ts-morph";
 import { STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types.js";
 import { IRMethod } from "@/cli/types/ir.types.js";
 
+import { MethodSemanticValidator } from "./semantic-validator.js";
 import { MethodSyntaxValidator } from "./syntax-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { StatementIRBuilder } from "../statement/ir-builder.js";
+import { ArgumentIRBuilder } from "../argument/ir-builder.js";
 
 export class MethodIRBuilder extends IRBuilder<IRMethod> {
   private methodDecl: MethodDeclaration;
+  private names: string[];
 
-  constructor(methodDecl: MethodDeclaration, errorManager: ErrorManager) {
+  constructor(methodDecl: MethodDeclaration, names: string[], errorManager: ErrorManager) {
     super(errorManager);
     this.methodDecl = methodDecl;
+    this.names = names;
   }
 
   validate(): boolean {
     const syntaxValidator = new MethodSyntaxValidator(this.methodDecl, this.errorManager);
-    return syntaxValidator.validate();
+    const semanticValidator = new MethodSemanticValidator(this.methodDecl, this.names, this.errorManager);
+    return syntaxValidator.validate() && semanticValidator.validate();
   }
 
   buildIR(): IRMethod {
@@ -33,10 +38,10 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? "public";
     const stateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? "nonpayable";
 
-    const inputs = this.methodDecl.getParameters().map((param) => ({
-      name: param.getName(),
-      type: param.getType().getText(),
-    }));
+    const inputs = this.methodDecl.getParameters().map((param) => {
+      const argumentBuilder = new ArgumentIRBuilder(param, this.errorManager);
+      return argumentBuilder.validateAndBuildIR();
+    });
 
     const returnType = this.methodDecl.getReturnType().getText();
     const body = this.methodDecl.getBodyOrThrow() as Block;

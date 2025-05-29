@@ -1,4 +1,4 @@
-import { ClassDeclaration, SourceFile, ConstructorDeclaration } from "ts-morph";
+import { SourceFile, ConstructorDeclaration } from "ts-morph";
 
 import { IRContract } from "@/cli/types/ir.types.js";
 
@@ -29,17 +29,18 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
   }
 
   buildIR(): IRContract {
-    const name = this.sourceFile.getBaseName() ?? "Main";
     const classes = this.sourceFile.getClasses();
     const classDefinition = classes[0];
+    const name = classDefinition.getName();
 
-    const constructorDecl: ConstructorDeclaration | undefined =
+    const constructorDecl: ConstructorDeclaration =
       classDefinition.getConstructors()[0];
     const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl, this.errorManager);
     const constructor = constructorIRBuilder.validateAndBuildIR();
 
+    const names = classDefinition.getMethods().map(method => method.getName());
     const methods = classDefinition.getMethods().map((method) => {
-      const methodIRBuilder = new MethodIRBuilder(method, this.errorManager);
+      const methodIRBuilder = new MethodIRBuilder(method, names, this.errorManager);
       return methodIRBuilder.validateAndBuildIR();
     });
 
@@ -49,7 +50,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     return {
-      name,
+      name: name ?? "Main",
       constructor,
       methods,
       storage,

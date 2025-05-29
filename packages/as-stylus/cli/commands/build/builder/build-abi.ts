@@ -1,8 +1,8 @@
-import fs from "fs";
 import path from "path";
-
+import { writeFile } from "@/cli/utils/fs.js";
 import { AbiItem, AbiInput, AbiOutput } from "@/cli/types/abi.types.js";
 import { IRContract } from "@/cli/types/ir.types.js";
+import { ABI_PATH } from "@/cli/utils/constants.js";
 
 export function buildAbi(targetPath: string, contract: IRContract) {
   const abi: AbiItem[] = [];
@@ -44,7 +44,8 @@ export function buildAbi(targetPath: string, contract: IRContract) {
     });
   }
 
-  fs.writeFileSync(path.join(targetPath, "abi.json"), JSON.stringify(abi, null, 2));
+  const abiPath = path.join(targetPath, ABI_PATH, `${contract.name}-abi.json`);
+  writeFile(abiPath, JSON.stringify(abi, null, 2));
 }
 
 function convertType(type: string): string {

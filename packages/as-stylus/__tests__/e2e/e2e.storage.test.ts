@@ -7,7 +7,7 @@ import path from "path";
 import { config } from "dotenv";
 config();
 
-const ROOT = path.resolve(__dirname, "../");
+const ROOT = path.resolve(__dirname, "../../..");
 const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
 const PK = process.env.PRIVATE_KEY;
 if (!PK) throw new Error("Set PRIVATE_KEY in .env");
@@ -47,11 +47,10 @@ function castCallData(data: string): string {
 let contractAddr = "";
 
 beforeAll(() => {
-  run("npm run build");
-  const testPkg = path.join(ROOT, "../../contracts/test");
+  run("npm run build", path.join(ROOT, "/as-stylus"));
+  const testPkg = path.join(ROOT, "/contracts/.dist/storage");
   run("npm run compile", testPkg);
   run("npm run check", testPkg);
-
 
   const init = u256(5n);
   const dataDeploy = calldata(SELECTOR.DEPLOY, init);
