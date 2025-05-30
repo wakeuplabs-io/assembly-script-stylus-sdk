@@ -1,87 +1,81 @@
 // ---------------------------------------------------------------
-// End-to-end tests for Storage (U256) - Stylus
+//  End-to-end tests — Storage contract (Stylus)
 // ---------------------------------------------------------------
-
-import { execSync } from "child_process";
-import path from "path";
 import { config } from "dotenv";
+import path from "path";
+
 config();
 
-const ROOT = path.resolve(__dirname, "../../..");
-const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
-const PK = process.env.PRIVATE_KEY;
-if (!PK) throw new Error("Set PRIVATE_KEY in .env");
-
-function run(cmd: string, cwd = ROOT): string {
-  return execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8" }).trim();
-}
-function stripAnsi(s: string): string {
-  return s.replace(/\x1B\[[0-9;]*m/g, "");
-}
+import {
+  ROOT,
+  RPC_URL,
+  PRIVATE_KEY,
+  run,
+  stripAnsi,
+  calldata,
+  createContractHelpers,
+  pad64,
+} from "./utils.js";
 
 const SELECTOR = {
+  DEPLOY: "0x6465706c",
+  GET: "0x67657400",
   ADD: "0x61646400",
   SUB: "0x73756200",
-  GET: "0x67657400",
-  DEPLOY: "0x6465706c"
 };
 
-function u256(value: bigint): string {
-  const hex = value.toString(16).padStart(64, "0");
-  return `0x${hex}`;
-}
-
-function calldata(selector: string, ...args: string[]): string {
-  const clean = (h: string) => h.startsWith("0x") ? h.slice(2) : h;
-  return `0x${clean(selector)}${args.map(clean).join("")}`;
-}
-
-function castSendData(data: string) {
-  run(`cast send ${contractAddr} ${data} --private-key ${PK} --rpc-url ${RPC_URL}`);
-}
-
-function castCallData(data: string): string {
-  return run(`cast call ${contractAddr} ${data} --rpc-url ${RPC_URL}`);
-}
+const INIT64 = pad64(5n);
+const EIGHT64 = pad64(8n);
+const SIX64 = pad64(6n);
 
 let contractAddr = "";
-
+let helpers: ReturnType<typeof createContractHelpers>;
 beforeAll(() => {
-  run("npm run build", path.join(ROOT, "/as-stylus"));
-  const testPkg = path.join(ROOT, "/contracts/.dist/storage");
-  run("npm run compile", testPkg);
-  run("npm run check", testPkg);
+  try {
+    const projectRoot = path.join(ROOT, "/as-stylus/");
+    run("npm run pre:build", projectRoot);
+    const pkg = path.join(ROOT, "/as-stylus/__tests__/contracts/storage");
+    run("npx as-stylus build", pkg);
+    run("npm run compile", pkg);
+    run("npm run check", pkg);
 
-  const init = u256(5n);
-  const dataDeploy = calldata(SELECTOR.DEPLOY, init);
+    const dataDeploy = calldata(SELECTOR.DEPLOY);
 
-  const deployLog = stripAnsi(run(`PRIVATE_KEY=${PK} npm run deploy`, testPkg));
-  const m = deployLog.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
-  if (!m) throw new Error("Could not scrape contract address");
-  contractAddr = m[1];
+    const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, pkg));
+    const m = deployLog.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
+    if (!m) throw new Error("Could not scrape contract address");
+    contractAddr = m[1];
+    helpers = createContractHelpers(contractAddr);
 
-  run(`cast send ${contractAddr} ${dataDeploy} --private-key ${PK} --rpc-url ${RPC_URL}`);
-  console.log("📍 Deployed at", contractAddr);
+    run(
+      `cast send ${contractAddr} ${dataDeploy}${INIT64.slice(2)} --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL}`,
+    );
+
+    console.log("📍 Deployed at", contractAddr);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to deploy contract:", errorMessage);
+    throw error;
+  }
 }, 120_000);
 
-describe.skip("Storage (U256) — basic operations", () => {
-  it("get() → 5 at init", () => {
-    const data = calldata(SELECTOR.GET);
-    const res = castCallData(data);
-    console.log("📍 Result 1", res);
-    expect(res.toLowerCase()).toBe(u256(5n).toLowerCase());
+const send = (data: string) => helpers.sendData(data);
+const call = (data: string) => helpers.callData(data);
+const expectHex = (data: string, hex: string) =>
+  expect(call(data).toLowerCase()).toBe(hex.toLowerCase());
+
+describe("Storage (U256) — basic operations", () => {
+  it("get() after deploy ⇒ 5", () => {
+    expectHex(calldata(SELECTOR.GET), INIT64);
   });
 
-  it("add(3) → 8", () => {
-    castSendData(calldata(SELECTOR.ADD, u256(3n)));
-    const res = castCallData(calldata(SELECTOR.GET));
-    console.log("📍 Result 2", res);
-    expect(res.toLowerCase()).toBe(u256(8n).toLowerCase());
+  it("add(3) then get() ⇒ 8", () => {
+    send(calldata(SELECTOR.ADD, pad64(3n)));
+    expectHex(calldata(SELECTOR.GET), EIGHT64);
   });
 
-  it("sub(2) → 6", () => {
-    castSendData(calldata(SELECTOR.SUB, u256(2n)));
-    const res = castCallData(calldata(SELECTOR.GET));
-    expect(res.toLowerCase()).toBe(u256(6n).toLowerCase());
+  it("sub(2) then get() ⇒ 6", () => {
+    send(calldata(SELECTOR.SUB, pad64(2n)));
+    expectHex(calldata(SELECTOR.GET), SIX64);
   });
 });

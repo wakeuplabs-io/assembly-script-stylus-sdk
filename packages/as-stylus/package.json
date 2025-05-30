@@ -19,7 +19,8 @@
     "lint:check": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test:unit": "jest --testPathPattern=__tests__/unit",
-    "test:e2e": "jest --testPathPattern=__tests__/e2e",
+    "test:e2e": "jest --runInBand --testPathPattern=__tests__/e2e",
+    "test": "jest --runInBand --testPathPattern=__tests__/e2e",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },

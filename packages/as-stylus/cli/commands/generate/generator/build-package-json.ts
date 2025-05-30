@@ -1,6 +1,7 @@
-import { BUILD_PATH, BUILD_WASM_PATH } from "@/cli/utils/constants.js";
 import fs from "fs";
 import path from "path";
+
+import { BUILD_PATH, BUILD_WASM_PATH } from "@/cli/utils/constants.js";
 
 export function buildPackageJson(targetPath: string, projectName: string) {
   fs.writeFileSync(

@@ -15,7 +15,8 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "plugins": [{ "transform": "typescript-transform-paths" }]
+    "plugins": [{ "transform": "typescript-transform-paths" }],
   },
-  "include": ["cli/**/*", "templates/**/*", "jest.config.js", "__tests__/**/*"]
+  "include": ["cli/**/*", "templates/**/*", "jest.config.js", "__tests__/**/*"],
+  "exclude": ["__tests__/contracts/**/*"]
 }
