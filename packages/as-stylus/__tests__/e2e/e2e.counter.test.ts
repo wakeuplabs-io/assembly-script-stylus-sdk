@@ -1,76 +1,82 @@
 // ---------------------------------------------------------------
-// End-to-end tests for Counter contract (Stylus).
+//  End-to-end tests — Counter contract (Stylus)
 // ---------------------------------------------------------------
-
-import { execSync } from "child_process";
 import { config } from "dotenv";
 import path from "path";
+
 config();
 
-const ROOT = path.resolve(__dirname, "../");
-const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
-const PK = process.env.PRIVATE_KEY;
-if (!PK) throw new Error("Set PRIVATE_KEY in .env");
-
-function run(cmd: string, cwd = ROOT): string {
-  return execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8" }).trim();
-}
-function stripAnsi(s: string): string {
-  return s.replace(/\x1B\[[0-9;]*m/g, "");
-}
+import {
+  ROOT,
+  RPC_URL,
+  PRIVATE_KEY,
+  run,
+  stripAnsi,
+  calldata,
+  createContractHelpers,
+  pad64,
+} from "./utils.js";
 
 const SELECTOR = {
+  DEPLOY: "0x6465706c",
   GET: "0x67657400",
   INC: "0x696e6372",
   DEC: "0x64656372",
 };
-const MAX_U256_HEX = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-const ZERO64 = "0x0000000000000000000000000000000000000000000000000000000000000000";
-const ONE64 = "0x0000000000000000000000000000000000000000000000000000000000000001";
-const TWO64 = "0x0000000000000000000000000000000000000000000000000000000000000002";
+
+const U256_MAX = pad64((1n << 256n) - 1n);
+const ZERO64 = pad64(0n);
+const ONE64 = pad64(1n);
 
 let contractAddr = "";
+let helpers: ReturnType<typeof createContractHelpers>;
 
 beforeAll(() => {
-  run("npm run build");
-  const testPkg = path.join(ROOT, "../../contracts/test");
-  run("npm run compile", testPkg);
-  run("npm run check", testPkg);
+  try {
+    const projectRoot = path.join(ROOT, "/as-stylus/");
+    run("npm run pre:build", projectRoot);
+    const pkg = path.join(ROOT, "/as-stylus/__tests__/contracts/counter");
+    run("npx as-stylus build", pkg);
+    run("npm run compile", pkg);
+    run("npm run check", pkg);
 
-  const log = stripAnsi(run(`PRIVATE_KEY=${PK} npm run deploy`, testPkg));
-  const m = log.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
-  if (!m) throw new Error("Could not scrape contract address");
-  contractAddr = m[1];
-  console.log("📍 Deployed at", contractAddr);
+    const dataDeploy = calldata(SELECTOR.DEPLOY);
+
+    const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, pkg));
+    const m = deployLog.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
+    if (!m) throw new Error("Could not scrape contract address");
+    contractAddr = m[1];
+    helpers = createContractHelpers(contractAddr);
+    run(
+      `cast send ${contractAddr} ${dataDeploy} --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL}`,
+    );
+
+    console.log("📍 Deployed at", contractAddr);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to deploy contract:", errorMessage);
+    throw error;
+  }
 }, 120_000);
 
-function castSend(sel: string) {
-  run(`cast send --rpc-url ${RPC_URL} --private-key ${PK} ${contractAddr} ${sel}`);
-}
-function castCall(sel: string): string {
-  return run(`cast call --rpc-url ${RPC_URL} ${contractAddr} ${sel}`);
-}
-function expectHex(sel: string, expected: string) {
-  expect(castCall(sel).toLowerCase()).toBe(expected.toLowerCase());
-}
+const castSend = (sel: string) => helpers.sendData(sel);
+const castCall = (sel: string) => helpers.callData(sel);
+const expectHex = (sel: string, hex: string) =>
+  expect(castCall(sel).toLowerCase()).toBe(hex.toLowerCase());
 
-describe.skip("Counter (U256) exhaustive but tx-light", () => {
+describe("Counter (U256) — happy paths", () => {
   it("0 → underflow → MAX → wrap-back", () => {
     expectHex(SELECTOR.GET, ZERO64);
     castSend(SELECTOR.DEC);
-
-    expectHex(SELECTOR.GET, MAX_U256_HEX);
-
+    expectHex(SELECTOR.GET, U256_MAX);
     castSend(SELECTOR.INC);
-
     expectHex(SELECTOR.GET, ZERO64);
   });
 
-  it("small progression: +1, +1, -1 ⇒ value 1", () => {
+  it("small progression: +1 +1 −1 ⇒ 1", () => {
     castSend(SELECTOR.INC);
     castSend(SELECTOR.INC);
     castSend(SELECTOR.DEC);
-
     expectHex(SELECTOR.GET, ONE64);
   });
 });
