@@ -1,9 +1,9 @@
 import { Project, SourceFile } from "ts-morph";
 
-import { ContractSyntaxValidator } from "@/cli/commands/build/analyzers/contract/syntax-validator.js";
-
 import { ConstructorSemanticValidator } from "@/cli/commands/build/analyzers/constructor/semantic-validator.js";
+import { ContractSyntaxValidator } from "@/cli/commands/build/analyzers/contract/syntax-validator.js";
 import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
+import { ERROR_CODES } from "@/cli/commands/build/errors/codes.js";
 
 describe("Syntax Validation - Constructor", () => {
   let project: Project;
@@ -36,7 +36,11 @@ describe("Syntax Validation - Constructor", () => {
         );
         const validator = new ContractSyntaxValidator(sourceFile, errorManager);
         validator.validate();
-        expect(errorManager.getSyntaxErrors().some((e) => e.code === "E004")).toBe(true);
+        expect(
+          errorManager
+            .getSyntaxErrors()
+            .some((e) => e.code === ERROR_CODES.MULTIPLE_CONSTRUCTORS_FOUND),
+        ).toBe(true);
       });
     });
 
@@ -56,7 +60,9 @@ describe("Syntax Validation - Constructor", () => {
         const constructor = sourceFile.getClass("MyContract")!.getConstructors()[0];
         const validator = new ConstructorSemanticValidator(constructor, errorManager);
         validator.validate();
-        expect(errorManager.getSemanticErrors().some((e) => e.code === "S004")).toBe(true);
+        expect(
+          errorManager.getSemanticErrors().some((e) => e.code === ERROR_CODES.NO_CONSTRUCTOR_FOUND),
+        ).toBe(true);
       });
 
       it("should detect protected constructor", () => {
@@ -74,7 +80,9 @@ describe("Syntax Validation - Constructor", () => {
         const constructor = sourceFile.getClass("MyContract")!.getConstructors()[0];
         const validator = new ConstructorSemanticValidator(constructor, errorManager);
         validator.validate();
-        expect(errorManager.getSemanticErrors().some((e) => e.code === "S004")).toBe(true);
+        expect(
+          errorManager.getSemanticErrors().some((e) => e.code === ERROR_CODES.NO_CONSTRUCTOR_FOUND),
+        ).toBe(true);
       });
 
       it("should accept public constructor", () => {

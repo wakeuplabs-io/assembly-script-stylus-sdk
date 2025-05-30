@@ -3,6 +3,7 @@ import { Project } from "ts-morph";
 import { ContractSemanticValidator } from "@/cli/commands/build/analyzers/contract/semantic-validator.js";
 import { ContractSyntaxValidator } from "@/cli/commands/build/analyzers/contract/syntax-validator.js";
 import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
+import { ERROR_CODES } from "@/cli/commands/build/errors/codes.js";
 
 describe("Syntax Validation - Contract", () => {
   let project: Project;
@@ -22,7 +23,9 @@ describe("Syntax Validation - Contract", () => {
         const validator = new ContractSyntaxValidator(sourceFile, errorManager);
         validator.validate();
         expect(
-          errorManager.getSyntaxErrors().some((e: { code: string }) => e.code === "E001"),
+          errorManager
+            .getSyntaxErrors()
+            .some((e: { code: string }) => e.code === ERROR_CODES.EMPTY_SOURCE_FILE),
         ).toBe(true);
       });
 
@@ -31,7 +34,9 @@ describe("Syntax Validation - Contract", () => {
         const validator = new ContractSyntaxValidator(sourceFile, errorManager);
         validator.validate();
         expect(
-          errorManager.getSyntaxErrors().some((e: { code: string }) => e.code === "E002"),
+          errorManager
+            .getSyntaxErrors()
+            .some((e: { code: string }) => e.code === ERROR_CODES.NO_CLASSES_FOUND),
         ).toBe(true);
       });
     });
@@ -50,7 +55,9 @@ describe("Syntax Validation - Contract", () => {
         const validator = new ContractSemanticValidator(sourceFile, errorManager);
         validator.validate();
         expect(
-          errorManager.getSemanticErrors().some((e: { code: string }) => e.code === "S001"),
+          errorManager
+            .getSemanticErrors()
+            .some((e: { code: string }) => e.code === ERROR_CODES.NO_CONTRACT_DECORATOR_FOUND),
         ).toBe(true);
       });
 
@@ -74,7 +81,9 @@ describe("Syntax Validation - Contract", () => {
         const validator = new ContractSemanticValidator(sourceFile, errorManager);
         validator.validate();
         expect(
-          errorManager.getSemanticErrors().some((e: { code: string }) => e.code === "S002"),
+          errorManager
+            .getSemanticErrors()
+            .some((e: { code: string }) => e.code === ERROR_CODES.MULTIPLE_CONTRACTS_FOUND),
         ).toBe(true);
       });
     });
