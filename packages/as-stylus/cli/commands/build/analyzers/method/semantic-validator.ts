@@ -2,6 +2,7 @@ import { MethodDeclaration } from "ts-morph";
 
 import { VISIBILITY_DECORATORS, STATE_MUTABILITY_DECORATORS } from "@/cli/types/abi.types.js";
 
+import { ERROR_CODES } from "../../errors/codes.js";
 import { BaseValidator } from "../shared/base-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { SUPPORTED_TYPES } from "../shared/supported-types.js";
@@ -26,23 +27,23 @@ export class MethodSemanticValidator extends BaseValidator {
     );
 
     if (visDecorators.length > 1) {
-      this.addSemanticError("S005", [visDecorators.map((d) => d.getName()).join(", ")]);
+      this.addSemanticError(ERROR_CODES.MULTIPLE_VISIBILITY_DECORATORS_FOUND, [visDecorators.map((d) => d.getName()).join(", ")]);
       hasErrors = true;
     }
 
     if (stateDecorators.length > 1) {
-      this.addSemanticError("S006", [stateDecorators.map((d) => d.getName()).join(", ")]);
+      this.addSemanticError(ERROR_CODES.MULTIPLE_STATE_MUTABILITY_DECORATORS_FOUND, [stateDecorators.map((d) => d.getName()).join(", ")]);
       hasErrors = true;
     }
 
     const returnType = this.method.getReturnType();
     if (returnType && !SUPPORTED_TYPES.includes(returnType.getText())) {
-      this.addSemanticError("S007", [this.method.getName()]);
+      this.addSemanticError(ERROR_CODES.INVALID_RETURN_TYPE, [this.method.getName()]);
       hasErrors = true;
     }
 
     if (this.method.getName() && this.otherMethodNames.includes(this.method.getName())) {
-      this.addSemanticError("S010", [this.method.getName()]);
+      this.addSemanticError(ERROR_CODES.METHOD_NAME_ALREADY_EXISTS, [this.method.getName()]);
       hasErrors = true;
     }
 
