@@ -184,7 +184,7 @@ Each argument is copied by `entrypoint.ts` into local variables before the busin
   The goal is to unlock common patterns such as combining `Ownable`, `Pausable`, `ERC20`, etc.,
   while preserving:
 
-  1. **Deterministic method-resolution order** – the C3 MRO unequivocally decides which
+  1. **Deterministic method-resolution order** – the C3 Linearization for Method Resolution Order (MRO) unequivocally decides which
      override is selected when several bases define the same function.
   2. **Compatible storage layout** – base-class state would be packed according to the
      linearized order, guaranteeing zero overlap and full alignment with Solidity.
