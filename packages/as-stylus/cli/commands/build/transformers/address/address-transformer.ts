@@ -1,6 +1,5 @@
 import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
 import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
-
 import { AddressCreateHandler }   from "./handlers/create-handler.js";
 import { AddressEqualsHandler } from "./handlers/equals-handler.js";
 import { AddressFromStringHandler } from "./handlers/from-string-handler.js";
@@ -20,10 +19,10 @@ export class AddressTransformer extends BaseTypeTransformer {
   }
 
   matchesType(expr: any): boolean {
-    if (expr.kind !== "call") return false;
+    console.log({exprTransformatio: expr});
+    if (!expr ||expr.kind !== "call") return false;
 
     const target = expr.target || "";
-
     return (
       target === "AddressFactory.create"   ||
       target === "AddressFactory.fromString" ||

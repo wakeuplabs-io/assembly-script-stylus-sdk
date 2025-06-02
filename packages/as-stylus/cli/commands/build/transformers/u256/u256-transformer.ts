@@ -29,7 +29,7 @@ export class U256Transformer extends BaseTypeTransformer {
    * Determines if this transformer can handle the given expression
    */
   matchesType(expr: any): boolean {
-    if (expr.kind === "call") {
+    if (expr?.kind === "call") {
       const target = expr.target || "";
 
       // Factory methods
