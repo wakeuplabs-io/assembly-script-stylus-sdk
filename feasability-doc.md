@@ -171,13 +171,28 @@ Each argument is copied by `entrypoint.ts` into local variables before the busin
 
 
 ---
-# 4. Contract Inheritance Model
+# 4. Contract Inheritance Model
 
-### 4.1 Single‑Inheritance only
-* A contract may `extends Parent` *once*.  
-* Diamond / multiple inheritance **not supported**.
+### 4.1 Inheritance Model
 
-### 4.2 Storage layout
+* **Planned first step** – *single inheritance*: a contract may `extends Parent` **once**.  
+  This keeps the compiler, storage layout, and selector resolution simple and fully deterministic.
+
+* **Forward-looking work** – *multiple inheritance (C3 linearization)*:  
+  We are actively researching support for Solidity-style multiple inheritance using **C3
+  linearization** (the same algorithm adopted by Python and the EVM).  
+  The goal is to unlock common patterns such as combining `Ownable`, `Pausable`, `ERC20`, etc.,
+  while preserving:
+
+  1. **Deterministic method-resolution order** – the C3 MRO unequivocally decides which
+     override is selected when several bases define the same function.
+  2. **Compatible storage layout** – base-class state would be packed according to the
+     linearized order, guaranteeing zero overlap and full alignment with Solidity.
+  3. **Predictable constructor chain** – parent constructors would run following the same
+     linearized sequence before the child’s constructor body.
+
+
+### 4.2 Storage layout
 1. All **parent** state variables occupy the first free 32‑byte slots (`slot0…`).  
 2. Child variables are laid out *immediately afterwards* — **no gaps**.  
    → Keeps storage‑layout compatibility with Solidity.
