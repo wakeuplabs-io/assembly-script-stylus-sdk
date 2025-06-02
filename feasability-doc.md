@@ -10,13 +10,14 @@
 
 #### 1.1.1 TypeScript Interface
 
-| Method | Description | Low-Level Implementation |
-|--------|-------------|---------------------------|
-| **U256Factory.create()** | Creates a new empty U256 instance | Allocates 32 bytes of memory via `malloc` and returns a pointer to the zero-filled memory region |
-| **U256Factory.fromString(value: string)** | Creates a U256 from a decimal string representation | Calls `setFromString` on a newly allocated 32-byte region, parsing ASCII decimal digits into the big-endian binary representation |
-| **U256.add(other: U256)** | Adds another U256 to this value and returns the result | Performs in-place addition with wraparound semantics at 2²⁵⁶. Implementation uses `add(dest, src)` to modify the destination buffer directly |
-| **U256.sub(other: U256)** | Subtracts another U256 from this value and returns the result | Performs in-place subtraction with wraparound semantics at 2²⁵⁶. Implementation uses `sub(dest, src)` to modify the destination buffer directly |
-| **U256.toString()** | Converts the U256 value to its decimal string representation | Converts the 32-byte big-endian binary representation to ASCII decimal digits, allocating a new string buffer to hold the result |
+| Method | Description |
+|--------|-------------|
+| **U256Factory.create()** | Creates a new empty U256 instance |
+| **U256Factory.fromString(value: string)** | Creates a U256 from a decimal string representation |
+| **U256.add(other: U256)** | Adds another U256 to this value and returns the result |
+| **U256.sub(other: U256)** | Subtracts another U256 from this value and returns the result |
+| **U256.toString()** | Converts the U256 value to its decimal string representation |
+
 #### 1.1.2 Low-Level Implementation
 
 | Method | Description | Implementation Details |
@@ -33,14 +34,14 @@
 ### 1.2 `Address` [Interface](./packages/as-stylus/cli/types/address.inteface.ts) | [Implementation](./packages/as-stylus/core/types/address.ts)
 #### 1.2.1 Typescript interface
 
-| Method | Description | Low-Level Implementation |
-|--------|-------------|---------------------------|
-| **AddressFactory.create()** | Creates a new empty Address instance | Allocates 20 bytes of memory via `malloc` and returns a pointer to the zero-filled memory region |
-| **AddressFactory.fromString(hex: string)** | Creates an Address from a hexadecimal string representation | Parses the hex string into a 20-byte memory region, validating the format and handling any 0x prefix |
-| **Address.clone()** | Creates a copy of this Address | Allocates a new 20-byte region and performs a byte-for-byte copy of the source address |
-| **Address.toString()** | Converts the Address to its hexadecimal string representation | Converts the 20-byte binary representation to a hexadecimal string prefixed with '0x' |
-| **Address.isZero()** | Checks if the Address is the zero address | Checks if all 20 bytes are zero, returns a boolean value |
-| **Address.equals(other: Address)** | Compares this Address with another | Performs a byte-by-byte comparison of both addresses, returns true if identical |
+| Method | Description |
+|--------|-------------|
+| **AddressFactory.create()** | Creates a new empty Address instance |
+| **AddressFactory.fromString(hex: string)** | Creates an Address from a hexadecimal string representation |
+| **Address.clone()** | Creates a copy of this Address |
+| **Address.toString()** | Converts the Address to its hexadecimal string representation |
+| **Address.isZero()** | Checks if the Address is the zero address |
+| **Address.equals(other: Address)** | Compares this Address with another |
 
 #### 1.2.2 Low-Level Implementation
 
@@ -57,13 +58,13 @@
 
 #### 1.3.1 TypeScript Interface
 
-| Method | Description | Low-Level Implementation |
-|--------|-------------|---------------------------|
-| **StringFactory.fromUtf8(bytes: Uint8Array)** | Creates a String from UTF-8 byte array | Wraps raw UTF-8 bytes in a String object with pointer and length |
-| **StringFactory.fromString(text: string)** | Creates a String from AssemblyScript string | Converts AssemblyScript string to UTF-8 bytes and creates a String instance |
-| **String.length()** | Returns the length of the string in bytes | Reads the length field from the string header struct |
-| **String.toString()** | Converts to AssemblyScript string | Creates a native string representation from the UTF-8 bytes |
-| **String.slice(offset: u32, length: u32)** | Creates a substring | Creates a new String pointing to a subset of the original UTF-8 data |
+| Method | Description |
+|--------|-------------|
+| **StringFactory.fromUtf8(bytes: Uint8Array)** | Creates a String from UTF-8 byte array |
+| **StringFactory.fromString(text: string)** | Creates a String from AssemblyScript string |
+| **String.length()** | Returns the length of the string in bytes |
+| **String.toString()** | Converts to AssemblyScript string |
+| **String.slice(offset: u32, length: u32)** | Creates a substring |
 
 #### 1.3.2 Low-Level Implementation
 
