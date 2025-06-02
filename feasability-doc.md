@@ -1,7 +1,6 @@
 
 
-# Stylus Minimal Runtime – Data Types & Inheritance  
-*Last updated: 2025-06-01*
+# Stylus WASM Runtime: Data Types, ABI, and Contract Model
 
 ---
 
