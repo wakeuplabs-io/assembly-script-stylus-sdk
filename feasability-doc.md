@@ -7,7 +7,7 @@
 
 ## 1. Built‑in Data Types
 
-### 1.1 `U256`
+### 1.1 `U256` [Interface](./packages/as-stylus/cli/types/u256.interface.ts) | [Implementation](./packages/as-stylus/core/types/u256.ts)
 
 #### 1.1.1 TypeScript Interface
 
@@ -31,7 +31,7 @@
 
 ---
 
-### 1.2 `Address`
+### 1.2 `Address` [Interface](./packages/as-stylus/cli/types/address.inteface.ts) | [Implementation](./packages/as-stylus/core/types/address.ts)
 #### 1.2.1 Typescript interface
 
 | Method | Description | Low-Level Implementation |
@@ -54,7 +54,7 @@
 
 ---
 
-### 1.3 `String`
+### 1.3 `String` [Implementation WIP]
 
 #### 1.3.1 TypeScript Interface
 
