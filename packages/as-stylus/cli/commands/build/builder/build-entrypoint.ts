@@ -1,8 +1,10 @@
 import path from "path";
-import { generateArgsLoadBlock } from "../transformers/utils/args.js";
+
 import { IRContract } from "@/cli/types/ir.types.js";
-import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 import { writeFile } from "@/cli/utils/fs.js";
+import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
+
+import { generateArgsLoadBlock } from "../transformers/utils/args.js";
 
 export function generateUserEntrypoint(contract: IRContract) {
   const imports: string[] = [];
@@ -20,7 +22,11 @@ export function generateUserEntrypoint(contract: IRContract) {
 
       const callLine =
         (stateMutability === "view" || stateMutability === "pure")
-          ? `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, 32); return 0;`
+          ? (() => {
+            const outputType = method.outputs?.[0]?.type ?? "U256";
+            const size = getReturnSize(outputType);
+            return `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
+          })()
           : `${name}(${callArgs.join(", ")}); return 0;`;
 
       const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
@@ -50,11 +56,21 @@ export function generateUserEntrypoint(contract: IRContract) {
   };
 }
 
+function getReturnSize(type: string): number {
+  switch (type) {
+    case "U256": return 32;
+    case "Address": return 20;
+    case "bool": return 1;
+    case "string": return 32; // assuming string is pointer to 32-byte result
+    default: return 32; // fallback
+  }
+}
+
 export function buildEntrypoint(userFilePath: string, contract: IRContract): void {
   const { imports, entrypointBody } = generateUserEntrypoint(contract);
   const contractBasePath = path.dirname(userFilePath);
 
-  let indexTemplate = getUserEntrypointTemplate()
+  let indexTemplate = getUserEntrypointTemplate();
   indexTemplate = indexTemplate.replace("// @logic_imports", imports);
   indexTemplate = indexTemplate.replace("// @user_entrypoint", entrypointBody);
 

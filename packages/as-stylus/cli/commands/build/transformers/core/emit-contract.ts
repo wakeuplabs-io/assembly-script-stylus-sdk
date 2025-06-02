@@ -47,11 +47,11 @@ export function emitContract(contract: IRContract): string {
   
     if ((m.stateMutability === "view" || m.stateMutability === "pure") &&
         m.outputs && m.outputs.length > 0 &&
-        (m.outputs[0].type === "U256" || m.outputs[0].type === "u64" || m.outputs[0].type === "string")) {
+        (["U256", "u64", "string", "Address"].includes(m.outputs[0].type))) {
       returnType = "usize";
     }
   
-    const { argLines, callArgs } = generateArgsLoadBlock(m.inputs);
+    const { callArgs } = generateArgsLoadBlock(m.inputs);
     const argsSignature = callArgs.map(arg => `${arg}: usize`).join(", ");
     const body = emitStatements(m.ir);
     const aliasLines = m.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);

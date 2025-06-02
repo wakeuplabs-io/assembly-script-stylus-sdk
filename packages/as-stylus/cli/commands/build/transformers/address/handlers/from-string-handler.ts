@@ -35,7 +35,6 @@ export class AddressFromStringHandler implements ExpressionHandler {
     const setup = [...argRes.setupLines];
 
     const strPtr = makeTemp("hexPtr");
-    const lenVar = makeTemp("hexLen");
     const addrPtr = makeTemp("addr");
 
     if (arg.kind === "literal") {
@@ -43,23 +42,14 @@ export class AddressFromStringHandler implements ExpressionHandler {
       const raw: string = arg.value as string;
       const strLen: number = raw.length;
 
-      setup.push(`const ${strPtr}: usize = malloc(${strLen});`);
-
       for (let i = 0; i < strLen; ++i) {
         setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
 
-      setup.push(`const ${lenVar}: u32 = ${strLen};`);
-
-    } else {
-
-      setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
-      setup.push(`const ${strPtr}: usize = malloc(42);`);
     }
 
     setup.push(
-      `const ${addrPtr}: usize = Address.create();`,
-      `Address.setFromString(${addrPtr}, ${strPtr}, ${lenVar});`
+      `const ${addrPtr}: usize = Address.fromBytes(${argRes.valueExpr});`,
     );
 
     return {
