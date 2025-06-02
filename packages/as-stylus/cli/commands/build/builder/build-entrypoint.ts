@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import path from "path";
 
 import { IRContract } from "@/cli/types/ir.types.js";
@@ -5,6 +6,10 @@ import { writeFile } from "@/cli/utils/fs.js";
 import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
+
+function getCanonicalType(type: string): string {
+  return type;
+}
 
 export function generateUserEntrypoint(contract: IRContract) {
   const imports: string[] = [];
@@ -14,8 +19,13 @@ export function generateUserEntrypoint(contract: IRContract) {
     const { name, visibility, stateMutability, inputs } = method;
 
     if (visibility === "external" || visibility === "public") {
-      const hex = Buffer.from(name).toString("hex").slice(0, 8).padEnd(8, "0");
-      const sig = `0x${hex}`;
+      // Create function signature: name(type1,type2,...)
+      const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
+      const functionSignature = `${name}(${paramTypes})`;
+      
+      // Generate selector using SHA-256 hash of the function signature
+      const hash = createHash('sha256').update(functionSignature).digest('hex');
+      const sig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
       imports.push(`import { ${name} } from "./contract.transformed";`);
 
       const { argLines, callArgs } = generateArgsLoadBlock(inputs);
@@ -37,9 +47,14 @@ export function generateUserEntrypoint(contract: IRContract) {
   if (contract.constructor) {
     const { inputs } = contract.constructor;
     const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-  
-    const deployHex = Buffer.from("deploy").toString("hex").slice(0, 8).padEnd(8, "0");
-    const deploySig = `0x${deployHex}`;
+    
+    // Create constructor signature: deploy(type1,type2,...)
+    const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
+    const functionSignature = `deploy(${paramTypes})`;
+    
+    // Generate selector using SHA-256 hash of the function signature
+    const hash = createHash('sha256').update(functionSignature).digest('hex');
+    const deploySig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
     imports.push(`import { deploy } from "./contract.transformed";`);
   
     const callLine = `deploy(${callArgs.join(", ")}); return 0;`;

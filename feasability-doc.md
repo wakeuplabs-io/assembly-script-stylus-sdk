@@ -139,10 +139,18 @@ export function createStorageKey(slot: u64): usize {
 
 ### 3.2 Selector Encoding
 
-* **4‑byte** field taken from the first four ASCII bytes of the *method name* (padded with `0x00` if shorter).  
-  *Example – `get` ⇒* `0x67657400`.
+* **4‑byte** field derived from the hash of the *function signature* (method name and parameter types).
+* The first 4 bytes of the hash are used as the function selector.
+* **Implementation note:** Currently uses SHA-256 via Node.js crypto module:
+  ```ts
+  const hash = createHash('sha256').update(functionSignature).digest('hex');
+  const sig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
+  ```
+  *Example – `transfer(address,uint256)` ⇒ SHA-256("transfer(address,uint256)") ⇒ First 4 bytes*
 
-The generated `entrypoint.ts` reads the first 4 bytes of calldata and performs a chain of `if (selector == 0x…) { … }`.
+This approach ensures unique selectors even for overloaded functions with the same name but different parameter types. The generated `entrypoint.ts` reads the first 4 bytes of calldata and performs a chain of `if (selector == 0x…) { … }`.
+
+> **Note:** For Ethereum compatibility, keccak256 can be used instead of SHA-256, but would require an additional dependency.
 
 ### 3.3 Payload Layout
 
@@ -207,7 +215,7 @@ class AdminRegistry /* extends Ownable */ {
 }
 ```
 
-### 5.1 Generated low‑level code (excerpt)
+### 5.1 Generated low‑level code
 
 ```ts
 // constructor
