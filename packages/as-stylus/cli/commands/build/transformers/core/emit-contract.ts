@@ -47,7 +47,7 @@ export function emitContract(contract: IRContract): string {
   
     if ((m.stateMutability === "view" || m.stateMutability === "pure") &&
         m.outputs && m.outputs.length > 0 &&
-        (["U256", "u64", "string", "Address"].includes(m.outputs[0].type))) {
+        (["U256", "u64", "string", "Address", "boolean"].includes(m.outputs[0].type))) {
       returnType = "usize";
     }
   

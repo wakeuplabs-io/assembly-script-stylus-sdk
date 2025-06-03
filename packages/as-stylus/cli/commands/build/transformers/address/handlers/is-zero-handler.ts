@@ -15,7 +15,10 @@ export class AddressIsZeroHandler implements ExpressionHandler {
     ctx  : EmitContext,
     emit : (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
-
+    if (!expr.receiver && expr.target.endsWith(".isZero")) {
+      const chain = expr.target.slice(0, -".isZero".length);
+      expr.receiver = { kind:"var", name: chain };
+  }
     const recv = emit(expr.receiver, ctx);
 
     return {

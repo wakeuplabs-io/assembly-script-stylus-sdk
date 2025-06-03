@@ -75,9 +75,9 @@ function getReturnSize(type: string): number {
   switch (type) {
     case "U256": return 32;
     case "Address": return 20;
-    case "bool": return 1;
-    case "string": return 32; // assuming string is pointer to 32-byte result
-    default: return 32; // fallback
+    case "boolean": return 1;
+    case "string": return 32;
+    default: return 32;
   }
 }
 
