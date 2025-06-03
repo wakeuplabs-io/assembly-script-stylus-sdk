@@ -3,13 +3,12 @@
 export class AdminRegistry {
   static admin: Address;
 
-  constructor(initialAdminHex: string) {
-    const tmp = AddressFactory.fromString(initialAdminHex);
-    AdminRegistry.admin = tmp;
+  constructor(initialAdminHex: Address) {
+    AdminRegistry.admin = initialAdminHex;
   }
 
   @External
-  static setAdmin(newAdminHex: string): void {
+  static setAdmin(newAdminHex: Address): void {
     const candidate = AddressFactory.fromString(newAdminHex);
     AdminRegistry.admin = candidate;
   }
@@ -25,13 +24,16 @@ export class AdminRegistry {
   }
 
   @View
-  static isAdmin(addrHex: string): bool {
-    const addr = AddressFactory.fromString(addrHex);
-    return AdminRegistry.admin.equals(addr);
+  static isAdmin(addrHex: Address): boolean {
+    const address = AdminRegistry.admin;
+    const result = address.equals(addrHex);
+    return result;
   }
 
-  // @View
-  // static adminIsZero(): bool {
-  //   return AdminRegistry.admin.isZero();
-  // }
+  @View
+  static adminIsZero(): boolean {
+    const address = AdminRegistry.admin;
+    const result = address.isZero();
+    return result;
+  }
 }

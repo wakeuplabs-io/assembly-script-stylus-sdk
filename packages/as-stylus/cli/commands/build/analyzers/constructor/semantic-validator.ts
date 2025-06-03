@@ -8,7 +8,7 @@ export class ConstructorSemanticValidator {
   validate(): boolean {
     let hasErrors = false;
 
-    if (this.constructorDecl.getModifiers().some(modifier => modifier.getText() === "private" || modifier.getText() === "protected")) {
+    if (this.constructorDecl?.getModifiers().some(modifier => modifier.getText() === "private" || modifier.getText() === "protected")) {
       this.errorManager.addSemanticError("S004");
       hasErrors = true;
     }

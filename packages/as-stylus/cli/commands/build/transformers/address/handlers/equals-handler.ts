@@ -14,6 +14,11 @@ export class AddressEqualsHandler implements ExpressionHandler {
     emit : (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
 
+    if (!expr.receiver && expr.target.endsWith(".equals")) {
+      const chain = expr.target.slice(0, -".equals".length);
+      expr.receiver = { kind:"var", name: chain };
+      expr.target   = "Address.equals";
+  }
     const left  = emit(expr.receiver, ctx);
     const right = emit(expr.args[0],  ctx);
 

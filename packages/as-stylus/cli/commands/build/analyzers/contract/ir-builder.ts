@@ -35,8 +35,11 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
     const constructorDecl: ConstructorDeclaration =
       classDefinition.getConstructors()[0];
-    const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl, this.errorManager);
-    const constructor = constructorIRBuilder.validateAndBuildIR();
+    let constructor;
+    if(constructorDecl) {
+      const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl, this.errorManager);
+      constructor = constructorIRBuilder.validateAndBuildIR();
+    }
 
     const names = classDefinition.getMethods().map(method => method.getName());
     const methods = classDefinition.getMethods().map((method) => {

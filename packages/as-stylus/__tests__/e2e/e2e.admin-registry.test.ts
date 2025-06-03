@@ -21,8 +21,8 @@ const SELECTOR = {
   SET: "0x73657441",
   RESET: "0x72657365",
   GET: "0x67657441",
-  IS_ADMIN: "0x69736164",
-  IS_ZERO: "0x697a6572",
+  IS_ADMIN: "0x69734164",
+  IS_ZERO: "0x61646d69",
 };
 
 /*───────────────────────────────*
@@ -80,20 +80,20 @@ describe("AdminRegistry (Address) — basic ops", () => {
     expect(res.toLowerCase()).toContain(ADMIN.toLowerCase());
   });
 
-  // it("isAdmin(initial) ⇒ true", () => {
-  //   const result = call(calldata(SELECTOR.IS_ADMIN, ADMIN.toLowerCase()));
-  //   expect(result.toLowerCase()).toBe("0x01");
-  // });
+  it("isAdmin(initial) ⇒ true", () => {
+    const result = call(calldata(SELECTOR.IS_ADMIN, ADMIN.toLowerCase()));
+    expect(result.toLowerCase()).toBe("0x01");
+  });
 
-  // it("isAdmin(initial) ⇒ false", () => {
-  //   const result = call(calldata(SELECTOR.IS_ADMIN, ADMIN_FAIL.toLowerCase()));
-  //   expect(result.toLowerCase()).toBe("0x00");
-  // });
+  it("isAdmin(initial) ⇒ false", () => {
+    const result = call(calldata(SELECTOR.IS_ADMIN, ADMIN_FAIL.toLowerCase()));
+    expect(result.toLowerCase()).toBe("0x00");
+  });
 
-  // it("isZero() ⇒ false initially", () => {
-  //   const result = call(calldata(SELECTOR.IS_ZERO));
-  //   expect(result.toLowerCase()).toBe("0x00");
-  // });
+  it("isZero() ⇒ false initially", () => {
+    const result = call(calldata(SELECTOR.IS_ZERO));
+    expect(result.toLowerCase()).toBe("0x00");
+  });
 
   it("setAdmin(new) ⇒ address updates", () => {
     const NEW_ADMIN = "0x2222222222222222222222222222222222222222";

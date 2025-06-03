@@ -19,7 +19,6 @@ export class AddressTransformer extends BaseTypeTransformer {
   }
 
   matchesType(expr: any): boolean {
-    console.log({exprTransformatio: expr});
     if (!expr ||expr.kind !== "call") return false;
 
     const target = expr.target || "";
