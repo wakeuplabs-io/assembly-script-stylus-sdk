@@ -27,6 +27,18 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   
     const isMapping = /^Mapping(<|$)/.test(typeText);
   
+    if (/^Mapping2(<|$)/.test(typeText)) {
+      return {
+        name,
+        type: "mapping2",
+        slot: this.slot,
+        keyType1: "Address",
+        keyType2: "Address",
+        valueType: "U256",
+        kind: "mapping2",
+      };
+    }
+
     if (isMapping) {
       return {
         name,
@@ -36,13 +48,12 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
         valueType: "U256",
         kind: "mapping",
       };
-    } else {
-      return {
-        name,
-        type: typeText,
-        slot: this.slot,
-        kind: "simple",
-      };
     }
+    return {
+      name,
+      type: typeText,
+      slot: this.slot,
+      kind: "simple",
+    };
   }
 }

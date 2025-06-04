@@ -35,6 +35,7 @@ export function generateStorageImports(variables: IRVariable[]): string {
 
   const hasSimple = variables.some(v => v.kind === "simple");
   const hasMapping = variables.some(v => v.kind === "mapping");
+  const hasMapping2 = variables.some(v => v.kind === "mapping2");
 
   if (hasSimple) {
     lines.push(
@@ -53,6 +54,9 @@ export function generateStorageImports(variables: IRVariable[]): string {
 
   if (hasMapping) {
     lines.push('import { Mapping } from "as-stylus/core/types/mapping";');
+  }
+  if (hasMapping2) {
+    lines.push('import { Mapping2 } from "as-stylus/core/types/mapping2";');
   }
 
   lines.push('');

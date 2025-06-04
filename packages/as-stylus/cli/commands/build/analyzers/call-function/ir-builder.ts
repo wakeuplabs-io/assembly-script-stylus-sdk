@@ -1,7 +1,7 @@
 import { CallExpression, Expression, PropertyAccessExpression } from "ts-morph";
 
 import { ctx } from "@/cli/shared/compilation-context.js";
-import { IRExpression, IRMapGet, IRMapSet } from "@/cli/types/ir.types.js";
+import { IRExpression, IRMapGet, IRMapGet2, IRMapSet, IRMapSet2 } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { ErrorManager } from "../shared/error-manager.js";
@@ -45,6 +45,10 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
             return { kind: "map_get", slot, key: args[0] } as IRMapGet;
           } else if (methodName === "set" && args.length === 2) {
             return { kind: "map_set", slot, key: args[0], value: args[1] } as IRMapSet;
+          } else if (methodName === "get" && args.length === 2) {
+            return { kind: "map_get2", slot, key1: args[0], key2: args[1] } as IRMapGet2;
+          } else if (methodName === "set" && args.length === 3) {
+            return { kind: "map_set2", slot, key1: args[0], key2: args[1], value: args[2] } as IRMapSet2;
           }
         }
       }

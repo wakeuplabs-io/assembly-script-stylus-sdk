@@ -21,6 +21,14 @@ export type IRExpressionBinary = {
 
 export type IRMapGet = { kind: "map_get"; slot: number; key: IRExpression };
 export type IRMapSet = { kind: "map_set"; slot: number; key: IRExpression; value: IRExpression };
+export type IRMapGet2 = { kind: "map_get2"; slot: number; key1: IRExpression; key2: IRExpression };
+export type IRMapSet2 = {
+  kind: "map_set2";
+  slot: number;
+  key1: IRExpression;
+  key2: IRExpression;
+  value: IRExpression;
+};
 
 // ───────────────────────
 // Conditions
@@ -41,7 +49,9 @@ export type IRExpression =
   | IRExpressionBinary
   | IRCondition
   | IRMapGet
-  | IRMapSet;
+  | IRMapSet
+  | IRMapGet2
+  | IRMapSet2;
 
 // ───────────────────────
 // Statements
@@ -75,8 +85,17 @@ export type IRMappingVar = {
   valueType: string;
   kind: "mapping";
 };
+export type IRMapping2Var = {
+  name: string;
+  type: "mapping2";
+  slot: number;
+  keyType1: string;
+  keyType2: string;
+  valueType: string;
+  kind: "mapping2";
+};
 
-export type IRVariable = IRSimpleVar | IRMappingVar;
+export type IRVariable = IRSimpleVar | IRMappingVar | IRMapping2Var;
 
 // ───────────────────────
 // Contract structure
