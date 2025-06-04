@@ -2,7 +2,7 @@ import { IRContract } from "../../../../types/ir.types.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
-import { IMPORT_BLOCK, slotConst, loadFn, storeFn } from "../utils/storage.js";
+import { generateStorageImports, generateStorageHelpers } from "../utils/storage.js";
 
 /**
  * Generates the AssemblyScript code for a contract from its IR representation
@@ -11,19 +11,14 @@ import { IMPORT_BLOCK, slotConst, loadFn, storeFn } from "../utils/storage.js";
  */
 export function emitContract(contract: IRContract): string {
   initExpressionContext(contract.name);
+  const parts: string[] = [];
 
-  const parts: string[] = [IMPORT_BLOCK];
+  // Imports
+  parts.push(generateStorageImports(contract.storage));
 
   // Storage slots
-  contract.storage.forEach((s) => {
-    parts.push(slotConst(s.slot));
-  });
+  parts.push(...generateStorageHelpers(contract.storage));
 
-  // Load/store helpers
-  contract.storage.forEach((s) => {
-    parts.push(loadFn(s.name, s.slot));
-    parts.push(storeFn(s.name, s.slot));
-  });
 
   // Constructor
   if (contract.constructor) {

@@ -1,5 +1,6 @@
 @external("vm_hooks", "native_keccak256")
 declare function _native_keccak256(bytes: usize, len: usize, output: usize): void;
+
 @external("vm_hooks", "msg_reentrant")
 declare function _msg_reentrant(): i32;
 

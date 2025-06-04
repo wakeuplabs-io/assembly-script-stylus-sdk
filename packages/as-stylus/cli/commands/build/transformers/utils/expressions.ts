@@ -123,7 +123,16 @@ function handleFallbackExpression(expr: any): string {
       const leftResult = emitExpression(expr.left);
       const rightResult = emitExpression(expr.right);
       return `${leftResult.valueExpr} ${expr.op} ${rightResult.valueExpr}`;
-
+    case "map_set": {
+      const keyResult = emitExpression(expr.key);
+      const valueResult = emitExpression(expr.value);
+      return `Mapping.set(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr}, ${valueResult.valueExpr})`;
+    }
+    
+    case "map_get": {
+      const keyResult = emitExpression(expr.key);
+      return `Mapping.get(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr})`;
+    }
     /**
      * Default: Unsupported expression kind
      */

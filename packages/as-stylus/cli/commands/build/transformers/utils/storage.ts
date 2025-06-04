@@ -2,41 +2,74 @@
  * Utilities for handling storage in the IR-to-AssemblyScript transformation
  */
 
-// Constants for imports
-export const IMPORT_BLOCK = [
-  '// eslint-disable-next-line import/namespace',
-  'import {',
-  '  storage_load_bytes32,',
-  '  storage_cache_bytes32,',
-  '  storage_flush_cache,',
-  '} from "as-stylus/core/modules/hostio";',
-  'import { malloc } from "as-stylus/core/modules/memory";',
-  'import { createStorageKey } from "as-stylus/core/modules/storage";',
-  'import { Address } from "as-stylus/core/types/address";',
-  'import { U256 } from "as-stylus/core/types/u256";',
-  '',
-].join("\n");
+import { IRVariable } from "@/cli/types/ir.types.js";
 
-// Slot constant generator
-export function slotConst(idx: number): string {
-  return `const __SLOT${idx.toString(16).padStart(2, "0")}: u64 = ${idx};`;
+
+function formatSlotName(slot: number): string {
+  return `__SLOT${slot.toString(16).padStart(2, "0")}`;
 }
 
-// Load function generator
-export function loadFn(name: string, slotIdx: number): string {
+export function slotConst(slot: number): string {
+  return `const ${formatSlotName(slot)}: u64 = ${slot};`;
+}
+
+export function loadSimple(name: string, slot: number): string {
   return `
 function load_${name}(): usize {
   const ptr = U256.create();
-  storage_load_bytes32(createStorageKey(__SLOT${slotIdx.toString(16).padStart(2, "0")}), ptr);
+  storage_load_bytes32(createStorageKey(${formatSlotName(slot)}), ptr);
   return ptr;
 }`;
 }
 
-// Store function generator
-export function storeFn(name: string, slotIdx: number): string {
+export function storeSimple(name: string, slot: number): string {
   return `
 function store_${name}(ptr: usize): void {
-  storage_cache_bytes32(createStorageKey(__SLOT${slotIdx.toString(16).padStart(2, "0")}), ptr);
+  storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), ptr);
   storage_flush_cache(0);
 }`;
+}
+
+export function generateStorageImports(variables: IRVariable[]): string {
+  const lines: string[] = ['// eslint-disable-next-line import/namespace'];
+
+  const hasSimple = variables.some(v => v.kind === "simple");
+  const hasMapping = variables.some(v => v.kind === "mapping");
+
+  if (hasSimple) {
+    lines.push(
+      'import {',
+      '  storage_load_bytes32,',
+      '  storage_cache_bytes32,',
+      '  storage_flush_cache,',
+      '} from "as-stylus/core/modules/hostio";',
+      'import { malloc } from "as-stylus/core/modules/memory";',
+      'import { createStorageKey } from "as-stylus/core/modules/storage";'
+    );
+  }
+
+  lines.push('import { Address } from "as-stylus/core/types/address";');
+  lines.push('import { U256 } from "as-stylus/core/types/u256";');
+
+  if (hasMapping) {
+    lines.push('import { Mapping } from "as-stylus/core/types/mapping";');
+  }
+
+  lines.push('');
+  return lines.join("\n");
+}
+
+export function generateStorageHelpers(variables: IRVariable[]): string[] {
+  const lines: string[] = [];
+
+  for (const v of variables) {
+    lines.push(slotConst(v.slot));
+
+    if (v.kind === "simple") {
+      lines.push(loadSimple(v.name, v.slot));
+      lines.push(storeSimple(v.name, v.slot));
+    }
+  }
+
+  return lines;
 }

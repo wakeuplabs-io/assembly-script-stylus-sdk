@@ -21,14 +21,28 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     return syntaxValidator.validate();
   }
 
-  buildIR() {
+  buildIR(): IRVariable {
     const name = this.property.getName();
-    const type = this.property.getType().getText();
-
-    return {
-      name,
-      type,
-      slot: this.slot,
-    };
+    const typeText = this.property.getType().getText();
+  
+    const isMapping = /^Mapping(<|$)/.test(typeText);
+  
+    if (isMapping) {
+      return {
+        name,
+        type: "mapping",
+        slot: this.slot,
+        keyType: "Address",
+        valueType: "U256",
+        kind: "mapping",
+      };
+    } else {
+      return {
+        name,
+        type: typeText,
+        slot: this.slot,
+        kind: "simple",
+      };
+    }
   }
 }

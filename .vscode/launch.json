@@ -7,11 +7,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Build Admin Registry Contract",
+            "name": "Build Balance Contract",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/admin-registry",
+            "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/balances",
             "runtimeExecutable": "npx",
             "runtimeArgs": [
                 "as-stylus",
