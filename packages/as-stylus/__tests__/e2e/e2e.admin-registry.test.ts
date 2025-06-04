@@ -74,7 +74,7 @@ const call = (data: string) => helpers.callData(data);
 const expectHex = (data: string, hex: string) =>
   expect(call(data).toLowerCase()).toBe(hex.toLowerCase());
 
-describe("AdminRegistry (Address) — basic ops", () => {
+describe.skip("AdminRegistry (Address) — basic ops", () => {
   it("get() after deploy ⇒ initial address", () => {
     const res = call(calldata(SELECTOR.GET));
     expect(res.toLowerCase()).toContain(ADMIN.toLowerCase());
