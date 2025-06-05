@@ -19,5 +19,20 @@
             ],
             "console": "integratedTerminal"
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Build ERC20 Contract",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/erc20",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "as-stylus",
+                "build"
+            ],
+            "console": "integratedTerminal"
+        },
     ]
 }
