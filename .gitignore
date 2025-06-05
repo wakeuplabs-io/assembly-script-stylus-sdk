@@ -44,7 +44,7 @@ packages/ui/cache
 .sst
 
 
-/packages/as-stylus/__tests__/contracts/
+/packages/as-stylus/__tests__/contracts/*/artifacts
 /packages/as-stylus/generated
 .windsurf
 
