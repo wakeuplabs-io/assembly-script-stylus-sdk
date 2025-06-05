@@ -31,9 +31,9 @@ export abstract class BaseTypeTransformer implements TypeTransformer {
     context: EmitContext,
     emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
   ): EmitResult {
-
     for (const handler of this.handlers) {
       if (handler.canHandle(expr)) {
+        console.log({expr, handler});
         return handler.handle(expr, context, emitExprFn);
       }
     }
@@ -66,7 +66,6 @@ export abstract class BaseTypeTransformer implements TypeTransformer {
 }
 
 export const typeTransformers: Record<string, TypeTransformer> = {};
-
 export function registerTransformer(transformer: TypeTransformer): void {
   typeTransformers[transformer.typeName] = transformer;
 }
