@@ -40,8 +40,7 @@ export function emitContract(contract: IRContract): string {
   contract.methods.forEach((m) => {
     let returnType = "void";
   
-    if ((m.stateMutability === "view" || m.stateMutability === "pure") &&
-        m.outputs && m.outputs.length > 0 &&
+    if (m.outputs && m.outputs.length > 0 &&
         (["U256", "u64", "string", "Address", "boolean"].includes(m.outputs[0].type))) {
       returnType = "usize";
     }
