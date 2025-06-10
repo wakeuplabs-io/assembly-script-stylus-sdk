@@ -44,8 +44,8 @@ beforeAll(() => {
   const projectRoot = path.join(ROOT, "/as-stylus/");
   const pkg = path.join(ROOT, "/as-stylus/__tests__/contracts/erc20");
 
-  // run("npm run pre:build", projectRoot);
-  // run("npx as-stylus build", pkg);
+  run("npm run pre:build", projectRoot);
+  run("npx as-stylus build", pkg);
   run("npm run compile", pkg);
   run("npm run check", pkg);
   run("npx prettier --write ./artifacts/contract.transformed.ts", pkg);
@@ -99,20 +99,15 @@ describe("ERC20 end-to-end", () => {
   });
 
   it("transferFrom fails when allowance insufficient", () => {
-    const res = helpers.sendDataFrom(
-      USER_B,
-      calldata(SELECTOR.TRANSFER_FROM, OWNER, USER_B, AMOUNT_100),
-    );
-    console.log(res);
-    expect(res.reverted).toBe(true);
+    helpers.sendDataFrom(USER_B, calldata(SELECTOR.TRANSFER_FROM, OWNER, USER_B, AMOUNT_100));
+    expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), pad64(800n));
+    expectHex(calldata(SELECTOR.BALANCE_OF, USER_B), pad64(200n));
   });
 
-  // it("transferFrom fails when owner balance insufficient", () => {
-  //   helpers.sendData(calldata(SELECTOR.APPROVE, USER_B, INIT_SUPPLY));
-  //   const res = helpers.sendDataFrom(
-  //     USER_B,
-  //     calldata(SELECTOR.TRANSFER_FROM, OWNER, USER_B, INIT_SUPPLY),
-  //   );
-  //   expect(res.reverted).toBe(true);
-  // });
+  it("transferFrom fails when owner balance insufficient", () => {
+    helpers.sendData(calldata(SELECTOR.APPROVE, USER_B, INIT_SUPPLY));
+    helpers.sendDataFrom(USER_B, calldata(SELECTOR.TRANSFER_FROM, OWNER, USER_B, INIT_SUPPLY));
+    expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), pad64(800n));
+    expectHex(calldata(SELECTOR.BALANCE_OF, USER_B), pad64(200n));
+  });
 });
