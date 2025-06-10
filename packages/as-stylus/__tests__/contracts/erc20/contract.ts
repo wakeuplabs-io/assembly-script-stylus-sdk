@@ -21,8 +21,9 @@ export class ERC20 {
   static allowances: Mapping2<Address, Address, U256> = new Mapping2<Address, Address, U256>();
   static totalSupply: U256;
 
-  constructor() {
-    ERC20.totalSupply = U256.fromU64(0);
+  constructor(initialSupply: U256) {
+    ERC20.totalSupply = initialSupply;
+    ERC20.balances.set(msg.sender, initialSupply);
   }
 
   @View
@@ -44,7 +45,9 @@ export class ERC20 {
   static transfer(to: Address, amount: U256): boolean {
     const sender = msg.sender;
     const senderBal = ERC20.balances.get(sender);
-    if (senderBal.lessThan(amount)) return false;
+    if (senderBal < amount) {
+      return false;
+    }
 
     ERC20.balances.set(sender, senderBal.sub(amount));
 
@@ -68,10 +71,14 @@ export class ERC20 {
   static transferFrom(from: Address, to: Address, amount: U256): boolean {
     const spender = msg.sender;
     const allowed = ERC20.allowances.get(from, spender);
-    if (allowed.lessThan(amount)) return false;
+    if (allowed < amount) {
+      return false;
+    }
 
     const fromBal = ERC20.balances.get(from);
-    if (fromBal.lessThan(amount)) return false;
+    if (fromBal < amount) {
+      return false;
+    }
 
     ERC20.balances.set(from, fromBal.sub(amount));
     const toBal = ERC20.balances.get(to);

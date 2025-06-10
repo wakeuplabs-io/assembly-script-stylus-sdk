@@ -43,4 +43,11 @@ export class Address {
     store<u8>(ptr, 1);
     return ptr;
   }
+
+  static topic(addrPtr: usize): usize {
+    const t = malloc(32);
+    for (let i = 0; i < 12; ++i) store<u8>(t + i, 0);
+    for (let i = 0; i < 20; ++i) store<u8>(t + 12 + i, load<u8>(addrPtr + i));
+    return t;
+  }
 }

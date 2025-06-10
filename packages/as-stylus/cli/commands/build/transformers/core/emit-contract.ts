@@ -1,4 +1,5 @@
 import { IRContract } from "../../../../types/ir.types.js";
+import { registerEventTransformer } from "../event/event-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
@@ -19,6 +20,10 @@ export function emitContract(contract: IRContract): string {
   // Storage slots
   parts.push(...generateStorageHelpers(contract.storage));
 
+  // Events
+  if (contract.events && contract.events.length > 0) {
+    parts.push(...registerEventTransformer(contract.events)); 
+  }
 
   // Constructor
   if (contract.constructor) {
@@ -59,3 +64,4 @@ export function emitContract(contract: IRContract): string {
 
   return parts.join("\n\n");
 }
+

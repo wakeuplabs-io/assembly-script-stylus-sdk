@@ -29,7 +29,9 @@ export function createContractHelpers(
   rpc: string = RPC_URL,
 ) {
   function sendData(data: string): string {
-    return run(`cast send ${addr} ${data} --private-key ${pk} --rpc-url ${rpc}`);
+    const raw = run(`cast send ${addr} ${data} --private-key ${pk} --rpc-url ${rpc} --json`);
+    const json = JSON.parse(raw);
+    return json;
   }
 
   function callData(data: string): string {
