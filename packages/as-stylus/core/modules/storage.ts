@@ -39,3 +39,26 @@ export function mapStore(slot: u64, keyPtr: usize, keyLen: u32, srcPtr: usize): 
   storage_cache_bytes32(skey, srcPtr);
   storage_flush_cache(0);
 }
+
+export function mapStoreHash(slotPtr: usize, keyPtr: usize, keyLen: u32, srcPtr: usize): void {
+  const buf: usize = malloc(64);
+  memory.copy(buf + (32 - keyLen), keyPtr, keyLen);
+  memory.copy(buf + 32, slotPtr, 32);
+
+  const out: usize = malloc(32);
+  native_keccak256(buf, 64, out);
+
+  storage_cache_bytes32(out, srcPtr);
+  storage_flush_cache(0);
+}
+
+export function mapLoadHash(slotPtr: usize, keyPtr: usize, keyLen: u32, destPtr: usize): void {
+  const buf: usize = malloc(64);
+  memory.copy(buf + (32 - keyLen), keyPtr, keyLen);
+  memory.copy(buf + 32, slotPtr, 32);
+
+  const out: usize = malloc(32);
+  native_keccak256(buf, 64, out);
+
+  storage_load_bytes32(out, destPtr);
+}

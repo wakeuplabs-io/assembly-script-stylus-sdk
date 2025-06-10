@@ -45,7 +45,10 @@ export function generateStorageImports(variables: IRVariable[]): string {
       '  storage_flush_cache,',
       '} from "as-stylus/core/modules/hostio";',
       'import { malloc } from "as-stylus/core/modules/memory";',
-      'import { createStorageKey } from "as-stylus/core/modules/storage";'
+      'import { createStorageKey } from "as-stylus/core/modules/storage";',
+      'import { Msg } from "as-stylus/core/types/msg";',
+      'import { allocBool } from "as-stylus/core/types/boolean";',
+      'import { emitTopics } from "as-stylus/core/modules/events";',
     );
   }
 

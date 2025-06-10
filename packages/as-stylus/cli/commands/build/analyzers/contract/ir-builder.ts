@@ -6,6 +6,7 @@ import { IRContract } from "@/cli/types/ir.types.js";
 import { ContractSemanticValidator } from "./semantic-validator.js";
 import { ContractSyntaxValidator } from "./syntax-validator.js";
 import { ConstructorIRBuilder } from "../constructor/ir-builder.js";
+import { EventIRBuilder } from "../event/ir-builder.js";
 import { MethodIRBuilder } from "../method/ir-builder.js";
 import { PropertyIRBuilder } from "../property/ir-builder.js";
 import { ErrorManager } from "../shared/error-manager.js";
@@ -31,9 +32,38 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
   buildIR(): IRContract {
     const classes = this.sourceFile.getClasses();
-    const classDefinition = classes[0];
+    
+    let classDefinition = classes.find(cls => {
+      const decorators = cls.getDecorators();
+      return decorators.some(decorator => decorator.getName() === 'Contract');
+    });
+    
+    if (!classDefinition && classes.length > 0) {
+      classDefinition = classes[0];
+    }
+    
+    if (!classDefinition) {
+      this.errorManager.addSemanticError(
+        "NO_CONTRACT_CLASS",
+        this.sourceFile.getFilePath(),
+        1,
+        ["No contract class found in the file."]
+      );
+      throw new Error("No contract class found");
+    }
+    
     const name = classDefinition.getName();
 
+    const storage = classDefinition.getProperties().map((property, index) => {
+      const propertyIRBuilder = new PropertyIRBuilder(property, index, this.errorManager);
+      return propertyIRBuilder.validateAndBuildIR();
+    });
+
+    for (const v of storage) {
+      console.log({slotSetKey: `${name}.${v.name}`});
+      ctx.slotMap.set(`${name}.${v.name}`, v.slot);
+    }
+    
     const constructorDecl: ConstructorDeclaration =
       classDefinition.getConstructors()[0];
     let constructor;
@@ -44,18 +74,21 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
     const names = classDefinition.getMethods().map(method => method.getName());
 
-    const storage = classDefinition.getProperties().map((property, index) => {
-      const propertyIRBuilder = new PropertyIRBuilder(property, index, this.errorManager);
-      return propertyIRBuilder.validateAndBuildIR();
-    });
 
-    for (const v of storage) {
-      ctx.slotMap.set(`${name}.${v.name}`, v.slot);
-    }
 
     const methods = classDefinition.getMethods().map((method) => {
       const methodIRBuilder = new MethodIRBuilder(method, names, this.errorManager);
       return methodIRBuilder.validateAndBuildIR();
+    });
+
+    const eventClasses = this.sourceFile.getClasses().filter(cls => {
+      const decorators = cls.getDecorators();
+      return decorators.some(decorator => decorator.getName() === 'Event');
+    });
+
+    const events = eventClasses.map(eventClass => {
+      const eventIRBuilder = new EventIRBuilder(eventClass, this.errorManager);
+      return eventIRBuilder.validateAndBuildIR();
     });
 
     return {
@@ -63,6 +96,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       constructor,
       methods,
       storage,
+      events
     };
   }
 }

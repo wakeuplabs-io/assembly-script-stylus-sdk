@@ -96,6 +96,56 @@ export class U256 {
   }
 
   /*──────────────────────────*
+   *  Comparisons            *
+   *──────────────────────────*/
+
+  /** unsigned: a < b */
+  static lessThan(a: usize, b: usize): bool {
+    for (let i: i32 = 0; i < 32; ++i) {
+      const av = load<u8>(a + i);
+      const bv = load<u8>(b + i);
+      if (av < bv) return true;
+      if (av > bv) return false;
+    }
+    return false;
+  }
+
+  static greaterThan(a: usize, b: usize): bool {
+    for (let i: i32 = 0; i < 32; ++i) {
+      const av = load<u8>(a + i);
+      const bv = load<u8>(b + i);
+      if (av > bv) return true;
+      if (av < bv) return false;
+    }
+    return false;
+  }
+
+  static equals(a: usize, b: usize): bool {
+    for (let i: i32 = 0; i < 32; ++i) {
+      if (load<u8>(a + i) != load<u8>(b + i)) return false;
+    }
+    return true;
+  }
+
+  static lessThanSigned(a: usize, b: usize): bool {
+    const signA: u8 = load<u8>(a) >> 7;
+    const signB: u8 = load<u8>(b) >> 7;
+    if (signA != signB) return signA == 1;
+    return this.lessThan(a, b);
+  }
+
+  static greaterThanSigned(a: usize, b: usize): bool {
+    const signA: u8 = load<u8>(a) >> 7;
+    const signB: u8 = load<u8>(b) >> 7;
+    if (signA != signB) return signA == 0;
+    return this.greaterThan(a, b);
+  }
+
+  static equalsSigned(a: usize, b: usize): bool {
+    return this.equals(a, b);
+  }
+
+  /*──────────────────────────*
    *  Internal helpers         *
    *──────────────────────────*/
   private static mul10(ptr: usize): void {

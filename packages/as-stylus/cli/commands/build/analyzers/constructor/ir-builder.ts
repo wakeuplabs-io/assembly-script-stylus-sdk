@@ -22,6 +22,7 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
   }
 
   buildIR(): IRConstructor {
+
     const inputs = this.constructorDecl.getParameters().map((param) => {
       const argumentBuilder = new ArgumentIRBuilder(param, this.errorManager);
       return argumentBuilder.validateAndBuildIR();
@@ -33,7 +34,7 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
       const statementBuilder = new StatementIRBuilder(stmt, this.errorManager);
       return statementBuilder.validateAndBuildIR();
     });
-
+    console.log(irBody);
     return {
       inputs,
       ir: irBody,

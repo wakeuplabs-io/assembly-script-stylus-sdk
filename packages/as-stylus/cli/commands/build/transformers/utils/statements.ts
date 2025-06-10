@@ -61,11 +61,17 @@ function emitStatement(s: any, indent: string): string {
 
       if (exprResult.setupLines.length) {
         const lines = exprResult.setupLines.map((l) => indent + l);
-        lines.push(`${indent}${exprResult.valueExpr};`);
+        
+        if (exprResult.valueExpr.trim() !== "" && !exprResult.valueExpr.trim().startsWith("/*")) {
+          lines.push(`${indent}${exprResult.valueExpr};`);
+        }
+        
         return lines.join("\n");
       }
 
-      return `${indent}${exprResult.valueExpr};`;
+      return exprResult.valueExpr.trim() !== "" ? 
+        `${indent}${exprResult.valueExpr};` : 
+        "";
     }
 
     /**
