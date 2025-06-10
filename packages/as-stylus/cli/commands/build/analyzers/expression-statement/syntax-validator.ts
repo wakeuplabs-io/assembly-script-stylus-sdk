@@ -6,8 +6,8 @@ import {
   SymbolFlags,
 } from "ts-morph";
 
-import { ErrorManager } from "../shared/error-manager.js";
 import { BaseValidator } from "../shared/base-validator.js";
+import { ErrorManager } from "../shared/error-manager.js";
 
 const ERROR_MESSAGES = {
   MISSING_LHS: "Left-hand side of assignment must be an identifier",
@@ -31,12 +31,6 @@ export class ExpressionStatementSyntaxValidator extends BaseValidator {
       const bin = expr as BinaryExpression;
       if (bin.getOperatorToken().getKind() === SyntaxKind.EqualsToken) {
         const lhsNode = bin.getLeft();
-
-        // Validate that LHS is an identifier
-        if (lhsNode.getKind() !== SyntaxKind.Identifier) {
-          this.addSyntaxError(ERROR_MESSAGES.MISSING_LHS);
-          hasError = true;
-        }
 
         // Validate that the identifier is not a constant
         const lhsId = lhsNode as Identifier;

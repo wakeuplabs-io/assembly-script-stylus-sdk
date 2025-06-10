@@ -1,13 +1,16 @@
-import { IfStatement, SyntaxKind } from "ts-morph";
+import { IfStatement, Statement, SyntaxKind } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
 import { ErrorManager } from "../shared/error-manager.js";
 
+// TODO: move to shared/error-messages.ts
 const ERROR_MESSAGES = {
   CONDITION_NOT_BOOLEAN: (conditionType: string) => `If condition must be a boolean expression, got ${conditionType}`,
-  THEN_NOT_BLOCK: "Then clause must be a block statement",
-  ELSE_NOT_BLOCK: "Else clause must be a block statement",
+  THEN_INVALID: "Then clause must be either a block statement or a single statement",
+  ELSE_INVALID: "Else clause must be either a block statement or a single statement",
 } as const;
+
+const VALID_CONDITION_TYPES = ["boolean", "true", "false"];
 
 export class IfSyntaxValidator extends BaseValidator {
   private statement: IfStatement;
@@ -17,28 +20,37 @@ export class IfSyntaxValidator extends BaseValidator {
     this.statement = statement;
   }
 
+  private isValidStatement(statement: Statement): boolean {
+    return statement.isKind(SyntaxKind.Block) || 
+           statement.isKind(SyntaxKind.ExpressionStatement) ||
+           statement.isKind(SyntaxKind.ReturnStatement) ||
+           statement.isKind(SyntaxKind.VariableStatement);
+  }
+
   validate(): boolean {
     let hasError = false;
     // Check if condition is a boolean expression
     const condition = this.statement.getExpression();
     const conditionType = condition.getType().getText();
-    if (conditionType !== "boolean") {
+    if (!VALID_CONDITION_TYPES.includes(conditionType)) {
       this.addSyntaxError(ERROR_MESSAGES.CONDITION_NOT_BOOLEAN(conditionType));
       hasError = true;
     }
 
-    // Check if then block is a block statement
+    // Check if then statement is valid (block or single statement)
     const thenStmt = this.statement.getThenStatement();
-    if (!thenStmt.isKind(SyntaxKind.Block)) {
-      this.addSyntaxError(ERROR_MESSAGES.THEN_NOT_BLOCK);
+    if (!this.isValidStatement(thenStmt)) {
+      this.addSyntaxError(ERROR_MESSAGES.THEN_INVALID);
       hasError = true;
     }
 
-    // Check if else block is a block statement (if it exists)
+    // Check if else statement is valid (block or single statement), if it exists
     const elseStmt = this.statement.getElseStatement();
-    if (elseStmt && !elseStmt.isKind(SyntaxKind.Block)) {
-      this.addSyntaxError(ERROR_MESSAGES.ELSE_NOT_BLOCK);
-      hasError = true;
+    if (elseStmt) {
+      if (!this.isValidStatement(elseStmt)) {
+        this.addSyntaxError(ERROR_MESSAGES.ELSE_INVALID);
+        hasError = true;
+      }
     }
 
     return !hasError;

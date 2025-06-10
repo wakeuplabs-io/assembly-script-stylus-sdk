@@ -9,12 +9,12 @@ import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
 export class MethodSemanticValidator extends BaseValidator {
   private method: MethodDeclaration;
-  private otherMethodNames: string[];
+  private allNameMethods: string[];
 
-  constructor(method: MethodDeclaration, otherMethodNames: string[], errorManager: ErrorManager) {
+  constructor(method: MethodDeclaration, allNameMethods: string[], errorManager: ErrorManager) {
     super(errorManager, method.getSourceFile().getFilePath(), method.getStartLineNumber());
     this.method = method;
-    this.otherMethodNames = otherMethodNames;
+    this.allNameMethods = allNameMethods;
   }
 
   validate(): boolean {
@@ -42,7 +42,7 @@ export class MethodSemanticValidator extends BaseValidator {
       hasErrors = true;
     }
 
-    if (this.method.getName() && this.otherMethodNames.includes(this.method.getName())) {
+    if (this.method.getName() && this.allNameMethods.filter((name) => name === this.method.getName())?.length > 1) {
       this.addSemanticError(ERROR_CODES.METHOD_NAME_ALREADY_EXISTS, [this.method.getName()]);
       hasErrors = true;
     }
