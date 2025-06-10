@@ -34,7 +34,6 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
       const statementBuilder = new StatementIRBuilder(stmt, this.errorManager);
       return statementBuilder.validateAndBuildIR();
     });
-    console.log(irBody);
     return {
       inputs,
       ir: irBody,
