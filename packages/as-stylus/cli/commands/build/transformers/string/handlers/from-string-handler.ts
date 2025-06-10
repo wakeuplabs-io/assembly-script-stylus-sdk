@@ -3,22 +3,16 @@ import { ExpressionHandler } from "../../core/interfaces.js";
 import { makeTemp } from "../../utils/temp-factory.js";
 
 /**
- * AddressFactory.fromString(...)
- *
- *  - If the argument is a **literal** (`"0x…"`) copy the bytes at compile-time
- *    using `store<u8>()`.
- *
- *  - If the argument is a **variable** (`string`) reserve 42 bytes
- *    (`"0x" + 40 nibbles`) and copy at runtime using `memory.copy`.
- *
- *  Then call `Address.setFromString(ptrAddr, ptrStr, len)`.
+ * strFactory.fromString("hello") or strFactory.fromString(str)
+ * 
+ * If the argument is a literal, inline it with store<u8>().
+ * Otherwise, runtime copy with memory.copy.
  */
-export class AddressFromStringHandler implements ExpressionHandler {
-
+export class StrFromStringHandler implements ExpressionHandler {
   canHandle(expr: any): boolean {
     return (
       expr.kind === "call" &&
-      expr.target === "AddressFactory.fromString" &&
+      expr.target === "strFactory.fromString" &&
       expr.args.length === 1 &&
       ["literal", "var"].includes(expr.args[0].kind)
     );
@@ -29,33 +23,27 @@ export class AddressFromStringHandler implements ExpressionHandler {
     ctx: EmitContext,
     emit: (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
-
     const arg = expr.args[0];
     const argRes = emit(arg, ctx);
     const setup = [...argRes.setupLines];
 
-    const strPtr = makeTemp("hexPtr");
-    const addrPtr = makeTemp("addr");
+    const strPtr = makeTemp("str");
+    const resultPtr = makeTemp("strObj");
 
     if (arg.kind === "literal") {
-
       const raw: string = arg.value as string;
-      const strLen: number = raw.length;
-
-      for (let i = 0; i < strLen; ++i) {
+      for (let i = 0; i < raw.length; ++i) {
         setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
-
+      setup.push(`const ${resultPtr}: usize = Str.fromBytes(${strPtr}, ${raw.length});`);
+    } else {
+      setup.push(`const ${resultPtr}: usize = Str.fromBytes(${argRes.valueExpr}, memory.size(${argRes.valueExpr}));`);
     }
-
-    setup.push(
-      `const ${addrPtr}: usize = Address.fromBytes(${argRes.valueExpr});`,
-    );
 
     return {
       setupLines: setup,
-      valueExpr: addrPtr,
-      valueType: "Address"
+      valueExpr: resultPtr,
+      valueType: "Str"
     };
   }
 }

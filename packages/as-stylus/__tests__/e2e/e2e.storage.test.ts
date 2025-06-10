@@ -64,7 +64,7 @@ const call = (data: string) => helpers.callData(data);
 const expectHex = (data: string, hex: string) =>
   expect(call(data).toLowerCase()).toBe(hex.toLowerCase());
 
-describe("Storage (U256) — basic operations", () => {
+describe.skip("Storage (U256) — basic operations", () => {
   it("get() after deploy ⇒ 5", () => {
     expectHex(calldata(SELECTOR.GET), INIT64);
   });

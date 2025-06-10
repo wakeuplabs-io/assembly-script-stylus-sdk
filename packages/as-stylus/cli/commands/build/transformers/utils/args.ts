@@ -26,7 +26,7 @@ export function generateArgsLoadBlock(
         offset += 32;
         break;
 
-      case "address":
+      case "Address":
         loadExpr = `position + ${offset}`;
         offset += 20;
         break;

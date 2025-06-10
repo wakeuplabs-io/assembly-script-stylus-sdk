@@ -1,5 +1,3 @@
-import { debugLogI32 } from "./console";
-
 let heapPointer: usize = 0;
 
 /**

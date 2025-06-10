@@ -5,10 +5,10 @@ import { IRMethod } from "@/cli/types/ir.types.js";
 
 import { MethodSemanticValidator } from "./semantic-validator.js";
 import { MethodSyntaxValidator } from "./syntax-validator.js";
+import { ArgumentIRBuilder } from "../argument/ir-builder.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { StatementIRBuilder } from "../statement/ir-builder.js";
-import { ArgumentIRBuilder } from "../argument/ir-builder.js";
 
 export class MethodIRBuilder extends IRBuilder<IRMethod> {
   private methodDecl: MethodDeclaration;

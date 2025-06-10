@@ -1,51 +1,67 @@
 import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
+
 import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp }                  from "../../utils/temp-factory.js";
+import { makeTemp } from "../../utils/temp-factory.js";
 
 /**
- * U256Factory.fromString("0x…")
+ * U256Factory.fromString(...)
  *
+ *  - If the argument is a **literal** (`"0x…"`) copy the bytes at compile-time
+ *    using `store<u8>()`.
+ *
+ *  - If the argument is a **variable** (`string`) reserve 66 bytes
+ *    (`"0x" + 64 hex digits`) and copy at runtime using `memory.copy`.
+ *
+ *  Then call `U256.setFromString(ptrU256, ptrStr, len)`.
  */
 export class U256FromStringHandler implements ExpressionHandler {
-
   canHandle(expr: any): boolean {
     return (
-      expr.kind   === "call" &&
+      expr.kind === "call" &&
       expr.target === "U256Factory.fromString" &&
       expr.args.length === 1 &&
-      expr.args[0].kind === "literal"
+      ["literal", "var"].includes(expr.args[0].kind)
     );
   }
 
   handle(
-    expr : any,
-    _ctx : EmitContext,
-    _emit: (e: any, c: EmitContext) => EmitResult
+    expr: any,
+    ctx: EmitContext,
+    emit: (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
+    const arg = expr.args[0];
+    const argRes = emit(arg, ctx);
+    const setup = [...argRes.setupLines];
 
-    const rawHex : string = expr.args[0].value as string;
-    const strLen : number = rawHex.length;
-
-    const strPtr  = makeTemp("hexPtr");
+    const strPtr = makeTemp("hexPtr");
+    const lenVar = makeTemp("hexLen");
     const u256Ptr = makeTemp("u256");
 
-    const setupLines: string[] = [
-      `const ${strPtr}: usize = malloc(${strLen});`
-    ];
+    if (arg.kind === "literal") {
+      const raw: string = arg.value as string;
+      const strLen: number = raw.length;
 
-    for (let i = 0; i < strLen; ++i) {
-      const code = rawHex.charCodeAt(i);
-      setupLines.push(`store<u8>(${strPtr} + ${i}, ${code});`);
+      setup.push(`const ${strPtr}: usize = malloc(${strLen});`);
+
+      for (let i = 0; i < strLen; ++i) {
+        setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
+      }
+
+      setup.push(`const ${lenVar}: u32 = ${strLen};`);
+    } else {
+      setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
+      setup.push(`const ${strPtr}: usize = malloc(66);`);
     }
 
-    setupLines.push(`const ${u256Ptr}: usize = U256.create();`);
-    setupLines.push(
-      `U256.setFromString(${u256Ptr}, ${strPtr}, ${strLen});`
+    setup.push(
+      `const ${u256Ptr}: usize = U256.create();`,
+      `U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`
     );
+
     return {
-      setupLines,
+      setupLines: setup,
       valueExpr: u256Ptr,
-      valueType: "U256"
+      valueType: "U256",
     };
   }
 }

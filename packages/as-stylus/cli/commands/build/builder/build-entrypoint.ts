@@ -1,8 +1,15 @@
+import { createHash } from "crypto";
 import path from "path";
-import { generateArgsLoadBlock } from "../transformers/utils/args.js";
+
 import { IRContract } from "@/cli/types/ir.types.js";
-import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 import { writeFile } from "@/cli/utils/fs.js";
+import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
+
+import { generateArgsLoadBlock } from "../transformers/utils/args.js";
+
+function getCanonicalType(type: string): string {
+  return type;
+}
 
 export function generateUserEntrypoint(contract: IRContract) {
   const imports: string[] = [];
@@ -12,15 +19,24 @@ export function generateUserEntrypoint(contract: IRContract) {
     const { name, visibility, stateMutability, inputs } = method;
 
     if (visibility === "external" || visibility === "public") {
-      const hex = Buffer.from(name).toString("hex").slice(0, 8).padEnd(8, "0");
-      const sig = `0x${hex}`;
+      // Create function signature: name(type1,type2,...)
+      const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
+      const functionSignature = `${name}(${paramTypes})`;
+      
+      // Generate selector using SHA-256 hash of the function signature
+      const hash = createHash('sha256').update(functionSignature).digest('hex');
+      const sig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
       imports.push(`import { ${name} } from "./contract.transformed";`);
 
       const { argLines, callArgs } = generateArgsLoadBlock(inputs);
 
       const callLine =
         (stateMutability === "view" || stateMutability === "pure")
-          ? `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, 32); return 0;`
+          ? (() => {
+            const outputType = method.outputs?.[0]?.type ?? "U256";
+            const size = getReturnSize(outputType);
+            return `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
+          })()
           : `${name}(${callArgs.join(", ")}); return 0;`;
 
       const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
@@ -31,9 +47,14 @@ export function generateUserEntrypoint(contract: IRContract) {
   if (contract.constructor) {
     const { inputs } = contract.constructor;
     const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-  
-    const deployHex = Buffer.from("deploy").toString("hex").slice(0, 8).padEnd(8, "0");
-    const deploySig = `0x${deployHex}`;
+    
+    // Create constructor signature: deploy(type1,type2,...)
+    const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
+    const functionSignature = `deploy(${paramTypes})`;
+    
+    // Generate selector using SHA-256 hash of the function signature
+    const hash = createHash('sha256').update(functionSignature).digest('hex');
+    const deploySig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
     imports.push(`import { deploy } from "./contract.transformed";`);
   
     const callLine = `deploy(${callArgs.join(", ")}); return 0;`;
@@ -50,11 +71,21 @@ export function generateUserEntrypoint(contract: IRContract) {
   };
 }
 
+function getReturnSize(type: string): number {
+  switch (type) {
+    case "U256": return 32;
+    case "Address": return 20;
+    case "boolean": return 1;
+    case "string": return 32;
+    default: return 32;
+  }
+}
+
 export function buildEntrypoint(userFilePath: string, contract: IRContract): void {
   const { imports, entrypointBody } = generateUserEntrypoint(contract);
   const contractBasePath = path.dirname(userFilePath);
 
-  let indexTemplate = getUserEntrypointTemplate()
+  let indexTemplate = getUserEntrypointTemplate();
   indexTemplate = indexTemplate.replace("// @logic_imports", imports);
   indexTemplate = indexTemplate.replace("// @user_entrypoint", entrypointBody);
 

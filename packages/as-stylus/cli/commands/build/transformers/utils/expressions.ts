@@ -27,7 +27,9 @@ function emitExpressionWrapper(expr: any, ctx: EmitContext): EmitResult {
 export function emitExpression(expr: any, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
   const typeName = detectExpressionType(expr);
+  // console.log({TYPE_NAME: typeName});
   const transformer = typeName ? typeTransformers[typeName] : null;
+  // console.log({TRANSFORMER: transformer});
   if (transformer && typeof transformer.emit === 'function') {
     return transformer.emit(expr, globalContext, emitExpressionWrapper);
   }
@@ -123,7 +125,28 @@ function handleFallbackExpression(expr: any): string {
       const leftResult = emitExpression(expr.left);
       const rightResult = emitExpression(expr.right);
       return `${leftResult.valueExpr} ${expr.op} ${rightResult.valueExpr}`;
-
+    case "map_set": {
+      const keyResult = emitExpression(expr.key);
+      const valueResult = emitExpression(expr.value);
+      return `Mapping.set(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr}, ${valueResult.valueExpr})`;
+    }
+    
+    case "map_get": {
+      const keyResult = emitExpression(expr.key);
+      return `Mapping.get(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr})`;
+    }
+    case "map_get2": {
+      const k1 = emitExpression(expr.key1);
+      const k2 = emitExpression(expr.key2);
+      return `Mapping2.get(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr})`;
+    }
+    
+    case "map_set2": {
+      const k1 = emitExpression(expr.key1);
+      const k2 = emitExpression(expr.key2);
+      const v  = emitExpression(expr.value);
+      return `Mapping2.set(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr}, ${v.valueExpr})`;
+    }
     /**
      * Default: Unsupported expression kind
      */

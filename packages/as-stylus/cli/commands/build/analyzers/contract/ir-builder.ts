@@ -1,5 +1,6 @@
 import { SourceFile, ConstructorDeclaration } from "ts-morph";
 
+import { ctx } from "@/cli/shared/compilation-context.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 
 import { ContractSemanticValidator } from "./semantic-validator.js";
@@ -35,18 +36,26 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
     const constructorDecl: ConstructorDeclaration =
       classDefinition.getConstructors()[0];
-    const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl, this.errorManager);
-    const constructor = constructorIRBuilder.validateAndBuildIR();
+    let constructor;
+    if(constructorDecl) {
+      const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl, this.errorManager);
+      constructor = constructorIRBuilder.validateAndBuildIR();
+    }
 
     const names = classDefinition.getMethods().map(method => method.getName());
-    const methods = classDefinition.getMethods().map((method) => {
-      const methodIRBuilder = new MethodIRBuilder(method, names, this.errorManager);
-      return methodIRBuilder.validateAndBuildIR();
-    });
 
     const storage = classDefinition.getProperties().map((property, index) => {
       const propertyIRBuilder = new PropertyIRBuilder(property, index, this.errorManager);
       return propertyIRBuilder.validateAndBuildIR();
+    });
+
+    for (const v of storage) {
+      ctx.slotMap.set(`${name}.${v.name}`, v.slot);
+    }
+
+    const methods = classDefinition.getMethods().map((method) => {
+      const methodIRBuilder = new MethodIRBuilder(method, names, this.errorManager);
+      return methodIRBuilder.validateAndBuildIR();
     });
 
     return {

@@ -1,4 +1,9 @@
-import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "./hostio";
+import {
+  native_keccak256,
+  storage_cache_bytes32,
+  storage_flush_cache,
+  storage_load_bytes32,
+} from "./hostio";
 import { malloc } from "./memory";
 
 /** Creates a 32-byte storage key from a u64 (BigEndian) */
@@ -9,32 +14,28 @@ export function createStorageKey(slot: u64): usize {
   return key;
 }
 
-/** Stores a u64 into storage at the given slot */
-export function storeU64(slot: u64, value: u64): void {
-  const key = createStorageKey(slot);
-  const data = malloc(32);
-
-  for (let i = 0; i < 24; i++) store<u8>(data + i, 0);
-  for (let i = 0; i < 8; i++) store<u8>(data + 31 - i, <u8>(value >> (8 * i)));
-
-  storage_cache_bytes32(key, data);
-  storage_flush_cache(0);
-}
-
-/** Loads a u64 from storage at the given slot */
-export function loadU64(slot: u64): u64 {
-  const key = createStorageKey(slot);
-  const data = malloc(32);
-  storage_load_bytes32(key, data);
-
-  let result: u64 = 0;
-  for (let i = 0; i < 8; i++) {
-    result |= (<u64>load<u8>(data + 31 - i)) << (8 * i);
+export function createMappingKey(slot: u64, keyPtr: usize, keyLen: u32): usize {
+  const buf: usize = malloc(64);
+  for (let i = 0; i < 64; ++i) store<u8>(buf + i, 0);
+  const keyOff: u32 = 32 - keyLen;
+  for (let i: u32 = 0; i < keyLen; ++i) {
+    store<u8>(buf + keyOff + i, load<u8>(keyPtr + i));
   }
-  return result;
+  for (let i: u32 = 0; i < 8; ++i) {
+    store<u8>(buf + 64 - 1 - i, <u8>(slot >> (8 * i)));
+  }
+  const out: usize = malloc(32);
+  native_keccak256(buf, 64, out);
+  return out;
 }
 
-/** Initializes a slot with value 0 */
-export function initU64(slot: u64): void {
-  storeU64(slot, 0);
+export function mapLoad(slot: u64, keyPtr: usize, keyLen: u32, destPtr: usize): void {
+  const skey = createMappingKey(slot, keyPtr, keyLen);
+  storage_load_bytes32(skey, destPtr);
+}
+
+export function mapStore(slot: u64, keyPtr: usize, keyLen: u32, srcPtr: usize): void {
+  const skey = createMappingKey(slot, keyPtr, keyLen);
+  storage_cache_bytes32(skey, srcPtr);
+  storage_flush_cache(0);
 }
