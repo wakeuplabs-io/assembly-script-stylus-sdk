@@ -56,7 +56,7 @@ const call = (data: string) => helpers.callData(data);
 const expectHex = (data: string, hex: string) =>
   expect(call(data).toLowerCase()).toBe(hex.toLowerCase());
 
-describe.skip("Token contract — basic ops", () => {
+describe("Token contract — basic ops", () => {
   describe("Balances mapping — basic ops", () => {
     it("initial getBalance(user) ⇒ 0", () => {
       expectHex(calldata(SELECTOR.GET, USER_A), BAL_0);
@@ -98,7 +98,7 @@ describe.skip("Token contract — basic ops", () => {
   });
 });
 
-describe.skip("Token contract — edge cases & large values", () => {
+describe("Token contract — edge cases & large values", () => {
   const MAX = (1n << 256n) - 1n;
   const MAX_MINUS_1 = MAX - 1n;
   const HALF = MAX >> 1n;

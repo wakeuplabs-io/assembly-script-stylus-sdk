@@ -46,7 +46,6 @@ export function generateUserEntrypoint(contract: IRContract) {
   if (contract.constructor) {
     const { inputs } = contract.constructor;
     const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-    console.log(contract.constructor);
     // Create constructor signature: deploy(type1,type2,...)
     const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
     const functionSignature = `deploy(${paramTypes})`;
