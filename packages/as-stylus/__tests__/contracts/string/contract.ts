@@ -16,6 +16,7 @@ export class StringStorage {
     return StringStorage.storageVal;
   }
 
+  @View
   static substring(offset: U256, length: U256): string {
     const substring = StringStorage.storageVal.slice(offset, length);
     return substring;

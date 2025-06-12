@@ -34,5 +34,20 @@
             ],
             "console": "integratedTerminal"
         },
+        {
+          "type": "node",
+          "request": "launch",
+          "name": "Build String Contract",
+          "skipFiles": [
+              "<node_internals>/**"
+          ],
+          "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/string",
+          "runtimeExecutable": "npx",
+          "runtimeArgs": [
+              "as-stylus",
+              "build"
+          ],
+          "console": "integratedTerminal"
+      },
     ]
 }

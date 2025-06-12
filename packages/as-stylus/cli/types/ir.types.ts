@@ -4,15 +4,16 @@ import { AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "./abi.ty
 // Base IR node types
 // ───────────────────────
 
-export type Literal = { kind: "literal"; value: string | number | boolean | null };
-export type Variable = { kind: "var"; name: string };
-export type Call = { kind: "call"; target: string; args: IRExpression[] };
-export type Member = { kind: "member"; object: IRExpression; property: string };
+export type Literal = { kind: "literal"; value: string | number | boolean | null; valueType?: string };
+export type Variable = { kind: "var"; name: string; valueType?: string };
+export type Call = { kind: "call"; target: string; args: IRExpression[]; valueType?: string };
+export type Member = { kind: "member"; object: IRExpression; property: string; valueType?: string };
 export type IRExpressionBinary = {
   kind: "binary";
   op: string;
   left: IRExpression;
   right: IRExpression;
+  valueType?: string;
 };
 
 // ───────────────────────
@@ -60,7 +61,7 @@ export type IRExpression =
 export type Assignment = { kind: "assign"; target: string; expr: IRExpression };
 export type VariableDeclaration = { kind: "let"; name: string; expr: IRExpression };
 export type ExpressionStatement = { kind: "expr"; expr: IRExpression };
-export type Return = { kind: "return"; expr: IRExpression };
+export type Return = { kind: "return"; expr: IRExpression; valueType?: string };
 export type If = { kind: "if"; condition: IRCondition; then: IRStatement[]; else?: IRStatement[] };
 export type Block = { kind: "block"; body: IRStatement[] };
 

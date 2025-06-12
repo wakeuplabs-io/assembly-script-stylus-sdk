@@ -30,13 +30,23 @@ export function generateUserEntrypoint(contract: IRContract) {
 
       const { argLines, callArgs } = generateArgsLoadBlock(inputs);
       const outputType = method.outputs?.[0]?.type ?? "U256";
-      const callLine =
-        (["pure", "view"].includes(stateMutability) && (outputType !== "void" && outputType !== "any"))
-          ? (() => {
-            const size = getReturnSize(outputType);
-            return `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
-          })()
-          : `${name}(${callArgs.join(", ")}); return 0;`;
+      let callLine = "";
+      if (["pure", "view"].includes(stateMutability) && (outputType !== "void" && outputType !== "any")) {
+        if (outputType === "string" || outputType === "Str") {
+          callLine = [
+            `const buf = ${name}(${callArgs.join(", ")});`,
+            `const len = loadU32BE(buf + 0x20 + 28);`,
+            `const padded = ((len + 31) & ~31);`,
+            `write_result(buf, 0x40 + padded);`,
+            `return 0;`
+          ].join("\n    ");
+        } else {
+          const size = getReturnSize(outputType);
+          callLine = `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
+        }
+      } else {
+        callLine = `${name}(${callArgs.join(", ")}); return 0;`;
+      }
 
       const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
       entries.push(`  if (selector == ${sig}) {\n${indentedBody}\n  }`);

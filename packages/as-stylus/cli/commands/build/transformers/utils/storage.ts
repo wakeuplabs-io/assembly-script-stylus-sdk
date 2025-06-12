@@ -54,6 +54,8 @@ export function generateStorageImports(variables: IRVariable[]): string {
 
   lines.push('import { Address } from "as-stylus/core/types/address";');
   lines.push('import { U256 } from "as-stylus/core/types/u256";');
+  lines.push('import { Str } from "as-stylus/core/types/str";');
+  lines.push('import { loadU32BE } from "as-stylus/core/modules/endianness";');
 
   if (hasMapping) {
     lines.push('import { Mapping } from "as-stylus/core/types/mapping";');
@@ -73,8 +75,19 @@ export function generateStorageHelpers(variables: IRVariable[]): string[] {
     lines.push(slotConst(v.slot));
 
     if (v.kind === "simple") {
-      lines.push(loadSimple(v.name, v.slot));
-      lines.push(storeSimple(v.name, v.slot));
+      if (v.type === "string" || v.type === "Str") {
+        lines.push(`
+function load_${v.name}(): usize {
+  return Str.loadFrom(${formatSlotName(v.slot)});
+}
+
+function store_${v.name}(strPtr: usize): void {
+  Str.storeTo(${formatSlotName(v.slot)}, strPtr);
+}`.trim());
+      } else {
+        lines.push(loadSimple(v.name, v.slot));
+        lines.push(storeSimple(v.name, v.slot));
+      }
     }
   }
 

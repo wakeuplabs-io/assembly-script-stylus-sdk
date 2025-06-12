@@ -21,7 +21,7 @@ export class ReturnIRBuilder extends IRBuilder<IRStatement> {
   }
 
   buildIR(): IRStatement {
-    const expr = new ExpressionIRBuilder(this.statement.getExpressionOrThrow(), this.errorManager)
+    const expr = new ExpressionIRBuilder(this.statement.getExpressionOrThrow(), this.errorManager);
 
     return {
       kind: "return",
