@@ -182,9 +182,9 @@ export class Str {
   }
 
   static toABI(ptr: usize): usize {
-    const len: u32 = load<u32>(ptr); // longitud real del string
-    const paddedLen = (len + 31) & ~31; // múltiplo de 32
-    const total = 0x40 + paddedLen; // offset + len + datos padded
+    const len: u32 = load<u32>(ptr);
+    const paddedLen = (len + 31) & ~31;
+    const total = 0x40 + paddedLen;
 
     const out = malloc(total);
 
