@@ -17,10 +17,10 @@ import {
 } from "./utils.js";
 
 const SELECTOR = {
-  SET: "0xb600447e",
-  GET: "0x3020f38f",
-  APPROVE: "0x9f1391d7",
-  ALLOWANCE: "0xa61bbf0e",
+  SET: "0x761300f4",
+  GET: "0x99f08a51",
+  APPROVE: "0xcf35bc0c",
+  ALLOWANCE: "0x69f63798",
 };
 
 const USER_A = "0x1111111111111111111111111111111111111111";
@@ -56,7 +56,7 @@ const call = (data: string) => helpers.callData(data);
 const expectHex = (data: string, hex: string) =>
   expect(call(data).toLowerCase()).toBe(hex.toLowerCase());
 
-describe.skip("Token contract — basic ops", () => {
+describe("Token contract — basic ops", () => {
   describe("Balances mapping — basic ops", () => {
     it("initial getBalance(user) ⇒ 0", () => {
       expectHex(calldata(SELECTOR.GET, USER_A), BAL_0);

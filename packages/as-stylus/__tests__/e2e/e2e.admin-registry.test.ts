@@ -17,12 +17,12 @@ import {
 } from "./utils.js";
 
 const SELECTOR = {
-  DEPLOY: "0x6465706c",
-  SET: "0x73657441",
-  RESET: "0x72657365",
-  GET: "0x67657441",
-  IS_ADMIN: "0x69734164",
-  IS_ZERO: "0x61646d69",
+  DEPLOY: "0x863a7279",
+  SET: "0xae11aa4b",
+  RESET: "0x85b59933",
+  GET: "0x6e9960c3",
+  IS_ADMIN: "0x927da1c5",
+  IS_ZERO: "0x9e2fb482",
 };
 
 /*───────────────────────────────*
@@ -74,7 +74,7 @@ const call = (data: string) => helpers.callData(data);
 const expectHex = (data: string, hex: string) =>
   expect(call(data).toLowerCase()).toBe(hex.toLowerCase());
 
-describe.skip("AdminRegistry (Address) — basic ops", () => {
+describe("AdminRegistry (Address) — basic ops", () => {
   it("get() after deploy ⇒ initial address", () => {
     const res = call(calldata(SELECTOR.GET));
     expect(res.toLowerCase()).toContain(ADMIN.toLowerCase());

@@ -1,6 +1,7 @@
 export interface U256 {
   add(other: U256): U256;
   sub(other: U256): U256;
+  lessThan(other: U256): boolean;
   toString(): string;
 }
 

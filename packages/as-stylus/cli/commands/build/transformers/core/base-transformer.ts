@@ -33,7 +33,6 @@ export abstract class BaseTypeTransformer implements TypeTransformer {
   ): EmitResult {
     for (const handler of this.handlers) {
       if (handler.canHandle(expr)) {
-        console.log({expr, handler});
         return handler.handle(expr, context, emitExprFn);
       }
     }

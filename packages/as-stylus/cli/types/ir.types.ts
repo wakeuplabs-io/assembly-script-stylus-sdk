@@ -122,9 +122,25 @@ export type IRConstructor = {
   ir: IRStatement[];
 };
 
-export type IRContract = {
+// ───────────────────────
+// Event structure
+// ───────────────────────
+
+export interface IREventField {
+  name: string;
+  type: string;
+  indexed: boolean;
+}
+
+export interface IREvent {
+  name: string;
+  fields: IREventField[];
+}
+
+export interface IRContract {
   name: string;
   methods: IRMethod[];
   constructor?: IRConstructor;
   storage: IRVariable[];
-};
+  events?: IREvent[];
+}

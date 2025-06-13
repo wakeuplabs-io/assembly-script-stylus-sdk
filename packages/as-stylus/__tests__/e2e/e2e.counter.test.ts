@@ -18,10 +18,10 @@ import {
 } from "./utils.js";
 
 const SELECTOR = {
-  DEPLOY: "0x6465706c",
-  GET: "0x67657400",
-  INC: "0x696e6372",
-  DEC: "0x64656372",
+  DEPLOY: "0x775c300c",
+  GET: "0x6d4ce63c",
+  INC: "0xd09de08a",
+  DEC: "0x2baeceb7",
 };
 
 const U256_MAX = pad64((1n << 256n) - 1n);
@@ -64,7 +64,7 @@ const castCall = (sel: string) => helpers.callData(sel);
 const expectHex = (sel: string, hex: string) =>
   expect(castCall(sel).toLowerCase()).toBe(hex.toLowerCase());
 
-describe.skip("Counter (U256) — happy paths", () => {
+describe("Counter (U256) — happy paths", () => {
   it("0 → underflow → MAX → wrap-back", () => {
     expectHex(SELECTOR.GET, ZERO64);
     castSend(SELECTOR.DEC);

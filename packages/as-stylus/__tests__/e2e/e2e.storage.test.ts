@@ -18,10 +18,10 @@ import {
 } from "./utils.js";
 
 const SELECTOR = {
-  DEPLOY: "0x6465706c",
-  GET: "0x67657400",
-  ADD: "0x61646400",
-  SUB: "0x73756200",
+  DEPLOY: "0x44335bb8",
+  GET: "0x6d4ce63c",
+  ADD: "0xb874cbbd",
+  SUB: "0x11eb0759",
 };
 
 const INIT64 = pad64(5n);
@@ -64,7 +64,7 @@ const call = (data: string) => helpers.callData(data);
 const expectHex = (data: string, hex: string) =>
   expect(call(data).toLowerCase()).toBe(hex.toLowerCase());
 
-describe.skip("Storage (U256) — basic operations", () => {
+describe("Storage (U256) — basic operations", () => {
   it("get() after deploy ⇒ 5", () => {
     expectHex(calldata(SELECTOR.GET), INIT64);
   });

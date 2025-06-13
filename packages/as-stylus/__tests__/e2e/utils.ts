@@ -9,11 +9,22 @@ config();
 export const ROOT = path.resolve(__dirname, "../../..");
 export const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
 export const PRIVATE_KEY = process.env.PRIVATE_KEY;
+export const USER_B_PRIVATE_KEY = process.env.USER_B_PRIVATE_KEY;
 if (!PRIVATE_KEY) throw new Error("⚠️  Set PRIVATE_KEY in .env");
+if (!USER_B_PRIVATE_KEY) throw new Error("⚠️  Set USER_B_PRIVATE_KEY in .env");
 
-export function run(cmd: string, cwd: string = ROOT): string {
-  return execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8" }).trim();
+// utils.ts ─ run “seguro”
+export function run(cmd: string, cwd: string = ROOT, allowErr = false): string {
+  try {
+    return execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8" }).trim();
+  } catch (e: any) {
+    if (!allowErr) throw e;
+    const out = (e.stdout ?? "").toString();
+    const err = (e.stderr ?? "").toString();
+    return (out + err).trim();
+  }
 }
+
 export const stripAnsi = (s: string) => stripAnsiRaw(s);
 
 export const pad64 = (v: bigint) => "0x" + v.toString(16).padStart(64, "0");
@@ -23,18 +34,43 @@ export function calldata(selector: string, ...args: string[]): string {
   return `0x${clean(selector)}${args.map(clean).join("")}`;
 }
 
-export function createContractHelpers(
-  addr: string,
-  pk: string = PRIVATE_KEY ?? "",
-  rpc: string = RPC_URL,
-) {
-  function sendData(data: string): string {
-    return run(`cast send ${addr} ${data} --private-key ${pk} --rpc-url ${rpc}`);
-  }
+export function createContractHelpers(contractAddr: string) {
+  const USER_B = stripAnsi(
+    run(`cast wallet address --private-key ${USER_B_PRIVATE_KEY}`),
+  ).toLowerCase();
 
-  function callData(data: string): string {
-    return run(`cast call ${addr} ${data} --rpc-url ${rpc}`);
-  }
+  return {
+    sendData: (data: string) => {
+      const raw = run(
+        `cast send ${contractAddr} ${data.slice(2)} --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL} --json`,
+      );
+      const json = JSON.parse(raw);
+      return json;
+    },
+    // helpers.sendDataFrom
+    sendDataFrom: (address: string, data: string) => {
+      const key =
+        address.toLowerCase() === USER_B.toLowerCase()
+          ? process.env.USER_B_PRIVATE_KEY
+          : PRIVATE_KEY;
 
-  return { sendData, callData };
+      const cmd = `cast send ${contractAddr} ${data.slice(2)} \
+    --private-key ${key} --rpc-url ${RPC_URL} --json`;
+
+      const raw = run(cmd, ROOT, true);
+      let receipt: any = null;
+      try {
+        receipt = JSON.parse(raw);
+      } catch (_) {
+        // ignore: raw no es JSON, es un mensaje de error
+      }
+
+      const reverted = !receipt || receipt.status === "0x0" || /execution reverted/i.test(raw);
+
+      return { reverted, receipt, raw };
+    },
+
+    callData: (data: string) =>
+      stripAnsi(run(`cast call ${contractAddr} ${data} --rpc-url ${RPC_URL}`)).trim(),
+  };
 }

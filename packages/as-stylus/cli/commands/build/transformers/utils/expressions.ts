@@ -27,9 +27,7 @@ function emitExpressionWrapper(expr: any, ctx: EmitContext): EmitResult {
 export function emitExpression(expr: any, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
   const typeName = detectExpressionType(expr);
-  // console.log({TYPE_NAME: typeName});
   const transformer = typeName ? typeTransformers[typeName] : null;
-  // console.log({TRANSFORMER: transformer});
   if (transformer && typeof transformer.emit === 'function') {
     return transformer.emit(expr, globalContext, emitExpressionWrapper);
   }
@@ -107,7 +105,7 @@ function handleFallbackExpression(expr: any): string {
      *   a + b
      * Special case: If assigning to a contract property, emits store_<property>(...)
      */
-    case "binary":
+    case "binary": {
       if (expr.op === "=") {
         if (
           expr.left.kind === "member" &&
@@ -122,9 +120,27 @@ function handleFallbackExpression(expr: any): string {
         const rightResult = emitExpression(expr.right);
         return `${leftResult.valueExpr} = ${rightResult.valueExpr}`;
       }
-      const leftResult = emitExpression(expr.left);
-      const rightResult = emitExpression(expr.right);
-      return `${leftResult.valueExpr} ${expr.op} ${rightResult.valueExpr}`;
+    
+      const relOps = ["<", ">", "<=", ">=", "==", "!="];
+      if (relOps.includes(expr.op)) {
+        const lhs = emitExpression(expr.left);   // EmitResult
+        const rhs = emitExpression(expr.right);  // EmitResult
+    
+        switch (expr.op) {
+          case "<":  return `U256.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case ">":  return `U256.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "==": return `U256.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "!=": return `!U256.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "<=": return `!U256.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case ">=": return `!U256.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+        }
+      }
+    
+      const left  = emitExpression(expr.left);
+      const right = emitExpression(expr.right);
+      return `${left.valueExpr} ${expr.op} ${right.valueExpr}`;
+    }
+    
     case "map_set": {
       const keyResult = emitExpression(expr.key);
       const valueResult = emitExpression(expr.value);

@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import keccak256 from "keccak256";
 import path from "path";
 
 import { IRContract } from "@/cli/types/ir.types.js";
@@ -16,24 +16,23 @@ export function generateUserEntrypoint(contract: IRContract) {
   const entries: string[] = [];
 
   for (const method of contract.methods) {
-    const { name, visibility, stateMutability, inputs } = method;
+    const { name, visibility, inputs, stateMutability } = method;
 
-    if (visibility === "external" || visibility === "public") {
+    if (["public", "external"].includes(visibility)) {
       // Create function signature: name(type1,type2,...)
       const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
       const functionSignature = `${name}(${paramTypes})`;
       
-      // Generate selector using SHA-256 hash of the function signature
-      const hash = createHash('sha256').update(functionSignature).digest('hex');
+      // Generate selector using keccak256 hash of the function signature
+      const hash = keccak256(functionSignature).toString('hex');
       const sig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
       imports.push(`import { ${name} } from "./contract.transformed";`);
 
       const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-
+      const outputType = method.outputs?.[0]?.type ?? "U256";
       const callLine =
-        (stateMutability === "view" || stateMutability === "pure")
+        (["pure", "view"].includes(stateMutability) && (outputType !== "void" && outputType !== "any"))
           ? (() => {
-            const outputType = method.outputs?.[0]?.type ?? "U256";
             const size = getReturnSize(outputType);
             return `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
           })()
@@ -47,13 +46,12 @@ export function generateUserEntrypoint(contract: IRContract) {
   if (contract.constructor) {
     const { inputs } = contract.constructor;
     const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-    
     // Create constructor signature: deploy(type1,type2,...)
     const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
     const functionSignature = `deploy(${paramTypes})`;
     
-    // Generate selector using SHA-256 hash of the function signature
-    const hash = createHash('sha256').update(functionSignature).digest('hex');
+    // Generate selector using keccak256 hash of the function signature
+    const hash = keccak256(functionSignature).toString('hex');
     const deploySig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
     imports.push(`import { deploy } from "./contract.transformed";`);
   
