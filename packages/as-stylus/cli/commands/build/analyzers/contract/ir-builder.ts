@@ -92,7 +92,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     const events = eventClasses.map(eventClass => {
-      const eventIRBuilder = new EventIRBuilder(eventClass, this.errorManager);
+      const eventIRBuilder = new EventIRBuilder(eventClass);
       return eventIRBuilder.validateAndBuildIR();
     });
 

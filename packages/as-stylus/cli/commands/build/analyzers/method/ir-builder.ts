@@ -17,7 +17,6 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     super(methodDecl);
     this.methodDecl = methodDecl;
     this.names = names;
-    this.symbolTable.enterScope();
   }
 
   validate(): boolean {
@@ -27,6 +26,7 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
   }
 
   buildIR(): IRMethod {
+    this.symbolTable.enterScope();
     const name = this.methodDecl.getName();
     const decorators = this.methodDecl.getDecorators();
 
@@ -50,6 +50,8 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       const statementBuilder = new StatementIRBuilder(stmt);
       return statementBuilder.validateAndBuildIR();
     });
+
+    this.symbolTable.exitScope();
 
     return {
       name,

@@ -21,13 +21,15 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
     return true;
   }
 
-  buildIR(): IRExpression {
-    const object = new ExpressionIRBuilder(this.expression.getExpression());
 
+  buildIR(): IRExpression {
+    const object = new ExpressionIRBuilder(this.expression.getExpression()).validateAndBuildIR();
+    const variable = this.symbolTable.lookup(this.expression.getName());
     return {
       kind: "member",
-      object: object.validateAndBuildIR(),
+      object: object,
       property: this.expression.getName(),
+      type: variable?.type || "void",
     };
   }
 } 

@@ -1,15 +1,14 @@
 import { ClassDeclaration } from "ts-morph";
 
 import { IREvent, IREventField } from "../../../../types/ir.types.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 export class EventIRBuilder extends IRBuilder<IREvent> {
   private eventClass: ClassDeclaration;
 
-  constructor(eventClass: ClassDeclaration, errorManager: ErrorManager) {
-    super(errorManager);
-    this.eventClass = eventClass;
+  constructor(eventClass: ClassDeclaration) {
+    super(eventClass);
+    this.eventClass = eventClass; 
   }
 
   validate(): boolean {

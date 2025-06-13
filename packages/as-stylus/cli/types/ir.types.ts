@@ -11,13 +11,24 @@ export type Literal = {
   type: SupportedType;
 };
 export type Variable = { kind: "var"; name: string; type: SupportedType };
-export type Call = { kind: "call"; target: string; args: IRExpression[] };
-export type Member = { kind: "member"; object: IRExpression; property: string };
+export type Call = {
+  kind: "call";
+  target: string;
+  args: IRExpression[];
+  returnType: SupportedType;
+};
+export type Member = {
+  kind: "member";
+  object: IRExpression;
+  property: string;
+  type: SupportedType;
+};
 export type IRExpressionBinary = {
   kind: "binary";
   op: string;
   left: IRExpression;
   right: IRExpression;
+  type: SupportedType;
 };
 
 // ───────────────────────

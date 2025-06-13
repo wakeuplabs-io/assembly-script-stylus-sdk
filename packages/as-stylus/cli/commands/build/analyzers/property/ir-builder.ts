@@ -48,6 +48,9 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
         kind: "mapping",
       };
     }
+
+    this.symbolTable.declareVariable(name, { name, type: typeText });
+
     return {
       name,
       type: typeText,
