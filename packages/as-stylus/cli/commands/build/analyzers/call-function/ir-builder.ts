@@ -4,15 +4,13 @@ import { ctx } from "@/cli/shared/compilation-context.js";
 import { IRExpression, IRMapGet, IRMapGet2, IRMapSet, IRMapSet2 } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
   private call: CallExpression;
 
-  constructor(expr: CallExpression,
-    errorMgr: ErrorManager) {
-    super(errorMgr);
+  constructor(expr: CallExpression) {
+    super(expr);
     this.call = expr;
   }
 
@@ -36,7 +34,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
         const slot = this.lookupSlot(`${className}.${mappingName}`);
         const args = this.call.getArguments().map((arg) => {
-          const builder = new ExpressionIRBuilder(arg as Expression, this.errorManager);
+          const builder = new ExpressionIRBuilder(arg as Expression);
           return builder.validateAndBuildIR();
         });
 
@@ -56,7 +54,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
     const target = expr.getText();
     const args = this.call.getArguments().map((argument) => {
-      const expressionBuilder = new ExpressionIRBuilder(argument as Expression, this.errorManager);
+      const expressionBuilder = new ExpressionIRBuilder(argument as Expression);
       return expressionBuilder.validateAndBuildIR();
     });
     return { kind: "call", target, args };

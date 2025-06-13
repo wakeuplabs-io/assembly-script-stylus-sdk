@@ -1,12 +1,10 @@
 import { Expression } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 
 export class ConditionSyntaxValidator extends BaseValidator {
-
-  constructor(expression: Expression, errorManager: ErrorManager) {
-    super(errorManager, expression.getSourceFile().getFilePath(), expression.getStartLineNumber());
+  constructor(expression: Expression) {
+    super(expression);
   }
 
   validate(): boolean {

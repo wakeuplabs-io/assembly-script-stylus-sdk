@@ -4,7 +4,6 @@ import { IRCondition, IRExpressionBinary } from "@/cli/types/ir.types.js";
 
 import { BinaryExpressionSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IRCondition> {
@@ -14,8 +13,8 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
   private right: Expression;
   private isConditional: boolean;
 
-  constructor(expression: BinaryExpression, errorManager: ErrorManager, isConditional: boolean = false) {
-    super(errorManager);
+  constructor(expression: BinaryExpression, isConditional: boolean = false) {
+    super(expression);
     this.expression = expression;
     this.op = expression.getOperatorToken().getText();
     this.left = expression.getLeft() as Expression;
@@ -24,7 +23,7 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
   }
 
   validate(): boolean {
-    const syntaxValidator = new BinaryExpressionSyntaxValidator(this.expression, this.errorManager, this.isConditional);
+    const syntaxValidator = new BinaryExpressionSyntaxValidator(this.expression, this.isConditional);
     return syntaxValidator.validate();
   }
 
@@ -33,16 +32,16 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
       return {
         kind: "condition",
         op: this.op,
-        left: new ExpressionIRBuilder(this.left, this.errorManager).validateAndBuildIR(),
-        right: new ExpressionIRBuilder(this.right, this.errorManager).validateAndBuildIR(),
+        left: new ExpressionIRBuilder(this.left).validateAndBuildIR(),
+        right: new ExpressionIRBuilder(this.right).validateAndBuildIR(),
       } as IRCondition;
     }
 
     return {
       kind: "binary",
       op: this.op,
-      left: new ExpressionIRBuilder(this.left, this.errorManager).validateAndBuildIR(),
-      right: new ExpressionIRBuilder(this.right, this.errorManager).validateAndBuildIR(),
+      left: new ExpressionIRBuilder(this.left).validateAndBuildIR(),
+      right: new ExpressionIRBuilder(this.right).validateAndBuildIR(),
     };
   }
 }

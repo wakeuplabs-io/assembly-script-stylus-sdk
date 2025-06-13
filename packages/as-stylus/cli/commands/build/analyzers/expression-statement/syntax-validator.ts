@@ -7,7 +7,6 @@ import {
 } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 
 const ERROR_MESSAGES = {
   MISSING_LHS: "Left-hand side of assignment must be an identifier",
@@ -17,8 +16,8 @@ const ERROR_MESSAGES = {
 export class ExpressionStatementSyntaxValidator extends BaseValidator {
   private statement: ExpressionStatement;
 
-  constructor(statement: ExpressionStatement, errorManager: ErrorManager) {
-    super(errorManager, statement.getSourceFile().getFilePath(), statement.getStartLineNumber());
+  constructor(statement: ExpressionStatement) {
+    super(statement);
     this.statement = statement;
   }
 

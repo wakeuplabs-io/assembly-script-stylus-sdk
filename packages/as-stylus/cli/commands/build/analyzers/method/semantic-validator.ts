@@ -4,15 +4,14 @@ import { VISIBILITY_DECORATORS, STATE_MUTABILITY_DECORATORS } from "@/cli/types/
 
 import { ERROR_CODES } from "../../errors/codes.js";
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
 export class MethodSemanticValidator extends BaseValidator {
   private method: MethodDeclaration;
   private allNameMethods: string[];
 
-  constructor(method: MethodDeclaration, allNameMethods: string[], errorManager: ErrorManager) {
-    super(errorManager, method.getSourceFile().getFilePath(), method.getStartLineNumber());
+  constructor(method: MethodDeclaration, allNameMethods: string[]) {
+    super(method);
     this.method = method;
     this.allNameMethods = allNameMethods;
   }

@@ -1,8 +1,9 @@
 import { PropertyAccessExpression } from "ts-morph";
-import { IRBuilder } from "../shared/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
+
 import { IRExpression } from "@/cli/types/ir.types.js";
+
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
+import { IRBuilder } from "../shared/ir-builder.js";
 
 /**
  * Builds the IR for a member access expression
@@ -11,8 +12,8 @@ import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 export class MemberIRBuilder extends IRBuilder<IRExpression> {
   private expression: PropertyAccessExpression;
 
-  constructor(expression: PropertyAccessExpression, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(expression: PropertyAccessExpression) {
+    super(expression);
     this.expression = expression;
   }
 
@@ -21,7 +22,7 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
   }
 
   buildIR(): IRExpression {
-    const object = new ExpressionIRBuilder(this.expression.getExpression(), this.errorManager)
+    const object = new ExpressionIRBuilder(this.expression.getExpression());
 
     return {
       kind: "member",

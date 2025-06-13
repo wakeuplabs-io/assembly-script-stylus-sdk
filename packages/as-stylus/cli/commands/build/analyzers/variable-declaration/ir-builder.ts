@@ -1,10 +1,10 @@
 import { Expression, VariableDeclaration } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
+import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
 import { VariableDeclarationSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 /**
@@ -14,30 +14,37 @@ import { IRBuilder } from "../shared/ir-builder.js";
 export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
   private declaration: VariableDeclaration;
 
-  constructor(declaration: VariableDeclaration, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(declaration: VariableDeclaration) {
+    super(declaration);
     this.declaration = declaration;
   }
 
   validate(): boolean {
-    const syntaxValidator = new VariableDeclarationSyntaxValidator(this.declaration, this.errorManager);
+    const syntaxValidator = new VariableDeclarationSyntaxValidator(this.declaration);
     return syntaxValidator.validate();
   }
 
   buildIR(): IRStatement {
     const initializer = this.declaration.getInitializer();
+    const variable: VariableSymbol = { name: this.declaration.getName(), type: "void" };
+
+    // TODO: revise this case
     if (!initializer) {
+      this.symbolTable.declareVariable(variable.name, variable);
+
       return {
         kind: "let",
-        name: this.declaration.getName(),
-        expr: { kind: "literal", value: null },
+        name: variable.name,
+        expr: { kind: "literal", value: null, type: "void" },
       };
     }
 
-    const expression = new ExpressionIRBuilder(initializer as Expression, this.errorManager);
+    const expression = new ExpressionIRBuilder(initializer as Expression);
+    this.symbolTable.declareVariable(variable.name, variable);
+
     return {
       kind: "let",
-      name: this.declaration.getName(),
+      name: variable.name,
       expr: expression.validateAndBuildIR(),
     };
   }

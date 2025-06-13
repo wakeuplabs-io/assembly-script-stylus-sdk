@@ -1,7 +1,6 @@
 import { IfStatement, Statement, SyntaxKind } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 
 // TODO: move to shared/error-messages.ts
 const ERROR_MESSAGES = {
@@ -15,8 +14,8 @@ const VALID_CONDITION_TYPES = ["boolean", "true", "false"];
 export class IfSyntaxValidator extends BaseValidator {
   private statement: IfStatement;
 
-  constructor(statement: IfStatement, errorManager: ErrorManager) {
-    super(errorManager, statement.getSourceFile().getFilePath(), statement.getStartLineNumber());
+  constructor(statement: IfStatement) {
+    super(statement);
     this.statement = statement;
   }
 

@@ -1,11 +1,16 @@
 import { AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "./abi.types.js";
+import { SupportedType } from "../commands/build/analyzers/shared/supported-types.js";
 
 // Statements// ───────────────────────
 // Base IR node types
 // ───────────────────────
 
-export type Literal = { kind: "literal"; value: string | number | boolean | null };
-export type Variable = { kind: "var"; name: string };
+export type Literal = {
+  kind: "literal";
+  value: string | number | boolean | null;
+  type: SupportedType;
+};
+export type Variable = { kind: "var"; name: string; type: SupportedType };
 export type Call = { kind: "call"; target: string; args: IRExpression[] };
 export type Member = { kind: "member"; object: IRExpression; property: string };
 export type IRExpressionBinary = {

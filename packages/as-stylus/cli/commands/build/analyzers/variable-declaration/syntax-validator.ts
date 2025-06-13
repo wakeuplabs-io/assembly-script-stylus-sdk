@@ -1,7 +1,7 @@
 import { VariableDeclaration } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
+import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
 const ERROR_MESSAGES = {
   MISSING_INITIALIZER: "Variable declaration must have an initializer",
@@ -11,11 +11,11 @@ const ERROR_MESSAGES = {
 } as const;
 
 export class VariableDeclarationSyntaxValidator extends BaseValidator {
-  constructor(
-    private declaration: VariableDeclaration,
-    errorManager: ErrorManager,
-  ) {
-    super(errorManager, declaration.getSourceFile().getFilePath(), declaration.getEndLineNumber());
+  private declaration: VariableDeclaration;
+
+  constructor(declaration: VariableDeclaration) {
+    super(declaration);
+    this.declaration = declaration;
   }
 
   validate(): boolean {
@@ -30,14 +30,13 @@ export class VariableDeclarationSyntaxValidator extends BaseValidator {
 
     // Check if the variable type is supported
     const type = this.declaration.getType().getText();
-    const supportedTypes = ["U256", "string", "boolean", "address"];
     if (type === "any") {
-      this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(type, supportedTypes));
+      this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(type, SUPPORTED_TYPES));
       hasErrors = true;
     }
 
-    if (!supportedTypes.includes(type)) {
-      this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(type, supportedTypes));
+    if (!SUPPORTED_TYPES.includes(type)) {
+      this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(type, SUPPORTED_TYPES));
       hasErrors = true;
     }
 

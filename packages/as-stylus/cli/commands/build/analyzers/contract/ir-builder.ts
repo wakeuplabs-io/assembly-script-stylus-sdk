@@ -8,20 +8,19 @@ import { ContractSyntaxValidator } from "./syntax-validator.js";
 import { ConstructorIRBuilder } from "../constructor/ir-builder.js";
 import { MethodIRBuilder } from "../method/ir-builder.js";
 import { PropertyIRBuilder } from "../property/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 export class ContractIRBuilder extends IRBuilder<IRContract> {
   private sourceFile: SourceFile;
 
-  constructor(sourceFile: SourceFile, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(sourceFile: SourceFile) {
+    super(sourceFile);
     this.sourceFile = sourceFile;
   }
 
   validate(): boolean {
-    const syntaxValidator = new ContractSyntaxValidator(this.sourceFile, this.errorManager);
-    const semanticValidator = new ContractSemanticValidator(this.sourceFile, this.errorManager);
+    const syntaxValidator = new ContractSyntaxValidator(this.sourceFile);
+    const semanticValidator = new ContractSemanticValidator(this.sourceFile);
 
     const syntaxErrors = syntaxValidator.validate();
     const semanticErrors = semanticValidator.validate();
@@ -31,6 +30,15 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
   buildIR(): IRContract {
     const classes = this.sourceFile.getClasses();
+    if (classes.length === 0) {
+      return {
+        name: "Main",
+        constructor: undefined,
+        methods: [],
+        storage: [],
+      };
+    }
+
     const classDefinition = classes[0];
     const name = classDefinition.getName();
 
@@ -38,14 +46,14 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       classDefinition.getConstructors()[0];
     let constructor;
     if(constructorDecl) {
-      const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl, this.errorManager);
+      const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl);
       constructor = constructorIRBuilder.validateAndBuildIR();
     }
 
     const names = classDefinition.getMethods().map(method => method.getName());
 
     const storage = classDefinition.getProperties().map((property, index) => {
-      const propertyIRBuilder = new PropertyIRBuilder(property, index, this.errorManager);
+      const propertyIRBuilder = new PropertyIRBuilder(property, index);
       return propertyIRBuilder.validateAndBuildIR();
     });
 
@@ -54,7 +62,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     }
 
     const methods = classDefinition.getMethods().map((method) => {
-      const methodIRBuilder = new MethodIRBuilder(method, names, this.errorManager);
+      const methodIRBuilder = new MethodIRBuilder(method, names);
       return methodIRBuilder.validateAndBuildIR();
     });
 
