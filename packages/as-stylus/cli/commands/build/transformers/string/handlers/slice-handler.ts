@@ -42,7 +42,6 @@ export class StrSliceHandler implements ExpressionHandler {
     const offsetBE = makeTemp("offsetBE");
     const lengthBE = makeTemp("lengthBE");
     const sliceRes = makeTemp("sliceRes");
-    const abiRes   = makeTemp("abiRes");
 
     const setup = [
       ...recvIR.setupLines,
@@ -53,13 +52,12 @@ export class StrSliceHandler implements ExpressionHandler {
       `const ${lengthBE}: u32 = loadU32BE(${lenIR.valueExpr} + 28);`,
 
       `const ${sliceRes}: usize = Str.slice(${recvIR.valueExpr}, ${offsetBE}, ${lengthBE});`,
-      `const ${abiRes}:  usize = Str.toABI(${sliceRes});`,
     ];
 
     return {
       setupLines: setup,
-      valueExpr : abiRes,   // puntero ABI listo para write_result
-      valueType : "bytes",  // devuelvo buffer ABI, no un Str crudo
+      valueExpr : sliceRes,
+      valueType : "Str",
     };
   }
 }

@@ -88,14 +88,14 @@ function emitStatement(s: any, indent: string): string {
         const exprResult = emitExpression(s.expr);
         if (exprResult.setupLines.length > 0) {
           const lines: string[] = [...exprResult.setupLines.map((line) => `${indent}${line}`)];
-          const returnExpr = s.expr.valueType === "Str" ? 
+          const returnExpr = ["Str", "string"].includes(s.expr.type) ? 
             `Str.toABI(${exprResult.valueExpr})` : 
             exprResult.valueExpr;
           lines.push(`${indent}return ${returnExpr};`);
           return lines.join("\n");
         }
 
-        const returnExpr = s.expr.valueType === "Str" ? 
+        const returnExpr = ["Str", "string"].includes(s.expr.type) ? 
           `Str.toABI(${exprResult.valueExpr})` : 
           exprResult.valueExpr;
         code = `${indent}return ${returnExpr};`;

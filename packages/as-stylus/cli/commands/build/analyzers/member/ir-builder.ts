@@ -29,7 +29,7 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
       kind: "member",
       object: object.validateAndBuildIR(),
       property: this.expression.getName(),
-      valueType: this.expression.getType().getText()
+      type: this.expression.getType().getText()
     };
   }
 } 
