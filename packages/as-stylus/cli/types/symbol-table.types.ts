@@ -6,6 +6,7 @@ export type SymbolInfo =
 export interface VariableSymbol {
   name: string;
   type: string;
+  scope: "storage" | "memory";
 }
 
 export interface FunctionSymbol {
@@ -13,6 +14,7 @@ export interface FunctionSymbol {
   type: "function";
   returnType: string;
   parameters: { name: string; type: string }[];
+  scope?: undefined;
 }
 
 export type SymbolTable = Map<string, SymbolInfo>;

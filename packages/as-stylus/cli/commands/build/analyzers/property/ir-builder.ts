@@ -25,6 +25,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     const typeText = this.property.getType().getText();
   
     const isMapping = /^Mapping(<|$)/.test(typeText);
+    this.symbolTable.declareVariable(name, { name, type: typeText, scope: "storage" });
   
     if (/^Mapping2(<|$)/.test(typeText)) {
       return {
@@ -48,8 +49,6 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
         kind: "mapping",
       };
     }
-
-    this.symbolTable.declareVariable(name, { name, type: typeText });
 
     return {
       name,

@@ -26,7 +26,7 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
 
   buildIR(): IRStatement {
     const initializer = this.declaration.getInitializer();
-    const variable: VariableSymbol = { name: this.declaration.getName(), type: "void" };
+    const variable: VariableSymbol = { name: this.declaration.getName(), type: "void", scope: "memory" };
 
     // TODO: revise this case
     if (!initializer) {
@@ -36,6 +36,7 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
         kind: "let",
         name: variable.name,
         expr: { kind: "literal", value: null, type: "void" },
+        scope: variable.scope,
       };
     }
 
@@ -46,6 +47,7 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       kind: "let",
       name: variable.name,
       expr: expression.validateAndBuildIR(),
+      scope: variable.scope,
     };
   }
 }

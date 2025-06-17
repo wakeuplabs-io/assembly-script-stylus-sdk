@@ -67,6 +67,7 @@ export class LiteralIRBuilder extends IRBuilder<IRExpression> {
     const variable: VariableSymbol = {
       name: this.expression.getText(),
       type,
+      scope: "memory"
     };
 
     this.symbolTable.declareVariable(variable.name, variable);

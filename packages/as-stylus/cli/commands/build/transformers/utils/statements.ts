@@ -1,4 +1,4 @@
-import { emitExpression, globalContext } from "./expressions.js";
+import { emitExpression } from "./expressions.js";
 
 /**
  * Emits code for a list of statements with indentation
@@ -18,7 +18,6 @@ export function emitStatements(statements: any[]): string {
  */
 function emitStatement(s: any, indent: string): string {
   let code = "";
-
   switch (s.kind) {
     /**
      * Case "let": Variable declaration
@@ -231,13 +230,13 @@ function emitStatement(s: any, indent: string): string {
         lines.push(`${indent}${s.target} = ${exprResult.valueExpr};`);
       } else {
         const parts = s.target.split(".");
+        const property = parts[0];
+        lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);
+      }
 
-        if (parts[0] === globalContext.contractName) {
-          const property = parts[1];
-          lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);
-        } else {
-          lines.push(`${indent}${s.target} = ${exprResult.valueExpr};`);
-        }
+      if (s.scope === "storage") {
+        const property = s.target;
+        lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);
       }
 
       if (lines.length > 1) {

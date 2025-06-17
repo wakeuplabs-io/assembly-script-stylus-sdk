@@ -65,8 +65,12 @@ function handleFallbackExpression(expr: any): string {
      * Example in source code:
      *   counter
      */
-    case "var":
+    case "var": {
+      if (expr.scope === "storage") {
+        return `load_${expr.name}()`;
+      }
       return expr.name;
+    }
 
     /**
      * Case "member": Property/member access
@@ -76,11 +80,13 @@ function handleFallbackExpression(expr: any): string {
      *   Counter.value
      *   // If object is the contract, emits load_<property>()
      */
-    case "member":
-      if (expr.object.kind === "var" && expr.object.name === globalContext.contractName)
+    case "member": {
+      if (expr.object.kind === "var" && expr.object.scope === "storage") {
         return `load_${expr.property}()`;
+      }
       const objResult = emitExpression(expr.object);
       return `${objResult.valueExpr}.${expr.property}`;
+    }
 
     /**
      * Case "call": Function or method call
@@ -89,9 +95,10 @@ function handleFallbackExpression(expr: any): string {
      * Example in source code:
      *   U256.add(a, b)
      */
-    case "call":
+    case "call": {
       const argResults = expr.args.map((a: any) => emitExpression(a));
       return `${expr.target}(${argResults.map((r: EmitResult) => r.valueExpr).join(", ")})`;
+    }
 
     /**
      * Case "binary": Binary operation (e.g., assignment, arithmetic)
@@ -107,12 +114,8 @@ function handleFallbackExpression(expr: any): string {
      */
     case "binary": {
       if (expr.op === "=") {
-        if (
-          expr.left.kind === "member" &&
-          expr.left.object.kind === "var" &&
-          expr.left.object.name === globalContext.contractName
-        ) {
-          const property = expr.left.property;
+        if (expr.left.kind === "var" && expr.left.scope === "storage") {
+          const property = expr.left.name;
           const rightResult = emitExpression(expr.right);
           return `store_${property}(${rightResult.valueExpr})`;
         }
@@ -121,6 +124,12 @@ function handleFallbackExpression(expr: any): string {
         return `${leftResult.valueExpr} = ${rightResult.valueExpr}`;
       }
     
+      const left  = emitExpression(expr.left);
+      const right = emitExpression(expr.right);
+      return `${left.valueExpr} ${expr.op} ${right.valueExpr}`;
+    }
+
+    case "condition": {
       const relOps = ["<", ">", "<=", ">=", "==", "!="];
       if (relOps.includes(expr.op)) {
         const lhs = emitExpression(expr.left);   // EmitResult

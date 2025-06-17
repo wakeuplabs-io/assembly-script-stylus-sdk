@@ -41,14 +41,12 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     if (expr.getKindName() === "PropertyAccessExpression") {
       const methodAccess = expr as PropertyAccessExpression;
       const methodName = methodAccess.getName();
-      const mappingExpr = methodAccess.getExpression(); // Balances.balances
-      
-      if (mappingExpr.getKindName() === "PropertyAccessExpression") {
-        const innerAccess = mappingExpr as PropertyAccessExpression;
-        const className = innerAccess.getExpression().getText(); // e.g. Balances
-        const mappingName = innerAccess.getName(); // e.g. balances
+      const mappingExpr = methodAccess.getExpression();
 
-        const slot = this.lookupSlot(`${className}.${mappingName}`);
+      if (mappingExpr.getKindName() === "Identifier") {
+        const mappingName = mappingExpr.getText();
+
+        const slot = this.lookupSlot(mappingName);
         const args = this.call.getArguments().map((arg) => {
           const builder = new ExpressionIRBuilder(arg as Expression);
           return builder.validateAndBuildIR();
@@ -74,7 +72,11 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       return expressionBuilder.validateAndBuildIR();
     });
 
-    return { kind: "call", target, args, returnType: this.getReturnType(target) };
+    const [varName] = target.split(".");
+    const targetSymbol = this.symbolTable.lookup(varName);
+    const scope = targetSymbol?.scope ?? "memory";
+
+    return { kind: "call", target, args, returnType: this.getReturnType(target), scope };
   }
 
   private lookupSlot(fqName: string): number | undefined {
