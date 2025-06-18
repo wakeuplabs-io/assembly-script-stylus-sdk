@@ -39,7 +39,7 @@ export class StrFromStringHandler implements ExpressionHandler {
     else {
       setup.push(`const ${strPtr}: usize = ${argIR.valueExpr};`);
       setup.push(`const ${offsetBE}: u32 = loadU32BE(${strPtr} + 28);`);
-      setup.push(`const ${lenPtr}: usize = ${strPtr} + ${offsetBE};`);
+      setup.push(`const ${lenPtr}: usize = argsStart + ${offsetBE};`);
       setup.push(`const ${lenBE}: u32 = loadU32BE(${lenPtr} + 28);`);
       setup.push(`const ${dataPtr}: usize = ${lenPtr} + 32;`);
       setup.push(`const ${resultStr}: usize = Str.fromBytes(${dataPtr}, ${lenBE});`);

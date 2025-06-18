@@ -31,6 +31,7 @@ export function emitContract(contract: IRContract): string {
     const { callArgs } = generateArgsLoadBlock(inputs);
     const argsSignature = callArgs.map(a => `${a}: usize`).join(", ");
     const aliasLines = inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
+    if (inputs.length > 0) aliasLines.push(`  const argsStart: usize = arg0;`);
     const body = emitStatements(contract.constructor.ir);
   
     parts.push(

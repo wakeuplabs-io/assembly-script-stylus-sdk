@@ -38,19 +38,18 @@ export class AddressFromStringHandler implements ExpressionHandler {
     const addrPtr = makeTemp("addr");
 
     if (arg.kind === "literal") {
-
       const raw: string = arg.value as string;
+      setup.push(`const ${strPtr}: usize = malloc(${raw.length});`);
       const strLen: number = raw.length;
 
       for (let i = 0; i < strLen; ++i) {
         setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
-
+      setup.push(`const ${addrPtr}: usize = Address.fromBytes(${strPtr});`);
     }
-
-    setup.push(
-      `const ${addrPtr}: usize = Address.fromBytes(${argRes.valueExpr});`,
-    );
+    if (arg.kind === "var") {
+      setup.push(`const ${addrPtr}: usize = Address.fromBytes(${argRes.valueExpr});`);
+    }
 
     return {
       setupLines: setup,

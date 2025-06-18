@@ -71,7 +71,7 @@ export type IRExpression =
 export type Assignment = { kind: "assign"; target: string; expr: IRExpression };
 export type VariableDeclaration = { kind: "let"; name: string; expr: IRExpression };
 export type ExpressionStatement = { kind: "expr"; expr: IRExpression };
-export type Return = { kind: "return"; expr: IRExpression; valueType?: string };
+export type Return = { kind: "return"; expr?: IRExpression; valueType?: string };
 export type If = { kind: "if"; condition: IRCondition; then: IRStatement[]; else?: IRStatement[] };
 export type Block = { kind: "block"; body: IRStatement[] };
 

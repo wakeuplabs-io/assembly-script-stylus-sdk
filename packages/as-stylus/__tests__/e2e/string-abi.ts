@@ -17,3 +17,8 @@ export function decodeStringReturn(hex: string): string {
 export function encodeStringInput(str: string): string {
   return abi.encode(["string"], [str]).slice(2);
 }
+
+export function encodeStringsDynamic(...args: string[]): string {
+  const types = args.map(() => "string");
+  return abi.encode(types, args).slice(2);
+}
