@@ -6,6 +6,7 @@ import { writeFile } from "@/cli/utils/fs.js";
 import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
+import { getReturnSize } from "@/cli/utils/type-utils.js";
 
 function getCanonicalType(type: string): string {
   return type;
@@ -77,16 +78,6 @@ export function generateUserEntrypoint(contract: IRContract) {
     imports: imports.join("\n"),
     entrypointBody: entries.join("\n"),
   };
-}
-
-function getReturnSize(type: string): number {
-  switch (type) {
-    case "U256": return 32;
-    case "Address": return 20;
-    case "boolean": return 1;
-    case "string": return 32;
-    default: return 32;
-  }
 }
 
 export function buildEntrypoint(userFilePath: string, contract: IRContract): void {

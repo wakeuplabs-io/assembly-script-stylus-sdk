@@ -1,3 +1,4 @@
+// src/emit/transformers/address/handlers/address-from-string.ts
 import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
 import { ExpressionHandler } from "../../core/interfaces.js";
 import { makeTemp } from "../../utils/temp-factory.js";
@@ -5,16 +6,16 @@ import { makeTemp } from "../../utils/temp-factory.js";
 /**
  * AddressFactory.fromString(...)
  *
- *  - If the argument is a **literal** (`"0x…"`) copy the bytes at compile-time
- *    using `store<u8>()`.
+ *   • If the argument is **literal** ("0x..."), copies the ASCII bytes
+ *     at compile-time and parses them with Address.setFromStringHex.
  *
- *  - If the argument is a **variable** (`string`) reserve 42 bytes
- *    (`"0x" + 40 nibbles`) and copy at runtime using `memory.copy`.
+ *   • If it comes from the ABI (word offset) decodes:
+ *        offset → lenPtr → len → dataPtr
+ *     and also calls Address.setFromStringHex.
  *
- *  Then call `Address.setFromString(ptrAddr, ptrStr, len)`.
+ * The result is a buffer of 20 raw bytes (big-endian) ready to use.
  */
 export class AddressFromStringHandler implements ExpressionHandler {
-
   canHandle(expr: any): boolean {
     return (
       expr.kind === "call" &&
@@ -29,32 +30,42 @@ export class AddressFromStringHandler implements ExpressionHandler {
     ctx: EmitContext,
     emit: (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
+    const arg    = expr.args[0];
+    const argIR  = emit(arg, ctx);
+    const setup  = [...argIR.setupLines];
 
-    const arg = expr.args[0];
-    const argRes = emit(arg, ctx);
-    const setup = [...argRes.setupLines];
-
-    const strPtr = makeTemp("hexPtr");
-    const addrPtr = makeTemp("addr");
+    const hexPtr = makeTemp("hexPtr");
+    const hexLen = makeTemp("hexLen");
+    const addr   = makeTemp("addrPtr");
 
     if (arg.kind === "literal") {
       const raw: string = arg.value as string;
-      setup.push(`const ${strPtr}: usize = malloc(${raw.length});`);
-      const strLen: number = raw.length;
+      const L = raw.length;
 
-      for (let i = 0; i < strLen; ++i) {
-        setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
+      setup.push(`const ${hexPtr}: usize = malloc(${L});`);
+      for (let i = 0; i < L; ++i) {
+        setup.push(`store<u8>(${hexPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
-      setup.push(`const ${addrPtr}: usize = Address.fromBytes(${strPtr});`);
+      setup.push(`const ${hexLen}: u32 = ${L};`);
     }
-    if (arg.kind === "var") {
-      setup.push(`const ${addrPtr}: usize = Address.fromBytes(${argRes.valueExpr});`);
+
+    else {
+      const offBE  = makeTemp("offBE");
+      const lenPtr = makeTemp("lenPtr");
+
+      setup.push(`const ${offBE}: u32 = loadU32BE(${argIR.valueExpr} + 28);`);
+      setup.push(`const ${lenPtr}: usize = argsStart + ${offBE};`);
+      setup.push(`const ${hexLen}: u32 = loadU32BE(${lenPtr} + 28);`);
+      setup.push(`const ${hexPtr}: usize = ${lenPtr} + 32;`);
     }
+
+    setup.push(`const ${addr}: usize = Address.create();`);
+    setup.push(`Address.setFromStringHex(${addr}, ${hexPtr}, ${hexLen});`);
 
     return {
       setupLines: setup,
-      valueExpr: addrPtr,
-      valueType: "Address"
+      valueExpr : addr,
+      valueType : "Address",
     };
   }
 }

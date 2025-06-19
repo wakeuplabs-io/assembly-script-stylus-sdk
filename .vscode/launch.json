@@ -20,6 +20,21 @@
             "console": "integratedTerminal"
         },
         {
+          "type": "node",
+          "request": "launch",
+          "name": "Build Address Contract",
+          "skipFiles": [
+              "<node_internals>/**"
+          ],
+          "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/admin-registry",
+          "runtimeExecutable": "npx",
+          "runtimeArgs": [
+              "as-stylus",
+              "build"
+          ],
+          "console": "integratedTerminal"
+      },
+        {
             "type": "node",
             "request": "launch",
             "name": "Build ERC20 Contract",

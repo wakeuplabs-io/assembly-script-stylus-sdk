@@ -28,21 +28,21 @@ export class AddressEqualsHandler implements ExpressionHandler {
   ): EmitResult {
 
     if (!expr.receiver && expr.target.endsWith(".equals")) {
-      expr.target     = "Address.equals";
-      if(!expr.receiver) {
-        const chain     = expr.target.slice(0, -".equals".length); // "A" ó "A.B"
-        expr.receiver   = this.makeReceiver(chain);
+      if (!expr.receiver) {
+        const chain = expr.target.slice(0, -".equals".length);
+        expr.receiver = this.makeReceiver(chain);
       }
+      expr.target = "Address.equals";
     }
 
 
-    const left  = emit(expr.receiver, ctx);
-    const right = emit(expr.args[0] , ctx);
+    const left = emit(expr.receiver, ctx);
+    const right = emit(expr.args[0], ctx);
 
     return {
       setupLines: [...left.setupLines, ...right.setupLines],
-      valueExpr : `Address.equals(${left.valueExpr}, ${right.valueExpr})`,
-      valueType : "bool",
+      valueExpr: `Address.equals(${left.valueExpr}, ${right.valueExpr})`,
+      valueType: "bool",
     };
   }
 }

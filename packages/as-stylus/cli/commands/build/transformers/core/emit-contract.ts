@@ -31,7 +31,9 @@ export function emitContract(contract: IRContract): string {
     const { callArgs } = generateArgsLoadBlock(inputs);
     const argsSignature = callArgs.map(a => `${a}: usize`).join(", ");
     const aliasLines = inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
-    if (inputs.length > 0) aliasLines.push(`  const argsStart: usize = arg0;`);
+    if (inputs.some(inp => inp.type === "string")) {
+      aliasLines.push(`  const argsStart: usize = arg0;`);
+    }
     const body = emitStatements(contract.constructor.ir);
   
     parts.push(
@@ -39,6 +41,7 @@ export function emitContract(contract: IRContract): string {
       aliasLines.join("\n") + "\n" +
       body + "\n}"
     );
+    parts.push("");
   }
   
   
@@ -53,16 +56,21 @@ export function emitContract(contract: IRContract): string {
   
     const { callArgs } = generateArgsLoadBlock(m.inputs);
     const argsSignature = callArgs.map(arg => `${arg}: usize`).join(", ");
-
+    
     const body = emitStatements(m.ir);
     const aliasLines = m.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
+    if (m.inputs.some(inp => inp.type === "string")) {
+      aliasLines.push(`  const argsStart: usize = arg0;`);
+    }
+
     parts.push(
       `export function ${m.name}(${argsSignature}): ${returnType} {\n` +
       aliasLines.join("\n") + "\n" +
       body + "\n}"
     );
+    parts.push(""); 
   });
 
-  return parts.join("\n\n");
+  return parts.join("\n");
 }
 

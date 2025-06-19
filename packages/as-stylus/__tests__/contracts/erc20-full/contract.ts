@@ -98,15 +98,15 @@ export class ERC20Full {
     if (fromBal < amount) {
       return false;
     }
-
+    const newAllowed = allowed.sub(amount);
     ERC20Full.balances.set(from, fromBal.sub(amount));
     const toBal = ERC20Full.balances.get(to);
     ERC20Full.balances.set(to, toBal.add(amount));
 
-    ERC20Full.allowances.set(from, spender, allowed.sub(amount));
+    ERC20Full.allowances.set(from, spender, newAllowed);
 
     Transfer.emit(from, to, amount);
-    Approval.emit(from, spender, allowed.sub(amount));
+    Approval.emit(from, spender, newAllowed);
     return true;
   }
 
