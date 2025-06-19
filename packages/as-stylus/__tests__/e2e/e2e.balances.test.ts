@@ -96,56 +96,56 @@ describe("Token contract — basic ops", () => {
       expectHex(calldata(SELECTOR.ALLOWANCE, USER_B, USER_A), BAL_0);
     });
   });
-});
 
-describe("Token contract — edge cases & large values", () => {
-  const MAX = (1n << 256n) - 1n;
-  const MAX_MINUS_1 = MAX - 1n;
-  const HALF = MAX >> 1n;
-  const ONE = 1n;
+  describe("Token contract — edge cases & large values", () => {
+    const MAX = (1n << 256n) - 1n;
+    const MAX_MINUS_1 = MAX - 1n;
+    const HALF = MAX >> 1n;
+    const ONE = 1n;
 
-  const MAX_HEX = pad64(MAX);
-  const MAX_MINUS_1_HEX = pad64(MAX_MINUS_1);
-  const HALF_HEX = pad64(HALF);
-  const ONE_HEX = pad64(ONE);
+    const MAX_HEX = pad64(MAX);
+    const MAX_MINUS_1_HEX = pad64(MAX_MINUS_1);
+    const HALF_HEX = pad64(HALF);
+    const ONE_HEX = pad64(ONE);
 
-  it("setBalance(userA, MAX) ⇒ reflected", () => {
-    send(calldata(SELECTOR.SET, USER_A, MAX_HEX));
-    expectHex(calldata(SELECTOR.GET, USER_A), MAX_HEX);
-  });
+    it("setBalance(userA, MAX) ⇒ reflected", () => {
+      send(calldata(SELECTOR.SET, USER_A, MAX_HEX));
+      expectHex(calldata(SELECTOR.GET, USER_A), MAX_HEX);
+    });
 
-  it("setBalance(userA, MAX-1) ⇒ reflected", () => {
-    send(calldata(SELECTOR.SET, USER_A, MAX_MINUS_1_HEX));
-    expectHex(calldata(SELECTOR.GET, USER_A), MAX_MINUS_1_HEX);
-  });
+    it("setBalance(userA, MAX-1) ⇒ reflected", () => {
+      send(calldata(SELECTOR.SET, USER_A, MAX_MINUS_1_HEX));
+      expectHex(calldata(SELECTOR.GET, USER_A), MAX_MINUS_1_HEX);
+    });
 
-  it("setBalance(userA, HALF) ⇒ reflected", () => {
-    send(calldata(SELECTOR.SET, USER_A, HALF_HEX));
-    expectHex(calldata(SELECTOR.GET, USER_A), HALF_HEX);
-  });
+    it("setBalance(userA, HALF) ⇒ reflected", () => {
+      send(calldata(SELECTOR.SET, USER_A, HALF_HEX));
+      expectHex(calldata(SELECTOR.GET, USER_A), HALF_HEX);
+    });
 
-  it("setBalance(userA, 1) ⇒ reflected", () => {
-    send(calldata(SELECTOR.SET, USER_A, ONE_HEX));
-    expectHex(calldata(SELECTOR.GET, USER_A), ONE_HEX);
-  });
+    it("setBalance(userA, 1) ⇒ reflected", () => {
+      send(calldata(SELECTOR.SET, USER_A, ONE_HEX));
+      expectHex(calldata(SELECTOR.GET, USER_A), ONE_HEX);
+    });
 
-  it("approve(userA, userA, MAX) ⇒ valid", () => {
-    send(calldata(SELECTOR.APPROVE, USER_A, USER_A, MAX_HEX));
-    expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_A), MAX_HEX);
-  });
+    it("approve(userA, userA, MAX) ⇒ valid", () => {
+      send(calldata(SELECTOR.APPROVE, USER_A, USER_A, MAX_HEX));
+      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_A), MAX_HEX);
+    });
 
-  it("approve(userA, userB, MAX-1) ⇒ reflected", () => {
-    send(calldata(SELECTOR.APPROVE, USER_A, USER_B, MAX_MINUS_1_HEX));
-    expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), MAX_MINUS_1_HEX);
-  });
+    it("approve(userA, userB, MAX-1) ⇒ reflected", () => {
+      send(calldata(SELECTOR.APPROVE, USER_A, USER_B, MAX_MINUS_1_HEX));
+      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), MAX_MINUS_1_HEX);
+    });
 
-  it("approve(userA, userB, HALF) ⇒ reflected", () => {
-    send(calldata(SELECTOR.APPROVE, USER_A, USER_B, HALF_HEX));
-    expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), HALF_HEX);
-  });
+    it("approve(userA, userB, HALF) ⇒ reflected", () => {
+      send(calldata(SELECTOR.APPROVE, USER_A, USER_B, HALF_HEX));
+      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), HALF_HEX);
+    });
 
-  it("approve(userA, userB, 1) ⇒ reflected", () => {
-    send(calldata(SELECTOR.APPROVE, USER_A, USER_B, ONE_HEX));
-    expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), ONE_HEX);
+    it("approve(userA, userB, 1) ⇒ reflected", () => {
+      send(calldata(SELECTOR.APPROVE, USER_A, USER_B, ONE_HEX));
+      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), ONE_HEX);
+    });
   });
 });

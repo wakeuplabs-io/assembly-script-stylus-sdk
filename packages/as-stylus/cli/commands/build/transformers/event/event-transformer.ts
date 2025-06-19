@@ -39,6 +39,12 @@ export class EventTransformer extends BaseTypeTransformer {
   }
 }
 
+export function generateEventSignature(event: IREvent): string {
+  const signature = `${event.name}(${event.fields.map(f => mapTypeToAbi(f.type)).join(",")})`;
+  const hash = keccak256(signature).toString('hex');
+  return hash;
+}
+
 export function registerEventTransformer(events: IREvent[]): string[] {
   const instance = new EventTransformer(events);
   registerTransformer(instance);
@@ -46,16 +52,19 @@ export function registerEventTransformer(events: IREvent[]): string[] {
   const lines: string[] = [];
 
   for (const ev of events) {
-    const signature = `${ev.name}(${ev.fields.map(f => mapTypeToAbi(f.type)).join(",")})`;
-    const hash = keccak256(signature).toString('hex');
-    
+    const hash = generateEventSignature(ev);
     const bytes: string[] = [];
     for (let i = 0; i < hash.length; i += 2) {
       bytes.push(`0x${hash.substring(i, i + 2)}`);
     }
-
-    const constName = `__TOPIC0_${ev.name.toUpperCase()}`;
-    lines.push(`export const ${constName}: usize = memory.data<u8>([${bytes.join(", ")}]);`);
+    
+    const fnName = `__write_topic0_${ev.name}`;
+    lines.push(`export function ${fnName}(dst: usize): void {`);
+    for (let i = 0; i < bytes.length; i++) {
+      lines.push(`  store<u8>(dst + ${i}, ${bytes[i]});`);
+    }
+    lines.push(`}`);
+    lines.push("");
   }
 
   return lines;

@@ -23,11 +23,13 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
 
   buildIR(): IRExpression {
     const object = new ExpressionIRBuilder(this.expression.getExpression());
+    const objectBuilt = object.validateAndBuildIR();
 
     return {
       kind: "member",
-      object: object.validateAndBuildIR(),
+      object: objectBuilt,
       property: this.expression.getName(),
+      type: (objectBuilt as any).type,
     };
   }
 } 
