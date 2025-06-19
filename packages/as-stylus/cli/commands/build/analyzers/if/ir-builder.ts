@@ -1,4 +1,4 @@
-import { IfStatement, SyntaxKind, Block } from "ts-morph";
+import { IfStatement, SyntaxKind, Statement as TSStatement } from "ts-morph";
 
 import { IRCondition, IRStatement } from "@/cli/types/ir.types.js";
 
@@ -20,30 +20,41 @@ export class IfIRBuilder extends IRBuilder<IRStatement> {
     return syntaxValidator.validate();
   }
 
-  buildIR(): IRStatement {
-    const cond = new ConditionExpressionIRBuilder(this.statement.getExpression()).validateAndBuildIR() as IRCondition;
-    const thenBlock = this.statement.getThenStatement().asKind(SyntaxKind.Block);
-    let thenStatements = thenBlock?.getStatements() ?? [];
-    if (!thenBlock) {
-      thenStatements = [this.statement.getThenStatement()];
+  /**
+   * Generic helper to process a block of statements
+   * @param blockStatement - The statement that could be a block or single statement
+   * @returns Array of IR statements
+   */
+  private processBlock<T extends TSStatement>(blockStatement: T): IRStatement[] {
+    const block = blockStatement.asKind(SyntaxKind.Block);
+    let statements: TSStatement[] = [];
+    
+    if (block) {
+      statements = block.getStatements();
+    } else {
+      statements = [blockStatement];
     }
 
-    const thenStmts = thenStatements.map((blockStatement) => new StatementIRBuilder(blockStatement as Block).validateAndBuildIR());
+    return statements.map((stmt) => 
+      new StatementIRBuilder(stmt).validateAndBuildIR()
+    );
+  }
 
+  buildIR(): IRStatement {
+    const cond = new ConditionExpressionIRBuilder(this.statement.getExpression()).validateAndBuildIR() as IRCondition;
+    
+    // Process then block using the generic helper
+    const thenStatements = this.processBlock(this.statement.getThenStatement());
+    
+    // Process else block using the generic helper
     const elseNode = this.statement.getElseStatement();
-    const elseStmts = elseNode
-      ? (elseNode.asKindOrThrow(SyntaxKind.Block) as Block)
-          .getStatements()
-          .map((blockStatement) =>
-            new StatementIRBuilder(blockStatement as Block).validateAndBuildIR(),
-          )
-      : undefined;
+    const elseStatements = elseNode ? this.processBlock(elseNode) : undefined;
 
     return {
       kind: "if",
       condition: cond,
-      then: thenStmts,
-      else: elseStmts,
+      then: thenStatements,
+      else: elseStatements,
     };
   }
 }

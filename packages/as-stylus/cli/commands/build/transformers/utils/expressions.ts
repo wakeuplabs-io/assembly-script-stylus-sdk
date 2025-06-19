@@ -144,6 +144,11 @@ function handleFallbackExpression(expr: any): string {
           case ">=": return `!U256.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
         }
       }
+
+      if (!expr.right) {
+        const lhs = emitExpression(expr.left);
+        return lhs.valueExpr;
+      }
     
       const left  = emitExpression(expr.left);
       const right = emitExpression(expr.right);

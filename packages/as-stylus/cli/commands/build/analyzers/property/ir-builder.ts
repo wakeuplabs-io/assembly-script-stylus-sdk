@@ -21,9 +21,8 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   }
 
   buildIR(): IRVariable {
-    const name = this.property.getName();
-    const typeText = this.property.getType().getText();
-  
+    const [name, type] = this.property.getName().split(":");
+    const typeText = type ?? "any";
     const isMapping = /^Mapping(<|$)/.test(typeText);
     this.symbolTable.declareVariable(name, { name, type: typeText, scope: "storage" });
   

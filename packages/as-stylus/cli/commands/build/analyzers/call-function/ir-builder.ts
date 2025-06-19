@@ -4,6 +4,7 @@ import { ctx } from "@/cli/shared/compilation-context.js";
 import { IRExpression, IRMapGet, IRMapGet2, IRMapSet, IRMapSet2 } from "@/cli/types/ir.types.js";
 import { FunctionSymbol, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
+import { buildU256IR } from "./u256.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { SupportedType } from "../shared/supported-types.js";
@@ -65,7 +66,6 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
         }
       }
     }
-
     const target = expr.getText();
     const args = this.call.getArguments().map((argument) => {
       const expressionBuilder = new ExpressionIRBuilder(argument as Expression);
@@ -73,8 +73,13 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     });
 
     const [varName] = target.split(".");
-    const targetSymbol = this.symbolTable.lookup(varName);
-    const scope = targetSymbol?.scope ?? "memory";
+    const variable = this.symbolTable.lookup(varName);
+    const scope = variable?.scope ?? "memory";
+
+    if (variable?.type === "U256") {
+      return buildU256IR(target, this.call, this.symbolTable);
+    }
+    
 
     return { kind: "call", target, args, returnType: this.getReturnType(target), scope };
   }

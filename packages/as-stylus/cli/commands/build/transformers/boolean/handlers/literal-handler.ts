@@ -14,12 +14,12 @@ export class BooleanLiteralHandler implements ExpressionHandler {
 
   handle(
     expr: any,
-    context: EmitContext,
+    _context: EmitContext,
     _emitExprFn: (expr: any, ctx: EmitContext) => EmitResult
   ): EmitResult {
     return {
       setupLines: [],
-      valueExpr: `allocBool(${expr.value})`,
+      valueExpr: `${expr.value}`,
       valueType: "boolean",
     };
   }

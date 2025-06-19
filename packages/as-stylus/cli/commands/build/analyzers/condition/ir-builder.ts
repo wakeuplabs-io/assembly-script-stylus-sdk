@@ -1,6 +1,6 @@
 import { BinaryExpression, Expression, SyntaxKind } from "ts-morph";
 
-import { IRCondition, IRExpressionBinary } from "@/cli/types/ir.types.js";
+import { ComparisonOperator, IRCondition, IRExpression, IRExpressionBinary } from "@/cli/types/ir.types.js";
 
 import {  ConditionSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
@@ -20,16 +20,19 @@ export class ConditionExpressionIRBuilder extends IRBuilder<IRExpressionBinary |
     return syntaxValidator.validate();
   }
 
-  buildIR(): IRExpressionBinary | IRCondition {
+  buildIR(): IRCondition {
     const isBinary = this.expression.getKind() === SyntaxKind.BinaryExpression;
     if (isBinary) {
       const binaryExpression = this.expression.asKindOrThrow(SyntaxKind.BinaryExpression) as BinaryExpression;
+      const left = new ExpressionIRBuilder(binaryExpression.getLeft() as Expression).validateAndBuildIR() as IRExpression;
+      const right = new ExpressionIRBuilder(binaryExpression.getRight() as Expression).validateAndBuildIR() as IRExpression;
+
       return {
         kind: "condition",
-        op: binaryExpression.getOperatorToken().getText(),
-        left: new ExpressionIRBuilder(binaryExpression.getLeft() as Expression).validateAndBuildIR(),
-        right: new ExpressionIRBuilder(binaryExpression.getRight() as Expression).validateAndBuildIR(),
-      } as IRCondition;
+        op: binaryExpression.getOperatorToken().getText() as ComparisonOperator,
+        left,
+        right,
+      } satisfies IRCondition;
     }
 
     const isLiteral = this.expression.getKind() === SyntaxKind.TrueKeyword || this.expression.getKind() === SyntaxKind.FalseKeyword;

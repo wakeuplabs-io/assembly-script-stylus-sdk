@@ -26,6 +26,13 @@
   ],
 
   "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
     "prettier/prettier": "error", // Treat Prettier formatting issues as ESLint errors
     "linebreak-style": ["error", "unix"], // Enforce LF (Unix-style) line endings
     "semi": ["error", "always"], // Require semicolons at the end of statements

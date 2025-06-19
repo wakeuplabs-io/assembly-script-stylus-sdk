@@ -20,11 +20,13 @@ export class ReturnIRBuilder extends IRBuilder<IRStatement> {
   }
 
   buildIR(): IRStatement {
-    const expr = new ExpressionIRBuilder(this.statement.getExpressionOrThrow());
+    const expr = new ExpressionIRBuilder(this.statement.getExpressionOrThrow()).validateAndBuildIR();
 
     return {
       kind: "return",
-      expr: expr.validateAndBuildIR(),
+      expr: expr,
+      // TODO: remove any when type is added all the expressions
+      type: (expr as any).type ?? "void"
     };
   }
 }

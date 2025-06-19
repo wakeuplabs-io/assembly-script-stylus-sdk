@@ -44,16 +44,16 @@ export function generateStorageImports(variables: IRVariable[]): string {
       '  storage_cache_bytes32,',
       '  storage_flush_cache,',
       '} from "as-stylus/core/modules/hostio";',
-      'import { malloc } from "as-stylus/core/modules/memory";',
       'import { createStorageKey } from "as-stylus/core/modules/storage";',
       'import { Msg } from "as-stylus/core/types/msg";',
-      'import { allocBool } from "as-stylus/core/types/boolean";',
       'import { emitTopics } from "as-stylus/core/modules/events";',
     );
   }
-
+  
   lines.push('import { Address } from "as-stylus/core/types/address";');
   lines.push('import { U256 } from "as-stylus/core/types/u256";');
+  lines.push('import { allocBool } from "as-stylus/core/types/boolean";');
+  lines.push('import { malloc } from "as-stylus/core/modules/memory";');
 
   if (hasMapping) {
     lines.push('import { Mapping } from "as-stylus/core/types/mapping";');
