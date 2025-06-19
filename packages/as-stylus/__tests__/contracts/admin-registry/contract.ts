@@ -9,8 +9,7 @@ export class AdminRegistry {
 
   @External
   static setAdmin(newAdminHex: Address): void {
-    const candidate = AddressFactory.fromString(newAdminHex);
-    admin = candidate;
+    admin = newAdminHex;
   }
 
   @External
@@ -25,8 +24,8 @@ export class AdminRegistry {
 
   @View
   static isAdmin(addrHex: Address): boolean {
-    const address = admin;
-    const result = address.equals(addrHex);
+    const adminAddress = admin;
+    const result = adminAddress.equals(addrHex);
     return result;
   }
 

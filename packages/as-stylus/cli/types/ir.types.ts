@@ -98,7 +98,7 @@ export type VariableDeclaration = {
   type: SupportedType;
 };
 export type ExpressionStatement = { kind: "expr"; expr: IRExpression };
-export type Return = { kind: "return"; expr: IRExpression; type: SupportedType };
+export type Return = { kind: "return"; expr?: IRExpression; type: SupportedType };
 export type If = { kind: "if"; condition: IRCondition; then: IRStatement[]; else?: IRStatement[] };
 export type Block = { kind: "block"; body: IRStatement[] };
 

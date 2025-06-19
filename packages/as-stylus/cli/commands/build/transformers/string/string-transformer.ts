@@ -23,7 +23,7 @@ export class StrTransformer extends BaseTypeTransformer {
     const target = expr.target || "";
     return (
       target === "strFactory.create" ||
-      target === "strFactory.fromString" ||
+      target === "StrFactory.fromString" ||
       target.endsWith(".toString") ||
       target.endsWith(".slice") ||
       target.endsWith(".length")

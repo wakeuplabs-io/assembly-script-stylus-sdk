@@ -46,14 +46,15 @@ export function generateStorageImports(variables: IRVariable[]): string {
       '} from "as-stylus/core/modules/hostio";',
       'import { createStorageKey } from "as-stylus/core/modules/storage";',
       'import { Msg } from "as-stylus/core/types/msg";',
-      'import { emitTopics } from "as-stylus/core/modules/events";',
+      'import { allocBool } from "as-stylus/core/types/boolean";',
+      'import { addTopic, emitTopics } from "as-stylus/core/modules/events";',
     );
   }
   
   lines.push('import { Address } from "as-stylus/core/types/address";');
   lines.push('import { U256 } from "as-stylus/core/types/u256";');
-  lines.push('import { allocBool } from "as-stylus/core/types/boolean";');
-  lines.push('import { malloc } from "as-stylus/core/modules/memory";');
+  lines.push('import { Str } from "as-stylus/core/types/str";');
+  lines.push('import { loadU32BE } from "as-stylus/core/modules/endianness";');
 
   if (hasMapping) {
     lines.push('import { Mapping } from "as-stylus/core/types/mapping";');
@@ -73,8 +74,19 @@ export function generateStorageHelpers(variables: IRVariable[]): string[] {
     lines.push(slotConst(v.slot));
 
     if (v.kind === "simple") {
-      lines.push(loadSimple(v.name, v.slot));
-      lines.push(storeSimple(v.name, v.slot));
+      if (v.type === "string" || v.type === "Str") {
+        lines.push(`
+function load_${v.name}(): usize {
+  return Str.loadFrom(${formatSlotName(v.slot)});
+}
+
+function store_${v.name}(strPtr: usize): void {
+  Str.storeTo(${formatSlotName(v.slot)}, strPtr);
+}`.trim());
+      } else {
+        lines.push(loadSimple(v.name, v.slot));
+        lines.push(storeSimple(v.name, v.slot));
+      }
     }
   }
 
