@@ -1,10 +1,11 @@
 import { BinaryExpression, Expression } from "ts-morph";
 
-import { IRCondition, IRExpressionBinary } from "@/cli/types/ir.types.js";
+import { IRCondition, IRExpression, IRExpressionBinary } from "@/cli/types/ir.types.js";
 
 import { BinaryExpressionSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { SupportedType } from "../shared/supported-types.js";
 
 export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IRCondition> {
   private expression: BinaryExpression;
@@ -27,21 +28,39 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
     return syntaxValidator.validate();
   }
 
+  private getConvertionType(left: IRExpression, right: IRExpression): SupportedType {
+    const leftType = (left as any).type;
+    const rightType = (right as any).type;
+
+    if (leftType !== rightType) {
+      console.log("implement conversion", left, right);
+      return leftType;
+    }
+
+    return leftType;
+  }
+
   buildIR(): IRExpressionBinary | IRCondition {
+    const left = new ExpressionIRBuilder(this.left).validateAndBuildIR();
+    const right = new ExpressionIRBuilder(this.right).validateAndBuildIR();
+    const type = this.getConvertionType(left, right);
+
     if (this.isConditional) {
       return {
         kind: "condition",
         op: this.op,
-        left: new ExpressionIRBuilder(this.left).validateAndBuildIR(),
-        right: new ExpressionIRBuilder(this.right).validateAndBuildIR(),
+        left,
+        right,
+        type,
       } as IRCondition;
     }
 
     return {
       kind: "binary",
       op: this.op,
-      left: new ExpressionIRBuilder(this.left).validateAndBuildIR(),
-      right: new ExpressionIRBuilder(this.right).validateAndBuildIR(),
+      left,
+      right,
+      type,
     };
   }
 }

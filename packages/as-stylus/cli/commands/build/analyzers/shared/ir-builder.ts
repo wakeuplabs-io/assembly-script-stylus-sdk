@@ -6,7 +6,7 @@ import { SymbolTableStack } from "./symbol-table.js";
 
 export abstract class IRBuilder<TResult> {
   public readonly errorManager: ErrorManager;
-  protected readonly symbolTable: SymbolTableStack;
+  public readonly symbolTable: SymbolTableStack;
 
   constructor(node: Node) {
     const id = node.getSourceFile().getBaseNameWithoutExtension();

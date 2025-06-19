@@ -12,6 +12,12 @@ export class AnalysisContext {
   constructor() {
     this.errorManager = new ErrorManager();
     this.symbolTable = new SymbolTableStack();
+    this.populatedSymbolTable();
+  }
+
+  private populatedSymbolTable(): void {
+    this.symbolTable.declareFunction("U256Factory.create", { name: "U256Factory.create", parameters: [], returnType: "U256" });
+    this.symbolTable.declareFunction("U256Factory.fromString", { name: "U256Factory.fromString", parameters: [], returnType: "U256" });
   }
 
   getErrorManager(): ErrorManager {

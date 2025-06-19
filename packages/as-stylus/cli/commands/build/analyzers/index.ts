@@ -5,7 +5,7 @@ import { Project } from "ts-morph";
 import { IRContract } from "@/cli/types/ir.types.js";
 
 import { ContractIRBuilder } from "./contract/ir-builder.js";
-import { exportContractToJSON, generateContractTree } from "./tree-builder.js";
+import { exportContractToJSON, exportSymbolTable, generateContractTree } from "./tree-builder.js";
 
 export function applyAnalysis(transformedFile: string): IRContract {
   const project = new Project({
@@ -15,10 +15,11 @@ export function applyAnalysis(transformedFile: string): IRContract {
   const sourceFile = project.addSourceFileAtPath(transformedFile);
 
   const analyzer = new ContractIRBuilder(sourceFile);
-  const result = analyzer.validateAndBuildIR();
+  const result = analyzer.validateAndBuildIR();  
 
   exportContractToJSON(result);
   generateContractTree(result);
+  exportSymbolTable(analyzer.symbolTable);
 
   return result;
 }
