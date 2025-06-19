@@ -6,6 +6,7 @@ import { writeFile } from "@/cli/utils/fs.js";
 import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
+import { getReturnSize } from "@/cli/utils/type-utils.js";
 
 function getCanonicalType(type: string): string {
   return type;
@@ -30,13 +31,23 @@ export function generateUserEntrypoint(contract: IRContract) {
 
       const { argLines, callArgs } = generateArgsLoadBlock(inputs);
       const outputType = method.outputs?.[0]?.type ?? "U256";
-      const callLine =
-        (["pure", "view"].includes(stateMutability) && (outputType !== "void" && outputType !== "any"))
-          ? (() => {
-            const size = getReturnSize(outputType);
-            return `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
-          })()
-          : `${name}(${callArgs.join(", ")}); return 0;`;
+      let callLine = "";
+      if (["pure", "view"].includes(stateMutability) && (outputType !== "void" && outputType !== "any")) {
+        if (outputType === "string" || outputType === "Str") {
+          callLine = [
+            `const buf = ${name}(${callArgs.join(", ")});`,
+            `const len = loadU32BE(buf + 0x20 + 28);`,
+            `const padded = ((len + 31) & ~31);`,
+            `write_result(buf, 0x40 + padded);`,
+            `return 0;`
+          ].join("\n    ");
+        } else {
+          const size = getReturnSize(outputType);
+          callLine = `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
+        }
+      } else {
+        callLine = `${name}(${callArgs.join(", ")}); return 0;`;
+      }
 
       const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
       entries.push(`  if (selector == ${sig}) {\n${indentedBody}\n  }`);
@@ -67,16 +78,6 @@ export function generateUserEntrypoint(contract: IRContract) {
     imports: imports.join("\n"),
     entrypointBody: entries.join("\n"),
   };
-}
-
-function getReturnSize(type: string): number {
-  switch (type) {
-    case "U256": return 32;
-    case "Address": return 20;
-    case "boolean": return 1;
-    case "string": return 32;
-    default: return 32;
-  }
 }
 
 export function buildEntrypoint(userFilePath: string, contract: IRContract): void {

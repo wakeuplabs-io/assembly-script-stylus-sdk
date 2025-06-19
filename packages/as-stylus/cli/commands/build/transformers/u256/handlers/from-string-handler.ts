@@ -49,8 +49,10 @@ export class U256FromStringHandler implements ExpressionHandler {
 
       setup.push(`const ${lenVar}: u32 = ${strLen};`);
     } else {
+
       setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
       setup.push(`const ${strPtr}: usize = malloc(66);`);
+      
     }
 
     setup.push(

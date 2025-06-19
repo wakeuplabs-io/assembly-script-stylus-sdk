@@ -42,7 +42,7 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       // Example: counter, value, amount
       case SyntaxKind.Identifier: {
         const id = this.expression as Identifier;
-        return { kind: "var", name: id.getText() };
+        return { kind: "var", name: id.getText(), type: this.expression.getType().getText() };
       }
   
       /* ---------- Function calls ---------- */

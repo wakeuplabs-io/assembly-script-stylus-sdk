@@ -5,15 +5,16 @@ import { execSync } from "child_process";
 import { config } from "dotenv";
 import path from "path";
 import stripAnsiRaw from "strip-ansi"; // liviano, sin deps nativas
+
 config();
 export const ROOT = path.resolve(__dirname, "../../..");
 export const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
 export const PRIVATE_KEY = process.env.PRIVATE_KEY;
 export const USER_B_PRIVATE_KEY = process.env.USER_B_PRIVATE_KEY;
+
 if (!PRIVATE_KEY) throw new Error("⚠️  Set PRIVATE_KEY in .env");
 if (!USER_B_PRIVATE_KEY) throw new Error("⚠️  Set USER_B_PRIVATE_KEY in .env");
 
-// utils.ts ─ run “seguro”
 export function run(cmd: string, cwd: string = ROOT, allowErr = false): string {
   try {
     return execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8" }).trim();
@@ -27,7 +28,8 @@ export function run(cmd: string, cwd: string = ROOT, allowErr = false): string {
 
 export const stripAnsi = (s: string) => stripAnsiRaw(s);
 
-export const pad64 = (v: bigint) => "0x" + v.toString(16).padStart(64, "0");
+export const pad64 = (v: bigint, with0x = true) =>
+  (with0x ? "0x" : "") + v.toString(16).padStart(64, "0");
 
 export function calldata(selector: string, ...args: string[]): string {
   const clean = (h: string) => (h.startsWith("0x") ? h.slice(2) : h);

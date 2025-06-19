@@ -2,8 +2,8 @@ import { ReturnStatement } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
-import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { ReturnSyntaxValidator } from "./syntax-validator.js";
+import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
@@ -21,11 +21,18 @@ export class ReturnIRBuilder extends IRBuilder<IRStatement> {
   }
 
   buildIR(): IRStatement {
-    const expr = new ExpressionIRBuilder(this.statement.getExpressionOrThrow(), this.errorManager)
+    const expression = this.statement.getExpression();
 
-    return {
-      kind: "return",
-      expr: expr.validateAndBuildIR(),
-    };
+    if (expression) {
+      const expr = new ExpressionIRBuilder(expression, this.errorManager);
+      return {
+        kind: "return",
+        expr: expr.validateAndBuildIR(),
+      };
+    } else {
+      return {
+        kind: "return",
+      };
+    }
   }
 }
