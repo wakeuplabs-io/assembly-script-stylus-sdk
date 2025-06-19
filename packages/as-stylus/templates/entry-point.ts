@@ -8,6 +8,7 @@ export function getUserEntrypointTemplate(): string {
 import { __keep_imports } from "as-stylus/core/modules/keep-imports";
 import { read_args, write_result } from "as-stylus/core/modules/hostio";
 import { initHeap } from "as-stylus/core/modules/memory";
+import { loadU32BE } from "as-stylus/core/modules/endianness";
 
 // @logic_imports
 

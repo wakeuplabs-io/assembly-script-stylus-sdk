@@ -29,9 +29,12 @@ export function emitTopics(topicsPtr: usize, topicCount: u32, dataPtr: usize, da
   emit_log(buf, total, topicCount);
 }
 
-export function createTopic(value: u8): usize {
-  const t = malloc(32);
-  for (let i = 0; i < 32; ++i) store<u8>(t + i, 0);
-  store<u8>(t + 31, value);
-  return t;
+export function addTopic(dest: usize, src: usize, size: i32): void {
+  const pad = 32 - size;
+  for (let i = 0; i < pad; ++i) {
+    store<u8>(dest + i, 0);
+  }
+  for (let i = 0; i < size; ++i) {
+    store<u8>(dest + pad + i, load<u8>(src + i));
+  }
 }
