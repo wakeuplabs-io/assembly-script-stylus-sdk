@@ -43,14 +43,15 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       };
     }
 
-    const expression = new ExpressionIRBuilder(initializer as Expression);
+    const expression = new ExpressionIRBuilder(initializer as Expression).validateAndBuildIR();
+    variable.type = (expression as any).returnType;
     this.symbolTable.declareVariable(variable.name, variable);
 
     return {
       kind: "let",
       name: variable.name,
       type: variable.type,
-      expr: expression.validateAndBuildIR(),
+      expr: expression,
       scope: variable.scope,
     };
   }
