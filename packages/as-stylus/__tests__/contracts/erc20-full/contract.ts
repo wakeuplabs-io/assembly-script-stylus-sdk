@@ -26,18 +26,18 @@ export class ERC20Full {
   constructor(name: string, symbol: string) {
     const nameStr = StrFactory.fromString(name);
     const symbolStr = StrFactory.fromString(symbol);
-    ERC20Full.name = nameStr;
-    ERC20Full.symbol = symbolStr;
+    name = nameStr;
+    symbol = symbolStr;
   }
 
   @View
   static name(): string {
-    return ERC20Full.name;
+    return name;
   }
 
   @View
   static symbol(): string {
-    return ERC20Full.symbol;
+    return symbol;
   }
 
   @View
@@ -47,31 +47,31 @@ export class ERC20Full {
 
   @View
   static totalSupply(): U256 {
-    return ERC20Full.totalSupply;
+    return totalSupply;
   }
 
   @View
   static balanceOf(account: Address): U256 {
-    return ERC20Full.balances.get(account);
+    return balances.get(account);
   }
 
   @View
   static allowance(owner: Address, spender: Address): U256 {
-    return ERC20Full.allowances.get(owner, spender);
+    return allowances.get(owner, spender);
   }
 
   @External
   static transfer(to: Address, amount: U256): boolean {
     const sender = msg.sender;
-    const senderBal = ERC20Full.balances.get(sender);
+    const senderBal = balances.get(sender);
     if (senderBal < amount) {
       return false;
     }
 
-    ERC20Full.balances.set(sender, senderBal.sub(amount));
+    balances.set(sender, senderBal.sub(amount));
 
-    const recvBal = ERC20Full.balances.get(to);
-    ERC20Full.balances.set(to, recvBal.add(amount));
+    const recvBal = balances.get(to);
+    balances.set(to, recvBal.add(amount));
 
     Transfer.emit(sender, to, amount);
     return true;
@@ -80,7 +80,7 @@ export class ERC20Full {
   @External
   static approve(spender: Address, amount: U256): boolean {
     const owner = msg.sender;
-    ERC20Full.allowances.set(owner, spender, amount);
+    allowances.set(owner, spender, amount);
 
     Approval.emit(owner, spender, amount);
     return true;
@@ -89,21 +89,21 @@ export class ERC20Full {
   @External
   static transferFrom(from: Address, to: Address, amount: U256): boolean {
     const spender = msg.sender;
-    const allowed = ERC20Full.allowances.get(from, spender);
+    const allowed = allowances.get(from, spender);
     if (allowed < amount) {
       return false;
     }
 
-    const fromBal = ERC20Full.balances.get(from);
+    const fromBal = balances.get(from);
     if (fromBal < amount) {
       return false;
     }
     const newAllowed = allowed.sub(amount);
-    ERC20Full.balances.set(from, fromBal.sub(amount));
-    const toBal = ERC20Full.balances.get(to);
-    ERC20Full.balances.set(to, toBal.add(amount));
+    balances.set(from, fromBal.sub(amount));
+    const toBal = balances.get(to);
+    balances.set(to, toBal.add(amount));
 
-    ERC20Full.allowances.set(from, spender, newAllowed);
+    allowances.set(from, spender, newAllowed);
 
     Transfer.emit(from, to, amount);
     Approval.emit(from, spender, newAllowed);
@@ -112,10 +112,10 @@ export class ERC20Full {
 
   @External
   static mint(to: Address, amount: U256): void {
-    ERC20Full.totalSupply = ERC20Full.totalSupply.add(amount);
-    const toAmount = ERC20Full.balances.get(to);
+    totalSupply = totalSupply.add(amount);
+    const toAmount = balances.get(to);
     const newAmount = toAmount.add(amount);
-    ERC20Full.balances.set(to, newAmount);
+    balances.set(to, newAmount);
     const AddressZero = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     Transfer.emit(AddressZero, to, amount);
   }
@@ -123,12 +123,12 @@ export class ERC20Full {
   @External
   static burn(amount: U256): void {
     const sender = msg.sender;
-    const senderBal = ERC20Full.balances.get(sender);
+    const senderBal = balances.get(sender);
     if (senderBal < amount) {
       return;
     }
-    ERC20Full.balances.set(sender, senderBal.sub(amount));
-    ERC20Full.totalSupply = ERC20Full.totalSupply.sub(amount);
+    balances.set(sender, senderBal.sub(amount));
+    totalSupply = totalSupply.sub(amount);
     const AddressZero = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     Transfer.emit(sender, AddressZero, amount);
   }

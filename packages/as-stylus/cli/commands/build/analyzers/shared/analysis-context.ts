@@ -18,6 +18,12 @@ export class AnalysisContext {
   private populatedSymbolTable(): void {
     this.symbolTable.declareFunction("U256Factory.create", { name: "U256Factory.create", parameters: [], returnType: "U256" });
     this.symbolTable.declareFunction("U256Factory.fromString", { name: "U256Factory.fromString", parameters: [], returnType: "U256" });
+    // String
+    this.symbolTable.declareFunction("StrFactory.create", { name: "StrFactory.create", parameters: [], returnType: "Str" });
+    this.symbolTable.declareFunction("StrFactory.fromString", { name: "StrFactory.fromString", parameters: [], returnType: "Str" });
+    this.symbolTable.declareFunction("StrFactory.toString", { name: "StrFactory.toString", parameters: [], returnType: "Str" });
+    this.symbolTable.declareFunction("StrFactory.slice", { name: "StrFactory.slice", parameters: [], returnType: "Str" });
+    this.symbolTable.declareFunction("StrFactory.length", { name: "StrFactory.length", parameters: [], returnType: "U256" });
   }
 
   getErrorManager(): ErrorManager {

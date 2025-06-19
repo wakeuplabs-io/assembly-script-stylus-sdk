@@ -4,6 +4,7 @@ import { ctx } from "@/cli/shared/compilation-context.js";
 import { IRExpression, IRMapGet, IRMapGet2, IRMapSet, IRMapSet2 } from "@/cli/types/ir.types.js";
 import { FunctionSymbol, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
+import { buildStringIR } from "./string.js";
 import { buildU256IR } from "./u256.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
@@ -79,7 +80,10 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     if (variable?.type === "U256") {
       return buildU256IR(target, this.call, this.symbolTable);
     }
-    
+
+    if (variable?.type === "Str") {
+      return buildStringIR(target, this.call, this.symbolTable);
+    }
 
     return { kind: "call", target, args, returnType: this.getReturnType(target), scope };
   }

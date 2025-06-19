@@ -28,8 +28,8 @@ export class BooleanTransformer extends BaseTypeTransformer {
    */
   protected handleDefault(
     expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult
+    _context: EmitContext,
+    _emitExprFn: (expr: any, ctx: EmitContext) => EmitResult
   ): EmitResult {
     return {
       setupLines: [],

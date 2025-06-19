@@ -51,6 +51,7 @@ export function generateStorageImports(variables: IRVariable[]): string {
     );
   }
   
+  lines.push('import { malloc } from "as-stylus/core/modules/memory";');  
   lines.push('import { Address } from "as-stylus/core/types/address";');
   lines.push('import { U256 } from "as-stylus/core/types/u256";');
   lines.push('import { Str } from "as-stylus/core/types/str";');

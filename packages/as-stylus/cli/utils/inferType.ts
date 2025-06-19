@@ -19,7 +19,7 @@ export function inferType(target: string): SupportedType {
   }
 
   if (target.startsWith("StrFactory")) {
-    return "string";
+    return "Str";
   }
 
   if (/^Mapping2(<|$)/.test(target)) {
