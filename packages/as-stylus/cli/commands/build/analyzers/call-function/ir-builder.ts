@@ -74,7 +74,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       return expressionBuilder.validateAndBuildIR();
     });
 
-    return { kind: "call", target, args, returnType: this.getReturnType(target) };
+    return { kind: "call", target, args, type: this.getReturnType(target) };
   }
 
   private lookupSlot(fqName: string): number | undefined {
