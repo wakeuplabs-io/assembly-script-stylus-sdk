@@ -2,15 +2,14 @@ import { ClassDeclaration } from "ts-morph";
 
 import { calculateFieldLayout } from "./type-utils.js";
 import { IRStruct, IRStructField } from "../../../../types/ir.types.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 export class StructIRBuilder extends IRBuilder<IRStruct> {
   private structClass: ClassDeclaration;
   private static structRegistry = new Map<string, IRStruct>();
 
-  constructor(structClass: ClassDeclaration, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(structClass: ClassDeclaration) {
+    super(structClass);
     this.structClass = structClass;
   }
 

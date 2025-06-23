@@ -1,4 +1,4 @@
-import { CallExpression, Expression, PropertyAccessExpression, NewExpression } from "ts-morph";
+import { CallExpression, Expression, PropertyAccessExpression } from "ts-morph";
 
 import { ctx } from "@/cli/shared/compilation-context.js";
 import { IRExpression, IRMapGet, IRMapGet2, IRMapSet, IRMapSet2 } from "@/cli/types/ir.types.js";
@@ -39,16 +39,6 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
   buildIR(): IRExpression {
     const expr = this.call.getExpression();
-    
-    if (expr.getKind() === 169) { // SyntaxKind.NewExpression
-      const newExpr = expr as any;
-      const typeName = newExpr.getExpression().getText();
-      return {
-        kind: "call",
-        target: `new ${typeName}()`,
-        args: []
-      };
-    }
     
     // Try to detect Mapping access: Balances.balances.get(user) or .set(user, value)
     if (expr.getKindName() === "PropertyAccessExpression") {

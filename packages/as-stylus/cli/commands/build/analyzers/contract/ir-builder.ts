@@ -70,7 +70,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     const structs = structClasses.map(structClass => {
-      const structIRBuilder = new StructIRBuilder(structClass, this.errorManager);
+      const structIRBuilder = new StructIRBuilder(structClass);
       return structIRBuilder.validateAndBuildIR();
     });
 
