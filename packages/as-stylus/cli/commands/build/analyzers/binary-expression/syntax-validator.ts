@@ -1,7 +1,6 @@
 import { BinaryExpression, Expression } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { ARITHMETIC_OPERATORS , CONDITIONAL_OPERATORS } from "../shared/supported-types.js";
 
 const ERROR_MESSAGES = {
@@ -15,8 +14,8 @@ export class BinaryExpressionSyntaxValidator extends BaseValidator {
   private op: string;
   private isConditional: boolean;
 
-  constructor(expression: BinaryExpression, errorManager: ErrorManager, isConditional: boolean = false) {
-    super(errorManager, expression.getSourceFile().getFilePath(), expression.getStartLineNumber());
+  constructor(expression: BinaryExpression, isConditional: boolean = false) {
+    super(expression);
     this.left = expression.getLeft() as Expression;
     this.right = expression.getRight() as Expression;
     this.op = expression.getOperatorToken().getText();

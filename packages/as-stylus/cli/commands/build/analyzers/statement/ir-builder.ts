@@ -5,15 +5,14 @@ import { IRStatement } from "@/cli/types/ir.types.js";
 import { ExpressionStatementIRBuilder } from "../expression-statement/ir-builder.js";
 import { IfIRBuilder } from "../if/ir-builder.js";
 import { ReturnIRBuilder } from "../return/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { VariableDeclarationIRBuilder } from "../variable-declaration/ir-builder.js";
 
 export class StatementIRBuilder extends IRBuilder<IRStatement> {
   private statement: Statement;
 
-  constructor(statement: Statement, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(statement: Statement) {
+    super(statement);
     this.statement = statement;
   }
 
@@ -31,7 +30,7 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
         const decl = this.statement
           .asKindOrThrow(SyntaxKind.VariableStatement)
           .getDeclarations()[0];
-        const variableBuilder = new VariableDeclarationIRBuilder(decl, this.errorManager);
+        const variableBuilder = new VariableDeclarationIRBuilder(decl);
         return variableBuilder.validateAndBuildIR();
       }
 
@@ -42,7 +41,6 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
       case SyntaxKind.ReturnStatement:
         return new ReturnIRBuilder(
           this.statement.asKindOrThrow(SyntaxKind.ReturnStatement),
-          this.errorManager,
         ).validateAndBuildIR();
 
       /**
@@ -52,7 +50,6 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
       case SyntaxKind.IfStatement:
         return new IfIRBuilder(
           this.statement.asKindOrThrow(SyntaxKind.IfStatement),
-          this.errorManager,
         ).validateAndBuildIR();
 
       /**
@@ -62,7 +59,6 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
       case SyntaxKind.ExpressionStatement:
         return new ExpressionStatementIRBuilder(
           this.statement.asKindOrThrow(SyntaxKind.ExpressionStatement),
-          this.errorManager,
         ).validateAndBuildIR();
 
       default:

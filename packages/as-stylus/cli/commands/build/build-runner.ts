@@ -7,16 +7,14 @@ import { IRContract } from "@/cli/types/ir.types.js";
 
 import { applyAnalysis } from "./analyzers/index.js";
 import { ErrorManager } from "./analyzers/shared/error-manager.js";
-import { IRBuilder } from "./analyzers/shared/ir-builder.js";
 import { buildProject } from "./builder/index.js";
 import { transformFromIR } from "./transformers/index.js";
 
-export class BuildRunner extends IRBuilder<void> {
+export class BuildRunner {
   private projectFinder: ProjectFinder;
   private buildPath: string;
 
   constructor(contractsRoot: string, buildPath: string, errorManager: ErrorManager) {
-    super(errorManager);
     this.projectFinder = new ProjectFinder(contractsRoot, errorManager);
     this.buildPath = buildPath;
   }
@@ -47,7 +45,7 @@ export class BuildRunner extends IRBuilder<void> {
       Logger.getInstance().info(`Processing: ${contractPath} -> ${transformedPath}`);
       fs.copyFileSync(contractPath, transformedPath);
 
-      const contract: IRContract = applyAnalysis(transformedPath, this.errorManager);
+      const contract: IRContract = applyAnalysis(transformedPath);
       buildProject(transformedPath, contract);
       transformFromIR(projectTargetPath, contract);
 

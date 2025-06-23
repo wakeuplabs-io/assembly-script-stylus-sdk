@@ -1,20 +1,18 @@
 import { Project, SourceFile } from "ts-morph";
 
-import { ConstructorSemanticValidator } from "@/cli/commands/build/analyzers/constructor/semantic-validator.js";
-import { ContractSyntaxValidator } from "@/cli/commands/build/analyzers/contract/syntax-validator.js";
-import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
+import { ContractIRBuilder } from "@/cli/commands/build/analyzers/contract/ir-builder.js";
+import { AnalysisContextFactory } from "@/cli/commands/build/analyzers/shared/analysis-context-factory.js";
 import { ERROR_CODES } from "@/cli/commands/build/errors/codes.js";
 
 describe("Syntax Validation - Constructor", () => {
   let project: Project;
-  let errorManager: ErrorManager;
   let sourceFile: SourceFile;
 
   beforeEach(() => {
     project = new Project({
       useInMemoryFileSystem: true,
     });
-    errorManager = new ErrorManager();
+    AnalysisContextFactory.reset();
   });
 
   describe("Constructor Validation", () => {
@@ -34,8 +32,12 @@ describe("Syntax Validation - Constructor", () => {
           }
           `,
         );
-        const validator = new ContractSyntaxValidator(sourceFile, errorManager);
-        validator.validate();
+
+        const analyzer = new ContractIRBuilder(sourceFile);
+        analyzer.validateAndBuildIR();
+
+        const errorManager = analyzer.errorManager;
+
         expect(
           errorManager
             .getSyntaxErrors()
@@ -57,9 +59,10 @@ describe("Syntax Validation - Constructor", () => {
           }
           `,
         );
-        const constructor = sourceFile.getClass("MyContract")!.getConstructors()[0];
-        const validator = new ConstructorSemanticValidator(constructor, errorManager);
-        validator.validate();
+        const analyzer = new ContractIRBuilder(sourceFile);
+        analyzer.validateAndBuildIR();
+
+        const errorManager = analyzer.errorManager;
         expect(
           errorManager.getSemanticErrors().some((e) => e.code === ERROR_CODES.NO_CONSTRUCTOR_FOUND),
         ).toBe(true);
@@ -69,7 +72,7 @@ describe("Syntax Validation - Constructor", () => {
         sourceFile = project.createSourceFile(
           "test.ts",
           `
-          @contract
+          @Contract
           class MyContract {
             protected constructor() {
               // protected constructor
@@ -77,9 +80,10 @@ describe("Syntax Validation - Constructor", () => {
           }
           `,
         );
-        const constructor = sourceFile.getClass("MyContract")!.getConstructors()[0];
-        const validator = new ConstructorSemanticValidator(constructor, errorManager);
-        validator.validate();
+        const analyzer = new ContractIRBuilder(sourceFile);
+        analyzer.validateAndBuildIR();
+
+        const errorManager = analyzer.errorManager;
         expect(
           errorManager.getSemanticErrors().some((e) => e.code === ERROR_CODES.NO_CONSTRUCTOR_FOUND),
         ).toBe(true);
@@ -89,7 +93,7 @@ describe("Syntax Validation - Constructor", () => {
         sourceFile = project.createSourceFile(
           "test.ts",
           `
-          @contract
+          @Contract
           class MyContract {
             public constructor() {
               // public constructor
@@ -97,9 +101,10 @@ describe("Syntax Validation - Constructor", () => {
           }
           `,
         );
-        const constructor = sourceFile.getClass("MyContract")!.getConstructors()[0];
-        const validator = new ConstructorSemanticValidator(constructor, errorManager);
-        validator.validate();
+        const analyzer = new ContractIRBuilder(sourceFile);
+        analyzer.validateAndBuildIR();
+
+        const errorManager = analyzer.errorManager;
         expect(errorManager.getSemanticErrors().length).toBe(0);
       });
 
@@ -107,7 +112,7 @@ describe("Syntax Validation - Constructor", () => {
         sourceFile = project.createSourceFile(
           "test.ts",
           `
-          @contract
+          @Contract
           class MyContract {
             constructor() {
               // no access modifier
@@ -115,9 +120,10 @@ describe("Syntax Validation - Constructor", () => {
           }
           `,
         );
-        const constructor = sourceFile.getClass("MyContract")!.getConstructors()[0];
-        const validator = new ConstructorSemanticValidator(constructor, errorManager);
-        validator.validate();
+        const analyzer = new ContractIRBuilder(sourceFile);
+        analyzer.validateAndBuildIR();
+
+        const errorManager = analyzer.errorManager;
         expect(errorManager.getSemanticErrors().length).toBe(0);
       });
     });

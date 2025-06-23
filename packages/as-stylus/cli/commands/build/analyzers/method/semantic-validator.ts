@@ -4,17 +4,16 @@ import { VISIBILITY_DECORATORS, STATE_MUTABILITY_DECORATORS } from "@/cli/types/
 
 import { ERROR_CODES } from "../../errors/codes.js";
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
 export class MethodSemanticValidator extends BaseValidator {
   private method: MethodDeclaration;
-  private otherMethodNames: string[];
+  private allNameMethods: string[];
 
-  constructor(method: MethodDeclaration, otherMethodNames: string[], errorManager: ErrorManager) {
-    super(errorManager, method.getSourceFile().getFilePath(), method.getStartLineNumber());
+  constructor(method: MethodDeclaration, allNameMethods: string[]) {
+    super(method);
     this.method = method;
-    this.otherMethodNames = otherMethodNames;
+    this.allNameMethods = allNameMethods;
   }
 
   validate(): boolean {
@@ -42,7 +41,7 @@ export class MethodSemanticValidator extends BaseValidator {
       hasErrors = true;
     }
 
-    if (this.method.getName() && this.otherMethodNames.includes(this.method.getName())) {
+    if (this.method.getName() && this.allNameMethods.filter((name) => name === this.method.getName())?.length > 1) {
       this.addSemanticError(ERROR_CODES.METHOD_NAME_ALREADY_EXISTS, [this.method.getName()]);
       hasErrors = true;
     }

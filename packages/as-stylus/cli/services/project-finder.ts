@@ -1,12 +1,16 @@
 import fs from "fs";
 import path from "path";
+
 import { ErrorManager } from "../commands/build/analyzers/shared/error-manager.js";
 
 export class ProjectFinder {
-  constructor(
-    private readonly contractsRoot: string,
-    private readonly errorManager: ErrorManager,
-  ) {}
+  private readonly contractsRoot: string;
+  private readonly errorManager: ErrorManager;
+
+  constructor(contractsRoot: string, errorManager: ErrorManager) {
+    this.contractsRoot = contractsRoot;
+    this.errorManager = errorManager;
+  }
 
   getCurrentProject(): string {
     return path.resolve(process.cwd());

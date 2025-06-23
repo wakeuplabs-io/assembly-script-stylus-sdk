@@ -8,22 +8,22 @@ import { SupportedType } from "../commands/build/analyzers/shared/supported-type
 export type Literal = {
   kind: "literal";
   value: string | number | boolean | null;
-  type?: SupportedType;
+  type: SupportedType;
 };
 export type Variable = { kind: "var"; name: string; type?: SupportedType };
-export type Call = { kind: "call"; target: string; args: IRExpression[]; type?: SupportedType };
+export type Call = { kind: "call"; target: string; args: IRExpression[]; type: SupportedType };
 export type Member = {
   kind: "member";
   object: IRExpression;
   property: string;
-  type?: SupportedType;
+  type: SupportedType;
 };
 export type IRExpressionBinary = {
   kind: "binary";
   op: string;
   left: IRExpression;
   right: IRExpression;
-  type?: SupportedType;
+  type: SupportedType;
 };
 
 // ───────────────────────

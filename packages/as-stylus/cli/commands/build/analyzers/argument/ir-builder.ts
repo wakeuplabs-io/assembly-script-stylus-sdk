@@ -1,7 +1,8 @@
 import { ParameterDeclaration } from "ts-morph";
+
+import { IRArgument } from "@/cli/types/ir.types.js";
+
 import { IRBuilder } from "../shared/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
-import { IRArgument, IRExpression } from "@/cli/types/ir.types.js";
 
 /**
  * Builds the IR for a function argument expression
@@ -10,8 +11,8 @@ import { IRArgument, IRExpression } from "@/cli/types/ir.types.js";
 export class ArgumentIRBuilder extends IRBuilder<IRArgument> {
   private argument: ParameterDeclaration;
 
-  constructor(argument: ParameterDeclaration, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(argument: ParameterDeclaration) {
+    super(argument);
     this.argument = argument;
   }
 

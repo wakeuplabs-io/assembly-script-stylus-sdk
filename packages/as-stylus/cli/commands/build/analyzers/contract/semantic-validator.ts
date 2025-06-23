@@ -1,15 +1,13 @@
 import { SourceFile } from "ts-morph";
 
-import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
-
 import { ERROR_CODES } from "../../errors/codes.js";
 import { BaseValidator } from "../shared/base-validator.js";
 
 export class ContractSemanticValidator extends BaseValidator {
   private sourceFile: SourceFile;
 
-  constructor(sourceFile: SourceFile, errorManager: ErrorManager) {
-    super(errorManager, sourceFile.getFilePath(), sourceFile.getStartLineNumber());
+  constructor(sourceFile: SourceFile) {
+    super(sourceFile);
     this.sourceFile = sourceFile;
   }
 

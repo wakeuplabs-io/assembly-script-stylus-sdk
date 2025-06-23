@@ -1,7 +1,6 @@
 import { PropertyDeclaration } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 
 const ERROR_MESSAGES = {
   MISSING_NAME: "Property must have a name",
@@ -12,8 +11,8 @@ const ERROR_MESSAGES = {
 export class PropertySyntaxValidator extends BaseValidator {
   private property: PropertyDeclaration;
 
-  constructor(property: PropertyDeclaration, errorManager: ErrorManager) {
-    super(errorManager, property.getSourceFile().getFilePath(), property.getStartLineNumber());
+  constructor(property: PropertyDeclaration) {
+    super(property);
     this.property = property;
   }
 
