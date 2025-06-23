@@ -15,12 +15,14 @@ export function generateArgsLoadBlock(
 
     switch (input.type) {
       case "bool":
+      case "boolean":
         loadExpr = `load<u8>(position + ${offset}) != 0`;
         offset += 1;
         break;
 
       case "U256":
       case "I256":
+      case "Str":
       case "string":
         loadExpr = `position + ${offset}`;
         offset += 32;

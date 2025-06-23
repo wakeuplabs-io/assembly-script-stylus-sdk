@@ -1,5 +1,6 @@
 import { IRContract } from "../../../../types/ir.types.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
+import { generateStructHelpers } from "../struct/struct-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
@@ -19,6 +20,13 @@ export function emitContract(contract: IRContract): string {
 
   // Storage slots
   parts.push(...generateStorageHelpers(contract.storage));
+
+  // Struct helpers
+  if (contract.structs && contract.structs.length > 0) {
+    contract.structs.forEach(struct => {
+      parts.push(...generateStructHelpers(struct));
+    });
+  }
 
   // Events
   if (contract.events && contract.events.length > 0) {
@@ -50,7 +58,7 @@ export function emitContract(contract: IRContract): string {
     let returnType = "void";
   
     if (m.outputs && m.outputs.length > 0 &&
-        (["U256", "u64", "string", "Address", "boolean"].includes(m.outputs[0].type))) {
+        (["U256", "u64", "string", "Address", "boolean", "Str"].includes(m.outputs[0].type))) {
       returnType = "usize";
     }
   
