@@ -3,9 +3,9 @@ import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
 import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
 import { U256CreateHandler } from "./handlers/create-handler.js";
 import { U256FromStringHandler } from "./handlers/from-string-handler.js";
+import { U256LessThanHandler } from "./handlers/less-than-handler.js";
 import { U256OperationHandler } from "./handlers/operation-handler.js";
 import { U256ToStringHandler } from "./handlers/to-string-handler.js";
-import { U256LessThanHandler } from "./handlers/less-than-handler.js";
 
 // Make sure to import this file in the main transformer index
 

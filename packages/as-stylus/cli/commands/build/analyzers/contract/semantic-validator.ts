@@ -1,37 +1,36 @@
 import { SourceFile } from "ts-morph";
 
-import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
-
+import { ERROR_CODES } from "../../errors/codes.js";
 import { BaseValidator } from "../shared/base-validator.js";
 
 export class ContractSemanticValidator extends BaseValidator {
   private sourceFile: SourceFile;
 
-  constructor(sourceFile: SourceFile, errorManager: ErrorManager) {
-    super(errorManager, sourceFile.getFilePath(), sourceFile.getStartLineNumber());
+  constructor(sourceFile: SourceFile) {
+    super(sourceFile);
     this.sourceFile = sourceFile;
   }
 
   validate(): boolean {
-    const classesDefined = this.sourceFile
+    const classesWithDecorators = this.sourceFile
       .getClasses()
       .filter((cls) =>
         cls.getDecorators().some((dec) => dec.getName().toLowerCase() === "contract"),
       );
 
-    if (classesDefined.length === 0) {
-      this.addSemanticError("S001");
+    if (classesWithDecorators.length === 0) {
+      this.addSemanticError(ERROR_CODES.NO_CONTRACT_DECORATOR_FOUND);
       return true;
     } 
     
-    if (classesDefined.length > 1) {
-      this.addSemanticError("S002");
+    if (classesWithDecorators.length > 1) {
+      this.addSemanticError(ERROR_CODES.MULTIPLE_CONTRACTS_FOUND);
       return true;
     }
 
-    const classDefined = classesDefined[0];
+    const classDefined = classesWithDecorators[0];
     if (classDefined.getDecorators().length > 1) {
-      this.addSemanticError("S003", [classDefined.getName()!]);
+      this.addSemanticError(ERROR_CODES.MULTIPLE_CONTRACT_DECORATORS_FOUND, [classDefined.getName()!]);
       return true;
     }
 

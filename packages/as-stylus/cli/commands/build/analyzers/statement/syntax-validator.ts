@@ -1,18 +1,14 @@
 import { Statement, SyntaxKind } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 
 const ERROR_MESSAGES = {
   UNSUPPORTED_STATEMENT_KIND: (kind: string) => `Unsupported statement kind: ${kind}`,
 } as const;
 
 export class StatementSyntaxValidator extends BaseValidator {
-  constructor(
-    private statement: Statement,
-    errorManager: ErrorManager,
-  ) {
-    super(errorManager, statement.getSourceFile().getFilePath(), statement.getStartLineNumber());
+  constructor(private statement: Statement) {
+    super(statement);
   }
 
   validate(): boolean {

@@ -8,17 +8,17 @@ export class StringStorage {
   @External
   static setStorage(value: string): void {
     const s = StrFactory.fromString(value);
-    StringStorage.storageVal = s;
+    storageVal = s;
   }
 
   @View
   static getStorage(): string {
-    return StringStorage.storageVal;
+    return storageVal;
   }
 
   @View
   static substring(offset: U256, length: U256): string {
-    const substring: string = StringStorage.storageVal.slice(offset, length);
+    const substring: string = storageVal.slice(offset, length);
     return substring;
   }
 }

@@ -20,15 +20,11 @@ export class U256ToStringHandler implements ExpressionHandler {
    */
   handle(
     expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
   ): EmitResult {
-    const parts = expr.target.split(".");
-    const cls = parts[0];
-    const prop = parts.length >= 3 ? parts[1] : null;
+    const [prop] = expr.target.split(".");
 
     // Handle contract property operations differently
-    if (cls === context.contractName && prop) {
+    if (expr.scope === "storage") {
       return {
         setupLines: [],
         valueExpr: `load_${prop}()`,
@@ -37,10 +33,9 @@ export class U256ToStringHandler implements ExpressionHandler {
     }
 
     // For regular object operations
-    const targetObj = parts.slice(0, -1).join(".");
     return {
       setupLines: [],
-      valueExpr: `U256.toString(${targetObj})`,
+      valueExpr: `U256.toString(${prop})`,
       valueType: "string",
     };
   }

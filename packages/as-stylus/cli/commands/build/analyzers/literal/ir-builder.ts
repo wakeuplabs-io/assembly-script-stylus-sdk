@@ -2,7 +2,6 @@ import { Expression, SyntaxKind, StringLiteral, NumericLiteral } from "ts-morph"
 
 import { IRExpression } from "@/cli/types/ir.types.js";
 
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 /**
@@ -12,8 +11,8 @@ import { IRBuilder } from "../shared/ir-builder.js";
 export class LiteralIRBuilder extends IRBuilder<IRExpression> {
   private expression: Expression;
 
-  constructor(expression: Expression, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(expression: Expression) {
+    super(expression);
     this.expression = expression;
   }
 
@@ -27,22 +26,43 @@ export class LiteralIRBuilder extends IRBuilder<IRExpression> {
     );
   }
 
+  isAddress(value: string): boolean {
+    return value.startsWith("0x") && value.length === 42;
+  }
+
   buildIR(): IRExpression {
+    let value: string | number | boolean;
+    let type: string;
     switch (this.expression.getKind()) {
       case SyntaxKind.StringLiteral: {
         const lit = this.expression as StringLiteral;
-        return { kind: "literal", value: lit.getLiteralText() };
+        value = lit.getLiteralText();
+        type = "string";
+        if (this.isAddress(value)) {
+          type = "Address";
+        }
+        break;
       }
       case SyntaxKind.NumericLiteral: {
         const lit = this.expression as NumericLiteral;
-        return { kind: "literal", value: Number(lit.getLiteralText()) };
+        value = Number(lit.getLiteralText());
+        type = "U256";
+        break;
       }
-      case SyntaxKind.TrueKeyword:
-        return { kind: "literal", value: true };
-      case SyntaxKind.FalseKeyword:
-        return { kind: "literal", value: false };
+      case SyntaxKind.TrueKeyword: {
+        value = true;
+        type = "boolean";
+        break;
+      }
+      case SyntaxKind.FalseKeyword: {
+        value = false;
+        type = "boolean";
+        break;
+      }
       default:
         throw new Error(`LiteralIRBuilder: unsupported literal kind ${this.expression.getKindName()}`);
     }
+
+    return { kind: "literal", value, type };
   }
 } 

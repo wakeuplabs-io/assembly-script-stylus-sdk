@@ -1,8 +1,9 @@
 import { IRContract } from "@/cli/types/ir.types.js";
-import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
-import { applyAnalysis } from "../build/analyzers/index.js";
-import { ProjectFinder } from "../../services/project-finder.js";
+
 import { Logger } from "../../services/logger.js";
+import { ProjectFinder } from "../../services/project-finder.js";
+import { applyAnalysis } from "../build/analyzers/index.js";
+import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
 
 export class LintRunner {
   private errorManager: ErrorManager;
@@ -20,22 +21,17 @@ export class LintRunner {
   }
 
   lint(): void {
-    const projects = this.projectFinder.getAllProjects();
+    const projectPath = this.projectFinder.getCurrentProject();
+    const contracts = this.projectFinder.getAllContractPaths(projectPath);
 
-    projects.forEach((project) => {
-      const contractPaths = this.projectFinder.getAllContractPaths(project);
-      const projectName = project.split("/").pop()!;
+    contracts.forEach((contractPath) => {
+      this.logger.info(`Linting: ${contractPath}`);
 
-      contractPaths.forEach((contractPath) => {
-        this.logger.info(`Linting: ${contractPath}`);
-
-        const contract: IRContract = applyAnalysis(contractPath, this.errorManager);
-        this.validateContract(contract, contractPath);
-
-        console.log("errors", this.errorManager.getErrors().length);
-        this.logger.logErrorList(this.errorManager.getErrors());
-      });
+      const contract: IRContract = applyAnalysis(contractPath);
+      this.validateContract(contract, contractPath);
     });
+
+    this.logger.logErrorList(this.errorManager.getErrors());
   }
 
   // TODO: check if this is needed. Anyway it is not the correct place for this.

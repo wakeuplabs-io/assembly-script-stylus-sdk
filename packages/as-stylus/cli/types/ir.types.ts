@@ -8,22 +8,33 @@ import { SupportedType } from "../commands/build/analyzers/shared/supported-type
 export type Literal = {
   kind: "literal";
   value: string | number | boolean | null;
-  type?: SupportedType;
+  type: SupportedType;
 };
-export type Variable = { kind: "var"; name: string; type?: SupportedType };
-export type Call = { kind: "call"; target: string; args: IRExpression[]; type?: SupportedType };
+export type Variable = {
+  kind: "var";
+  name: string;
+  type: SupportedType;
+  scope: "storage" | "memory";
+};
+export type Call = {
+  kind: "call";
+  target: string;
+  args: IRExpression[];
+  returnType: SupportedType;
+  scope: "storage" | "memory";
+};
 export type Member = {
   kind: "member";
   object: IRExpression;
   property: string;
-  type?: SupportedType;
+  type: SupportedType;
 };
 export type IRExpressionBinary = {
   kind: "binary";
   op: string;
   left: IRExpression;
   right: IRExpression;
-  type?: SupportedType;
+  type: SupportedType;
 };
 
 // ───────────────────────
@@ -46,7 +57,12 @@ export type IRMapSet2 = {
 // ───────────────────────
 
 export type ComparisonOperator = "==" | "!=" | "<" | "<=" | ">" | ">=";
-export type IRCondition = IRExpressionBinary & { kind: "condition"; op: ComparisonOperator };
+export type IRCondition = {
+  kind: "condition";
+  op?: ComparisonOperator;
+  left: IRExpression;
+  right?: IRExpression;
+};
 
 // ───────────────────────
 // Expressions
@@ -68,10 +84,21 @@ export type IRExpression =
 // Statements
 // ───────────────────────
 
-export type Assignment = { kind: "assign"; target: string; expr: IRExpression };
-export type VariableDeclaration = { kind: "let"; name: string; expr: IRExpression };
+export type Assignment = {
+  kind: "assign";
+  target: string;
+  expr: IRExpression;
+  scope: "storage" | "memory";
+};
+export type VariableDeclaration = {
+  kind: "let";
+  name: string;
+  expr: IRExpression;
+  scope: "storage" | "memory";
+  type: SupportedType;
+};
 export type ExpressionStatement = { kind: "expr"; expr: IRExpression };
-export type Return = { kind: "return"; expr?: IRExpression; valueType?: string };
+export type Return = { kind: "return"; expr?: IRExpression; type: SupportedType };
 export type If = { kind: "if"; condition: IRCondition; then: IRStatement[]; else?: IRStatement[] };
 export type Block = { kind: "block"; body: IRStatement[] };
 

@@ -1,4 +1,5 @@
 import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
+
 import { ExpressionHandler } from "../../core/interfaces.js";
 
 /**
@@ -18,14 +19,12 @@ export class U256LessThanHandler implements ExpressionHandler {
     context: EmitContext,
     emit: (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
-    const parts = expr.target.split(".");
-    const cls = parts[0];
-    const prop = parts.length >= 3 ? parts[1] : null;
+    const [prop] = expr.target.split(".");
 
     const argRes = emit(expr.args[0], context);
 
     // Contract property case (e.g., `MyToken.totalSupply.lessThan(x)`)
-    if (cls === context.contractName && prop) {
+    if (expr.scope === "storage") {
       return {
         setupLines: [...argRes.setupLines],
         valueExpr: `U256.lessThan(load_${prop}(), ${argRes.valueExpr})`,
@@ -34,10 +33,9 @@ export class U256LessThanHandler implements ExpressionHandler {
     }
 
     // Regular object case (e.g., `value.lessThan(x)`)
-    const targetObj = parts.slice(0, -1).join(".");
     return {
       setupLines: [...argRes.setupLines],
-      valueExpr: `U256.lessThan(${targetObj}, ${argRes.valueExpr})`,
+      valueExpr: `U256.lessThan(${prop}, ${argRes.valueExpr})`,
       valueType: "boolean",
     };
   }

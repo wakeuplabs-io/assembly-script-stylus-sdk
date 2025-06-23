@@ -4,7 +4,6 @@ import { ctx } from "@/cli/shared/compilation-context.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 function extractStructName(fullType: string): string {
@@ -44,8 +43,8 @@ function isExpressionOfStructType(objectIR: IRExpression): { isStruct: boolean; 
 export class MemberIRBuilder extends IRBuilder<IRExpression> {
   private expression: PropertyAccessExpression;
 
-  constructor(expression: PropertyAccessExpression, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(expression: PropertyAccessExpression) {
+    super(expression);
     this.expression = expression;
   }
 

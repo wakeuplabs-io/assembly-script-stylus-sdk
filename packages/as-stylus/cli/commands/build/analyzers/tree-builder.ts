@@ -1,9 +1,11 @@
 import fs from "fs";
 import path from "path";
 
+import { Logger } from "@/cli/services/logger.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 import { INTERMEDIATE_REPRESENTATION_PATH } from "@/cli/utils/constants.js";
-import { Logger } from "@/cli/services/logger.js";
+
+import { SymbolTableStack } from "./shared/symbol-table.js";
 
 /**
  * Exports the contract IR to a JSON file for visualization and analysis
@@ -125,4 +127,11 @@ export function generateContractTree(contract: IRContract): any {
 
   Logger.getInstance().info(`Contract tree structure exported to: ${treeFilePath}`);
   return tree;
+}
+
+export function exportSymbolTable(symbolTable: SymbolTableStack): void {
+  const dir = path.resolve(INTERMEDIATE_REPRESENTATION_PATH, "json");
+  fs.mkdirSync(dir, { recursive: true });
+  const symbolTableFilePath = path.join(dir, `symbol-table.json`);
+  fs.writeFileSync(symbolTableFilePath, JSON.stringify(symbolTable.toJSON(), null, 2));
 }
