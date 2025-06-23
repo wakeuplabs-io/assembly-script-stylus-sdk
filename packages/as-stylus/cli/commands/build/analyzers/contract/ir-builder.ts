@@ -84,8 +84,8 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     storage.forEach(v => {
-      ctx.slotMap.set(`${name}.${v.name}`, v.slot);
-      ctx.variableTypes.set(`${name}.${v.name}`, v.type);
+      ctx.slotMap.set(v.name, v.slot);
+      ctx.variableTypes.set(v.name, v.type);
     });
     
     const constructorDecl: ConstructorDeclaration =
