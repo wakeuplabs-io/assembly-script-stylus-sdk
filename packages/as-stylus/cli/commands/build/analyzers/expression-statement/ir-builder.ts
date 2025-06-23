@@ -50,19 +50,21 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
         // Handle property access assignment (obj.field = value)
         if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression) {
           const propAccess = lhsNode as PropertyAccessExpression;
-          const objectExpr = new ExpressionIRBuilder(propAccess.getExpression(), this.errorManager).validateAndBuildIR();
+          const objectExpr = new ExpressionIRBuilder(propAccess.getExpression()).validateAndBuildIR();
           const fieldName = propAccess.getName();
-          const valueExpr = new ExpressionIRBuilder(rhsNode, this.errorManager).validateAndBuildIR();
+          const valueExpr = new ExpressionIRBuilder(rhsNode).validateAndBuildIR();
           
           const structInfo = isStructFieldAccess(objectExpr);
-          
           if (structInfo.isStruct && structInfo.structName) {
+            const struct = this.symbolTable.lookup(structInfo.structName);
             return {
               kind: "expr",
               expr: {
                 kind: "call",
                 target: `${structInfo.structName}_set_${fieldName}`,
-                args: [objectExpr, valueExpr]
+                args: [objectExpr, valueExpr],
+                returnType: "void",
+                scope: struct?.scope || "memory"
               }
             };
           } else {
@@ -75,9 +77,11 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
                 target: `property_set`,
                 args: [
                   objectExpr,
-                  { kind: "literal", value: fieldName },
+                  { kind: "literal", value: fieldName, type: "string" },
                   valueExpr
-                ]
+                ],
+                returnType: "void",
+                scope: "memory"
               }
             };
           }

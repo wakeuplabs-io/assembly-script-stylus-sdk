@@ -20,8 +20,8 @@ function getExpressionType(expr: IRExpression): string | undefined {
       return expr.type;
     case "member":
       return expr.type;
-    case "call":
-      return expr.type;
+    // case "call":
+    //   return expr.type;
     default:
       return undefined;
   }
@@ -53,7 +53,7 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
   }
 
   buildIR(): IRExpression {
-    const objectIR = new ExpressionIRBuilder(this.expression.getExpression(), this.errorManager).validateAndBuildIR();
+    const objectIR = new ExpressionIRBuilder(this.expression.getExpression()).validateAndBuildIR();
     const propertyName = this.expression.getName();
     const expressionType = this.expression.getType().getText();
 
@@ -67,7 +67,6 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
     
     if (structInfo.isStruct && structInfo.structName) {
       console.log(`Detected struct field access: ${structInfo.structName}.${propertyName}`);
-      
       const struct = ctx.structRegistry.get(structInfo.structName);
       if (struct) {
         const field = struct.fields.find(f => f.name === propertyName);
@@ -77,7 +76,9 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
           return {
             kind: "call",
             target: `${structInfo.structName}_get_${propertyName}`,
-            args: [objectIR]
+            args: [objectIR],
+            returnType: expressionType,
+            scope: "storage"
           };
         }
       }
