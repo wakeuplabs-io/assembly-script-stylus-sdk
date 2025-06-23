@@ -1,7 +1,6 @@
 import { Expression, SyntaxKind, StringLiteral, NumericLiteral } from "ts-morph";
 
 import { IRExpression } from "@/cli/types/ir.types.js";
-import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
 import { IRBuilder } from "../shared/ir-builder.js";
 
@@ -64,12 +63,6 @@ export class LiteralIRBuilder extends IRBuilder<IRExpression> {
         throw new Error(`LiteralIRBuilder: unsupported literal kind ${this.expression.getKindName()}`);
     }
 
-    const variable: VariableSymbol = {
-      name: this.expression.getText(),
-      type,
-    };
-
-    this.symbolTable.declareVariable(variable.name, variable);
     return { kind: "literal", value, type };
   }
 } 

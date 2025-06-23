@@ -23,15 +23,12 @@ export class U256OperationHandler implements ExpressionHandler {
     context: EmitContext,
     emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
   ): EmitResult {
-    const parts = expr.target.split(".");
-    const cls = parts[0];
-    const prop = parts.length >= 3 ? parts[1] : null;
-    const op = parts[parts.length - 1];
+    const [prop, op] = expr.target.split(".");
 
     const argRes = emitExprFn(expr.args[0], context);
 
     // Handle contract property operations differently
-    if (cls === context.contractName && prop) {
+    if (expr.scope === "storage") {
       return {
         setupLines: [...argRes.setupLines],
         valueExpr: `U256.${op}(load_${prop}(), ${argRes.valueExpr})`,
@@ -40,10 +37,9 @@ export class U256OperationHandler implements ExpressionHandler {
     }
 
     // For regular object operations
-    const targetObj = parts.slice(0, -1).join(".");
     return {
       setupLines: [...argRes.setupLines],
-      valueExpr: `U256.${op}(${targetObj}, ${argRes.valueExpr})`,
+      valueExpr: `U256.${op}(${prop}, ${argRes.valueExpr})`,
       valueType: "U256",
     };
   }

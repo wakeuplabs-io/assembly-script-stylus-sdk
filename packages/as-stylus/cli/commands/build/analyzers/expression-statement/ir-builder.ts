@@ -33,11 +33,17 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
         // Only treat as assignment if the LHS is an identifier
         if (lhsNode.getKind() === SyntaxKind.Identifier) {
           const lhsId = lhsNode as Identifier;
-          return {
-            kind: "assign",
-            target: lhsId.getText(),
-            expr: new ExpressionIRBuilder(rhsNode).validateAndBuildIR(),
-          };
+          const variable = this.symbolTable.lookup(lhsId.getText());
+
+          //TODO: revise this
+          if (variable?.scope === "memory") { 
+            return {
+              kind: "assign",
+              target: lhsId.getText(),
+              expr: new ExpressionIRBuilder(rhsNode).validateAndBuildIR(),
+              scope: variable?.scope ?? "memory",
+            };
+          }
         }
       }
     }

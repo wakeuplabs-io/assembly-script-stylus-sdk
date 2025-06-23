@@ -1,5 +1,6 @@
 import { BinaryExpression, Expression } from "ts-morph";
 
+import { Logger } from "@/cli/services/logger.js";
 import { IRCondition, IRExpression, IRExpressionBinary } from "@/cli/types/ir.types.js";
 
 import { BinaryExpressionSyntaxValidator } from "./syntax-validator.js";
@@ -28,12 +29,12 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
     return syntaxValidator.validate();
   }
 
-  private getConvertionType(left: IRExpression, right: IRExpression): SupportedType {
+  private getConversionType(left: IRExpression, right: IRExpression): SupportedType {
     const leftType = (left as any).type;
     const rightType = (right as any).type;
 
     if (leftType !== rightType) {
-      console.log("implement conversion", left, right);
+      Logger.getInstance().warn(`TODO: implement conversion from ${leftType} to ${rightType}`);
       return leftType;
     }
 
@@ -43,7 +44,7 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
   buildIR(): IRExpressionBinary | IRCondition {
     const left = new ExpressionIRBuilder(this.left).validateAndBuildIR();
     const right = new ExpressionIRBuilder(this.right).validateAndBuildIR();
-    const type = this.getConvertionType(left, right);
+    const type = this.getConversionType(left, right);
 
     if (this.isConditional) {
       return {

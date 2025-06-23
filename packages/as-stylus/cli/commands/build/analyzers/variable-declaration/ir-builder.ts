@@ -2,6 +2,7 @@ import { Expression, VariableDeclaration } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
+import { inferType } from "@/cli/utils/inferType.js";
 
 import { VariableDeclarationSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
@@ -26,7 +27,8 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
 
   buildIR(): IRStatement {
     const initializer = this.declaration.getInitializer();
-    const variable: VariableSymbol = { name: this.declaration.getName(), type: "void" };
+    const type = inferType(initializer?.getText() ?? "");
+    const variable: VariableSymbol = { name: this.declaration.getName(), type, scope: "memory" };
 
     // TODO: revise this case
     if (!initializer) {
@@ -35,17 +37,22 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       return {
         kind: "let",
         name: variable.name,
-        expr: { kind: "literal", value: null, type: "void" },
+        type: variable.type,
+        expr: { kind: "literal", value: null, type: variable.type },
+        scope: variable.scope,
       };
     }
 
-    const expression = new ExpressionIRBuilder(initializer as Expression);
+    const expression = new ExpressionIRBuilder(initializer as Expression).validateAndBuildIR();
+    variable.type = (expression as any).returnType;
     this.symbolTable.declareVariable(variable.name, variable);
 
     return {
       kind: "let",
       name: variable.name,
-      expr: expression.validateAndBuildIR(),
+      type: variable.type,
+      expr: expression,
+      scope: variable.scope,
     };
   }
 }

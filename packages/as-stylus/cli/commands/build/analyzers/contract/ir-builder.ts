@@ -68,7 +68,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     for (const v of storage) {
-      ctx.slotMap.set(`${name}.${v.name}`, v.slot);
+      ctx.slotMap.set(v.name, v.slot);
     }
     
     const constructorDecl: ConstructorDeclaration =

@@ -26,10 +26,12 @@ export class ReturnIRBuilder extends IRBuilder<IRStatement> {
       const expr = new ExpressionIRBuilder(expression).validateAndBuildIR();
       return {
         kind: "return",
+        // TODO: remove any when type is added all the expressions
+        type: (expr as any).type ?? "void",
         expr,
       };
     }
 
-    return { kind: "return", valueType: "void" };
+    return { kind: "return", type: "void" };
   }
 }

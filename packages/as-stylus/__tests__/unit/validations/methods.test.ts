@@ -64,7 +64,7 @@ describe("Syntax Validation - Methods", () => {
         ).toBe(true);
       });
 
-      it.skip("should detect method with incorrect return type", () => {
+      it("should detect method with incorrect return type", () => {
         const sourceFile = project.createSourceFile(
           "test.ts",
           "class MyContract { @Public static method(): boolean { return 1; } }",
@@ -78,7 +78,7 @@ describe("Syntax Validation - Methods", () => {
         ).toBe(true);
       });
 
-      it.skip("should detect method with missing return statement", () => {
+      it("should detect method with missing return statement", () => {
         const sourceFile = project.createSourceFile(
           "test.ts",
           "class MyContract { @Public static method(): boolean {} }",

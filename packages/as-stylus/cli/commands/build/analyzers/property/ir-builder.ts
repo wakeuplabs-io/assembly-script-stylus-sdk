@@ -1,6 +1,7 @@
 import { PropertyDeclaration } from "ts-morph";
 
 import { IRVariable } from "@/cli/types/ir.types.js";
+import { inferType } from "@/cli/utils/inferType.js";
 
 import { PropertySyntaxValidator } from "./syntax-validator.js";
 import { IRBuilder } from "../shared/ir-builder.js";
@@ -21,12 +22,11 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   }
 
   buildIR(): IRVariable {
-    const name = this.property.getName();
-    const typeText = this.property.getType().getText();
+    const [name] = this.property.getName().split(":");
+    const type = inferType(this.property.getType().getText());
+    this.symbolTable.declareVariable(name, { name, type, scope: "storage" });
   
-    const isMapping = /^Mapping(<|$)/.test(typeText);
-  
-    if (/^Mapping2(<|$)/.test(typeText)) {
+    if (type === "mapping2") {
       return {
         name,
         type: "mapping2",
@@ -38,7 +38,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       };
     }
 
-    if (isMapping) {
+    if (type === "mapping") {
       return {
         name,
         type: "mapping",
@@ -49,11 +49,9 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       };
     }
 
-    this.symbolTable.declareVariable(name, { name, type: typeText });
-
     return {
       name,
-      type: typeText,
+      type,
       slot: this.slot,
       kind: "simple",
     };

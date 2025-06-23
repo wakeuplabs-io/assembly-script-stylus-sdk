@@ -42,7 +42,7 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       case SyntaxKind.Identifier: {
         const id = this.expression as Identifier;
         const variable = this.symbolTable.lookup(id.getText());
-        return { kind: "var", name: id.getText(), type: variable?.type ?? "void" };
+        return { kind: "var", name: id.getText(), type: variable?.type ?? "void", scope: variable?.scope ?? "memory" };
       }
   
       /* ---------- Function calls ---------- */
