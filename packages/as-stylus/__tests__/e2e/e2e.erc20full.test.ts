@@ -106,7 +106,7 @@ const expectString = (data: string, expected: string) => {
 };
 
 describe("ERC20Full end-to-end", () => {
-  describe.skip("basic functionality", () => {
+  describe("basic functionality", () => {
     it("name() returns correct value", () => expectString(calldata(SELECTOR.NAME), NAME_STR));
     it("symbol() returns correct value", () => expectString(calldata(SELECTOR.SYMBOL), SYMBOL_STR));
     it("decimals() returns 18", () => expectHex(calldata(SELECTOR.DECIMALS), DECIMALS_18));
@@ -153,7 +153,7 @@ describe("ERC20Full end-to-end", () => {
     });
   });
 
-  describe.skip("edge cases", () => {
+  describe("edge cases", () => {
     it("minting 0 tokens has no effect", () => {
       const beforeSupply = helpers.callData(SELECTOR.TOTAL_SUPPLY);
       const beforeBalance = helpers.callData(calldata(SELECTOR.BALANCE_OF, OWNER));
