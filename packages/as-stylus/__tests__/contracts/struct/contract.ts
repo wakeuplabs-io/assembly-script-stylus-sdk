@@ -29,35 +29,35 @@ export class StructContract {
   static myStruct: StructTest;
 
   static setStruct(to: Address, contents: Str, value: U256, flag: boolean, value2: U256) {
-    StructContract.myStruct.to = to;
-    StructContract.myStruct.contents = contents;
-    StructContract.myStruct.value = value;
-    StructContract.myStruct.flag = flag;
-    StructContract.myStruct.value2 = value2;
+    myStruct.to = to;
+    myStruct.contents = contents;
+    myStruct.value = value;
+    myStruct.flag = flag;
+    myStruct.value2 = value2;
   }
 
   @View
   static getStructTo(): Address {
-    return StructContract.myStruct.to;
+    return myStruct.to;
   }
 
   @View
   static getStructContents(): Str {
-    return StructContract.myStruct.contents;
+    return myStruct.contents;
   }
 
   @View
   static getStructValue(): U256 {
-    return StructContract.myStruct.value;
+    return myStruct.value;
   }
 
   @View
   static getStructFlag(): boolean {
-    return StructContract.myStruct.flag;
+    return myStruct.flag;
   }
 
   @View
   static getStructValue2(): U256 {
-    return StructContract.myStruct.value2;
+    return myStruct.value2;
   }
 }
