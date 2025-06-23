@@ -1,6 +1,6 @@
-import { ctx } from "../../../../../shared/compilation-context.js";
 import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
 import { IRStruct } from "../../../../../types/ir.types.js";
+import { getStructInfoFromVariableName } from "../../../analyzers/struct/struct-utils.js";
 import { ExpressionHandler } from "../../core/interfaces.js";
 
 export class StructFieldAccessHandler implements ExpressionHandler {
@@ -72,27 +72,7 @@ export class StructFieldAccessHandler implements ExpressionHandler {
     // If it's a simple identifier (variable)
     if (objectExpr.kind === "var") {
       const variableName = objectExpr.name;
-      
-      // Search in contract storage variables
-      const fullVariableName = `${ctx.contractName}.${variableName}`;
-      const variableType = ctx.variableTypes.get(fullVariableName);
-      
-      if (variableType && ctx.structRegistry.has(variableType)) {
-        return {
-          isStruct: true,
-          structName: variableType,
-          variableName: fullVariableName
-        };
-      }
-      
-      // Also check if the type is directly a struct
-      if (ctx.structRegistry.has(variableName)) {
-        return {
-          isStruct: true,
-          structName: variableName,
-          variableName: variableName
-        };
-      }
+      return getStructInfoFromVariableName(variableName);
     }
     
     // TODO: Handle more complex cases (obj.prop.field, etc.)

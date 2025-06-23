@@ -5,40 +5,7 @@ import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-
-function extractStructName(fullType: string): string {
-  if (fullType.includes(").")) {
-    const parts = fullType.split(").");
-    return parts[parts.length - 1];
-  }
-  return fullType;
-}
-
-function getExpressionType(expr: IRExpression): string | undefined {
-  switch (expr.kind) {
-    case "var":
-      return expr.type;
-    case "member":
-      return expr.type;
-    // case "call":
-    //   return expr.type;
-    default:
-      return undefined;
-  }
-}
-
-function isExpressionOfStructType(objectIR: IRExpression): { isStruct: boolean; structName?: string } {
-  const objectType = getExpressionType(objectIR);
-  if (!objectType) return { isStruct: false };
-  
-  const structName = extractStructName(objectType);
-  
-  if (ctx.structRegistry.has(structName)) {
-    return { isStruct: true, structName };
-  }
-  
-  return { isStruct: false };
-}
+import { getExpressionType, isExpressionOfStructType } from "../struct/struct-utils.js";
 
 export class MemberIRBuilder extends IRBuilder<IRExpression> {
   private expression: PropertyAccessExpression;

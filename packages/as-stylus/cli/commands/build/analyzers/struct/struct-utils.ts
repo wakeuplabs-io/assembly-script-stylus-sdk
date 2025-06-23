@@ -1,10 +1,11 @@
 import { ctx } from "@/cli/shared/compilation-context.js";
+import { IRExpression } from "@/cli/types/ir.types.js";
 
 /**
  * Extracts the struct name from a full type
  * Example: "import(...).StructTest" -> "StructTest"
  */
-function extractStructName(fullType: string): string {
+export function extractStructName(fullType: string): string {
   // If it's an import path, extract only the final name
   if (fullType.includes(").")) {
     const parts = fullType.split(").");
@@ -15,23 +16,68 @@ function extractStructName(fullType: string): string {
   return fullType;
 }
 
-export function isStructVariable(variableName: string): boolean {
-  const variableType = ctx.variableTypes.get(variableName);
-  if (!variableType) return false;
+/**
+ * Gets the type of an IR expression
+ */
+export function getExpressionType(expr: IRExpression): string | undefined {
+  switch (expr.kind) {
+    case "var":
+      return expr.type;
+    case "member":
+      return expr.type;
+    case "call":
+      return expr.returnType;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Checks if an IR expression is of struct type
+ */
+export function isExpressionOfStructType(objectIR: IRExpression): { isStruct: boolean; structName?: string } {
+  const objectType = getExpressionType(objectIR);
+  if (!objectType) return { isStruct: false };
   
-  const structName = extractStructName(variableType);
-  return ctx.structRegistry.has(structName);
+  const structName = extractStructName(objectType);
+  
+  if (ctx.structRegistry.has(structName)) {
+    return { isStruct: true, structName };
+  }
+  
+  return { isStruct: false };
 }
 
-export function isStructType(typeName: string): boolean {
-  const structName = extractStructName(typeName);
-  return ctx.structRegistry.has(structName);
-}
-
-
-export function getStructDefinition(structName: string) {
-  const cleanName = extractStructName(structName);
-  return ctx.structRegistry.get(cleanName);
+/**
+ * Checks if a variable name corresponds to a struct variable
+ * Used for checking object expressions in field access
+ */
+export function getStructInfoFromVariableName(variableName: string): { isStruct: boolean; structName?: string; variableName?: string } {
+  // Search in contract storage variables
+  const fullVariableName = `${ctx.contractName}.${variableName}`;
+  const variableType = ctx.variableTypes.get(fullVariableName);
+  
+  if (variableType) {
+    const structName = extractStructName(variableType);
+    if (ctx.structRegistry.has(structName)) {
+      return {
+        isStruct: true,
+        structName: structName,
+        variableName: fullVariableName
+      };
+    }
+  }
+  
+  // Also check if the type is directly a struct
+  if (ctx.structRegistry.has(variableName)) {
+    return {
+      isStruct: true,
+      structName: variableName,
+      variableName: variableName
+    };
+  }
+  
+  return { isStruct: false };
 }
 
 export function isStructFieldAccess(objectExpr: any): { isStruct: boolean; structName?: string; variableName?: string } {
@@ -41,28 +87,13 @@ export function isStructFieldAccess(objectExpr: any): { isStruct: boolean; struc
   
   if (objectExpr.kind === "var") {
     const variableName = objectExpr.name;
+    console.log(`Simple var: ${variableName}`);
     
-    const fullVariableName = `${ctx.contractName}.${variableName}`;
-    const variableType = ctx.variableTypes.get(fullVariableName);
-    
-    console.log(`Simple var: ${variableName} -> ${fullVariableName} -> type: ${variableType}`);
-    
-    if (variableType) {
-      const structName = extractStructName(variableType);
-      console.log(`Extracted struct name: ${structName}`);
-      
-      if (ctx.structRegistry.has(structName)) {
-        console.log("Detected as struct!");
-        return {
-          isStruct: true,
-          structName: structName,
-          variableName: fullVariableName
-        };
-      }
+    const result = getStructInfoFromVariableName(variableName);
+    if (result.isStruct) {
+      console.log("Detected as struct!");
     }
-    
-    // TODO: Search in current method variables
-    // For now, we only check storage variables
+    return result;
   }
   
   // If it's a nested member access (obj.prop.field)
