@@ -23,9 +23,9 @@ export class ERC20Full {
   static name: Str;
   static symbol: Str;
 
-  constructor(name: string, symbol: string) {
-    const nameStr = StrFactory.fromString(name);
-    const symbolStr = StrFactory.fromString(symbol);
+  constructor(_name: string, _symbol: string) {
+    const nameStr = StrFactory.fromString(_name);
+    const symbolStr = StrFactory.fromString(_symbol);
     name = nameStr;
     symbol = symbolStr;
   }

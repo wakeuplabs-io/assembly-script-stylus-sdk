@@ -31,7 +31,6 @@ export class LintRunner {
       this.validateContract(contract, contractPath);
     });
 
-    console.log("errors", this.errorManager.getErrors().length);
     this.logger.logErrorList(this.errorManager.getErrors());
   }
 
