@@ -6,21 +6,21 @@ export class Storage {
   static value: U256;
 
   constructor(initialValue: U256) {
-    Storage.value = initialValue;
+    value = initialValue;
   }
 
   @External
   static add(delta: U256): void {
-    Storage.value = Storage.value.add(delta);
+    value = value.add(delta);
   }
 
   @External
   static sub(delta: U256): void {
-    Storage.value = Storage.value.sub(delta);
+    value = value.sub(delta);
   }
 
   @View
   static get(): U256 {
-    return Storage.value;
+    return value;
   }
 }

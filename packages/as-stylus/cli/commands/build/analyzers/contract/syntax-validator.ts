@@ -2,13 +2,12 @@ import { SourceFile, ClassDeclaration } from "ts-morph";
 
 import { ERROR_CODES } from "../../errors/codes.js";
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 
 export class ContractSyntaxValidator extends BaseValidator {
   private sourceFile: SourceFile;
 
-  constructor(sourceFile: SourceFile, errorManager: ErrorManager) {
-    super(errorManager, sourceFile.getFilePath(), sourceFile.getStartLineNumber());
+  constructor(sourceFile: SourceFile) {
+    super(sourceFile);
     this.sourceFile = sourceFile;
   }
 

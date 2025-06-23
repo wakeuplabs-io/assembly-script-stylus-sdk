@@ -1,7 +1,6 @@
 import { ReturnStatement } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
 const ERROR_MESSAGES = {
@@ -11,8 +10,8 @@ const ERROR_MESSAGES = {
 export class ReturnSyntaxValidator extends BaseValidator {
   private statement: ReturnStatement;
 
-  constructor(statement: ReturnStatement, errorManager: ErrorManager) {
-    super(errorManager, statement.getSourceFile().getFilePath(), statement.getStartLineNumber());
+  constructor(statement: ReturnStatement) {
+    super(statement);
     this.statement = statement;
   }
 

@@ -9,20 +9,19 @@ import { ConstructorIRBuilder } from "../constructor/ir-builder.js";
 import { EventIRBuilder } from "../event/ir-builder.js";
 import { MethodIRBuilder } from "../method/ir-builder.js";
 import { PropertyIRBuilder } from "../property/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 export class ContractIRBuilder extends IRBuilder<IRContract> {
   private sourceFile: SourceFile;
 
-  constructor(sourceFile: SourceFile, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(sourceFile: SourceFile) {
+    super(sourceFile);
     this.sourceFile = sourceFile;
   }
 
   validate(): boolean {
-    const syntaxValidator = new ContractSyntaxValidator(this.sourceFile, this.errorManager);
-    const semanticValidator = new ContractSemanticValidator(this.sourceFile, this.errorManager);
+    const syntaxValidator = new ContractSyntaxValidator(this.sourceFile);
+    const semanticValidator = new ContractSemanticValidator(this.sourceFile);
 
     const syntaxErrors = syntaxValidator.validate();
     const semanticErrors = semanticValidator.validate();
@@ -32,6 +31,15 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
   buildIR(): IRContract {
     const classes = this.sourceFile.getClasses();
+    if (classes.length === 0) {
+      return {
+        name: "Main",
+        constructor: undefined,
+        methods: [],
+        storage: [],
+      };
+    }
+
     
     let classDefinition = classes.find(cls => {
       const decorators = cls.getDecorators();
@@ -55,28 +63,26 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     const name = classDefinition.getName();
 
     const storage = classDefinition.getProperties().map((property, index) => {
-      const propertyIRBuilder = new PropertyIRBuilder(property, index, this.errorManager);
+      const propertyIRBuilder = new PropertyIRBuilder(property, index);
       return propertyIRBuilder.validateAndBuildIR();
     });
 
     for (const v of storage) {
-      ctx.slotMap.set(`${name}.${v.name}`, v.slot);
+      ctx.slotMap.set(v.name, v.slot);
     }
     
     const constructorDecl: ConstructorDeclaration =
       classDefinition.getConstructors()[0];
     let constructor;
     if(constructorDecl) {
-      const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl, this.errorManager);
+      const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl);
       constructor = constructorIRBuilder.validateAndBuildIR();
     }
 
     const names = classDefinition.getMethods().map(method => method.getName());
 
-
-
     const methods = classDefinition.getMethods().map((method) => {
-      const methodIRBuilder = new MethodIRBuilder(method, names, this.errorManager);
+      const methodIRBuilder = new MethodIRBuilder(method, names);
       return methodIRBuilder.validateAndBuildIR();
     });
 
@@ -86,7 +92,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     const events = eventClasses.map(eventClass => {
-      const eventIRBuilder = new EventIRBuilder(eventClass, this.errorManager);
+      const eventIRBuilder = new EventIRBuilder(eventClass);
       return eventIRBuilder.validateAndBuildIR();
     });
 

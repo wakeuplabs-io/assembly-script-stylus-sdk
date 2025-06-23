@@ -3,7 +3,6 @@ import { PropertyAccessExpression } from "ts-morph";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 /**
@@ -13,8 +12,8 @@ import { IRBuilder } from "../shared/ir-builder.js";
 export class MemberIRBuilder extends IRBuilder<IRExpression> {
   private expression: PropertyAccessExpression;
 
-  constructor(expression: PropertyAccessExpression, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(expression: PropertyAccessExpression) {
+    super(expression);
     this.expression = expression;
   }
 
@@ -22,14 +21,15 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
     return true;
   }
 
-  buildIR(): IRExpression {
-    const object = new ExpressionIRBuilder(this.expression.getExpression(), this.errorManager);
 
+  buildIR(): IRExpression {
+    const object = new ExpressionIRBuilder(this.expression.getExpression()).validateAndBuildIR();
+    const variable = this.symbolTable.lookup(this.expression.getName());
     return {
       kind: "member",
-      object: object.validateAndBuildIR(),
+      object: object,
       property: this.expression.getName(),
-      type: this.expression.getType().getText()
+      type: variable?.type || "void",
     };
   }
 } 

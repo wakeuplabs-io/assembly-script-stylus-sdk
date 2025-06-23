@@ -43,7 +43,6 @@ function expectAbiString(callData: string, expected: string) {
   expect(decoded).toBe(expected);
 }
 
-
 beforeAll(() => {
   const projectRoot = path.join(ROOT, "/as-stylus/");
   const pkg = path.join(ROOT, "/as-stylus/__tests__/contracts/string");

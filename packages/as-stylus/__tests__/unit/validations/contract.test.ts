@@ -1,27 +1,27 @@
 import { Project } from "ts-morph";
 
-import { ContractSemanticValidator } from "@/cli/commands/build/analyzers/contract/semantic-validator.js";
-import { ContractSyntaxValidator } from "@/cli/commands/build/analyzers/contract/syntax-validator.js";
-import { ErrorManager } from "@/cli/commands/build/analyzers/shared/error-manager.js";
+import { ContractIRBuilder } from "@/cli/commands/build/analyzers/contract/ir-builder.js";
+import { AnalysisContextFactory } from "@/cli/commands/build/analyzers/shared/analysis-context-factory.js";
 import { ERROR_CODES } from "@/cli/commands/build/errors/codes.js";
 
 describe("Syntax Validation - Contract", () => {
   let project: Project;
-  let errorManager: ErrorManager;
 
   beforeEach(() => {
     project = new Project({
       useInMemoryFileSystem: true,
     });
-    errorManager = new ErrorManager();
+    AnalysisContextFactory.reset();
   });
 
   describe("Contract Validation", () => {
     describe("Syntax Errors", () => {
       it("should detect empty source file", () => {
         const sourceFile = project.createSourceFile("test.ts", "");
-        const validator = new ContractSyntaxValidator(sourceFile, errorManager);
-        validator.validate();
+        const analyzer = new ContractIRBuilder(sourceFile);
+        analyzer.validateAndBuildIR();
+
+        const errorManager = analyzer.errorManager;
         expect(
           errorManager
             .getSyntaxErrors()
@@ -31,8 +31,10 @@ describe("Syntax Validation - Contract", () => {
 
       it("should detect missing class declarations", () => {
         const sourceFile = project.createSourceFile("test.ts", "const x = 1;");
-        const validator = new ContractSyntaxValidator(sourceFile, errorManager);
-        validator.validate();
+        const analyzer = new ContractIRBuilder(sourceFile);
+        analyzer.validateAndBuildIR();
+
+        const errorManager = analyzer.errorManager;
         expect(
           errorManager
             .getSyntaxErrors()
@@ -52,8 +54,10 @@ describe("Syntax Validation - Contract", () => {
           }
           `,
         );
-        const validator = new ContractSemanticValidator(sourceFile, errorManager);
-        validator.validate();
+        const analyzer = new ContractIRBuilder(sourceFile);
+        analyzer.validateAndBuildIR();
+
+        const errorManager = analyzer.errorManager;
         expect(
           errorManager
             .getSemanticErrors()
@@ -78,8 +82,10 @@ describe("Syntax Validation - Contract", () => {
           }
           `,
         );
-        const validator = new ContractSemanticValidator(sourceFile, errorManager);
-        validator.validate();
+        const analyzer = new ContractIRBuilder(sourceFile);
+        analyzer.validateAndBuildIR();
+
+        const errorManager = analyzer.errorManager;
         expect(
           errorManager
             .getSemanticErrors()

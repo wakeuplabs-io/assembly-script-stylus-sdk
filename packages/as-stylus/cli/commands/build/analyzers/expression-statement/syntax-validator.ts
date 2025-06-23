@@ -6,7 +6,6 @@ import {
   SymbolFlags,
 } from "ts-morph";
 
-import { ErrorManager } from "../shared/error-manager.js";
 import { BaseValidator } from "../shared/base-validator.js";
 
 const ERROR_MESSAGES = {
@@ -17,8 +16,8 @@ const ERROR_MESSAGES = {
 export class ExpressionStatementSyntaxValidator extends BaseValidator {
   private statement: ExpressionStatement;
 
-  constructor(statement: ExpressionStatement, errorManager: ErrorManager) {
-    super(errorManager, statement.getSourceFile().getFilePath(), statement.getStartLineNumber());
+  constructor(statement: ExpressionStatement) {
+    super(statement);
     this.statement = statement;
   }
 
@@ -31,12 +30,6 @@ export class ExpressionStatementSyntaxValidator extends BaseValidator {
       const bin = expr as BinaryExpression;
       if (bin.getOperatorToken().getKind() === SyntaxKind.EqualsToken) {
         const lhsNode = bin.getLeft();
-
-        // Validate that LHS is an identifier
-        if (lhsNode.getKind() !== SyntaxKind.Identifier) {
-          this.addSyntaxError(ERROR_MESSAGES.MISSING_LHS);
-          hasError = true;
-        }
 
         // Validate that the identifier is not a constant
         const lhsId = lhsNode as Identifier;

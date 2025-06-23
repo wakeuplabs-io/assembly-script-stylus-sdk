@@ -8,9 +8,9 @@ export class StrSliceHandler implements ExpressionHandler {
     return expr.kind === "call" && expr.target.endsWith(".slice");
   }
 
-  private makeReceiver(chain: string): any {
+  private makeReceiver(chain: string, scope: string): any {
     if (chain.indexOf(".") === -1) {
-      return { kind: "var", name: chain };
+      return { kind: "var", name: chain, scope };
     }
     const [head, ...rest] = chain.split(".");
     let node: any = { kind: "var", name: head };
@@ -25,20 +25,19 @@ export class StrSliceHandler implements ExpressionHandler {
     ctx  : EmitContext,
     emit : (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
-
-    /* ───── 1️⃣ normalizamos el receiver ───── */
+    // Normalize the receiver
     if (!expr.receiver) {
       const chain = expr.target.slice(0, -".slice".length);
-      expr.receiver = this.makeReceiver(chain);
+      expr.receiver = this.makeReceiver(chain, expr.scope);
       expr.target   = "Str.slice";
     }
 
-    /* ───── 2️⃣ emitimos los nodos originales ───── */
-    const recvIR   = emit(expr.receiver, ctx);  // Str en storage
-    const offIR    = emit(expr.args[0], ctx);   // palabra offset
-    const lenIR    = emit(expr.args[1], ctx);   // palabra length
+    // Emit the original nodes
+    const recvIR   = emit(expr.receiver, ctx);
+    const offIR    = emit(expr.args[0], ctx);
+    const lenIR    = emit(expr.args[1], ctx);
 
-    /* ───── 3️⃣ temps para big-endian decode ───── */
+    // Temps for big-endian decode
     const offsetBE = makeTemp("offsetBE");
     const lengthBE = makeTemp("lengthBE");
     const sliceRes = makeTemp("sliceRes");

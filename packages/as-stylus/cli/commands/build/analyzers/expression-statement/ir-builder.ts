@@ -4,23 +4,19 @@ import { IRStatement } from "@/cli/types/ir.types.js";
 
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
-import { ErrorManager } from "../shared/error-manager.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 // TODO: rename to AssignmentIRBuilder. Merge with VariableIRBuilder.
 export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
   private statement: ExpressionStatement;
 
-  constructor(statement: ExpressionStatement, errorManager: ErrorManager) {
-    super(errorManager);
+  constructor(statement: ExpressionStatement) {
+    super(statement);
     this.statement = statement;
   }
 
   validate(): boolean {
-    const syntaxValidator = new ExpressionStatementSyntaxValidator(
-      this.statement,
-      this.errorManager,
-    );
+    const syntaxValidator = new ExpressionStatementSyntaxValidator(this.statement);
     return syntaxValidator.validate();
   }
 
@@ -37,11 +33,17 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
         // Only treat as assignment if the LHS is an identifier
         if (lhsNode.getKind() === SyntaxKind.Identifier) {
           const lhsId = lhsNode as Identifier;
-          return {
-            kind: "assign",
-            target: lhsId.getText(),
-            expr: new ExpressionIRBuilder(rhsNode, this.errorManager).validateAndBuildIR(),
-          };
+          const variable = this.symbolTable.lookup(lhsId.getText());
+
+          //TODO: revise this
+          if (variable?.scope === "memory") { 
+            return {
+              kind: "assign",
+              target: lhsId.getText(),
+              expr: new ExpressionIRBuilder(rhsNode).validateAndBuildIR(),
+              scope: variable?.scope ?? "memory",
+            };
+          }
         }
       }
     }
@@ -49,7 +51,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
     // Handle simple expressions (function calls, etc.)
     return {
       kind: "expr",
-      expr: new ExpressionIRBuilder(expr, this.errorManager).validateAndBuildIR(),
+      expr: new ExpressionIRBuilder(expr).validateAndBuildIR(),
     };
   }
 }
