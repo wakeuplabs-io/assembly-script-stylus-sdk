@@ -2,6 +2,7 @@ import { IRContract } from "../../../../types/ir.types.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
 import { generateStructHelpers } from "../struct/struct-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
+import { generateDeployFunction } from "../utils/deploy.js";
 import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
 import { generateStorageImports, generateStorageHelpers } from "../utils/storage.js";
@@ -34,23 +35,8 @@ export function emitContract(contract: IRContract): string {
   }
 
   // Constructor
-  if (contract.constructor) {
-    const { inputs } = contract.constructor;
-    const { callArgs } = generateArgsLoadBlock(inputs);
-    const argsSignature = callArgs.map(a => `${a}: usize`).join(", ");
-    const aliasLines = inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
-    if (inputs.some(inp => inp.type === "string")) {
-      aliasLines.push(`  const argsStart: usize = arg0;`);
-    }
-    const body = emitStatements(contract.constructor.ir);
-  
-    parts.push(
-      `export function deploy(${argsSignature}): void {\n` +
-      aliasLines.join("\n") + "\n" +
-      body + "\n}"
-    );
-    parts.push("");
-  }
+  parts.push(generateDeployFunction(contract));
+  parts.push("");
   
   
   // Methods

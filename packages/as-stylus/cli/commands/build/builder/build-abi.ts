@@ -22,7 +22,7 @@ export function buildAbi(targetPath: string, contract: IRContract) {
 
     const stateMutability: AbiItem["stateMutability"] =
       method.outputs.length > 0 ? "view" : "nonpayable";
-
+    console.log({name: method.name, inputs});
     abi.push({
       name: method.name,
       type: "function",
@@ -48,8 +48,14 @@ export function buildAbi(targetPath: string, contract: IRContract) {
   writeFile(abiPath, JSON.stringify(abi, null, 2));
 }
 
-function convertType(type: string): string {
+export function convertType(type: string): string {
   switch (type) {
+    case "U256":
+    case "u256":
+      return "uint256";
+    case "I256":
+    case "i256":
+      return "int256";
     case "u32":
     case "i32":
       return "uint32";
@@ -57,6 +63,7 @@ function convertType(type: string): string {
       return "bool";
     case "string":
       return "string";
+    case "Address":
     case "address":
       return "address";
     case "bytes32":

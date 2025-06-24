@@ -7,6 +7,7 @@ import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
+import { convertType } from "./build-abi.js";
 
 function getCanonicalType(type: string): string {
   return type;
@@ -21,9 +22,9 @@ export function generateUserEntrypoint(contract: IRContract) {
 
     if (["public", "external"].includes(visibility)) {
       // Create function signature: name(type1,type2,...)
-      const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
+      const paramTypes = inputs.map(input => convertType(input.type)).join(",");
       const functionSignature = `${name}(${paramTypes})`;
-      
+      console.log({name, functionSignature});
       // Generate selector using keccak256 hash of the function signature
       const hash = keccak256(functionSignature).toString('hex');
       const sig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
@@ -54,24 +55,21 @@ export function generateUserEntrypoint(contract: IRContract) {
     }
   }
 
-  if (contract.constructor) {
-    const { inputs } = contract.constructor;
-    const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-    // Create constructor signature: deploy(type1,type2,...)
-    const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
-    const functionSignature = `deploy(${paramTypes})`;
-    
-    // Generate selector using keccak256 hash of the function signature
-    const hash = keccak256(functionSignature).toString('hex');
-    const deploySig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
-    imports.push(`import { deploy } from "./contract.transformed";`);
+  const deployInputs = contract.constructor?.inputs || [];
+  const { argLines, callArgs } = generateArgsLoadBlock(deployInputs);
   
-    const callLine = `deploy(${callArgs.join(", ")}); return 0;`;
-    const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
+  const paramTypes = deployInputs.map(input => getCanonicalType(input.type)).join(",");
+  const functionSignature = `deploy(${paramTypes})`;
   
-    const deployEntry = `  if (selector == ${deploySig}) {\n${indentedBody}\n  }`;
-    entries.push(deployEntry);
-  }
+  const hash = keccak256(functionSignature).toString('hex');
+  const deploySig = `0x${hash.slice(0, 8)}`;
+  imports.push(`import { deploy } from "./contract.transformed";`);
+  
+  const callLine = `deploy(${callArgs.join(", ")}); return 0;`;
+  const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
+  
+  const deployEntry = `  if (selector == ${deploySig}) {\n${indentedBody}\n  }`;
+  entries.push(deployEntry);
   
 
   return {

@@ -17,6 +17,7 @@ if (!USER_B_PRIVATE_KEY) throw new Error("⚠️  Set USER_B_PRIVATE_KEY in .env
 
 export function run(cmd: string, cwd: string = ROOT, allowErr = false): string {
   try {
+    console.log(`🔍 Run: ${cmd}`);
     return execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8" }).trim();
   } catch (e: any) {
     if (!allowErr) throw e;
@@ -30,6 +31,11 @@ export const stripAnsi = (s: string) => stripAnsiRaw(s);
 
 export const pad64 = (v: bigint, with0x = true) =>
   (with0x ? "0x" : "") + v.toString(16).padStart(64, "0");
+
+export const padAddress = (v: bigint, with0x = true) =>
+  (with0x ? "0x" : "") + v.toString(16).padStart(40, "0");
+
+export const padBool = (v: boolean, with0x = true) => (with0x ? "0x" : "") + (v ? "01" : "00");
 
 export function calldata(selector: string, ...args: string[]): string {
   const clean = (h: string) => (h.startsWith("0x") ? h.slice(2) : h);

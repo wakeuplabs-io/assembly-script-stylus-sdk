@@ -83,9 +83,9 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       return propertyIRBuilder.validateAndBuildIR();
     });
 
-    storage.forEach(v => {
-      ctx.slotMap.set(v.name, v.slot);
-      ctx.variableTypes.set(v.name, v.type);
+    storage.forEach(variable => {
+      ctx.slotMap.set(variable.name, variable.slot);
+      ctx.variableTypes.set(variable.name, variable.type);
     });
     
     const constructorDecl: ConstructorDeclaration =

@@ -5,7 +5,7 @@ import { IRStatement } from "@/cli/types/ir.types.js";
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { isStructFieldAccess } from "../struct/struct-utils.js";
+import { isExpressionOfStructType, isStructFieldAccess } from "../struct/struct-utils.js";
 
 // TODO: rename to AssignmentIRBuilder. Merge with VariableIRBuilder.
 export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
@@ -54,7 +54,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
           const fieldName = propAccess.getName();
           const valueExpr = new ExpressionIRBuilder(rhsNode).validateAndBuildIR();
           
-          const structInfo = isStructFieldAccess(objectExpr);
+          const structInfo = isExpressionOfStructType(objectExpr);
           if (structInfo.isStruct && structInfo.structName) {
             const struct = this.symbolTable.lookup(structInfo.structName);
             return {

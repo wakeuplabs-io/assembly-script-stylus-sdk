@@ -144,19 +144,10 @@ export function ${structName}_copy(dst: usize, src: usize): void {
 
   // Getters for each field
   struct.fields.forEach(field => {
-    if (field.dynamic) {
-      // For dynamic fields, return the pointer
-      helpers.push(`
+    helpers.push(`
 export function ${structName}_get_${field.name}(ptr: usize): usize {
-  return load<usize>(ptr + ${field.offset});
+  return ptr + ${field.offset};
 }`);
-    } else {
-      // For static fields, load the value directly
-      helpers.push(`
-export function ${structName}_get_${field.name}(ptr: usize): usize {
-  return load<usize>(ptr + ${field.offset});
-}`);
-    }
   });
 
   // Setters for each field

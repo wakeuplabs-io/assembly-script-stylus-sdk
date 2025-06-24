@@ -4,6 +4,7 @@ import {
   SUPPORTED_TYPES,
   SupportedType,
 } from "../commands/build/analyzers/shared/supported-types.js";
+import { extractStructName } from "../commands/build/analyzers/struct/struct-utils.js";
 
 export function inferType(target: string): SupportedType {
   if (SUPPORTED_TYPES.includes(target as SupportedType)) {
@@ -28,6 +29,13 @@ export function inferType(target: string): SupportedType {
 
   if (/^Mapping(<|$)/.test(target)) {
     return "mapping";
+  }
+
+  if (target.startsWith("Struct<") && target.endsWith(">")) {
+    const innerTypeWithImport = target.slice(7, -1);
+    const cleanStructName = extractStructName(innerTypeWithImport);
+    console.log(`🔍 inferType: ${target} → ${innerTypeWithImport} → ${cleanStructName}`);
+    return cleanStructName as SupportedType;
   }
 
   return "any";
