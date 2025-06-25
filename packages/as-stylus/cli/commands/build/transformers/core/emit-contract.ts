@@ -1,6 +1,6 @@
 import { IRContract } from "../../../../types/ir.types.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
-import { generateStructHelpers } from "../struct/struct-transformer.js";
+import { registerStructTransformer } from "../struct/struct-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
 import { initExpressionContext } from "../utils/expressions.js";
@@ -22,41 +22,10 @@ export function emitContract(contract: IRContract): string {
   parts.push(...generateStorageHelpers(contract.storage, contract.structs || []));
 
   // Struct helpers
-  if (contract.structs && contract.structs.length > 0) {
-    contract.structs.forEach(struct => {
-      const structVariable = contract.storage.find(v => 
-        v.type === struct.name && v.kind === "simple"
-      );
-      
-      if (structVariable) {
-        const baseSlot = structVariable.slot;
-        
-        const existingSlots = new Set(contract.storage.map(v => v.slot));
-        const numSlots = Math.ceil(struct.size / 32);
-        
-        for (let i = 0; i < numSlots; i++) {
-          const slotValue = baseSlot + i;
-          if (!existingSlots.has(slotValue)) {
-            const slotNumber = slotValue.toString(16).padStart(2, "0");
-            parts.push(`const __SLOT${slotNumber}: u64 = ${slotValue};`);
-          }
-        }
-        if (numSlots > 1) {
-          parts.push(''); // Add empty line after slot constants only if we added some
-        }
-        
-        parts.push(...generateStructHelpers(struct, baseSlot));
-      } else {
-        // Fallback si no se encuentra la variable de storage
-        parts.push(...generateStructHelpers(struct, 0));
-      }
-    });
-  }
+  parts.push(...registerStructTransformer(contract));
 
   // Events
-  if (contract.events && contract.events.length > 0) {
-    parts.push(...registerEventTransformer(contract.events)); 
-  }
+  parts.push(...registerEventTransformer(contract)); 
 
   // Constructor
   parts.push(generateDeployFunction(contract));

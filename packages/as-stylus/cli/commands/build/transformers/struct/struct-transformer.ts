@@ -1,5 +1,5 @@
 import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
-import { IRStruct } from "../../../../types/ir.types.js";
+import { IRStruct, IRContract } from "../../../../types/ir.types.js";
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { StructCreateHandler } from "./handlers/create-handler.js";
 import { StructFieldAccessHandler } from "./handlers/field-access-handler.js";
@@ -204,4 +204,44 @@ export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
   });
 
   return helpers;
+}
+
+/**
+ * Generates struct-related code including slot constants and helpers
+ */
+export function registerStructTransformer(contract: IRContract): string[] {
+  const parts: string[] = [];
+  
+  if (contract.structs && contract.structs.length > 0) {
+    contract.structs.forEach(struct => {
+      const structVariable = contract.storage.find(v => 
+        v.type === struct.name && v.kind === "simple"
+      );
+      
+      if (structVariable) {
+        const baseSlot = structVariable.slot;
+        
+        const existingSlots = new Set(contract.storage.map(v => v.slot));
+        const numSlots = Math.ceil(struct.size / 32);
+        
+        for (let i = 0; i < numSlots; i++) {
+          const slotValue = baseSlot + i;
+          if (!existingSlots.has(slotValue)) {
+            const slotNumber = slotValue.toString(16).padStart(2, "0");
+            parts.push(`const __SLOT${slotNumber}: u64 = ${slotValue};`);
+          }
+        }
+        if (numSlots > 1) {
+          parts.push(''); // Add empty line after slot constants only if we added some
+        }
+        
+        parts.push(...generateStructHelpers(struct, baseSlot));
+      } else {
+        // Fallback si no se encuentra la variable de storage
+        parts.push(...generateStructHelpers(struct, 0));
+      }
+    });
+  }
+  
+  return parts;
 } 
