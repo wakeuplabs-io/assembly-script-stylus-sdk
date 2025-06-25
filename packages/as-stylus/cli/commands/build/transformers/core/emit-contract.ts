@@ -6,7 +6,6 @@ import { generateDeployFunction } from "../utils/deploy.js";
 import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
 import { generateStorageImports, generateStorageHelpers } from "../utils/storage.js";
-
 /**
  * Generates the AssemblyScript code for a contract from its IR representation
  * @param contract IR representation of the contract
@@ -17,15 +16,40 @@ export function emitContract(contract: IRContract): string {
   const parts: string[] = [];
 
   // Imports
-  parts.push(generateStorageImports(contract.storage));
+  parts.push(generateStorageImports(contract.storage, contract.structs && contract.structs.length > 0));
 
   // Storage slots
-  parts.push(...generateStorageHelpers(contract.storage));
+  parts.push(...generateStorageHelpers(contract.storage, contract.structs || []));
 
   // Struct helpers
   if (contract.structs && contract.structs.length > 0) {
     contract.structs.forEach(struct => {
-      parts.push(...generateStructHelpers(struct));
+      const structVariable = contract.storage.find(v => 
+        v.type === struct.name && v.kind === "simple"
+      );
+      
+      if (structVariable) {
+        const baseSlot = structVariable.slot;
+        
+        const existingSlots = new Set(contract.storage.map(v => v.slot));
+        const numSlots = Math.ceil(struct.size / 32);
+        
+        for (let i = 0; i < numSlots; i++) {
+          const slotValue = baseSlot + i;
+          if (!existingSlots.has(slotValue)) {
+            const slotNumber = slotValue.toString(16).padStart(2, "0");
+            parts.push(`const __SLOT${slotNumber}: u64 = ${slotValue};`);
+          }
+        }
+        if (numSlots > 1) {
+          parts.push(''); // Add empty line after slot constants only if we added some
+        }
+        
+        parts.push(...generateStructHelpers(struct, baseSlot));
+      } else {
+        // Fallback si no se encuentra la variable de storage
+        parts.push(...generateStructHelpers(struct, 0));
+      }
     });
   }
 
@@ -66,5 +90,6 @@ export function emitContract(contract: IRContract): string {
   });
 
   return parts.join("\n");
+ 
 }
 

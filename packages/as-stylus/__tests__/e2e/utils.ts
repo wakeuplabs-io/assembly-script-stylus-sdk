@@ -48,9 +48,10 @@ export function createContractHelpers(contractAddr: string) {
   ).toLowerCase();
 
   return {
-    sendData: (data: string) => {
+    sendData: (data: string, gasLimit?: string) => {
+      const gasFlag = gasLimit ? ` --gas-limit ${gasLimit}` : "";
       const raw = run(
-        `cast send ${contractAddr} ${data.slice(2)} --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL} --json`,
+        `cast send ${contractAddr} ${data.slice(2)} --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL}${gasFlag} --json`,
       );
       const json = JSON.parse(raw);
       return json;

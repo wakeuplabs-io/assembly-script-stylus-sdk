@@ -3,11 +3,13 @@ import { IRStruct } from "../../../../types/ir.types.js";
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { StructCreateHandler } from "./handlers/create-handler.js";
 import { StructFieldAccessHandler } from "./handlers/field-access-handler.js";
+import { StructFieldSetHandler } from "./handlers/field-set-handler.js";
 
 export class StructTransformer extends BaseTypeTransformer {
   private structs: Map<string, IRStruct>;
   private createHandler: StructCreateHandler;
   private fieldAccessHandler: StructFieldAccessHandler;
+  private fieldSetHandler: StructFieldSetHandler;
 
   constructor(structs: IRStruct[]) {
     super("Struct");
@@ -15,10 +17,12 @@ export class StructTransformer extends BaseTypeTransformer {
     this.structs = new Map(structs.map(s => [s.name, s]));
     this.createHandler = new StructCreateHandler(this.structs);
     this.fieldAccessHandler = new StructFieldAccessHandler(this.structs);
+    this.fieldSetHandler = new StructFieldSetHandler(this.structs);
     
     // Registrar handlers
     this.registerHandler(this.createHandler);
     this.registerHandler(this.fieldAccessHandler);
+    this.registerHandler(this.fieldSetHandler);
   }
 
   matchesType(expr: any): boolean {
@@ -124,38 +128,79 @@ export class StructTransformer extends BaseTypeTransformer {
 /**
  * Generates AssemblyScript helpers for a struct
  */
-export function generateStructHelpers(struct: IRStruct): string[] {
+export function generateStructHelpers(struct: IRStruct, baseSlot: number): string[] {
   const helpers: string[] = [];
   const structName = struct.name;
   
-  // Allocation helper
+  // Allocation helper using Struct.alloc
   helpers.push(`
 export function ${structName}_alloc(): usize {
-  const ptr: usize = malloc(${struct.size});
-  memory.fill(ptr, 0, ${struct.size}); // Zero-init
-  return ptr;
+  return Struct.alloc(${struct.size});
 }`);
 
-  // Copy helper
+  // Copy helper using Struct.copy
   helpers.push(`
 export function ${structName}_copy(dst: usize, src: usize): void {
-  memory.copy(dst, src, ${struct.size});
+  Struct.copy(dst, src, ${struct.size});
 }`);
 
-  // Getters for each field
+  // Getters for each field using appropriate Struct methods
   struct.fields.forEach(field => {
-    helpers.push(`
+    const slotForField = baseSlot + Math.floor(field.offset / 32);
+    const slotNumber = slotForField.toString(16).padStart(2, "0");
+    
+    if (field.type === "string" || field.type === "Str") {
+      // Special handling for strings - read directly from storage
+      helpers.push(`
 export function ${structName}_get_${field.name}(ptr: usize): usize {
-  return ptr + ${field.offset};
+  return Struct.getString(__SLOT${slotNumber});
 }`);
+    } else {
+      // For other types, use getField to get pointer to field location
+      helpers.push(`
+export function ${structName}_get_${field.name}(ptr: usize): usize {
+  return Struct.getField(ptr, ${field.offset});
+}`);
+    }
   });
 
-  // Setters for each field
+  // Setters for each field using type-specific Struct methods
   struct.fields.forEach(field => {
-    helpers.push(`
-export function ${structName}_set_${field.name}(ptr: usize, value: usize): void {
-  store<usize>(ptr + ${field.offset}, value);
+    const slotForField = baseSlot + Math.floor(field.offset / 32);
+    const slotNumber = slotForField.toString(16).padStart(2, "0");
+    
+    if (field.type === "Address") {
+      helpers.push(`
+export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
+  Struct.setAddress(ptr + ${field.offset}, v, __SLOT${slotNumber});
+  Struct.flushStorage();
 }`);
+    } else if (field.type === "string" || field.type === "Str") {
+      helpers.push(`
+export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
+  Struct.setString(ptr + ${field.offset}, v, __SLOT${slotNumber});
+  Struct.flushStorage();
+}`);
+    } else if (field.type === "U256") {
+      helpers.push(`
+export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
+  Struct.setU256(ptr + ${field.offset}, v, __SLOT${slotNumber});
+  Struct.flushStorage();
+}`);
+    } else if (field.type === "boolean") {
+      helpers.push(`
+export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
+  Struct.setBoolean(ptr + ${field.offset}, v != 0, __SLOT${slotNumber});
+  Struct.flushStorage();
+}`);
+    } else {
+      // Generic fallback for other types
+      helpers.push(`
+export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
+  store<usize>(ptr + ${field.offset}, v);
+  Struct.flushStorage();
+}`);
+    }
   });
 
   return helpers;

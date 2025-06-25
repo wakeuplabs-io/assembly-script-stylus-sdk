@@ -3,15 +3,11 @@ import path from "path";
 
 import { IRContract } from "@/cli/types/ir.types.js";
 import { writeFile } from "@/cli/utils/fs.js";
+import { getReturnSize } from "@/cli/utils/type-utils.js";
 import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 
-import { generateArgsLoadBlock } from "../transformers/utils/args.js";
-import { getReturnSize } from "@/cli/utils/type-utils.js";
 import { convertType } from "./build-abi.js";
-
-function getCanonicalType(type: string): string {
-  return type;
-}
+import { generateArgsLoadBlock, generateArgsLoadBlockWithStringSupport } from "../transformers/utils/args.js";
 
 export function generateUserEntrypoint(contract: IRContract) {
   const imports: string[] = [];
@@ -24,13 +20,17 @@ export function generateUserEntrypoint(contract: IRContract) {
       // Create function signature: name(type1,type2,...)
       const paramTypes = inputs.map(input => convertType(input.type)).join(",");
       const functionSignature = `${name}(${paramTypes})`;
-      console.log({name, functionSignature});
       // Generate selector using keccak256 hash of the function signature
       const hash = keccak256(functionSignature).toString('hex');
       const sig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
       imports.push(`import { ${name} } from "./contract.transformed";`);
 
-      const { argLines, callArgs } = generateArgsLoadBlock(inputs);
+      // Use string-aware args generator when strings are present
+      const hasStrings = inputs.some(input => input.type === "string" || input.type === "Str");
+      const { argLines, callArgs } = hasStrings 
+        ? generateArgsLoadBlockWithStringSupport(inputs)
+        : generateArgsLoadBlock(inputs);
+        
       const outputType = method.outputs?.[0]?.type ?? "U256";
       let callLine = "";
       if (["pure", "view"].includes(stateMutability) && (outputType !== "void" && outputType !== "any")) {
@@ -56,9 +56,14 @@ export function generateUserEntrypoint(contract: IRContract) {
   }
 
   const deployInputs = contract.constructor?.inputs || [];
-  const { argLines, callArgs } = generateArgsLoadBlock(deployInputs);
   
-  const paramTypes = deployInputs.map(input => getCanonicalType(input.type)).join(",");
+  // Use string-aware args generator for deploy too
+  const deployHasStrings = deployInputs.some(input => input.type === "string" || input.type === "Str");
+  const { argLines, callArgs } = deployHasStrings
+    ? generateArgsLoadBlockWithStringSupport(deployInputs)
+    : generateArgsLoadBlock(deployInputs);
+  
+  const paramTypes = deployInputs.map(input => convertType(input.type)).join(",");
   const functionSignature = `deploy(${paramTypes})`;
   
   const hash = keccak256(functionSignature).toString('hex');

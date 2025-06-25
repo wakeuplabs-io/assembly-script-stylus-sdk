@@ -1,3 +1,6 @@
+// BE = Big Endian - Functions to load/store 32-bit integers in big-endian format
+// Used by Stylus/AssemblyScript for consistent byte ordering when reading/writing memory
+// Big-endian stores the most significant byte first, which is common in networking/storage
 export function loadU32BE(ptr: usize): u32 {
   return (
     ((load<u8>(ptr) as u32) << 24) |
