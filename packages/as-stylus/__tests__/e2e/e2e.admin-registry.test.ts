@@ -14,15 +14,16 @@ import {
   stripAnsi,
   calldata,
   createContractHelpers,
+  getFunctionSelector,
 } from "./utils.js";
 
 const SELECTOR = {
-  DEPLOY: "0x863a7279",
-  SET: "0xae11aa4b",
-  RESET: "0x85b59933",
-  GET: "0x6e9960c3",
-  IS_ADMIN: "0x927da1c5",
-  IS_ZERO: "0x9e2fb482",
+  DEPLOY: getFunctionSelector("deploy(address)"),
+  SET: getFunctionSelector("setAdmin(address)"),
+  RESET: getFunctionSelector("resetAdmin()"),
+  GET: getFunctionSelector("getAdmin()"),
+  IS_ADMIN: getFunctionSelector("isAdmin(address)"),
+  IS_ZERO: getFunctionSelector("adminIsZero()"),
 };
 
 /*───────────────────────────────*
@@ -77,6 +78,7 @@ const expectHex = (data: string, hex: string) =>
 describe("AdminRegistry (Address) — basic ops", () => {
   it("get() after deploy ⇒ initial address", () => {
     const res = call(calldata(SELECTOR.GET));
+    console.log("res", res);
     expect(res.toLowerCase()).toContain(ADMIN.toLowerCase());
   });
 

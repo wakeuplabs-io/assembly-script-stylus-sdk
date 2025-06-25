@@ -19,6 +19,7 @@ import {
   calldata,
   createContractHelpers,
   pad64,
+  getFunctionSelector,
 } from "./utils.js";
 
 const TRANSFER_EVENT = {
@@ -40,18 +41,18 @@ const APPROVAL_EVENT = {
 };
 
 const SELECTOR = {
-  DEPLOY: "0xb5488487",
-  NAME: "0x06fdde03",
-  SYMBOL: "0x95d89b41",
-  DECIMALS: "0x313ce567",
-  TOTAL_SUPPLY: "0x18160ddd",
-  BALANCE_OF: "0x70746586",
-  ALLOWANCE: "0x562731da",
-  TRANSFER: "0x52e52198",
-  TRANSFER_FROM: "0xe1fc6a01",
-  APPROVE: "0x3f33b9fb",
-  MINT: "0xc15c5996",
-  BURN: "0x1003cd60",
+  DEPLOY: getFunctionSelector("deploy(string,string)"),
+  NAME: getFunctionSelector("name()"),
+  SYMBOL: getFunctionSelector("symbol()"),
+  DECIMALS: getFunctionSelector("decimals()"),
+  TOTAL_SUPPLY: getFunctionSelector("totalSupply()"),
+  BALANCE_OF: getFunctionSelector("balanceOf(address)"),
+  ALLOWANCE: getFunctionSelector("allowance(address,address)"),
+  TRANSFER: getFunctionSelector("transfer(address,uint256)"),
+  TRANSFER_FROM: getFunctionSelector("transferFrom(address,address,uint256)"),
+  APPROVE: getFunctionSelector("approve(address,uint256)"),
+  MINT: getFunctionSelector("mint(address,uint256)"),
+  BURN: getFunctionSelector("burn(uint256)"),
 };
 
 const NAME_STR = "MyToken";

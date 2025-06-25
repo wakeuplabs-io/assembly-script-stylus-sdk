@@ -15,16 +15,17 @@ import {
   createContractHelpers,
   pad64,
   USER_B_PRIVATE_KEY,
+  getFunctionSelector,
 } from "./utils.js";
 
 const SELECTOR = {
-  DEPLOY: "0x44335bb8",
-  TOTAL_SUPPLY: "0x18160ddd",
-  BALANCE_OF: "0x70746586",
-  ALLOWANCE: "0x562731da",
-  TRANSFER: "0x52e52198",
-  TRANSFER_FROM: "0xe1fc6a01",
-  APPROVE: "0x3f33b9fb",
+  DEPLOY: getFunctionSelector("deploy(uint256)"),
+  TOTAL_SUPPLY: getFunctionSelector("totalSupply()"),
+  BALANCE_OF: getFunctionSelector("balanceOf(address)"),
+  ALLOWANCE: getFunctionSelector("allowance(address,address)"),
+  TRANSFER: getFunctionSelector("transfer(address,uint256)"),
+  TRANSFER_FROM: getFunctionSelector("transferFrom(address,address,uint256)"),
+  APPROVE: getFunctionSelector("approve(address,uint256)"),
 };
 
 const INIT_SUPPLY = pad64(1000n);

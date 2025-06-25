@@ -15,13 +15,14 @@ import {
   calldata,
   createContractHelpers,
   pad64,
+  getFunctionSelector,
 } from "./utils.js";
 
 const SELECTOR = {
-  DEPLOY: "0x44335bb8",
-  GET: "0x6d4ce63c",
-  ADD: "0xb874cbbd",
-  SUB: "0x11eb0759",
+  DEPLOY: getFunctionSelector("deploy(uint256)"),
+  GET: getFunctionSelector("get()"),
+  ADD: getFunctionSelector("add(uint256)"),
+  SUB: getFunctionSelector("sub(uint256)"),
 };
 
 const INIT64 = pad64(5n);
