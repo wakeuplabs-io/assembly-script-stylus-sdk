@@ -60,8 +60,10 @@ export function convertType(type: string): string {
     case "i32":
       return "uint32";
     case "bool":
+    case "boolean":
       return "bool";
     case "string":
+    case "Str":
       return "string";
     case "Address":
     case "address":

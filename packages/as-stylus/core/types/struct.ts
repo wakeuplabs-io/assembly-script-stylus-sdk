@@ -39,12 +39,9 @@ export class Struct {
     storage_cache_bytes32(createStorageKey(slot), p);
   }
 
-  static setString(ptr: usize, ptrValue: usize, slot: u64): void {
-    // Convertir raw string pointer a formato Str y almacenar
-    const strObj = Str.fromBytes(ptrValue, load<u32>(ptrValue - 4));
+  static setString(ptr: usize, strObj: usize, slot: u64): void {
     Str.storeTo(slot, strObj);
-    // También guardar el string pointer en la posición del struct
-    store<usize>(ptr, ptrValue);
+    store<usize>(ptr, strObj);
     for (let i = sizeof<usize>(); i < 32; i++) store<u8>(ptr + i, 0);
   }
 
