@@ -1,15 +1,33 @@
-import keccak256 from "keccak256";
 import path from "path";
+import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from 'viem';
 
-import { IRContract } from "@/cli/types/ir.types.js";
+import { IRContract, IRMethod } from "@/cli/types/ir.types.js";
 import { writeFile } from "@/cli/utils/fs.js";
+import { getReturnSize } from "@/cli/utils/type-utils.js";
 import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 
+import { convertType } from "./build-abi.js";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
-import { getReturnSize } from "@/cli/utils/type-utils.js";
 
-function getCanonicalType(type: string): string {
-  return type;
+
+function getFunctionSelector(method: IRMethod): string {
+  const { name, inputs } = method;
+
+  const signature = toFunctionSignature({
+    name,
+    type: "function",
+    stateMutability: method.stateMutability as AbiStateMutability,
+    inputs: inputs.map(input => ({
+      name: input.name,
+      type: convertType(input.type),
+    })),
+    outputs: method.outputs.map(output => ({
+      name: output.name,
+      type: convertType(output.type),
+    })),
+  });
+
+  return toFunctionSelector(signature);
 }
 
 export function generateUserEntrypoint(contract: IRContract) {
@@ -21,12 +39,7 @@ export function generateUserEntrypoint(contract: IRContract) {
 
     if (["public", "external"].includes(visibility)) {
       // Create function signature: name(type1,type2,...)
-      const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
-      const functionSignature = `${name}(${paramTypes})`;
-      
-      // Generate selector using keccak256 hash of the function signature
-      const hash = keccak256(functionSignature).toString('hex');
-      const sig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
+      const sig = getFunctionSelector(method);
       imports.push(`import { ${name} } from "./contract.transformed";`);
 
       const { argLines, callArgs } = generateArgsLoadBlock(inputs);
@@ -57,13 +70,18 @@ export function generateUserEntrypoint(contract: IRContract) {
   if (contract.constructor) {
     const { inputs } = contract.constructor;
     const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-    // Create constructor signature: deploy(type1,type2,...)
-    const paramTypes = inputs.map(input => getCanonicalType(input.type)).join(",");
-    const functionSignature = `deploy(${paramTypes})`;
+    const deploySig = getFunctionSelector({
+      name: "deploy",
+      visibility: "public",
+      stateMutability: "nonpayable",
+      inputs: inputs.map(input => ({
+        name: input.name,
+        type: convertType(input.type),
+      })),
+      outputs: [],
+      ir: [],
+    });
     
-    // Generate selector using keccak256 hash of the function signature
-    const hash = keccak256(functionSignature).toString('hex');
-    const deploySig = `0x${hash.slice(0, 8)}`; // First 4 bytes (8 hex chars)
     imports.push(`import { deploy } from "./contract.transformed";`);
   
     const callLine = `deploy(${callArgs.join(", ")}); return 0;`;

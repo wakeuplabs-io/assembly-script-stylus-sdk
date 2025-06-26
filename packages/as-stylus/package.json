@@ -43,11 +43,12 @@
   },
   "dependencies": {
     "commander": "^12.0.0",
+    "emittery": "^1.0.1",
     "ethers": "^6.14.3",
     "js-sha3": "^0.9.3",
-    "emittery": "^1.0.1",
     "keccak256": "^1.0.6",
     "ts-morph": "^25.0.1",
-    "tsc-alias": "^1.8.16"
+    "tsc-alias": "^1.8.16",
+    "viem": "^2.31.4"
   }
 }
