@@ -14,13 +14,14 @@ import {
   calldata,
   createContractHelpers,
   pad64,
+  getFunctionSelector,
 } from "./utils.js";
 
 const SELECTOR = {
-  SET: "0x761300f4",
-  GET: "0x99f08a51",
-  APPROVE: "0xcf35bc0c",
-  ALLOWANCE: "0x69f63798",
+  SET: getFunctionSelector("setBalance(address,uint256)"),
+  GET: getFunctionSelector("getBalance(address)"),
+  APPROVE: getFunctionSelector("approve(address,address,uint256)"),
+  ALLOWANCE: getFunctionSelector("allowanceOf(address,address)"),
 };
 
 const USER_A = "0x1111111111111111111111111111111111111111";

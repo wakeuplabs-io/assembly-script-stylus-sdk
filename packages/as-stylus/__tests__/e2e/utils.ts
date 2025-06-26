@@ -4,7 +4,8 @@
 import { execSync } from "child_process";
 import { config } from "dotenv";
 import path from "path";
-import stripAnsiRaw from "strip-ansi"; // liviano, sin deps nativas
+import stripAnsiRaw from "strip-ansi";
+import { toFunctionSelector } from "viem";
 
 config();
 export const ROOT = path.resolve(__dirname, "../../..");
@@ -19,10 +20,10 @@ export function run(cmd: string, cwd: string = ROOT, allowErr = false): string {
   try {
     console.log(`🔍 Run: ${cmd}`);
     return execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8" }).trim();
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (!allowErr) throw e;
-    const out = (e.stdout ?? "").toString();
-    const err = (e.stderr ?? "").toString();
+    const out = (e as { stdout?: string }).stdout ?? "";
+    const err = (e as { stderr?: string }).stderr ?? "";
     return (out + err).trim();
   }
 }
@@ -67,7 +68,7 @@ export function createContractHelpers(contractAddr: string) {
     --private-key ${key} --rpc-url ${RPC_URL} --json`;
 
       const raw = run(cmd, ROOT, true);
-      let receipt: any = null;
+      let receipt = null;
       try {
         receipt = JSON.parse(raw);
       } catch (_) {
@@ -82,4 +83,8 @@ export function createContractHelpers(contractAddr: string) {
     callData: (data: string) =>
       stripAnsi(run(`cast call ${contractAddr} ${data} --rpc-url ${RPC_URL}`)).trim(),
   };
+}
+
+export function getFunctionSelector(signature: string) {
+  return toFunctionSelector(signature);
 }

@@ -1,15 +1,17 @@
 import fs from "fs";
 import path from "path";
 
+import { Logger } from "@/cli/services/logger.js";
 import { IRContract } from "@/cli/types/ir.types.js";
-import { ErrorManager } from "../analyzers/shared/error-manager.js";
+
 import { buildAbi } from "./build-abi.js";
+import { buildAbort } from "./build-abort.js";
 import { buildAsconfig } from "./build-asconfig.js";
 import { buildEntrypoint } from "./build-entrypoint.js";
 import { buildPackageJson } from "./build-package-json.js";
 import { buildRustToolchain } from "./build-rust-toolchain.js";
 import { buildTsconfig } from "./build-tsconfig.js";
-import { Logger } from "@/cli/services/logger.js";
+import { ErrorManager } from "../analyzers/shared/error-manager.js";
 
 export class ProjectBuilder {
   private userIndexPath: string;
@@ -58,6 +60,7 @@ export class ProjectBuilder {
     // Build all project files
     buildEntrypoint(this.userIndexPath, this.contract);
     buildAsconfig(contractBasePath);
+    buildAbort(contractBasePath);
     buildTsconfig(contractBasePath);
     buildPackageJson(contractBasePath);
     buildRustToolchain(contractBasePath);

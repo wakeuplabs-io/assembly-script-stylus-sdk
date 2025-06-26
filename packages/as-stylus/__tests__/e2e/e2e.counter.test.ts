@@ -15,13 +15,14 @@ import {
   calldata,
   createContractHelpers,
   pad64,
+  getFunctionSelector,
 } from "./utils.js";
 
 const SELECTOR = {
-  DEPLOY: "0x775c300c",
-  GET: "0x6d4ce63c",
-  INC: "0xd09de08a",
-  DEC: "0x2baeceb7",
+  DEPLOY: getFunctionSelector("deploy()"),
+  GET: getFunctionSelector("get()"),
+  INC: getFunctionSelector("increment()"),
+  DEC: getFunctionSelector("decrement()"),
 };
 
 const U256_MAX = pad64((1n << 256n) - 1n);

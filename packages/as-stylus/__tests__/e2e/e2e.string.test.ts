@@ -6,12 +6,20 @@ import path from "path";
 config();
 
 import { decodeStringReturn, encodeStringInput, parseAbiString } from "./string-abi.js";
-import { ROOT, PRIVATE_KEY, run, stripAnsi, pad64, createContractHelpers } from "./utils.js";
+import {
+  ROOT,
+  PRIVATE_KEY,
+  run,
+  stripAnsi,
+  pad64,
+  createContractHelpers,
+  getFunctionSelector,
+} from "./utils.js";
 
 const SELECTOR = {
-  SET_STORAGE: "0xa57b0b0b",
-  GET_STORAGE: "0x3408f73a",
-  SUBSTRING: "0x71d66e68",
+  SET_STORAGE: getFunctionSelector("setStorage(string)"),
+  GET_STORAGE: getFunctionSelector("getStorage()"),
+  SUBSTRING: getFunctionSelector("substring(uint256,uint256)"),
 };
 
 function calldataSetStorage(str: string): string {
