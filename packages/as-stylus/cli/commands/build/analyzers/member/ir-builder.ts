@@ -24,21 +24,21 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
     const propertyName = this.expression.getName();
     const expressionType = this.expression.getType().getText();
 
-    console.log("🔍 MemberIRBuilder processing:", {
-      propertyName,
-      objectType: getExpressionType(objectIR),
-      expressionType
-    });
+    // console.log("🔍 MemberIRBuilder processing:", {
+    //   propertyName,
+    //   objectType: getExpressionType(objectIR),
+    //   expressionType
+    // });
 
     const structInfo = isExpressionOfStructType(objectIR);
     
     if (structInfo.isStruct && structInfo.structName) {
-      console.log(`Detected struct field access: ${structInfo.structName}.${propertyName}`);
+      // console.log(`Detected struct field access: ${structInfo.structName}.${propertyName}`);
       const struct = ctx.structRegistry.get(structInfo.structName);
       if (struct) {
         const field = struct.fields.find(f => f.name === propertyName);
         if (field) {
-          console.log(`Generating getter call: ${structInfo.structName}_get_${propertyName}`);
+          // console.log(`Generating getter call: ${structInfo.structName}_get_${propertyName}`);
           
           return {
             kind: "call",
@@ -50,10 +50,10 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
         }
       }
       
-      console.log(`Field ${propertyName} not found in struct ${structInfo.structName}`);
+      // console.log(`Field ${propertyName} not found in struct ${structInfo.structName}`);
     }
 
-    console.log("Generating regular member access");
+    // console.log("Generating regular member access");
     
     return {
       kind: "member",

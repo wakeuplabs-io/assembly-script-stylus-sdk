@@ -1,13 +1,11 @@
 import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
 import { IRStruct, IRContract } from "../../../../types/ir.types.js";
 import { BaseTypeTransformer } from "../core/base-transformer.js";
-import { StructCreateHandler } from "./handlers/create-handler.js";
 import { StructFieldAccessHandler } from "./handlers/field-access-handler.js";
 import { StructFieldSetHandler } from "./handlers/field-set-handler.js";
 
 export class StructTransformer extends BaseTypeTransformer {
   private structs: Map<string, IRStruct>;
-  private createHandler: StructCreateHandler;
   private fieldAccessHandler: StructFieldAccessHandler;
   private fieldSetHandler: StructFieldSetHandler;
 
@@ -15,12 +13,10 @@ export class StructTransformer extends BaseTypeTransformer {
     super("Struct");
     
     this.structs = new Map(structs.map(s => [s.name, s]));
-    this.createHandler = new StructCreateHandler(this.structs);
     this.fieldAccessHandler = new StructFieldAccessHandler(this.structs);
     this.fieldSetHandler = new StructFieldSetHandler(this.structs);
     
     // Registrar handlers
-    this.registerHandler(this.createHandler);
     this.registerHandler(this.fieldAccessHandler);
     this.registerHandler(this.fieldSetHandler);
   }

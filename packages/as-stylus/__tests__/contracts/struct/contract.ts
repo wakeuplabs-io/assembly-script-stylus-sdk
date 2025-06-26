@@ -1,20 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
-@Event
-export class Transfer {
-  @Indexed from: Address;
-  @Indexed to: Address;
-  value: U256;
-}
-
-@Event
-export class Approval {
-  @Indexed owner: Address;
-  @Indexed spender: Address;
-  value: U256;
-}
-
 @Struct
 export class StructTest {
   to: Address;
@@ -26,7 +12,8 @@ export class StructTest {
 
 @Contract
 export class StructContract {
-  static myStruct: StructTest;
+  static myStruct: Struct<StructTest>;
+  static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
 
   static setStruct(to: Address, contents: Str, value: U256, flag: boolean, value2: U256) {
     myStruct.to = to;

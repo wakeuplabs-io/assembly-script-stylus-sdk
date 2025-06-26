@@ -6,7 +6,6 @@ import {
 } from "../modules/hostio";
 import { malloc } from "../modules/memory";
 import { createStorageKey } from "../modules/storage";
-import { debugLogI32 } from "../modules/console";
 
 export class Struct {
   /*──────── Memory ops ────────*/
