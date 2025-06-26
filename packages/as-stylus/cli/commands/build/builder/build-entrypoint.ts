@@ -4,7 +4,7 @@ import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from "vie
 import { IRContract, IRMethod } from "@/cli/types/ir.types.js";
 import { writeFile } from "@/cli/utils/fs.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
-import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
+import { getUserEntrypointTemplate } from "@/templates/entrypoint.js";
 
 import { convertType } from "./build-abi.js";
 import {

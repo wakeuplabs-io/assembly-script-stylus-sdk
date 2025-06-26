@@ -19,18 +19,19 @@ import {
   pad64,
   padBool,
   padAddress,
+  getFunctionSelector,
 } from "./utils.js";
 
 const abi = new AbiCoder();
 
 const SELECTOR = {
-  DEPLOY: "0x775c300c",
-  SET_STRUCT: "0x7c85a726", // setStruct(address,string,uint256,bool,uint256)
-  GET_STRUCT_TO: "0x4b8f2596", // getStructTo()
-  GET_STRUCT_CONTENTS: "0x770cd840", // getStructContents()
-  GET_STRUCT_VALUE: "0x0c5acbd8", // getStructValue()
-  GET_STRUCT_FLAG: "0x0e1d8c26", // getStructFlag()
-  GET_STRUCT_VALUE2: "0x1cc7673e", // getStructValue2()
+  DEPLOY: getFunctionSelector("deploy()"),
+  SET_STRUCT: getFunctionSelector("setStruct(address,string,uint256,bool,uint256)"),
+  GET_STRUCT_TO: getFunctionSelector("getStructTo()"),
+  GET_STRUCT_CONTENTS: getFunctionSelector("getStructContents()"),
+  GET_STRUCT_VALUE: getFunctionSelector("getStructValue()"),
+  GET_STRUCT_FLAG: getFunctionSelector("getStructFlag()"),
+  GET_STRUCT_VALUE2: getFunctionSelector("getStructValue2()"),
 };
 
 // Test data

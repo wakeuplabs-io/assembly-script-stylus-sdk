@@ -59,18 +59,12 @@ export function generateArgsLoadBlockWithStringSupport(
     switch (input.type) {
       case "string":
       case "Str":
-        // Generate custom string parsing code like in the working entrypoint
         argLines.push(
           `const off${i} = loadU32BE(position + ${offset} + 28);`,
           `const len${i} = loadU32BE(position + 4 + off${i} + 28);`,
-          `const strPtr${i} = malloc(4 + len${i});`,
-          `store<u32>(strPtr${i}, len${i});`,
-          `const src${i} = position + 4 + off${i} + 32;`,
-          `for (let j: u32 = 0; j < len${i}; ++j) {`,
-          `  store<u8>(strPtr${i} + 4 + j, load<u8>(src${i} + j));`,
-          `}`
+          `const strPtr${i}: usize = Str.fromBytes(position + 4 + off${i} + 32, len${i});`
         );
-        callArgs.push(`strPtr${i} + 4`);
+        callArgs.push(`strPtr${i}`);
         offset += 32;
         break;
 
