@@ -1,34 +1,37 @@
-import { AbiInput } from "@/cli/types/abi.types.js";
+import { AbiInput, AbiType, AssemblyScriptType } from "@/cli/types/abi.types.js";
 
 export function generateArgsLoadBlock(
   inputs: AbiInput[],
   baseOffset: number = 4
-): { argLines: string[]; callArgs: string[] } {
+): { argLines: string[]; callArgs: {name: string, type: AssemblyScriptType}[] } {
   const argLines: string[] = [];
-  const callArgs: string[] = [];
+  const callArgs: {name: string, type: AssemblyScriptType}[] = [];
   let offset = baseOffset;
 
   for (let i = 0; i < inputs.length; ++i) {
     const input = inputs[i];
     const argName = `arg${i}`;
     let loadExpr: string;
+    let type: AssemblyScriptType;
 
     switch (input.type) {
-      case "bool":
-        loadExpr = `load<u8>(position + ${offset}) != 0`;
-        offset += 1;
+      case AbiType.Bool:
+        loadExpr = `toBool(position + ${offset})`;
+        offset += 32;
+        type = AssemblyScriptType.Bool;
         break;
 
-      case "U256":
-      case "I256":
-      case "string":
+      case AbiType.Uint256:
+      case AbiType.String:
         loadExpr = `position + ${offset}`;
         offset += 32;
+        type = AssemblyScriptType.Pointer;
         break;
 
-      case "Address":
+      case AbiType.Address:
         loadExpr = `position + ${offset}`;
-        offset += 20;
+        offset += 32;
+        type = AssemblyScriptType.Pointer;
         break;
 
       default:
@@ -36,7 +39,7 @@ export function generateArgsLoadBlock(
     }
 
     argLines.push(`const ${argName} = ${loadExpr};`);
-    callArgs.push(argName);
+    callArgs.push({name: argName, type });
   }
 
   return { argLines, callArgs };

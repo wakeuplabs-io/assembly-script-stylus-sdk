@@ -1,5 +1,6 @@
 import { VariableDeclaration } from "ts-morph";
 
+import { convertType } from "../../builder/build-abi.js";
 import { BaseValidator } from "../shared/base-validator.js";
 import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
@@ -35,7 +36,7 @@ export class VariableDeclarationSyntaxValidator extends BaseValidator {
       hasErrors = true;
     }
 
-    if (!SUPPORTED_TYPES.includes(type)) {
+    if (!SUPPORTED_TYPES.includes(convertType(type))) {
       this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(type, SUPPORTED_TYPES));
       hasErrors = true;
     }

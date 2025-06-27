@@ -30,6 +30,7 @@ function store_${name}(ptr: usize): void {
 }`;
 }
 
+// TODO: revise imports generation
 export function generateStorageImports(variables: IRVariable[]): string {
   const lines: string[] = ['// eslint-disable-next-line import/namespace'];
 
@@ -46,11 +47,11 @@ export function generateStorageImports(variables: IRVariable[]): string {
       '} from "as-stylus/core/modules/hostio";',
       'import { createStorageKey } from "as-stylus/core/modules/storage";',
       'import { Msg } from "as-stylus/core/types/msg";',
-      'import { allocBool } from "as-stylus/core/types/boolean";',
       'import { addTopic, emitTopics } from "as-stylus/core/modules/events";',
     );
   }
-  
+
+  lines.push('import { allocBool, toBool } from "as-stylus/core/types/boolean";');
   lines.push('import { malloc } from "as-stylus/core/modules/memory";');  
   lines.push('import { Address } from "as-stylus/core/types/address";');
   lines.push('import { U256 } from "as-stylus/core/types/u256";');

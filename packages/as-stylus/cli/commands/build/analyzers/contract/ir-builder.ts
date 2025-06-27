@@ -5,6 +5,7 @@ import { IRContract } from "@/cli/types/ir.types.js";
 
 import { ContractSemanticValidator } from "./semantic-validator.js";
 import { ContractSyntaxValidator } from "./syntax-validator.js";
+import { convertType } from "../../builder/build-abi.js";
 import { ConstructorIRBuilder } from "../constructor/ir-builder.js";
 import { EventIRBuilder } from "../event/ir-builder.js";
 import { MethodIRBuilder } from "../method/ir-builder.js";
@@ -82,11 +83,11 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     const names = classDefinition.getMethods().map(method => {
       const name = method.getName();
       this.symbolTable.declareFunction(name, {
-        returnType: method.getReturnType().getText(),
+        returnType: convertType(method.getReturnType().getText()),
         name: name,
         parameters: method.getParameters().map(param => ({
           name: param.getName(),
-          type: param.getType().getText(),
+          type: convertType(param.getType().getText()),
         })),
       });
       return name;

@@ -1,6 +1,6 @@
 import path from "path";
 
-import { AbiItem, AbiInput, AbiOutput } from "@/cli/types/abi.types.js";
+import { AbiItem, AbiInput, AbiOutput, AbiType } from "@/cli/types/abi.types.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
@@ -34,8 +34,11 @@ export function buildAbi(targetPath: string, contract: IRContract) {
   }
 
   if (contract.constructor) {
+     // TODO: rethink this
     abi.push({
-      type: "constructor",
+      // type: "constructor",
+      type: "function",
+      name: "deploy",
       stateMutability: "nonpayable",
       inputs: contract.constructor.inputs.map((param) => ({
         name: param.name,
@@ -49,22 +52,22 @@ export function buildAbi(targetPath: string, contract: IRContract) {
   writeFile(abiPath, JSON.stringify(abi, null, 2));
 }
 
-export function convertType(type: string): string {
+export function convertType(type: string): AbiType {
   switch (type.toLowerCase()) {
     case "u256":
-      return "uint256";
+      return AbiType.Uint256;
     case "i256":
-      return "int256";
+      return AbiType.Int256;
     case "bool":
     case "boolean":
-      return "bool";
+      return AbiType.Bool;
     case "string":
-      return "string";
+      return AbiType.String;
     case "address":
-      return "address";
+      return AbiType.Address;
     case "bytes32":
-      return "bytes32";
+      return AbiType.Bytes32;
     default:
-      return "uint256";
+      return AbiType.Unknown;
   }
 }

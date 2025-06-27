@@ -1,5 +1,6 @@
 import { ReturnStatement } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRStatement } from "@/cli/types/ir.types.js";
 
 import { ReturnSyntaxValidator } from "./syntax-validator.js";
@@ -24,14 +25,15 @@ export class ReturnIRBuilder extends IRBuilder<IRStatement> {
 
     if (expression) {
       const expr = new ExpressionIRBuilder(expression).validateAndBuildIR();
+
       return {
         kind: "return",
         // TODO: remove any when type is added all the expressions
-        type: (expr as any).type ?? "void",
+        type: (expr as any).type ?? AbiType.Unknown,
         expr,
       };
     }
 
-    return { kind: "return", type: "void" };
+    return { kind: "return", type: AbiType.Void };
   }
 }

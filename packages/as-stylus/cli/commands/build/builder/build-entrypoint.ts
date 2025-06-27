@@ -1,6 +1,7 @@
 import path from "path";
 import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from 'viem';
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRContract, IRMethod } from "@/cli/types/ir.types.js";
 import { writeFile } from "@/cli/utils/fs.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
@@ -45,10 +46,10 @@ export function generateUserEntrypoint(contract: IRContract) {
       const { argLines, callArgs } = generateArgsLoadBlock(inputs);
       const outputType = method.outputs?.[0]?.type ?? "U256";
       let callLine = "";
-      if (["pure", "view"].includes(stateMutability) && (outputType !== "void" && outputType !== "any")) {
-        if (outputType === "string" || outputType === "Str") {
+      if (["pure", "view"].includes(stateMutability) && (outputType !== AbiType.Void && outputType !== AbiType.Any)) {
+        if (outputType === AbiType.String) {
           callLine = [
-            `const buf = ${name}(${callArgs.join(", ")});`,
+            `const buf = ${name}(${callArgs.map(arg => arg.name).join(", ")});`,
             `const len = loadU32BE(buf + 0x20 + 28);`,
             `const padded = ((len + 31) & ~31);`,
             `write_result(buf, 0x40 + padded);`,
@@ -56,10 +57,10 @@ export function generateUserEntrypoint(contract: IRContract) {
           ].join("\n    ");
         } else {
           const size = getReturnSize(outputType);
-          callLine = `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
+          callLine = `let ptr = ${name}(${callArgs.map(arg => arg.name).join(", ")}); write_result(ptr, ${size}); return 0;`;
         }
       } else {
-        callLine = `${name}(${callArgs.join(", ")}); return 0;`;
+        callLine = `${name}(${callArgs.map(arg => arg.name).join(", ")}); return 0;`;
       }
 
       const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
@@ -83,9 +84,10 @@ export function generateUserEntrypoint(contract: IRContract) {
     });
     
     imports.push(`import { deploy } from "./contract.transformed";`);
+    imports.push(`import { toBool } from "as-stylus/core/types/boolean";`);
   
-    const callLine = `deploy(${callArgs.join(", ")}); return 0;`;
-    const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
+    const callLine = `deploy(${callArgs.map(arg => arg.name).join(", ")}); return 0;`;
+    const indentedBody = [...argLines, callLine].map(line => `    ${line}`).filter(line => line.trim() !== "").join("\n");
   
     const deployEntry = `  if (selector == ${deploySig}) {\n${indentedBody}\n  }`;
     entries.push(deployEntry);

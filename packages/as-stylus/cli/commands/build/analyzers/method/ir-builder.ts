@@ -1,10 +1,11 @@
 import { Block, MethodDeclaration } from "ts-morph";
 
-import { STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types.js";
+import { AbiType, STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types.js";
 import { IRMethod } from "@/cli/types/ir.types.js";
 
 import { MethodSemanticValidator } from "./semantic-validator.js";
 import { MethodSyntaxValidator } from "./syntax-validator.js";
+import { convertType } from "../../builder/build-abi.js";
 import { ArgumentIRBuilder } from "../argument/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { StatementIRBuilder } from "../statement/ir-builder.js";
@@ -57,7 +58,7 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       name,
       visibility,
       inputs,
-      outputs: returnType === "void" ? [] : [{ type: returnType }],
+      outputs: returnType === AbiType.Void ? [] : [{ type: convertType(returnType) }],
       stateMutability,
       ir: irBody,
     };

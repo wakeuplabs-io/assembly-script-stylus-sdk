@@ -1,9 +1,11 @@
 import { CallExpression, Expression, PropertyAccessExpression } from "ts-morph";
 
 import { ctx } from "@/cli/shared/compilation-context.js";
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression, IRMapGet, IRMapGet2, IRMapSet, IRMapSet2 } from "@/cli/types/ir.types.js";
 import { FunctionSymbol, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
+import { buildAddressIR } from "./address.js";
 import { buildStringIR } from "./string.js";
 import { buildU256IR } from "./u256.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
@@ -34,7 +36,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       return (variableDeclared as VariableSymbol).type;
     }
 
-    return "void";
+    return AbiType.Unknown;
   }
 
   buildIR(): IRExpression {
@@ -77,12 +79,16 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     const variable = this.symbolTable.lookup(varName);
     const scope = variable?.scope ?? "memory";
 
-    if (variable?.type === "U256") {
+    if (variable?.type === AbiType.Uint256) {
       return buildU256IR(target, this.call, this.symbolTable);
     }
 
-    if (variable?.type === "Str") {
+    if (variable?.type === AbiType.String) {
       return buildStringIR(target, this.call, this.symbolTable);
+    }
+
+    if (variable?.type === AbiType.Address) {
+      return buildAddressIR(target, this.call, this.symbolTable);
     }
 
     return { kind: "call", target, args, returnType: this.getReturnType(target), scope };

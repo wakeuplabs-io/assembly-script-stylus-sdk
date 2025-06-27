@@ -1,5 +1,6 @@
 import { PropertyAccessExpression } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
@@ -29,7 +30,7 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
       kind: "member",
       object: object,
       property: this.expression.getName(),
-      type: variable?.type || "void",
+      type: variable?.type || AbiType.Void,
     };
   }
 } 

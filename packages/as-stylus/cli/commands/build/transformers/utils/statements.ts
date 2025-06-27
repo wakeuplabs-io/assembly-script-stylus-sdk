@@ -1,9 +1,13 @@
+import { AbiType } from "@/cli/types/abi.types.js";
+import { IRStatement } from "@/cli/types/ir.types.js";
+
 import { emitExpression } from "./expressions.js";
+import { SupportedType } from "../../analyzers/shared/supported-types.js";
 
 /**
  * Emits code for a list of statements with indentation
  */
-export function emitStatements(statements: any[]): string {
+export function emitStatements(statements: IRStatement[]): string {
   return statements
     .map((s) => emitStatement(s, "  "))
     .filter((s) => s) // Filter empty statements
@@ -16,7 +20,7 @@ export function emitStatements(statements: any[]): string {
  * This function examines an IR statement and generates the corresponding AssemblyScript code.
  * Each statement type has its own code generation logic.
  */
-function emitStatement(s: any, indent: string): string {
+function emitStatement(s: IRStatement, indent: string): string {
   let code = "";
   switch (s.kind) {
     /**
@@ -83,27 +87,32 @@ function emitStatement(s: any, indent: string): string {
      * If s.expr exists, that value is returned, otherwise an empty return is generated.
      */
     case "return": {
-      if (s.expr) {
-        const exprResult = emitExpression(s.expr);
-        if (exprResult.setupLines.length > 0) {
-          const lines: string[] = [...exprResult.setupLines.map((line) => `${indent}${line}`)];
-          const returnExpr = ["Str", "string"].includes(s.expr.type) ? 
-            `Str.toABI(${exprResult.valueExpr})` : 
-            exprResult.valueExpr;
-          lines.push(`${indent}return ${returnExpr};`);
-          return lines.join("\n");
-        }
-
-        const returnExpr = ["Str", "string"].includes(s.expr.type) ? 
-          `Str.toABI(${exprResult.valueExpr})` : 
-          exprResult.valueExpr;
-        code = `${indent}return ${returnExpr};`;
-      } else {
+      if (!s.expr) {
         code = `${indent}return;`;
+        break;
       }
+    
+      const exprResult = emitExpression(s.expr);
+      const type = (s.expr as { type: SupportedType }).type;
+    
+      const baseExpr = ["Str", "string"].includes(type)
+        ? `Str.toABI(${exprResult.valueExpr})`
+        : exprResult.valueExpr;
+    
+      const returnExpr = type === AbiType.Bool && !baseExpr.includes("_storage")
+        ? `allocBool(${baseExpr})`
+        : baseExpr;
+    
+      if (exprResult.setupLines.length > 0) {
+        const lines = exprResult.setupLines.map((line) => `${indent}${line}`);
+        lines.push(`${indent}return ${returnExpr};`);
+        return lines.join("\n");
+      }
+    
+      code = `${indent}return ${returnExpr};`;
       break;
     }
-
+    
     /**
      * Case "if": Conditional statement
      *
@@ -254,7 +263,7 @@ function emitStatement(s: any, indent: string): string {
     }
 
     default:
-      code = `${indent}/* Unsupported statement: ${s.kind} */`;
+      code = `${indent}/* Unsupported statement: ${(s as { kind: string }).kind} */`;
   }
 
   return code;

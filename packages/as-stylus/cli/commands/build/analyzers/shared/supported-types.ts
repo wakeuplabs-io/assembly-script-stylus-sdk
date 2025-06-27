@@ -1,4 +1,6 @@
-export const SUPPORTED_TYPES = ["U256", "string", "boolean", "Address", "void", "Str"];
+import { AbiType } from "@/cli/types/abi.types.js";
+
+export const SUPPORTED_TYPES = [ AbiType.Address, AbiType.Uint256, AbiType.String, AbiType.Bool, AbiType.Void];
 export const CONDITIONAL_OPERATORS = [">", ">=", "<", "<=", "==", "!=", "&&", "||"];
 export const ARITHMETIC_OPERATORS = ["+", "-", "*", "/", "="];
 
