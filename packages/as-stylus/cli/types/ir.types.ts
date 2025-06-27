@@ -170,10 +170,31 @@ export interface IREvent {
   fields: IREventField[];
 }
 
+// ───────────────────────
+// Struct structure
+// ───────────────────────
+
+export interface IRStructField {
+  name: string;
+  type: string;
+  offset: number;
+  size: number;
+  dynamic: boolean;
+}
+
+export interface IRStruct {
+  name: string;
+  fields: IRStructField[];
+  size: number;
+  dynamic: boolean;
+  alignment: number;
+}
+
 export interface IRContract {
   name: string;
   methods: IRMethod[];
   constructor?: IRConstructor;
   storage: IRVariable[];
   events?: IREvent[];
+  structs?: IRStruct[];
 }

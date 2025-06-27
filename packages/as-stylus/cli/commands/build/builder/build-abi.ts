@@ -23,7 +23,6 @@ export function buildAbi(targetPath: string, contract: IRContract) {
 
     const stateMutability: AbiItem["stateMutability"] =
       method.outputs.length > 0 ? "view" : "nonpayable";
-
     abi.push({
       name: method.name,
       type: "function",
@@ -50,15 +49,23 @@ export function buildAbi(targetPath: string, contract: IRContract) {
 }
 
 export function convertType(type: string): string {
-  switch (type.toLowerCase()) {
+  switch (type) {
+    case "U256":
     case "u256":
       return "uint256";
+    case "I256":
     case "i256":
       return "int256";
+    case "u32":
+    case "i32":
+      return "uint32";
     case "bool":
+    case "boolean":
       return "bool";
     case "string":
+    case "Str":
       return "string";
+    case "Address":
     case "address":
       return "address";
     case "bytes32":

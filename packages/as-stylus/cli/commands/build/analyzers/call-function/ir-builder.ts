@@ -39,6 +39,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
   buildIR(): IRExpression {
     const expr = this.call.getExpression();
+    
     // Try to detect Mapping access: Balances.balances.get(user) or .set(user, value)
     if (expr.getKindName() === "PropertyAccessExpression") {
       const methodAccess = expr as PropertyAccessExpression;

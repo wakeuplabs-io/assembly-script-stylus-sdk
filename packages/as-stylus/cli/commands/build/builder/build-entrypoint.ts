@@ -1,14 +1,16 @@
 import path from "path";
-import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from 'viem';
+import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from "viem";
 
 import { IRContract, IRMethod } from "@/cli/types/ir.types.js";
 import { writeFile } from "@/cli/utils/fs.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
-import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
+import { getUserEntrypointTemplate } from "@/templates/entrypoint.js";
 
 import { convertType } from "./build-abi.js";
-import { generateArgsLoadBlock } from "../transformers/utils/args.js";
-
+import {
+  generateArgsLoadBlock,
+  generateArgsLoadBlockWithStringSupport,
+} from "../transformers/utils/args.js";
 
 function getFunctionSelector(method: IRMethod): string {
   const { name, inputs } = method;
@@ -17,11 +19,11 @@ function getFunctionSelector(method: IRMethod): string {
     name,
     type: "function",
     stateMutability: method.stateMutability as AbiStateMutability,
-    inputs: inputs.map(input => ({
+    inputs: inputs.map((input) => ({
       name: input.name,
       type: convertType(input.type),
     })),
-    outputs: method.outputs.map(output => ({
+    outputs: method.outputs.map((output) => ({
       name: output.name,
       type: convertType(output.type),
     })),
@@ -42,17 +44,26 @@ export function generateUserEntrypoint(contract: IRContract) {
       const sig = getFunctionSelector(method);
       imports.push(`import { ${name} } from "./contract.transformed";`);
 
-      const { argLines, callArgs } = generateArgsLoadBlock(inputs);
+      // Use string-aware args generator when strings are present
+      const hasStrings = inputs.some((input) => input.type === "string" || input.type === "Str");
+      const { argLines, callArgs } = hasStrings
+        ? generateArgsLoadBlockWithStringSupport(inputs)
+        : generateArgsLoadBlock(inputs);
+
       const outputType = method.outputs?.[0]?.type ?? "U256";
       let callLine = "";
-      if (["pure", "view"].includes(stateMutability) && (outputType !== "void" && outputType !== "any")) {
+      if (
+        ["pure", "view"].includes(stateMutability) &&
+        outputType !== "void" &&
+        outputType !== "any"
+      ) {
         if (outputType === "string" || outputType === "Str") {
           callLine = [
             `const buf = ${name}(${callArgs.join(", ")});`,
             `const len = loadU32BE(buf + 0x20 + 28);`,
             `const padded = ((len + 31) & ~31);`,
             `write_result(buf, 0x40 + padded);`,
-            `return 0;`
+            `return 0;`,
           ].join("\n    ");
         } else {
           const size = getReturnSize(outputType);
@@ -62,35 +73,38 @@ export function generateUserEntrypoint(contract: IRContract) {
         callLine = `${name}(${callArgs.join(", ")}); return 0;`;
       }
 
-      const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
+      const indentedBody = [...argLines, callLine].map((line) => `    ${line}`).join("\n");
       entries.push(`  if (selector == ${sig}) {\n${indentedBody}\n  }`);
     }
   }
 
-  if (contract.constructor) {
-    const { inputs } = contract.constructor;
-    const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-    const deploySig = getFunctionSelector({
-      name: "deploy",
-      visibility: "public",
-      stateMutability: "nonpayable",
-      inputs: inputs.map(input => ({
-        name: input.name,
-        type: convertType(input.type),
-      })),
-      outputs: [],
-      ir: [],
-    });
-    
-    imports.push(`import { deploy } from "./contract.transformed";`);
-  
-    const callLine = `deploy(${callArgs.join(", ")}); return 0;`;
-    const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
-  
-    const deployEntry = `  if (selector == ${deploySig}) {\n${indentedBody}\n  }`;
-    entries.push(deployEntry);
-  }
-  
+  const deployInputs = contract.constructor?.inputs || [];
+  const deployHasStrings = deployInputs.some(
+    (input) => input.type === "string" || input.type === "Str",
+  );
+  const { argLines, callArgs } = deployHasStrings
+    ? generateArgsLoadBlockWithStringSupport(deployInputs)
+    : generateArgsLoadBlock(deployInputs);
+
+  const deploySig = getFunctionSelector({
+    name: "deploy",
+    visibility: "public",
+    stateMutability: "nonpayable",
+    inputs: deployInputs.map((input) => ({
+      name: input.name,
+      type: convertType(input.type),
+    })),
+    outputs: [],
+    ir: [],
+  });
+
+  imports.push(`import { deploy } from "./contract.transformed";`);
+
+  const callLine = `deploy(${callArgs.join(", ")}); return 0;`;
+  const indentedBody = [...argLines, callLine].map((line) => `    ${line}`).join("\n");
+
+  const deployEntry = `  if (selector == ${deploySig}) {\n${indentedBody}\n  }`;
+  entries.push(deployEntry);
 
   return {
     imports: imports.join("\n"),

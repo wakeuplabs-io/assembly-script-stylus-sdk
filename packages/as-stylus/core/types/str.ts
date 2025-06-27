@@ -198,4 +198,33 @@ export class Str {
 
     return out;
   }
+
+  static rawStringToABI(stringPtr: usize): usize {
+    if (stringPtr == 0) {
+      const out = malloc(0x40);
+      zero(out, 32);
+      store<u8>(out + 31, 0x20);
+      zero(out + 0x20, 32);
+      return out;
+    }
+
+    const len: u32 = load<u32>(stringPtr - 4);
+    const paddedLen = (len + 31) & ~31;
+    const total = 0x40 + paddedLen;
+
+    const out = malloc(total);
+
+    // ABI header
+    zero(out, 32);
+    store<u8>(out + 31, 0x20);
+    zero(out + 0x20, 32);
+    storeU32BE(out + 0x20 + 28, len);
+
+    // Copy string data
+    for (let i: u32 = 0; i < len; ++i) {
+      store<u8>(out + 0x40 + i, load<u8>(stringPtr + i));
+    }
+
+    return out;
+  }
 }

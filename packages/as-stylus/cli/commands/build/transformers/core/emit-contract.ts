@@ -1,10 +1,11 @@
 import { IRContract } from "../../../../types/ir.types.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
+import { registerStructTransformer } from "../struct/struct-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
+import { generateDeployFunction } from "../utils/deploy.js";
 import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
 import { generateStorageImports, generateStorageHelpers } from "../utils/storage.js";
-
 /**
  * Generates the AssemblyScript code for a contract from its IR representation
  * @param contract IR representation of the contract
@@ -15,34 +16,20 @@ export function emitContract(contract: IRContract): string {
   const parts: string[] = [];
 
   // Imports
-  parts.push(generateStorageImports(contract.storage));
+  parts.push(generateStorageImports(contract.storage, contract.structs && contract.structs.length > 0));
 
   // Storage slots
-  parts.push(...generateStorageHelpers(contract.storage));
+  parts.push(...generateStorageHelpers(contract.storage, contract.structs || []));
+
+  // Struct helpers
+  parts.push(...registerStructTransformer(contract));
 
   // Events
-  if (contract.events && contract.events.length > 0) {
-    parts.push(...registerEventTransformer(contract.events)); 
-  }
+  parts.push(...registerEventTransformer(contract)); 
 
   // Constructor
-  if (contract.constructor) {
-    const { inputs } = contract.constructor;
-    const { callArgs } = generateArgsLoadBlock(inputs);
-    const argsSignature = callArgs.map(a => `${a}: usize`).join(", ");
-    const aliasLines = inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
-    if (inputs.some(inp => inp.type === "string")) {
-      aliasLines.push(`  const argsStart: usize = arg0;`);
-    }
-    const body = emitStatements(contract.constructor.ir);
-  
-    parts.push(
-      `export function deploy(${argsSignature}): void {\n` +
-      aliasLines.join("\n") + "\n" +
-      body + "\n}"
-    );
-    parts.push("");
-  }
+  parts.push(generateDeployFunction(contract));
+  parts.push("");
   
   
   // Methods
@@ -50,7 +37,7 @@ export function emitContract(contract: IRContract): string {
     let returnType = "void";
   
     if (m.outputs && m.outputs.length > 0 &&
-        (["U256", "u64", "string", "Address", "boolean"].includes(m.outputs[0].type))) {
+        (["U256", "u64", "string", "Address", "boolean", "Str"].includes(m.outputs[0].type))) {
       returnType = "usize";
     }
   
@@ -72,5 +59,6 @@ export function emitContract(contract: IRContract): string {
   });
 
   return parts.join("\n");
+ 
 }
 
