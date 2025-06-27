@@ -2,112 +2,124 @@
 //  End-to-end tests — AdminRegistry contract (Stylus)
 // ---------------------------------------------------------------
 import { config } from "dotenv";
-import path from "path";
+import { Address, Hex, WalletClient } from "viem";
+
+import { contractService, getWalletClient } from "./client.js";
+import {
+  CONTRACT_PATHS,
+  CONTRACT_ADDRESS_REGEX,
+  DEPLOY_TIMEOUT,
+  PROJECT_ROOT,
+} from "./constants.js";
+import { getAbi, PRIVATE_KEY, run, stripAnsi } from "./utils.js";
 
 config();
 
-import {
-  ROOT,
-  RPC_URL,
-  PRIVATE_KEY,
-  run,
-  stripAnsi,
-  calldata,
-  createContractHelpers,
-  getFunctionSelector,
-} from "./utils.js";
-
-const SELECTOR = {
-  DEPLOY: getFunctionSelector("deploy(address)"),
-  SET: getFunctionSelector("setAdmin(address)"),
-  RESET: getFunctionSelector("resetAdmin()"),
-  GET: getFunctionSelector("getAdmin()"),
-  IS_ADMIN: getFunctionSelector("isAdmin(address)"),
-  IS_ZERO: getFunctionSelector("adminIsZero()"),
-};
-
-/*───────────────────────────────*
- *  Constants
- *───────────────────────────────*/
+// Constants
 const ADMIN = "0x1111111111111111111111111111111111111111";
 const ADMIN_FAIL = "0x1111111111111111111111111111111111111112";
 
-/*───────────────────────────────*
- *  Global state across tests
- *───────────────────────────────*/
+// Test state
 let contractAddr = "";
-let helpers: ReturnType<typeof createContractHelpers>;
+const walletClient: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
+let contract: ReturnType<typeof contractService>;
+const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.ADMIN_REGISTRY;
+const abi = getAbi(abiPath);
 
-/*───────────────────────────────*
- *  Deploy once for the whole file
- *───────────────────────────────*/
-beforeAll(() => {
+/**
+ * Deploys the AdminRegistry contract and initializes the test environment
+ */
+beforeAll(async () => {
   try {
-    const projectRoot = path.join(ROOT, "/as-stylus/");
-    const pkg = path.join(ROOT, "/as-stylus/__tests__/contracts/admin-registry");
-    run("npm run pre:build", projectRoot);
-    run("npx as-stylus build", pkg);
-    run("npm run compile", pkg);
-    run("npm run check", pkg);
+    console.log("🚀 Starting AdminRegistry contract deployment...");
+    console.log("Contract path:", contractPath);
 
-    const dataDeploy = calldata(SELECTOR.DEPLOY, ADMIN);
+    // Build and compile the contract
+    console.log("📦 Building contract...");
+    run("npm run pre:build", PROJECT_ROOT);
+    run("npx as-stylus build", contractPath);
+    run("npm run compile", contractPath);
+    run("npm run check", contractPath);
 
-    const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, pkg));
-    const m = deployLog.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
-    if (!m) throw new Error("Could not scrape contract address");
-    contractAddr = m[1];
-    helpers = createContractHelpers(contractAddr);
+    // Deploy the contract
+    console.log("🚢 Deploying contract...");
+    const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, contractPath));
 
-    run(
-      `cast send ${contractAddr} ${dataDeploy} --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL}`,
-    );
+    // Extract contract address from deployment logs
+    const addressMatch = deployLog.match(CONTRACT_ADDRESS_REGEX);
+    if (!addressMatch) {
+      throw new Error(`Could not extract contract address from deployment log: ${deployLog}`);
+    }
 
-    console.log("📍 Deployed at", contractAddr);
+    contractAddr = addressMatch[1];
+    console.log("📍 Contract deployed at:", contractAddr);
+
+    // Initialize contract service
+    contract = contractService(contractAddr as Address, abi);
+
+    // Initialize the contract with the admin address
+    console.log("🔧 Initializing contract with admin...");
+
+    await contract.write(walletClient, "deploy", [ADMIN as Address]);
+
+    console.log("✅ Contract setup completed successfully");
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Failed to deploy contract:", errorMessage);
-    throw error;
+    console.error("❌ Failed to deploy contract:", errorMessage);
+
+    // Add more context to the error
+    if (error instanceof Error) {
+      console.error("Stack trace:", error.stack);
+    }
+
+    throw new Error(`Contract deployment failed: ${errorMessage}`);
   }
-}, 120_000);
+}, DEPLOY_TIMEOUT);
 
-const send = (data: string) => helpers.sendData(data);
-const call = (data: string) => helpers.callData(data);
-const expectHex = (data: string, hex: string) =>
-  expect(call(data).toLowerCase()).toBe(hex.toLowerCase());
+describe("AdminRegistry Contract Tests", () => {
+  describe("Initial setup verification", () => {
+    it("should return initial admin address after deployment", async () => {
+      const result = await contract.read("getAdmin", []);
+      console.log("Admin address:", result);
+      expect((result as string).toLowerCase()).toBe(ADMIN.toLowerCase());
+    });
 
-describe("AdminRegistry (Address) — basic ops", () => {
-  it("get() after deploy ⇒ initial address", () => {
-    const res = call(calldata(SELECTOR.GET));
-    console.log("res", res);
-    expect(res.toLowerCase()).toContain(ADMIN.toLowerCase());
+    it("should return true for isAdmin with initial admin", async () => {
+      const result = await contract.read("isAdmin", [ADMIN as Address]);
+      expect(result).toBe(true);
+    });
+
+    it("should return false for isAdmin with non-admin address", async () => {
+      const result = await contract.read("isAdmin", [ADMIN_FAIL as Address]);
+      console.log("isAdmin", result);
+      expect(result).toBe(false);
+    });
+
+    it("should return false for adminIsZero initially", async () => {
+      const result = await contract.read("adminIsZero", []);
+      expect(result).toBe(false);
+    });
   });
 
-  it("isAdmin(initial) ⇒ true", () => {
-    const result = call(calldata(SELECTOR.IS_ADMIN, ADMIN.toLowerCase()));
-    expect(result.toLowerCase()).toBe("0x01");
-  });
+  describe("Admin management operations", () => {
+    it("should update admin address when setAdmin is called", async () => {
+      const NEW_ADMIN = "0x2222222222222222222222222222222222222222";
 
-  it("isAdmin(initial) ⇒ false", () => {
-    const result = call(calldata(SELECTOR.IS_ADMIN, ADMIN_FAIL.toLowerCase()));
-    expect(result.toLowerCase()).toBe("0x00");
-  });
+      // Set new admin
+      await contract.write(walletClient, "setAdmin", [NEW_ADMIN as Address]);
 
-  it("isZero() ⇒ false initially", () => {
-    const result = call(calldata(SELECTOR.IS_ZERO));
-    expect(result.toLowerCase()).toBe("0x00");
-  });
+      // Verify admin was updated
+      const result = await contract.read("getAdmin", []);
+      expect((result as string).toLowerCase()).toBe(NEW_ADMIN.toLowerCase());
+    });
 
-  it("setAdmin(new) ⇒ address updates", () => {
-    const NEW_ADMIN = "0x2222222222222222222222222222222222222222";
+    it("should reset admin to zero address when resetAdmin is called", async () => {
+      // Reset admin to zero
+      await contract.write(walletClient, "resetAdmin", []);
 
-    send(calldata(SELECTOR.SET, NEW_ADMIN));
-
-    const res = call(calldata(SELECTOR.GET));
-    expect(res.toLowerCase()).toContain(NEW_ADMIN.toLowerCase());
-  });
-
-  it("resetAdmin() ⇒ sets to zero", () => {
-    send(calldata(SELECTOR.RESET));
-    expectHex(calldata(SELECTOR.IS_ZERO), "0x01");
+      // Verify admin is now zero
+      const isZero = await contract.read("adminIsZero", []);
+      expect(isZero).toBe(true);
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { BinaryExpression, CallExpression, Expression, Identifier, PropertyAccessExpression, SyntaxKind } from "ts-morph";
+import { BinaryExpression, CallExpression, Expression, Identifier, PrefixUnaryExpression, PropertyAccessExpression, SyntaxKind } from "ts-morph";
 
 import { IRExpression } from "@/cli/types/ir.types.js";
 
@@ -7,6 +7,7 @@ import { CallFunctionIRBuilder } from "../call-function/ir-builder.js";
 import { LiteralIRBuilder } from "../literal/ir-builder.js";
 import { MemberIRBuilder } from "../member/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { UnaryExpressionIRBuilder } from "../unary-expression/ir-builder.js";
 
 /**
  * Builds the IR for an expression
@@ -64,6 +65,11 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       case SyntaxKind.BinaryExpression: {
         const bin = new BinaryExpressionIRBuilder(this.expression as BinaryExpression);
         return bin.validateAndBuildIR();
+      }
+
+      case SyntaxKind.PrefixUnaryExpression: {
+        const unary = new UnaryExpressionIRBuilder(this.expression as PrefixUnaryExpression);
+        return unary.buildIR();
       }
   
       default:

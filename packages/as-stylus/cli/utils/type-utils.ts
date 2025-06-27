@@ -5,7 +5,7 @@ export function getReturnSize(type: string): number {
     case "Address":
       return 20;
     case "boolean":
-      return 1;
+      return 32;
     case "string":
       return 32;
     default:

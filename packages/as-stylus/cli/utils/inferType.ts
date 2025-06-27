@@ -1,34 +1,32 @@
 // Infer type from expression
 
-import {
-  SUPPORTED_TYPES,
-  SupportedType,
-} from "../commands/build/analyzers/shared/supported-types.js";
+import { SUPPORTED_TYPES } from "../commands/build/analyzers/shared/supported-types.js";
+import { convertType } from "../commands/build/builder/build-abi.js";
+import { AbiType } from "../types/abi.types.js";
 
-export function inferType(target: string): SupportedType {
-  if (SUPPORTED_TYPES.includes(target as SupportedType)) {
-    return target as SupportedType;
-  }
-
+export function inferType(target: string): AbiType {
   if (target.startsWith("U256Factory")) {
-    return "U256";
+    return AbiType.Uint256;
   }
 
   if (target.startsWith("AddressFactory")) {
-    return "address";
+    return AbiType.Address;
   }
 
   if (target.startsWith("StrFactory")) {
-    return "Str";
+    return AbiType.String;
   }
 
   if (/^Mapping2(<|$)/.test(target)) {
-    return "mapping2";
+    return AbiType.Mapping2;
   }
 
   if (/^Mapping(<|$)/.test(target)) {
-    return "mapping";
+    return AbiType.Mapping;
   }
 
-  return "any";
+  if (SUPPORTED_TYPES.includes(convertType(target))) {
+    return convertType(target);
+  }
+  return AbiType.Any;
 }

@@ -35,36 +35,32 @@ export class Address {
   }
   static fromBytes(ptr_20: usize): usize {
     const addr = Address.create();
-    for (let i: i32 = 0; i < 20; ++i) {
+    for (let i: i32 = 0; i < 32; ++i) {
       store<u8>(addr + i, load<u8>(ptr_20 + i));
     }
     return addr;
   }
 
-  static equals(a: usize, b: usize): usize {
-    const ptr = malloc(1);
-    for (let i: usize = 0; i < 20; ++i) {
-      store<u8>(ptr, load<u8>(a + i) ^ load<u8>(b + i));
-    }
-    if (load<u8>(ptr) == 0) {
-      store<u8>(ptr, 1);
-    } else {
-      store<u8>(ptr, 0);
-    }
-    return ptr;
-  }
-
-  static isZero(ptr_address: usize): usize {
-    const ptr = malloc(1);
-    for (let i: i32 = 0; i < 20; ++i) {
-      if (load<u8>(ptr_address + i) != 0) {
-        store<u8>(ptr, 0);
-        return ptr;
+  static equals(a: usize, b: usize): boolean {
+    for (let i: usize = 0; i < 32; ++i) {
+      const a_i = load<u8>(a + i);
+      const b_i = load<u8>(b + i);
+      if (a_i !== b_i) {
+        return false;
       }
     }
-    store<u8>(ptr, 1);
-    return ptr;
+    return true;
   }
+
+  static isZero(ptr_address: usize): boolean {
+    for (let i: i32 = 0; i < 20; ++i) {
+      if (load<u8>(ptr_address + i) != 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   static fromString(strPtr: usize, len: u32): usize {
     const addr = Address.create();
     this.setFromStringHex(addr, strPtr, len);

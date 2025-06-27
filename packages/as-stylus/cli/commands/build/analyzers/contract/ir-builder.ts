@@ -79,7 +79,18 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       constructor = constructorIRBuilder.validateAndBuildIR();
     }
 
-    const names = classDefinition.getMethods().map(method => method.getName());
+    const names = classDefinition.getMethods().map(method => {
+      const name = method.getName();
+      this.symbolTable.declareFunction(name, {
+        returnType: method.getReturnType().getText(),
+        name: name,
+        parameters: method.getParameters().map(param => ({
+          name: param.getName(),
+          type: param.getType().getText(),
+        })),
+      });
+      return name;
+    });
 
     const methods = classDefinition.getMethods().map((method) => {
       const methodIRBuilder = new MethodIRBuilder(method, names);

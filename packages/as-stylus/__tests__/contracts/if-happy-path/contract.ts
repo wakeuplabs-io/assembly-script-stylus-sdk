@@ -3,6 +3,21 @@
 
 @Contract
 export class IfHappyPath {
+  flag_storage: boolean;
+
+  constructor() {}
+
+  @External
+  setFlag(flag: boolean): void {
+    flag_storage = flag;
+  }
+
+  @View
+  getFlag(): boolean {
+    const flag = flag_storage;
+    return flag;
+  }
+
   @View
   static getLowerWithFlag(): U256 {
     const flag = true;
@@ -52,10 +67,18 @@ export class IfHappyPath {
   }
 
   @View
+  static getValueWithBooleanOperators(): boolean {
+    const flag = false;
+    if (!flag && !getTrueFlag()) return false;
+    return true;
+  }
+
+  @View
   static getTrueFlag(): boolean {
     return true;
   }
 
+  @View
   static getFalseFlag(): boolean {
     return false;
   }

@@ -1,9 +1,16 @@
-import { AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "./abi.types.js";
+import { AbiType, AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "./abi.types.js";
 import { SupportedType } from "../commands/build/analyzers/shared/supported-types.js";
 
 // Statements// ───────────────────────
 // Base IR node types
 // ───────────────────────
+
+export type IRUnaryExpression = {
+  kind: "unary";
+  op: string;
+  expr: IRExpression;
+  type: SupportedType;
+};
 
 export type Literal = {
   kind: "literal";
@@ -69,6 +76,7 @@ export type IRCondition = {
 // ───────────────────────
 
 export type IRExpression =
+  | IRUnaryExpression
   | Literal
   | Variable
   | Call
@@ -139,7 +147,7 @@ export type IRVariable = IRSimpleVar | IRMappingVar | IRMapping2Var;
 // Contract structure
 // ───────────────────────
 
-export type IRArgument = { name: string; type: string };
+export type IRArgument = { name: string; type: AbiType };
 
 export type IRMethod = {
   name: string;

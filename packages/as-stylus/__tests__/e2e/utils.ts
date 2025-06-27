@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------
 import { execSync } from "child_process";
 import { config } from "dotenv";
+import { readFileSync } from "fs";
 import path from "path";
 import stripAnsiRaw from "strip-ansi";
 import { toFunctionSelector } from "viem";
@@ -10,8 +11,8 @@ import { toFunctionSelector } from "viem";
 config();
 export const ROOT = path.resolve(__dirname, "../../..");
 export const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
-export const PRIVATE_KEY = process.env.PRIVATE_KEY;
-export const USER_B_PRIVATE_KEY = process.env.USER_B_PRIVATE_KEY;
+export const PRIVATE_KEY = process.env.PRIVATE_KEY!;
+export const USER_B_PRIVATE_KEY = process.env.USER_B_PRIVATE_KEY!;
 
 if (!PRIVATE_KEY) throw new Error("⚠️  Set PRIVATE_KEY in .env");
 if (!USER_B_PRIVATE_KEY) throw new Error("⚠️  Set USER_B_PRIVATE_KEY in .env");
@@ -80,4 +81,8 @@ export function createContractHelpers(contractAddr: string) {
 
 export function getFunctionSelector(signature: string) {
   return toFunctionSelector(signature);
+}
+
+export function getAbi(abiPath: string) {
+  return JSON.parse(readFileSync(abiPath, "utf-8"));
 }

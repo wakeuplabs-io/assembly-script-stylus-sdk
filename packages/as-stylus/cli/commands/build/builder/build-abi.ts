@@ -56,6 +56,7 @@ export function convertType(type: string): string {
     case "i256":
       return "int256";
     case "bool":
+    case "boolean":
       return "bool";
     case "string":
       return "string";
