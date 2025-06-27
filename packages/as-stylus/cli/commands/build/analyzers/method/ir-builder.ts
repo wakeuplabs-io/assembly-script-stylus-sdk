@@ -45,14 +45,12 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
 
     const returnType = this.methodDecl.getReturnType().getText();
     const body = this.methodDecl.getBodyOrThrow() as Block;
-
     const irBody = body.getStatements().map((stmt) => {
       const statementBuilder = new StatementIRBuilder(stmt);
       return statementBuilder.validateAndBuildIR();
     });
 
     this.symbolTable.exitScope();
-
     return {
       name,
       visibility,

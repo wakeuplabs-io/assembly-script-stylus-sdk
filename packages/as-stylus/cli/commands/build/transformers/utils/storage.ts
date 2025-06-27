@@ -46,7 +46,7 @@ export function generateStorageImports(variables: IRVariable[], hasStructs: bool
       '} from "as-stylus/core/modules/hostio";',
       'import { createStorageKey } from "as-stylus/core/modules/storage";',
       'import { Msg } from "as-stylus/core/types/msg";',
-      'import { allocBool } from "as-stylus/core/types/boolean";',
+      'import { Boolean } from "as-stylus/core/types/boolean";',
       'import { addTopic, emitTopics } from "as-stylus/core/modules/events";',
     );
   }

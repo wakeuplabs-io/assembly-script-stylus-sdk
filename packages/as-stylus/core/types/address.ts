@@ -77,7 +77,16 @@ export class Address {
     for (let i = 0; i < 20; ++i) store<u8>(t + 12 + i, load<u8>(addr + i));
     return t;
   }
+
+  static copyNew(src: usize): usize {
+    const dst = this.create();
+    for (let i = 0; i < 20; ++i) {
+      store<u8>(dst + i, load<u8>(src + i));
+    }
+    return dst;
+  }
 }
+
 function hexChar(c: u8): u8 {
   const lo = c | 0x20;
   return lo >= 0x61 ? lo - 0x57 : c - 0x30; // 'a'-10 : '0'

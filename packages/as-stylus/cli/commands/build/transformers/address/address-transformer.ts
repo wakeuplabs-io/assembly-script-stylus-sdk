@@ -1,5 +1,6 @@
 import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
 import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+import { AddressCopyHandler } from "./handlers/copy-handler.js";
 import { AddressCreateHandler }   from "./handlers/create-handler.js";
 import { AddressEqualsHandler } from "./handlers/equals-handler.js";
 import { AddressFromStringHandler } from "./handlers/from-string-handler.js";
@@ -11,6 +12,7 @@ export class AddressTransformer extends BaseTypeTransformer {
   constructor() {
     super("Address");
 
+    this.registerHandler(new AddressCopyHandler());
     this.registerHandler(new AddressCreateHandler());
     this.registerHandler(new AddressFromStringHandler());
     this.registerHandler(new AddressToStringHandler());
@@ -25,6 +27,7 @@ export class AddressTransformer extends BaseTypeTransformer {
     return (
       target === "AddressFactory.create"   ||
       target === "AddressFactory.fromString" ||
+      target === "Address.copy" ||
       target.endsWith(".equals")   ||
       target.endsWith(".isZero")   ||
       target.endsWith(".toString")

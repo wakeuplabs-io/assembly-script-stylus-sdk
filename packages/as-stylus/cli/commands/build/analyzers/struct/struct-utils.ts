@@ -144,4 +144,45 @@ export function isStructFieldAccess(objectExpr: any): { isStruct: boolean; struc
 
   console.log("Not detected as struct");
   return { isStruct: false };
+}
+
+/**
+ * Determines if a type is primitive according to the golden rule:
+ * Primitives (pass by value): U256, boolean, Address, numbers
+ * Non-primitives (pass by reference): string, Str, structs
+ */
+export function isPrimitiveType(type: string): boolean {
+  const primitiveTypes = ["U256", "boolean", "Address", "number", "u64", "i64", "u32", "i32"];
+  return primitiveTypes.includes(type);
+}
+
+/**
+ * Gets the type of a specific field in a struct
+ */
+export function getStructFieldType(structName: string, fieldName: string): string | undefined {
+  const struct = ctx.structRegistry.get(structName);
+  if (!struct) return undefined;
+  
+  const field = struct.fields.find(f => f.name === fieldName);
+  return field?.type;
+}
+
+/**
+ * Extracts struct type from StructFactory.create<StructType>() call expression
+ * This is used by CallFunctionIRBuilder to determine the return type
+ */
+export function extractStructTypeFromCall(callExpression: any): string | undefined {
+  // This will be called from CallFunctionIRBuilder
+  // For now, we'll use a simple heuristic or context analysis
+  // The proper implementation would need access to TypeScript's type checker
+  
+  // If we have type arguments, extract from there
+  if (callExpression.getTypeArguments && callExpression.getTypeArguments().length > 0) {
+    const typeArg = callExpression.getTypeArguments()[0];
+    return typeArg.getText();
+  }
+  
+  // Fallback: try to infer from context or return undefined
+  // This will need to be enhanced based on actual usage
+  return undefined;
 } 

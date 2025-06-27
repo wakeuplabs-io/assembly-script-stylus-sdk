@@ -1,6 +1,7 @@
 import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
 import { IRStruct, IRContract } from "../../../../types/ir.types.js";
 import { BaseTypeTransformer } from "../core/base-transformer.js";
+import { StructFactoryCreateHandler } from "./handlers/factory-create-handler.js";
 import { StructFieldAccessHandler } from "./handlers/field-access-handler.js";
 import { StructFieldSetHandler } from "./handlers/field-set-handler.js";
 
@@ -8,6 +9,7 @@ export class StructTransformer extends BaseTypeTransformer {
   private structs: Map<string, IRStruct>;
   private fieldAccessHandler: StructFieldAccessHandler;
   private fieldSetHandler: StructFieldSetHandler;
+  private factoryCreateHandler: StructFactoryCreateHandler;
 
   constructor(structs: IRStruct[]) {
     super("Struct");
@@ -15,10 +17,12 @@ export class StructTransformer extends BaseTypeTransformer {
     this.structs = new Map(structs.map(s => [s.name, s]));
     this.fieldAccessHandler = new StructFieldAccessHandler(this.structs);
     this.fieldSetHandler = new StructFieldSetHandler(this.structs);
+    this.factoryCreateHandler = new StructFactoryCreateHandler(this.structs);
     
     // Registrar handlers
     this.registerHandler(this.fieldAccessHandler);
     this.registerHandler(this.fieldSetHandler);
+    this.registerHandler(this.factoryCreateHandler);
   }
 
   matchesType(expr: any): boolean {
@@ -26,13 +30,10 @@ export class StructTransformer extends BaseTypeTransformer {
     
     const target = expr.target || "";
     
-    // Detect struct creation: new StructName()
-    if (target.startsWith("new ") && target.endsWith("()")) {
-      const structName = target.slice(4, -2);
-      return this.structs.has(structName);
+    if (target === "StructFactory.create" && expr.metadata?.isStructCreation) {
+      return true;
     }
     
-    // Detect setter calls: StructName_set_field
     if (target.includes("_set_")) {
       const parts = target.split("_set_");
       if (parts.length === 2) {
@@ -41,7 +42,6 @@ export class StructTransformer extends BaseTypeTransformer {
       }
     }
     
-    // Detect getter calls: StructName_get_field
     if (target.includes("_get_")) {
       const parts = target.split("_get_");
       if (parts.length === 2) {

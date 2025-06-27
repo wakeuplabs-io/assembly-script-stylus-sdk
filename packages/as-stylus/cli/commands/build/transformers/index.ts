@@ -10,6 +10,7 @@ import "./string/string-transformer.js";
 import "./boolean/boolean-transformer.js";
 import "./msg/msg-transformer.js";
 import "./event/event-transformer.js";
+import "./struct/struct-transformer.js";
 
 // Re-export key transformers functionality
 export { transformFromIR } from "./core/transform-ir.js";
