@@ -24,8 +24,8 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   }
 
   buildIR(): IRVariable {
-    const [name] = this.property.getName().split(":");
-    const type = inferType(this.property.getType().getText());
+    const [name, typeDefined] = this.property.getName().split(":");
+    const type = typeDefined ? typeDefined : inferType(this.property.getType().getText());
     this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage" });
   
     if (type === AbiType.Mapping2) {

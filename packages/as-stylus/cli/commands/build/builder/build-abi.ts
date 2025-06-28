@@ -53,6 +53,10 @@ export function buildAbi(targetPath: string, contract: IRContract) {
 }
 
 export function convertType(type: string): AbiType {
+  if (Object.values(AbiType).includes(type as AbiType)) {
+    return type as AbiType;
+  }
+
   switch (type.toLowerCase()) {
     case "u256":
       return AbiType.Uint256;
