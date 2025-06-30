@@ -2,16 +2,12 @@
 //  End-to-end tests — StringStorage contract (Stylus)
 // ---------------------------------------------------------------
 import { config } from "dotenv";
-import { Address, Hex, WalletClient } from "viem";
+import { Hex, WalletClient } from "viem";
 
 import { contractService, getWalletClient } from "./client.js";
-import {
-  CONTRACT_PATHS,
-  CONTRACT_ADDRESS_REGEX,
-  DEPLOY_TIMEOUT,
-  PROJECT_ROOT,
-} from "./constants.js";
-import { getAbi, PRIVATE_KEY, run, stripAnsi } from "./utils.js";
+import { CONTRACT_PATHS, CONTRACT_ADDRESS_REGEX, DEPLOY_TIMEOUT } from "./constants.js";
+import { setupE2EContract } from "./setup.js";
+import { PRIVATE_KEY, handleDeploymentError } from "./utils.js";
 
 config();
 
@@ -19,7 +15,6 @@ config();
 const LONG_STRING = "abcdefghijklmnopqrstuvwxyz1234567890!@#";
 
 // Test state
-let contractAddr = "";
 const walletClient: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
 let contract: ReturnType<typeof contractService>;
 const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.STRING;
@@ -29,38 +24,11 @@ const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.STRING;
  */
 beforeAll(async () => {
   try {
-    // Build and compile the contract
-    run("npm run pre:build", PROJECT_ROOT);
-    run("npx as-stylus build", contractPath);
-    run("npm run compile", contractPath);
-    run("npm run check", contractPath);
-    run("npx prettier --write ./artifacts/contract.transformed.ts", contractPath);
-
-    const abi = getAbi(abiPath);
-    // Deploy the contract
-    const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, contractPath));
-
-    // Extract contract address from deployment logs
-    const addressMatch = deployLog.match(CONTRACT_ADDRESS_REGEX);
-    if (!addressMatch) {
-      throw new Error(`Could not extract contract address from deployment log: ${deployLog}`);
-    }
-
-    contractAddr = addressMatch[1];
-    console.log("📍 Contract deployed at:", contractAddr);
-
-    // Initialize contract service
-    contract = contractService(contractAddr as Address, abi);
+    contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
+      walletClient,
+    });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("❌ Failed to deploy contract:", errorMessage);
-
-    // Add more context to the error
-    if (error instanceof Error) {
-      console.error("Stack trace:", error.stack);
-    }
-
-    throw new Error(`Contract deployment failed: ${errorMessage}`);
+    handleDeploymentError(error);
   }
 }, DEPLOY_TIMEOUT);
 

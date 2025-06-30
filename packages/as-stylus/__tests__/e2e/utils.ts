@@ -86,3 +86,19 @@ export function getFunctionSelector(signature: string) {
 export function getAbi(abiPath: string) {
   return JSON.parse(readFileSync(abiPath, "utf-8"));
 }
+
+/**
+ * Handles deployment errors in a consistent way across all e2e tests
+ * @param error The error that occurred during deployment
+ * @throws Error with formatted message
+ */
+export function handleDeploymentError(error: unknown): never {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  console.error("❌ Failed to deploy contract:", errorMessage);
+
+  if (error instanceof Error) {
+    console.error("Stack trace:", error.stack);
+  }
+
+  throw new Error(`Contract deployment failed: ${errorMessage}`);
+}

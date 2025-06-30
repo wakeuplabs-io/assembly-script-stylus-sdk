@@ -15,6 +15,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
 
+import { ContractArgs } from "./setup.js";
 import { RPC_URL } from "./utils.js";
 
 config();
@@ -48,7 +49,7 @@ export const getWalletClient = (privateKey: string) =>
 
 export function contractService(contractAddr: Address, abi: Abi) {
   return {
-    write: async (walletClient: WalletClient, functionName: string, args: any[]) => {
+    write: async (walletClient: WalletClient, functionName: string, args: ContractArgs) => {
       const { request } = await publicClient.simulateContract({
         address: contractAddr as Address,
         abi,
@@ -62,7 +63,7 @@ export function contractService(contractAddr: Address, abi: Abi) {
       return result;
     },
 
-    read: async (functionName: string, args: any[]) => {
+    read: async (functionName: string, args: (string | boolean | Address | bigint)[]) => {
       const result = await publicClient.readContract({
         address: contractAddr as Address,
         abi,
@@ -74,3 +75,5 @@ export function contractService(contractAddr: Address, abi: Abi) {
     },
   };
 }
+
+export type ContractService = ReturnType<typeof contractService>;

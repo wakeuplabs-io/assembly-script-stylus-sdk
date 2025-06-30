@@ -104,13 +104,11 @@ function generateMethodCallLogic(method: IRMethod, callArgs: Array<{ name: strin
   const outputType = method.outputs?.[0]?.type;
   const argsList = callArgs.map(arg => arg.name).join(", ");
 
-  if (
-      outputType !== AbiType.Void && 
-      outputType !== AbiType.Any) {
-    return generateReturnLogic(name, callArgs, outputType);
+  if (!outputType || outputType === AbiType.Void || outputType === AbiType.Any) {
+    return `${name}(${argsList}); return 0;`;
   }
 
-  return `${name}(${argsList}); return 0;`;
+  return generateReturnLogic(name, callArgs, outputType);
 }
 
 function generateMethodEntry(method: IRMethod): { import: string; entry: string } {

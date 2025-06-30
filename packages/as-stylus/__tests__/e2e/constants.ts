@@ -37,4 +37,8 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/erc20"),
     abi: path.join(ROOT_PATH, "/erc20/artifacts/abi/ERC20-abi.json"),
   },
+  ERC20_FULL: {
+    contract: path.join(ROOT_PATH, "/erc20-full"),
+    abi: path.join(ROOT_PATH, "/erc20-full/artifacts/abi/ERC20Full-abi.json"),
+  },
 } as const;
