@@ -1,12 +1,18 @@
+import { config } from "dotenv";
 import path from "path";
 
-import { ROOT } from "./utils.js";
+config();
+
+export const ROOT = path.resolve(__dirname, "../../..");
+export const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
+export const PRIVATE_KEY = process.env.PRIVATE_KEY!;
+export const USER_B_PRIVATE_KEY = process.env.USER_B_PRIVATE_KEY!;
 
 export const DEPLOY_TIMEOUT = 120_000;
 export const CONTRACT_ADDRESS_REGEX = /deployed code at address:\s*(0x[0-9a-fA-F]{40})/i;
 export const PROJECT_ROOT = path.join(ROOT, "/as-stylus/");
 
-const ROOT_PATH = path.join(ROOT, "/as-stylus/__tests__/contracts");
+export const ROOT_PATH = path.join(ROOT, "/as-stylus/__tests__/contracts");
 
 export const CONTRACT_PATHS = {
   IF_HAPPY_PATH: {

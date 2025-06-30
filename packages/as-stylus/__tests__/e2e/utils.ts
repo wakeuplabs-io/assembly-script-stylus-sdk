@@ -2,22 +2,13 @@
 //  Utils — build / deploy / call helpers for Stylus e2e tests
 // ---------------------------------------------------------------
 import { execSync } from "child_process";
-import { config } from "dotenv";
 import { readFileSync } from "fs";
-import path from "path";
 import stripAnsiRaw from "strip-ansi";
 import { toFunctionSelector } from "viem";
 
-config();
-export const ROOT = path.resolve(__dirname, "../../..");
-export const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
-export const PRIVATE_KEY = process.env.PRIVATE_KEY!;
-export const USER_B_PRIVATE_KEY = process.env.USER_B_PRIVATE_KEY!;
+import { PRIVATE_KEY, ROOT, ROOT_PATH, RPC_URL, USER_B_PRIVATE_KEY } from "./constants.js";
 
-if (!PRIVATE_KEY) throw new Error("⚠️  Set PRIVATE_KEY in .env");
-if (!USER_B_PRIVATE_KEY) throw new Error("⚠️  Set USER_B_PRIVATE_KEY in .env");
-
-export function run(cmd: string, cwd: string = ROOT, allowErr = false): string {
+export function run(cmd: string, cwd: string = ROOT_PATH, allowErr = false): string {
   try {
     return execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8" }).trim();
   } catch (e: unknown) {

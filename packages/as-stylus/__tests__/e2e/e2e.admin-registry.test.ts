@@ -5,9 +5,14 @@ import { config } from "dotenv";
 import { Address, Hex, WalletClient } from "viem";
 
 import { contractService, getWalletClient } from "./client.js";
-import { CONTRACT_PATHS, CONTRACT_ADDRESS_REGEX, DEPLOY_TIMEOUT } from "./constants.js";
+import {
+  CONTRACT_PATHS,
+  CONTRACT_ADDRESS_REGEX,
+  DEPLOY_TIMEOUT,
+  PRIVATE_KEY,
+} from "./constants.js";
 import { setupE2EContract } from "./setup.js";
-import { PRIVATE_KEY, handleDeploymentError } from "./utils.js";
+import { handleDeploymentError } from "./utils.js";
 
 config();
 

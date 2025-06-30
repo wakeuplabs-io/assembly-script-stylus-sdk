@@ -15,8 +15,8 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
 
+import { RPC_URL } from "./constants.js";
 import { ContractArgs } from "./setup.js";
-import { RPC_URL } from "./utils.js";
 
 config();
 
