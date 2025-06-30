@@ -1,7 +1,7 @@
 import path from "path";
 import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from 'viem';
 
-import { AbiType } from "@/cli/types/abi.types.js";
+import { AbiType, AbiInput } from "@/cli/types/abi.types.js";
 import { IRContract, IRMethod } from "@/cli/types/ir.types.js";
 import { writeFile } from "@/cli/utils/fs.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
@@ -10,9 +10,54 @@ import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
 import { convertType } from "./build-abi.js";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
 
+// Constants
+const MEMORY_OFFSETS = {
+  STRING_LENGTH_OFFSET: 0x20 + 28,
+  STRING_DATA_OFFSET: 0x40,
+  PADDING_MASK: 31,
+} as const;
+
+const VISIBILITY_TYPES = {
+  PUBLIC_EXTERNAL: ['public', 'external', 'nonpayable'] as const,
+  READ_ONLY: ['pure', 'view'] as const,
+} as const;
+
+const INDENTATION = {
+  BODY: '    ',
+  BLOCK: '  ',
+} as const;
+
+// Types
+interface EntrypointResult {
+  imports: string;
+  entrypointBody: string;
+}
+
+interface CodeBlock {
+  imports: string[];
+  entries: string[];
+}
+
+// Helper function to validate inputs
+function validateMethod(method: IRMethod): void {
+  if (!method.name) {
+    throw new Error('Method name is required');
+  }
+  if (!method.visibility) {
+    throw new Error(`Method ${method.name} must have visibility`);
+  }
+}
+
+function validateContract(contract: IRContract): void {
+  if (!contract.methods) {
+    throw new Error('Contract must have methods array');
+  }
+  
+  contract.methods.forEach(validateMethod);
+}
 
 function getFunctionSelector(method: IRMethod): string {
-  const { name, inputs } = method;
+  const { name, inputs, outputs = [] } = method;
 
   const signature = toFunctionSignature({
     name,
@@ -22,7 +67,7 @@ function getFunctionSelector(method: IRMethod): string {
       name: input.name,
       type: convertType(input.type),
     })),
-    outputs: method.outputs.map(output => ({
+    outputs: outputs.map(output => ({
       name: output.name,
       type: convertType(output.type),
     })),
@@ -31,82 +76,171 @@ function getFunctionSelector(method: IRMethod): string {
   return toFunctionSelector(signature);
 }
 
-export function generateUserEntrypoint(contract: IRContract) {
+function generateStringReturnLogic(methodName: string, callArgs: Array<{ name: string }>): string {
+  const argsList = callArgs.map(arg => arg.name).join(", ");
+  
+  return [
+    `const buf = ${methodName}(${argsList});`,
+    `const len = loadU32BE(buf + ${MEMORY_OFFSETS.STRING_LENGTH_OFFSET});`,
+    `const padded = ((len + ${MEMORY_OFFSETS.PADDING_MASK}) & ~${MEMORY_OFFSETS.PADDING_MASK});`,
+    `write_result(buf, ${MEMORY_OFFSETS.STRING_DATA_OFFSET} + padded);`,
+    `return 0;`
+  ].join(`\n${INDENTATION.BODY}`);
+}
+
+function generateReturnLogic(methodName: string, callArgs: Array<{ name: string }>, outputType: AbiType): string {
+  const argsList = callArgs.map(arg => arg.name).join(", ");
+  
+  if (outputType === AbiType.String) {
+    return generateStringReturnLogic(methodName, callArgs);
+  }
+  
+  const size = getReturnSize(outputType);
+  return `let ptr = ${methodName}(${argsList}); write_result(ptr, ${size}); return 0;`;
+}
+
+function generateMethodCallLogic(method: IRMethod, callArgs: Array<{ name: string }>): string {
+  const { name } = method;
+  const outputType = method.outputs?.[0]?.type;
+  const argsList = callArgs.map(arg => arg.name).join(", ");
+
+  if (
+      outputType !== AbiType.Void && 
+      outputType !== AbiType.Any) {
+    return generateReturnLogic(name, callArgs, outputType);
+  }
+
+  return `${name}(${argsList}); return 0;`;
+}
+
+function generateMethodEntry(method: IRMethod): { import: string; entry: string } {
+  validateMethod(method);
+  
+  const { name, visibility } = method;
+  
+  if (!VISIBILITY_TYPES.PUBLIC_EXTERNAL.includes(visibility as any)) {
+    throw new Error(`Method ${name} has invalid visibility: ${visibility}`);
+  }
+
+  const selector = getFunctionSelector(method);
+  const importStatement = `import { ${name} } from "./contract.transformed";`;
+  
+  const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
+  const callLogic = generateMethodCallLogic(method, callArgs);
+  
+  const bodyLines = [...argLines, callLogic]
+    .map(line => `${INDENTATION.BODY}${line}`)
+    .join('\n');
+  
+  const entry = `${INDENTATION.BLOCK}if (selector == ${selector}) {\n${bodyLines}\n${INDENTATION.BLOCK}}`;
+
+  return { import: importStatement, entry };
+}
+
+function generateConstructorEntry(constructor: { inputs: AbiInput[] }): { imports: string[]; entry: string } {
+  const { inputs } = constructor;
+  const { argLines, callArgs } = generateArgsLoadBlock(inputs);
+  
+  const deployMethod: IRMethod = {
+    name: "deploy",
+    visibility: "public",
+    stateMutability: "nonpayable",
+    inputs: inputs.map(input => ({
+      name: input.name,
+      type: convertType(input.type),
+    })),
+    outputs: [],
+    ir: [],
+  };
+  
+  const deploySig = getFunctionSelector(deployMethod);
+  const imports = [
+    `import { deploy } from "./contract.transformed";`,
+    `import { toBool } from "as-stylus/core/types/boolean";`
+  ];
+
+  const callLine = `deploy(${callArgs.map(arg => arg.name).join(", ")}); return 0;`;
+  const bodyLines = [...argLines, callLine]
+    .map(line => `${INDENTATION.BODY}${line}`)
+    .filter(line => line.trim() !== "")
+    .join('\n');
+
+  const entry = `${INDENTATION.BLOCK}if (selector == ${deploySig}) {\n${bodyLines}\n${INDENTATION.BLOCK}}`;
+
+  return { imports, entry };
+}
+
+function processContractMethods(contract: IRContract): CodeBlock {
   const imports: string[] = [];
   const entries: string[] = [];
 
   for (const method of contract.methods) {
-    const { name, visibility, inputs, stateMutability } = method;
-
-    if (["public", "external"].includes(visibility)) {
-      // Create function signature: name(type1,type2,...)
-      const sig = getFunctionSelector(method);
-      imports.push(`import { ${name} } from "./contract.transformed";`);
-
-      const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-      const outputType = method.outputs?.[0]?.type ?? "U256";
-      let callLine = "";
-      if (["pure", "view"].includes(stateMutability) && (outputType !== AbiType.Void && outputType !== AbiType.Any)) {
-        if (outputType === AbiType.String) {
-          callLine = [
-            `const buf = ${name}(${callArgs.map(arg => arg.name).join(", ")});`,
-            `const len = loadU32BE(buf + 0x20 + 28);`,
-            `const padded = ((len + 31) & ~31);`,
-            `write_result(buf, 0x40 + padded);`,
-            `return 0;`
-          ].join("\n    ");
-        } else {
-          const size = getReturnSize(outputType);
-          callLine = `let ptr = ${name}(${callArgs.map(arg => arg.name).join(", ")}); write_result(ptr, ${size}); return 0;`;
-        }
-      } else {
-        callLine = `${name}(${callArgs.map(arg => arg.name).join(", ")}); return 0;`;
+    if (VISIBILITY_TYPES.PUBLIC_EXTERNAL.includes(method.visibility as any)) {
+      try {
+        const { import: methodImport, entry } = generateMethodEntry(method);
+        imports.push(methodImport);
+        entries.push(entry);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`Error processing method ${method.name}: ${message}`);
       }
-
-      const indentedBody = [...argLines, callLine].map(line => `    ${line}`).join("\n");
-      entries.push(`  if (selector == ${sig}) {\n${indentedBody}\n  }`);
     }
   }
 
-  if (contract.constructor) {
-    const { inputs } = contract.constructor;
-    const { argLines, callArgs } = generateArgsLoadBlock(inputs);
-    const deploySig = getFunctionSelector({
-      name: "deploy",
-      visibility: "public",
-      stateMutability: "nonpayable",
-      inputs: inputs.map(input => ({
-        name: input.name,
-        type: convertType(input.type),
-      })),
-      outputs: [],
-      ir: [],
-    });
-    
-    imports.push(`import { deploy } from "./contract.transformed";`);
-    imports.push(`import { toBool } from "as-stylus/core/types/boolean";`);
-  
-    const callLine = `deploy(${callArgs.map(arg => arg.name).join(", ")}); return 0;`;
-    const indentedBody = [...argLines, callLine].map(line => `    ${line}`).filter(line => line.trim() !== "").join("\n");
-  
-    const deployEntry = `  if (selector == ${deploySig}) {\n${indentedBody}\n  }`;
-    entries.push(deployEntry);
-  }
-  
+  return { imports, entries };
+}
 
-  return {
-    imports: imports.join("\n"),
-    entrypointBody: entries.join("\n"),
-  };
+function processConstructor(contract: IRContract): CodeBlock {
+  if (!contract.constructor) {
+    return { imports: [], entries: [] };
+  }
+
+  try {
+    const { imports, entry } = generateConstructorEntry(contract.constructor);
+    return { imports, entries: [entry] };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Error processing constructor: ${message}`);
+  }
+}
+
+export function generateUserEntrypoint(contract: IRContract): EntrypointResult {
+  try {
+    validateContract(contract);
+
+    const methodsResult = processContractMethods(contract);
+    const constructorResult = processConstructor(contract);
+
+    const allImports = [...methodsResult.imports, ...constructorResult.imports];
+    const allEntries = [...methodsResult.entries, ...constructorResult.entries];
+
+    return {
+      imports: allImports.join('\n'),
+      entrypointBody: allEntries.join('\n'),
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to generate user entrypoint: ${message}`);
+  }
 }
 
 export function buildEntrypoint(userFilePath: string, contract: IRContract): void {
-  const { imports, entrypointBody } = generateUserEntrypoint(contract);
-  const contractBasePath = path.dirname(userFilePath);
+  if (!userFilePath) {
+    throw new Error('User file path is required');
+  }
 
-  let indexTemplate = getUserEntrypointTemplate();
-  indexTemplate = indexTemplate.replace("// @logic_imports", imports);
-  indexTemplate = indexTemplate.replace("// @user_entrypoint", entrypointBody);
+  try {
+    const { imports, entrypointBody } = generateUserEntrypoint(contract);
+    const contractBasePath = path.dirname(userFilePath);
 
-  writeFile(path.join(contractBasePath, "entrypoint.ts"), indexTemplate);
+    let indexTemplate = getUserEntrypointTemplate();
+    indexTemplate = indexTemplate.replace("// @logic_imports", imports);
+    indexTemplate = indexTemplate.replace("// @user_entrypoint", entrypointBody);
+
+    const outputPath = path.join(contractBasePath, "entrypoint.ts");
+    writeFile(outputPath, indexTemplate);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to build entrypoint for ${userFilePath}: ${message}`);
+  }
 }

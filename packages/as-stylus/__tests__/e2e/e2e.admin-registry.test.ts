@@ -24,25 +24,20 @@ let contractAddr = "";
 const walletClient: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
 let contract: ReturnType<typeof contractService>;
 const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.ADMIN_REGISTRY;
-const abi = getAbi(abiPath);
 
 /**
  * Deploys the AdminRegistry contract and initializes the test environment
  */
 beforeAll(async () => {
   try {
-    console.log("🚀 Starting AdminRegistry contract deployment...");
-    console.log("Contract path:", contractPath);
-
     // Build and compile the contract
-    console.log("📦 Building contract...");
     run("npm run pre:build", PROJECT_ROOT);
     run("npx as-stylus build", contractPath);
     run("npm run compile", contractPath);
     run("npm run check", contractPath);
+    const abi = getAbi(abiPath);
 
     // Deploy the contract
-    console.log("🚢 Deploying contract...");
     const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, contractPath));
 
     // Extract contract address from deployment logs
@@ -58,11 +53,7 @@ beforeAll(async () => {
     contract = contractService(contractAddr as Address, abi);
 
     // Initialize the contract with the admin address
-    console.log("🔧 Initializing contract with admin...");
-
     await contract.write(walletClient, "deploy", [ADMIN as Address]);
-
-    console.log("✅ Contract setup completed successfully");
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("❌ Failed to deploy contract:", errorMessage);
@@ -80,7 +71,6 @@ describe("AdminRegistry Contract Tests", () => {
   describe("Initial setup verification", () => {
     it("should return initial admin address after deployment", async () => {
       const result = await contract.read("getAdmin", []);
-      console.log("Admin address:", result);
       expect((result as string).toLowerCase()).toBe(ADMIN.toLowerCase());
     });
 
@@ -91,7 +81,6 @@ describe("AdminRegistry Contract Tests", () => {
 
     it("should return false for isAdmin with non-admin address", async () => {
       const result = await contract.read("isAdmin", [ADMIN_FAIL as Address]);
-      console.log("isAdmin", result);
       expect(result).toBe(false);
     });
 

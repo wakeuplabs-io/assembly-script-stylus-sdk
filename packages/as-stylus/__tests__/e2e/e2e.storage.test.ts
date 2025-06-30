@@ -26,25 +26,20 @@ let contractAddr = "";
 const walletClient: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
 let contract: ReturnType<typeof contractService>;
 const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.STORAGE;
-const abi = getAbi(abiPath);
 
 /**
  * Deploys the Storage contract and initializes the test environment
  */
 beforeAll(async () => {
   try {
-    console.log("🚀 Starting contract deployment...");
-    console.log("Contract path:", contractPath);
-
     // Build and compile the contract
-    console.log("📦 Building contract...");
     run("npm run pre:build", PROJECT_ROOT);
     run("npx as-stylus build", contractPath);
     run("npm run compile", contractPath);
     run("npm run check", contractPath);
+    const abi = getAbi(abiPath);
 
     // Deploy the contract
-    console.log("🚢 Deploying contract...");
     const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, contractPath));
 
     // Extract contract address from deployment logs
@@ -60,10 +55,7 @@ beforeAll(async () => {
     contract = contractService(contractAddr as Address, abi);
 
     // Initialize the contract by calling deploy with initial value
-    console.log("🔧 Initializing contract...");
     await contract.write(walletClient, "deploy", [INIT_VALUE]);
-
-    console.log("✅ Contract setup completed successfully");
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("❌ Failed to deploy contract:", errorMessage);

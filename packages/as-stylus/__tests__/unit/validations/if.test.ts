@@ -46,7 +46,6 @@ describe("if", () => {
     analyzer.validateAndBuildIR();
 
     const errorManager = analyzer.errorManager;
-    console.log(errorManager.getErrors());
 
     expect(errorManager.getErrors().length).toBe(0);
   });

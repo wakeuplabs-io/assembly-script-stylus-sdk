@@ -1,12 +1,14 @@
-export function getReturnSize(type: string): number {
+import { AbiType } from "../types/abi.types.js";
+
+export function getReturnSize(type: AbiType): number {
   switch (type) {
-    case "U256":
+    case AbiType.Uint256:
       return 32;
-    case "Address":
-      return 20;
-    case "boolean":
+    case AbiType.Address:
       return 32;
-    case "string":
+    case AbiType.Bool:
+      return 32;
+    case AbiType.String:
       return 32;
     default:
       return 32;

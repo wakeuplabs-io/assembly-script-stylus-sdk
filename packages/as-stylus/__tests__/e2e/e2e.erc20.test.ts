@@ -26,8 +26,6 @@ const ownerWallet: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
 const userBWallet: WalletClient = getWalletClient(USER_B_PRIVATE_KEY as Hex);
 let contract: ReturnType<typeof contractService>;
 const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.ERC20;
-const abi = getAbi(abiPath);
-console.log("abi", abi, contractPath);
 
 // Helper to get wallet addresses
 const getOwnerAddress = () => ownerWallet.account?.address as Address;
@@ -38,25 +36,20 @@ const getUserBAddress = () => userBWallet.account?.address as Address;
  */
 beforeAll(async () => {
   try {
-    console.log("🚀 Starting contract deployment...");
-    console.log("Contract path:", contractPath);
-
     // Fund USER_B for gas
-    console.log("💰 Funding USER_B for gas...");
     run(
       `cast send ${getUserBAddress()} --value 0.1ether --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL}`,
     );
 
     // Build and compile the contract
-    console.log("📦 Building contract...");
     run("npm run pre:build", PROJECT_ROOT);
     run("npx as-stylus build", contractPath);
     run("npm run compile", contractPath);
     run("npm run check", contractPath);
     run("npx prettier --write ./artifacts/contract.transformed.ts", contractPath);
+    const abi = getAbi(abiPath);
 
     // Deploy the contract
-    console.log("🚢 Deploying contract...");
     const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, contractPath));
 
     // Extract contract address from deployment logs
@@ -72,12 +65,7 @@ beforeAll(async () => {
     contract = contractService(contractAddr as Address, abi);
 
     // Initialize the contract by calling deploy with initial supply
-    console.log("🔧 Initializing contract...");
     await contract.write(ownerWallet, "deploy", [INIT_SUPPLY]);
-
-    console.log("✅ Contract setup completed successfully");
-    console.log("👤 Owner address:", getOwnerAddress());
-    console.log("👤 USER_B address:", getUserBAddress());
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("❌ Failed to deploy contract:", errorMessage);

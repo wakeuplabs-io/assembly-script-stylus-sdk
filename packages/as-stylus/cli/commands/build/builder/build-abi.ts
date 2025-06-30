@@ -21,13 +21,10 @@ export function buildAbi(targetPath: string, contract: IRContract) {
       type: convertType(param.type),
     }));
 
-    const stateMutability: AbiItem["stateMutability"] =
-      method.outputs.length > 0 ? "view" : "nonpayable";
-
     abi.push({
       name: method.name,
       type: "function",
-      stateMutability,
+      stateMutability: method.stateMutability,
       inputs,
       outputs,
     });
