@@ -1,8 +1,10 @@
 import { AbiInput, AbiOutput, AbiType, AssemblyScriptType } from "@/cli/types/abi.types.js";
 
-import { IRConstructor, IRContract, IRMethod } from "../../../../types/ir.types.js";
+import { IRContract, IRMethod } from "../../../../types/ir.types.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
+import { registerStructTransformer } from "../struct/struct-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
+import { generateDeployFunction } from "../utils/deploy.js";
 import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
 import { generateStorageImports, generateStorageHelpers } from "../utils/storage.js";
@@ -31,13 +33,13 @@ function generateArgumentSignature(
 ): ArgumentSignature {
   const argsSignature = callArgs.map(arg => `${arg.name}: ${arg.type}`).join(", ");
   const aliasLines = inputs.map((inp, i) => {
-    if (inp.type === "bool") {
-      return `  const ${inp.name} = allocBool(${callArgs[i].name});`;
+    if (inp.type === AbiType.Bool) {
+      return `  const ${inp.name} = Boolean.create(${callArgs[i].name});`;
     }
     return `  const ${inp.name} = ${callArgs[i].name};`;
   });
   
-  if (inputs.some(inp => inp.type === "string")) {
+  if (inputs.some(inp => inp.type === AbiType.String)) {
     aliasLines.push(`  const argsStart: usize = arg0;`);
   }
   
@@ -56,19 +58,6 @@ function getMethodReturnType(outputs: AbiOutput[] | undefined): string {
   
   // Fix this
   return Object.values(POINTER_RETURN_TYPES).includes(firstOutputType) ? "usize" : "void";
-}
-
-/**
- * Generates the constructor function code
- */
-function generateConstructor(constructor: IRConstructor): string {
-  const { inputs } = constructor;
-  const { callArgs } = generateArgsLoadBlock(inputs);
-  const { argsSignature, aliasLines } = generateArgumentSignature(inputs, callArgs);
-  const body = emitStatements(constructor.ir);
-  const aliasBlock = aliasLines.length ? aliasLines.join("\n") + "\n" : "";
-
-  return `\nexport function deploy(${argsSignature}): void {\n${aliasBlock}${body}}`;
 }
 
 /**
@@ -95,19 +84,22 @@ export function emitContract(contract: IRContract): string {
   const parts: string[] = [];
 
   // Add imports
-  parts.push(generateStorageImports(contract.storage));
+  parts.push(generateStorageImports(contract.storage, contract.structs && contract.structs.length > 0));
 
   // Add storage slots
-  parts.push(...generateStorageHelpers(contract.storage));
+  parts.push(...generateStorageHelpers(contract.storage, contract.structs || []));
+
+  // Struct helpers
+  parts.push(...registerStructTransformer(contract));
 
   // Add events
   if (contract.events && contract.events.length > 0) {
-    parts.push(...registerEventTransformer(contract.events));
+    parts.push(...registerEventTransformer(contract)); 
   }
 
   // Add constructor
   if (contract.constructor) {
-    parts.push(generateConstructor(contract.constructor));
+    parts.push(generateDeployFunction(contract));
     parts.push("");
   }
 
@@ -116,5 +108,6 @@ export function emitContract(contract: IRContract): string {
   parts.push(...methodParts.map(method => method));
 
   return parts.join("\n");
+ 
 }
 

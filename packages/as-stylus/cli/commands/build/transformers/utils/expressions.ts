@@ -72,7 +72,7 @@ function handleFallbackExpression(expr: IRExpression): string {
       if (expr.scope === "storage") {
         // TODO: can we use generateLoadCode?
         if (expr.type === "bool") {
-          return `toBool(load_${expr.name}())`;
+          return `Boolean.toValue(load_${expr.name}())`;
         }
         return `load_${expr.name}()`;
       }
@@ -104,7 +104,7 @@ function handleFallbackExpression(expr: IRExpression): string {
      */
     case "call": {
       if (expr.returnType === AbiType.Bool) {
-        return `toBool(${expr.target}(${expr.args.map((a: IRExpression) => emitExpression(a).valueExpr).join(", ")}))`;
+        return `Boolean.toValue(${expr.target}(${expr.args.map((a: IRExpression) => emitExpression(a).valueExpr).join(", ")}))`;
       }
       const argResults = expr.args.map((a: IRExpression) => emitExpression(a));
       return `${expr.target}(${argResults.map((r: EmitResult) => r.valueExpr).join(", ")})`;

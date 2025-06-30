@@ -1,10 +1,12 @@
-import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier } from "ts-morph";
+import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, PropertyAccessExpression } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRStatement } from "@/cli/types/ir.types.js";
 
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { isExpressionOfStructType, getStructFieldType, isPrimitiveType } from "../struct/struct-utils.js";
 
 // TODO: rename to AssignmentIRBuilder. Merge with VariableIRBuilder.
 export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
@@ -30,7 +32,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
         const lhsNode = bin.getLeft();
         const rhsNode = bin.getRight();
 
-        // Only treat as assignment if the LHS is an identifier
+        // Handle simple identifier assignment (x = y)
         if (lhsNode.getKind() === SyntaxKind.Identifier) {
           const lhsId = lhsNode as Identifier;
           const variable = this.symbolTable.lookup(lhsId.getText());
@@ -42,6 +44,60 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
               target: lhsId.getText(),
               expr: new ExpressionIRBuilder(rhsNode).validateAndBuildIR(),
               scope: variable?.scope ?? "memory",
+            };
+          }
+        }
+        
+        // Handle property access assignment (obj.field = value)
+        if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression) {
+          const propAccess = lhsNode as PropertyAccessExpression;
+          const objectExpr = new ExpressionIRBuilder(propAccess.getExpression()).validateAndBuildIR();
+          const fieldName = propAccess.getName();
+          const valueExpr = new ExpressionIRBuilder(rhsNode).validateAndBuildIR();
+          
+          const structInfo = isExpressionOfStructType(objectExpr);
+          if (structInfo.isStruct && structInfo.structName) {
+            const struct = this.symbolTable.lookup(structInfo.structName);
+            
+            const fieldType = getStructFieldType(structInfo.structName, fieldName);
+            let finalValueExpr = valueExpr;
+            
+            if (fieldType && isPrimitiveType(fieldType)) {
+              finalValueExpr = {
+                kind: "call",
+                target: `${fieldType}.copy`,
+                args: [valueExpr],
+                returnType: fieldType as AbiType,
+                scope: "memory"
+              };
+            }
+            
+            return {
+              kind: "expr",
+              expr: {
+                kind: "call",
+                target: `${structInfo.structName}_set_${fieldName}`,
+                args: [objectExpr, finalValueExpr],
+                returnType: AbiType.Void,
+                scope: struct?.scope || "memory"
+              }
+            };
+          } else {
+            // Not a struct: treat as regular assignment
+            // TODO: Handle other types of property assignments
+            return {
+              kind: "expr",
+              expr: {
+                kind: "call",
+                target: `property_set`,
+                args: [
+                  objectExpr,
+                  { kind: "literal", value: fieldName, type: AbiType.String },
+                  valueExpr
+                ],
+                returnType: AbiType.Void,
+                scope: "memory"
+              }
             };
           }
         }

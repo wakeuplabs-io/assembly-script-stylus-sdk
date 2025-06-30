@@ -33,7 +33,7 @@
               "build"
           ],
           "console": "integratedTerminal"
-      },
+        },
         {
             "type": "node",
             "request": "launch",
@@ -63,6 +63,21 @@
               "build"
           ],
           "console": "integratedTerminal"
-      },
+        },
+        {
+          "type": "node",
+          "request": "launch",
+          "name": "Build Struct Contract",
+          "skipFiles": [
+              "<node_internals>/**"
+          ],
+          "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/struct",
+          "runtimeExecutable": "npx",
+          "runtimeArgs": [
+              "as-stylus",
+              "build"
+          ],
+          "console": "integratedTerminal"
+        },
     ]
 }

@@ -11,6 +11,7 @@ import { EventIRBuilder } from "../event/ir-builder.js";
 import { MethodIRBuilder } from "../method/ir-builder.js";
 import { PropertyIRBuilder } from "../property/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { StructIRBuilder } from "../struct/ir-builder.js";
 
 export class ContractIRBuilder extends IRBuilder<IRContract> {
   private sourceFile: SourceFile;
@@ -62,15 +63,31 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     }
     
     const name = classDefinition.getName();
+    ctx.contractName = name ?? "Main";
+
+    const structClasses = this.sourceFile.getClasses().filter(cls => {
+      const decorators = cls.getDecorators();
+      return decorators.some(decorator => decorator.getName() === 'Struct');
+    });
+
+    const structs = structClasses.map(structClass => {
+      const structIRBuilder = new StructIRBuilder(structClass);
+      return structIRBuilder.validateAndBuildIR();
+    });
+
+    structs.forEach(struct => {
+      ctx.structRegistry.set(struct.name, struct);
+    });
 
     const storage = classDefinition.getProperties().map((property, index) => {
       const propertyIRBuilder = new PropertyIRBuilder(property, index);
       return propertyIRBuilder.validateAndBuildIR();
     });
 
-    for (const v of storage) {
-      ctx.slotMap.set(v.name, v.slot);
-    }
+    storage.forEach(variable => {
+      ctx.slotMap.set(variable.name, variable.slot);
+      ctx.variableTypes.set(variable.name, variable.type);
+    });
     
     const constructorDecl: ConstructorDeclaration =
       classDefinition.getConstructors()[0];
@@ -113,7 +130,8 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       constructor,
       methods,
       storage,
-      events
+      events,
+      structs
     };
   }
 }

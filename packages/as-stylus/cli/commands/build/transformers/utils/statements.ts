@@ -100,7 +100,7 @@ function emitStatement(s: IRStatement, indent: string): string {
         : exprResult.valueExpr;
     
       const returnExpr = type === AbiType.Bool && !baseExpr.includes("_storage")
-        ? `allocBool(${baseExpr})`
+        ? `Boolean.create(${baseExpr})`
         : baseExpr;
     
       if (exprResult.setupLines.length > 0) {

@@ -3,6 +3,7 @@
 import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
 
 import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+import { BooleanCopyHandler } from "./handlers/copy-handler.js";
 import { BooleanLiteralHandler } from "./handlers/literal-handler.js";
 
 /**
@@ -12,15 +13,24 @@ export class BooleanTransformer extends BaseTypeTransformer {
   constructor() {
     super("boolean");
 
-    // Register literal handler
+    // Register handlers  
+    this.registerHandler(new BooleanCopyHandler());
     this.registerHandler(new BooleanLiteralHandler());
   }
 
   /**
-   * Detect if an expression is a boolean literal (true/false)
+   * Detect if an expression is a boolean literal (true/false) or boolean.copy
    */
   matchesType(expr: any): boolean {
-    return expr?.kind === "literal" && typeof expr.value === "boolean";
+    if (expr?.kind === "literal" && typeof expr.value === "boolean") {
+      return true;
+    }
+    
+    if (expr?.kind === "call" && expr.target === "boolean.copy") {
+      return true;
+    }
+    
+    return false;
   }
 
   /**

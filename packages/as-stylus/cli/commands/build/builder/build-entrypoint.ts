@@ -1,14 +1,17 @@
 import path from "path";
-import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from 'viem';
+import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from "viem";
 
 import { AbiType, AbiInput } from "@/cli/types/abi.types.js";
-import { IRContract, IRMethod } from "@/cli/types/ir.types.js";
+import { IRContract, IRMethod, IRStruct } from "@/cli/types/ir.types.js";
 import { writeFile } from "@/cli/utils/fs.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
-import { getUserEntrypointTemplate } from "@/templates/entry-point.js";
+import { getUserEntrypointTemplate } from "@/templates/entrypoint.js";
 
 import { convertType } from "./build-abi.js";
-import { generateArgsLoadBlock } from "../transformers/utils/args.js";
+import {
+  generateArgsLoadBlock,
+  generateArgsLoadBlockWithStringSupport,
+} from "../transformers/utils/args.js";
 
 // Constants
 const MEMORY_OFFSETS = {
@@ -38,6 +41,22 @@ interface CodeBlock {
   entries: string[];
 }
 
+/**
+ * Extracts the struct name from a full type that might include import paths
+ * Example: "import(...).StructTest" -> "StructTest"
+ */
+function extractStructName(fullType: string): string {
+  // If it's an import path, extract only the final name
+  if (fullType.includes(").")) {
+    const parts = fullType.split(").");
+    return parts[parts.length - 1];
+  }
+
+  // If it's just the name, return it as is
+  return fullType;
+}
+
+
 // Helper function to validate inputs
 function validateMethod(method: IRMethod): void {
   if (!method.name) {
@@ -63,7 +82,7 @@ function getFunctionSelector(method: IRMethod): string {
     name,
     type: "function",
     stateMutability: method.stateMutability as AbiStateMutability,
-    inputs: inputs.map(input => ({
+    inputs: inputs.map((input) => ({
       name: input.name,
       type: convertType(input.type),
     })),
@@ -88,18 +107,48 @@ function generateStringReturnLogic(methodName: string, callArgs: Array<{ name: s
   ].join(`\n${INDENTATION.BODY}`);
 }
 
-function generateReturnLogic(methodName: string, callArgs: Array<{ name: string }>, outputType: AbiType): string {
+function generateStructReturnLogic(methodName: string, callArgs: Array<{ name: string }>, structInfo: IRStruct): string {
+    const { name, dynamic, size } = structInfo;
+    let callLine = "";
+      // For structs, we need to handle dynamic sizing
+      if (dynamic) {
+        // Dynamic struct: calculate size based on string content at offset 160
+        callLine = [
+          `let ptr = ${name}(${callArgs.join(", ")});`,
+          `const stringLen = loadU32BE(ptr + 160 + 28);`,
+          `const paddedLen = (stringLen + 31) & ~31;`,
+          `const totalSize = 160 + 32 + paddedLen;`,
+          `write_result(ptr, totalSize);`,
+          `return 0;`,
+        ].join("\n    ");
+      } else {
+        // Static struct: use fixed size
+        callLine = `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
+      }
+    
+      return callLine;
+}
+
+function generateReturnLogic(methodName: string, callArgs: Array<{ name: string }>, outputType: AbiType, contract: IRContract): string {
   const argsList = callArgs.map(arg => arg.name).join(", ");
   
   if (outputType === AbiType.String) {
     return generateStringReturnLogic(methodName, callArgs);
+  }
+
+  const structName = extractStructName(outputType);
+  const structInfo = contract.structs?.find(s => s.name === structName);
+  
+  // if (outputType === AbiType.Struct) {
+  if (structInfo) {
+    return generateStructReturnLogic(methodName, callArgs, structInfo);
   }
   
   const size = getReturnSize(outputType);
   return `let ptr = ${methodName}(${argsList}); write_result(ptr, ${size}); return 0;`;
 }
 
-function generateMethodCallLogic(method: IRMethod, callArgs: Array<{ name: string }>): string {
+function generateMethodCallLogic(method: IRMethod, callArgs: Array<{ name: string }>, contract: IRContract): string {
   const { name } = method;
   const outputType = method.outputs?.[0]?.type;
   const argsList = callArgs.map(arg => arg.name).join(", ");
@@ -108,10 +157,10 @@ function generateMethodCallLogic(method: IRMethod, callArgs: Array<{ name: strin
     return `${name}(${argsList}); return 0;`;
   }
 
-  return generateReturnLogic(name, callArgs, outputType);
+  return generateReturnLogic(name, callArgs, outputType, contract);
 }
 
-function generateMethodEntry(method: IRMethod): { import: string; entry: string } {
+function generateMethodEntry(method: IRMethod, contract: IRContract): { import: string; entry: string } {
   validateMethod(method);
   
   const { name, visibility } = method;
@@ -124,7 +173,7 @@ function generateMethodEntry(method: IRMethod): { import: string; entry: string 
   const importStatement = `import { ${name} } from "./contract.transformed";`;
   
   const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
-  const callLogic = generateMethodCallLogic(method, callArgs);
+  const callLogic = generateMethodCallLogic(method, callArgs, contract);
   
   const bodyLines = [...argLines, callLogic]
     .map(line => `${INDENTATION.BODY}${line}`)
@@ -137,7 +186,13 @@ function generateMethodEntry(method: IRMethod): { import: string; entry: string 
 
 function generateConstructorEntry(constructor: { inputs: AbiInput[] }): { imports: string[]; entry: string } {
   const { inputs } = constructor;
-  const { argLines, callArgs } = generateArgsLoadBlock(inputs);
+  const deployHasStrings = inputs.some(
+    (input) => input.type === AbiType.String,
+  );
+  const { argLines, callArgs } = deployHasStrings
+    ? generateArgsLoadBlockWithStringSupport(inputs)
+    : generateArgsLoadBlock(inputs);
+
   
   const deployMethod: IRMethod = {
     name: "deploy",
@@ -154,7 +209,6 @@ function generateConstructorEntry(constructor: { inputs: AbiInput[] }): { import
   const deploySig = getFunctionSelector(deployMethod);
   const imports = [
     `import { deploy } from "./contract.transformed";`,
-    `import { toBool } from "as-stylus/core/types/boolean";`
   ];
 
   const callLine = `deploy(${callArgs.map(arg => arg.name).join(", ")}); return 0;`;
@@ -175,7 +229,7 @@ function processContractMethods(contract: IRContract): CodeBlock {
   for (const method of contract.methods) {
     if (VISIBILITY_TYPES.PUBLIC_EXTERNAL.includes(method.visibility as any)) {
       try {
-        const { import: methodImport, entry } = generateMethodEntry(method);
+        const { import: methodImport, entry } = generateMethodEntry(method, contract);
         imports.push(methodImport);
         entries.push(entry);
       } catch (error) {

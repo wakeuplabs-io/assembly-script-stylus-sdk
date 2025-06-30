@@ -171,7 +171,6 @@ export class U256 {
     return lo >= ASCII_a ? lo - HEX_ALPHA_OFFSET : c - ASCII_0;
   }
 
-  /** Construye un U256 a partir de un u64 (big-endian) */
   static fromU64(val: u64): usize {
     const ptr = malloc(32);
     for (let i = 0; i < 24; ++i) store<u8>(ptr + i, 0);
@@ -179,11 +178,16 @@ export class U256 {
     return ptr;
   }
 
-  /** Devuelve una *copia* de `a + b` (no muta los argumentos) */
   static addNew(a: usize, b: usize): usize {
     const out = malloc(32);
     this.copy(out, a);
     this.add(out, b);
     return out;
+  }
+
+  static copyNew(src: usize): usize {
+    const dst = this.create();
+    this.copy(dst, src);
+    return dst;
   }
 }

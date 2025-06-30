@@ -1,15 +1,13 @@
 import { PropertyAccessExpression } from "ts-morph";
 
+import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { isExpressionOfStructType } from "../struct/struct-utils.js";
 
-/**
- * Builds the IR for a member access expression
- * Example: contract.balance, u256value.toString()
- */
 export class MemberIRBuilder extends IRBuilder<IRExpression> {
   private expression: PropertyAccessExpression;
 
@@ -22,15 +20,40 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
     return true;
   }
 
-
   buildIR(): IRExpression {
-    const object = new ExpressionIRBuilder(this.expression.getExpression()).validateAndBuildIR();
-    const variable = this.symbolTable.lookup(this.expression.getName());
+    const objectIR = new ExpressionIRBuilder(this.expression.getExpression()).validateAndBuildIR();
+    const propertyName = this.expression.getName();
+    const expressionType = this.expression.getType().getText();
+
+    const structInfo = isExpressionOfStructType(objectIR);
+    
+    if (structInfo.isStruct && structInfo.structName) {
+      const struct = ctx.structRegistry.get(structInfo.structName);
+      if (struct) {
+        const field = struct.fields.find(f => f.name === propertyName);
+        if (field) {
+          
+          let scope: "storage" | "memory" = "storage";
+          if (objectIR.kind === "var" && (objectIR as any).scope === "memory") {
+            scope = "memory";
+          }
+          
+          return {
+            kind: "call",
+            target: `${structInfo.structName}_get_${propertyName}`,
+            args: [objectIR],
+            returnType: expressionType as AbiType,
+            scope: scope
+          };
+        }
+      }
+    }
+
     return {
       kind: "member",
-      object: object,
-      property: this.expression.getName(),
-      type: variable?.type || AbiType.Void,
+      object: objectIR,
+      property: propertyName,
+      type: expressionType as AbiType,
     };
   }
-} 
+}
