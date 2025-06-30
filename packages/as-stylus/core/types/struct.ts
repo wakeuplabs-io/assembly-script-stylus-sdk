@@ -69,4 +69,11 @@ export class Struct {
     for (let i = 1; i < 32; i++) store<u8>(p + i, 0);
     storage_cache_bytes32(createStorageKey(slot), p);
   }
+
+  static getBoolean(ptr: usize, off: u32): usize {
+    const boolPtr = malloc(1);
+    store<u8>(boolPtr, load<u8>(ptr + off));
+    
+    return boolPtr;
+  }
 }

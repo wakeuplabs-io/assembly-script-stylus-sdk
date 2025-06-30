@@ -151,6 +151,12 @@ export function ${structName}_copy(dst: usize, src: usize): void {
 export function ${structName}_get_${field.name}(ptr: usize): usize {
   return Struct.getString(__SLOT${slotNumber});
 }`);
+    } else if (field.type === "boolean") {
+      // Special handling for booleans - use Boolean.copyNew to return 1-byte value
+      helpers.push(`
+export function ${structName}_get_${field.name}(ptr: usize): usize {
+  return Boolean.copyNew(ptr + ${field.offset});
+}`);
     } else {
       // For other types, use getField to get pointer to field location
       helpers.push(`

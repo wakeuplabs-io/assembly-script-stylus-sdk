@@ -20,10 +20,15 @@ export class BooleanCopyHandler implements ExpressionHandler {
     const srcArg = emitExprFn(expr.args[0], context);
     const dstPtr = makeTemp("boolCopy");
 
+    // Use copyValue for direct boolean values (from function parameters)
+    // Use copyNew for pointer-based booleans (from memory/storage)
+    // Cast usize to u8 since entrypoint passes everything as usize
+    const copyMethod = "Boolean.copyValue";
+
     return {
       setupLines: [
         ...srcArg.setupLines,
-        `const ${dstPtr}: usize = Boolean.copyNew(${srcArg.valueExpr});`
+        `const ${dstPtr}: usize = ${copyMethod}(<u8>${srcArg.valueExpr});`
       ],
       valueExpr: dstPtr,
       valueType: "boolean",

@@ -12,4 +12,10 @@ export class Boolean {
     store<u8>(dst, load<u8>(src));
     return dst;
   }
+
+  static copyValue(value: u8): usize {
+    const dst = malloc(1);
+    store<u8>(dst, value);
+    return dst;
+  }
 }
