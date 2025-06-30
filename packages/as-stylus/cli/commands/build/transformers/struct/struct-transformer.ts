@@ -192,7 +192,8 @@ export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
     } else if (field.type === "boolean") {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
-  Struct.setBoolean(ptr + ${field.offset}, v != 0, __SLOT${slotNumber});
+  const boolValue = load<u8>(v);
+  Struct.setBoolean(ptr + ${field.offset}, boolValue != 0, __SLOT${slotNumber});
   Struct.flushStorage();
 }`);
     } else {

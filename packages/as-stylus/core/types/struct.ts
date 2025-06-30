@@ -1,4 +1,5 @@
 import { Str } from "./str";
+import { storeU32BE, loadU32BE } from "../modules/endianness";
 import {
   storage_load_bytes32,
   storage_cache_bytes32,
@@ -41,8 +42,43 @@ export class Struct {
 
   static setString(ptr: usize, strObj: usize, slot: u64): void {
     Str.storeTo(slot, strObj);
-    store<usize>(ptr, strObj);
-    for (let i = sizeof<usize>(); i < 32; i++) store<u8>(ptr + i, 0);
+    // Clear the entire 32-byte slot first
+    for (let i = 0; i < 32; i++) store<u8>(ptr + i, 0);
+    // Store the string object pointer as big-endian in the last 4 bytes
+    storeU32BE(ptr + 28, strObj as u32);
+  }
+
+  /**
+   * Creates a struct with proper ABI encoding for return values.
+   * This manually constructs the full ABI layout including dynamic data.
+   * @param structPtr Base struct pointer (will be modified in place)
+   * @param stringFieldOffset Offset of the string field in the struct (e.g., 32 for second field)
+   * @param stringABIBlob Pointer to the string in ABI format (from getString())
+   * @returns Total size of the encoded struct
+   */
+  static encodeStructForABI(structPtr: usize, stringFieldOffset: u32, stringABIBlob: usize): u32 {
+    const baseSize: u32 = 160; // 5 fields * 32 bytes each
+
+    // Set the string field to point to offset 160 (after the header)
+    for (let i = 0; i < 32; i++) store<u8>(structPtr + stringFieldOffset + i, 0);
+    storeU32BE(structPtr + stringFieldOffset + 28, baseSize);
+
+    // Get string length from the ABI blob (it's at offset 0x20 + 28 in the ABI format)
+    const strLen: u32 = loadU32BE(stringABIBlob + 0x20 + 28);
+    const paddedLen = (strLen + 31) & ~31;
+
+    // Copy the string length to offset 160
+    const stringDataPtr = structPtr + baseSize;
+    for (let i = 0; i < 32; i++) store<u8>(stringDataPtr + i, 0);
+    storeU32BE(stringDataPtr + 28, strLen);
+
+    // Copy string content from ABI blob to offset 192 (160 + 32)
+    const stringContentPtr = stringDataPtr + 32;
+    for (let i: u32 = 0; i < paddedLen; i++) {
+      store<u8>(stringContentPtr + i, load<u8>(stringABIBlob + 0x40 + i));
+    }
+
+    return baseSize + 32 + paddedLen; // Total size
   }
 
   static getString(slot: u64): usize {
@@ -51,7 +87,6 @@ export class Struct {
   }
 
   static getStringFromField(ptr: usize, offset: u32): usize {
-
     const stringPtr = load<usize>(ptr + offset);
     if (stringPtr != 0) {
       return Str.rawStringToABI(stringPtr);
@@ -73,7 +108,7 @@ export class Struct {
   static getBoolean(ptr: usize, off: u32): usize {
     const boolPtr = malloc(1);
     store<u8>(boolPtr, load<u8>(ptr + off));
-    
+
     return boolPtr;
   }
 }

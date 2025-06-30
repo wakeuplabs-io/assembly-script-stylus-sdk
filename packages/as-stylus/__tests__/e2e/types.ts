@@ -9,3 +9,15 @@ export interface TransferEventLog {
   logIndex: string;
   removed: boolean;
 }
+
+export interface StructABIAnalysis {
+  totalBytes: number;
+  slots: string[];
+  address: string;
+  stringOffset: number;
+  value: number;
+  boolean: boolean;
+  value2: number;
+  stringLength: number;
+  stringContent: string;
+}

@@ -12,6 +12,21 @@ import {
   generateArgsLoadBlockWithStringSupport,
 } from "../transformers/utils/args.js";
 
+/**
+ * Extracts the struct name from a full type that might include import paths
+ * Example: "import(...).StructTest" -> "StructTest"
+ */
+function extractStructName(fullType: string): string {
+  // If it's an import path, extract only the final name
+  if (fullType.includes(").")) {
+    const parts = fullType.split(").");
+    return parts[parts.length - 1];
+  }
+
+  // If it's just the name, return it as is
+  return fullType;
+}
+
 function getFunctionSelector(method: IRMethod): string {
   const { name, inputs } = method;
 
@@ -66,8 +81,30 @@ export function generateUserEntrypoint(contract: IRContract) {
             `return 0;`,
           ].join("\n    ");
         } else {
-          const size = getReturnSize(outputType);
-          callLine = `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
+          // Check if the output type is a struct
+          const structName = extractStructName(outputType);
+          const structInfo = contract.structs?.find(s => s.name === structName);
+          if (structInfo) {
+            // For structs, we need to handle dynamic sizing
+            if (structInfo.dynamic) {
+              // Dynamic struct: calculate size based on string content at offset 160
+              callLine = [
+                `let ptr = ${name}(${callArgs.join(", ")});`,
+                `const stringLen = loadU32BE(ptr + 160 + 28);`,
+                `const paddedLen = (stringLen + 31) & ~31;`,
+                `const totalSize = 160 + 32 + paddedLen;`,
+                `write_result(ptr, totalSize);`,
+                `return 0;`,
+              ].join("\n    ");
+            } else {
+              // Static struct: use fixed size
+              callLine = `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${structInfo.size}); return 0;`;
+            }
+          } else {
+            // Not a struct, use original logic
+            const size = getReturnSize(outputType);
+            callLine = `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
+          }
         }
       } else {
         callLine = `${name}(${callArgs.join(", ")}); return 0;`;
