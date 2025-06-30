@@ -70,6 +70,10 @@ function handleFallbackExpression(expr: IRExpression): string {
      */
     case "var": {
       if (expr.scope === "storage") {
+        // TODO: can we use generateLoadCode?
+        if (expr.type === "bool") {
+          return `toBool(load_${expr.name}())`;
+        }
         return `load_${expr.name}()`;
       }
       return expr.name;

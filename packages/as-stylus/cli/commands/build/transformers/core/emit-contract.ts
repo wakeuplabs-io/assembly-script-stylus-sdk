@@ -66,11 +66,9 @@ function generateConstructor(constructor: IRConstructor): string {
   const { callArgs } = generateArgsLoadBlock(inputs);
   const { argsSignature, aliasLines } = generateArgumentSignature(inputs, callArgs);
   const body = emitStatements(constructor.ir);
+  const aliasBlock = aliasLines.length ? aliasLines.join("\n") + "\n" : "";
 
-  return `export function deploy(${argsSignature}): void {
-${aliasLines.join("\n")}
-${body}
-}`;
+  return `\nexport function deploy(${argsSignature}): void {\n${aliasBlock}${body}}`;
 }
 
 /**
@@ -82,10 +80,9 @@ function generateMethod(method: IRMethod): string {
   const { argsSignature, aliasLines } = generateArgumentSignature(method.inputs, callArgs);
   const body = emitStatements(method.ir);
 
-  return `export function ${method.name}(${argsSignature}): ${returnType} {
-${aliasLines.join("\n")}
-${body}
-}`;
+  const aliasBlock = aliasLines.length ? aliasLines.join("\n") + "\n" : "";
+
+  return `\nexport function ${method.name}(${argsSignature}): ${returnType} {\n${aliasBlock}${body}\n}`;
 }
 
 /**
@@ -116,7 +113,7 @@ export function emitContract(contract: IRContract): string {
 
   // Add methods
   const methodParts = contract.methods.map(method => generateMethod(method));
-  parts.push(...methodParts.map(method => method + "\n"));
+  parts.push(...methodParts.map(method => method));
 
   return parts.join("\n");
 }

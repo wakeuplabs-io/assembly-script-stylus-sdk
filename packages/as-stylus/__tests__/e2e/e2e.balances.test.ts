@@ -2,151 +2,189 @@
 //  End-to-end tests — Balances mapping contract (Stylus)
 // ---------------------------------------------------------------
 import { config } from "dotenv";
-import path from "path";
+import { Address, Hex, WalletClient } from "viem";
+
+import { contractService, getWalletClient } from "./client.js";
+import {
+  CONTRACT_PATHS,
+  CONTRACT_ADDRESS_REGEX,
+  DEPLOY_TIMEOUT,
+  PROJECT_ROOT,
+} from "./constants.js";
+import { getAbi, PRIVATE_KEY, run, stripAnsi } from "./utils.js";
 
 config();
 
-import {
-  ROOT,
-  PRIVATE_KEY,
-  run,
-  stripAnsi,
-  calldata,
-  createContractHelpers,
-  pad64,
-  getFunctionSelector,
-} from "./utils.js";
-
-const SELECTOR = {
-  SET: getFunctionSelector("setBalance(address,uint256)"),
-  GET: getFunctionSelector("getBalance(address)"),
-  APPROVE: getFunctionSelector("approve(address,address,uint256)"),
-  ALLOWANCE: getFunctionSelector("allowanceOf(address,address)"),
-};
-
+// Constants
 const USER_A = "0x1111111111111111111111111111111111111111";
 const USER_B = "0x2222222222222222222222222222222222222222";
 
-const BAL_A = pad64(100n);
-const BAL_B = pad64(200n);
-const BAL_0 = pad64(0n);
+const BAL_A = 100n;
+const BAL_B = 200n;
+const BAL_0 = 0n;
 
+// Test state
 let contractAddr = "";
-let helpers: ReturnType<typeof createContractHelpers>;
+const walletClient: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
+let contract: ReturnType<typeof contractService>;
+const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.BALANCES;
+const abi = getAbi(abiPath);
 
-beforeAll(() => {
-  const projectRoot = path.join(ROOT, "/as-stylus/");
-  const pkg = path.join(ROOT, "/as-stylus/__tests__/contracts/balances");
+/**
+ * Deploys the Balances contract and initializes the test environment
+ */
+beforeAll(async () => {
+  try {
+    console.log("🚀 Starting contract deployment...");
+    console.log("Contract path:", contractPath);
 
-  run("npm run pre:build", projectRoot);
-  run("npx as-stylus build", pkg);
-  run("npm run compile", pkg);
-  run("npm run check", pkg);
+    // Build and compile the contract
+    console.log("📦 Building contract...");
+    run("npm run pre:build", PROJECT_ROOT);
+    run("npx as-stylus build", contractPath);
+    run("npm run compile", contractPath);
+    run("npm run check", contractPath);
 
-  const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, pkg));
-  const m = deployLog.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
-  if (!m) throw new Error("Could not scrape contract address");
-  contractAddr = m[1];
+    // Deploy the contract
+    console.log("🚢 Deploying contract...");
+    const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, contractPath));
 
-  helpers = createContractHelpers(contractAddr);
-  console.log("📍 Deployed Balances at", contractAddr);
-}, 120_000);
+    // Extract contract address from deployment logs
+    const addressMatch = deployLog.match(CONTRACT_ADDRESS_REGEX);
+    if (!addressMatch) {
+      throw new Error(`Could not extract contract address from deployment log: ${deployLog}`);
+    }
 
-const send = (data: string) => helpers.sendData(data);
-const call = (data: string) => helpers.callData(data);
-const expectHex = (data: string, hex: string) =>
-  expect(call(data).toLowerCase()).toBe(hex.toLowerCase());
+    contractAddr = addressMatch[1];
+    console.log("📍 Contract deployed at:", contractAddr);
 
-describe("Token contract — basic ops", () => {
-  describe("Balances mapping — basic ops", () => {
-    it("initial getBalance(user) ⇒ 0", () => {
-      expectHex(calldata(SELECTOR.GET, USER_A), BAL_0);
+    // Initialize contract service
+    contract = contractService(contractAddr as Address, abi);
+
+    console.log("✅ Contract setup completed successfully");
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("❌ Failed to deploy contract:", errorMessage);
+
+    // Add more context to the error
+    if (error instanceof Error) {
+      console.error("Stack trace:", error.stack);
+    }
+
+    throw new Error(`Contract deployment failed: ${errorMessage}`);
+  }
+}, DEPLOY_TIMEOUT);
+
+describe("Token contract — Balances and Allowances", () => {
+  describe("Balances mapping — basic operations", () => {
+    it("should return 0 for initial getBalance(user)", async () => {
+      const result = await contract.read("getBalance", [USER_A]);
+      expect(result).toBe(BAL_0);
     });
 
-    it("setBalance(userA, 100) ⇒ reflected", () => {
-      send(calldata(SELECTOR.SET, USER_A, BAL_A));
-      expectHex(calldata(SELECTOR.GET, USER_A), BAL_A);
+    it("should reflect setBalance(userA, 100)", async () => {
+      await contract.write(walletClient, "setBalance", [USER_A, BAL_A]);
+      const result = await contract.read("getBalance", [USER_A]);
+      expect(result).toBe(BAL_A);
     });
 
-    it("setBalance(userB, 200) ⇒ independent slot", () => {
-      send(calldata(SELECTOR.SET, USER_B, BAL_B));
-      expectHex(calldata(SELECTOR.GET, USER_A), BAL_A);
-      expectHex(calldata(SELECTOR.GET, USER_B), BAL_B);
+    it("should handle independent slots for setBalance(userB, 200)", async () => {
+      await contract.write(walletClient, "setBalance", [USER_B, BAL_B]);
+
+      const balanceA = await contract.read("getBalance", [USER_A]);
+      const balanceB = await contract.read("getBalance", [USER_B]);
+
+      expect(balanceA).toBe(BAL_A);
+      expect(balanceB).toBe(BAL_B);
     });
   });
-  describe("Allowance mapping — basic ops", () => {
-    it("initial allowance ⇒ 0", () => {
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), BAL_0);
+
+  describe("Allowance mapping — basic operations", () => {
+    it("should return 0 for initial allowance", async () => {
+      const result = await contract.read("allowanceOf", [USER_A, USER_B]);
+      expect(result).toBe(BAL_0);
     });
 
-    it("approve(userA, userB, 100) ⇒ reflected", () => {
-      send(calldata(SELECTOR.APPROVE, USER_A, USER_B, BAL_A));
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), BAL_A);
+    it("should reflect approve(userA, userB, 100)", async () => {
+      await contract.write(walletClient, "approve", [USER_A, USER_B, BAL_A]);
+      const result = await contract.read("allowanceOf", [USER_A, USER_B]);
+      expect(result).toBe(BAL_A);
     });
 
-    it("approve(userB, userA, 200) ⇒ separate path", () => {
-      send(calldata(SELECTOR.APPROVE, USER_B, USER_A, BAL_B));
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), BAL_A);
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_B, USER_A), BAL_B);
+    it("should handle separate allowance paths", async () => {
+      await contract.write(walletClient, "approve", [USER_B, USER_A, BAL_B]);
+
+      const allowanceAB = await contract.read("allowanceOf", [USER_A, USER_B]);
+      const allowanceBA = await contract.read("allowanceOf", [USER_B, USER_A]);
+
+      expect(allowanceAB).toBe(BAL_A);
+      expect(allowanceBA).toBe(BAL_B);
     });
 
-    it("approve(userA, userB, 0) ⇒ cleared", () => {
-      send(calldata(SELECTOR.APPROVE, USER_A, USER_B, BAL_0));
-      send(calldata(SELECTOR.APPROVE, USER_B, USER_A, BAL_0));
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), BAL_0);
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_B, USER_A), BAL_0);
+    it("should clear allowances when set to 0", async () => {
+      await contract.write(walletClient, "approve", [USER_A, USER_B, BAL_0]);
+      await contract.write(walletClient, "approve", [USER_B, USER_A, BAL_0]);
+
+      const allowanceAB = await contract.read("allowanceOf", [USER_A, USER_B]);
+      const allowanceBA = await contract.read("allowanceOf", [USER_B, USER_A]);
+
+      expect(allowanceAB).toBe(BAL_0);
+      expect(allowanceBA).toBe(BAL_0);
     });
   });
 
-  describe("Token contract — edge cases & large values", () => {
+  describe("Edge cases & large values", () => {
     const MAX = (1n << 256n) - 1n;
     const MAX_MINUS_1 = MAX - 1n;
     const HALF = MAX >> 1n;
     const ONE = 1n;
 
-    const MAX_HEX = pad64(MAX);
-    const MAX_MINUS_1_HEX = pad64(MAX_MINUS_1);
-    const HALF_HEX = pad64(HALF);
-    const ONE_HEX = pad64(ONE);
-
-    it("setBalance(userA, MAX) ⇒ reflected", () => {
-      send(calldata(SELECTOR.SET, USER_A, MAX_HEX));
-      expectHex(calldata(SELECTOR.GET, USER_A), MAX_HEX);
+    it("should handle MAX value for setBalance", async () => {
+      await contract.write(walletClient, "setBalance", [USER_A, MAX]);
+      const result = await contract.read("getBalance", [USER_A]);
+      expect(result).toBe(MAX);
     });
 
-    it("setBalance(userA, MAX-1) ⇒ reflected", () => {
-      send(calldata(SELECTOR.SET, USER_A, MAX_MINUS_1_HEX));
-      expectHex(calldata(SELECTOR.GET, USER_A), MAX_MINUS_1_HEX);
+    it("should handle MAX-1 value for setBalance", async () => {
+      await contract.write(walletClient, "setBalance", [USER_A, MAX_MINUS_1]);
+      const result = await contract.read("getBalance", [USER_A]);
+      expect(result).toBe(MAX_MINUS_1);
     });
 
-    it("setBalance(userA, HALF) ⇒ reflected", () => {
-      send(calldata(SELECTOR.SET, USER_A, HALF_HEX));
-      expectHex(calldata(SELECTOR.GET, USER_A), HALF_HEX);
+    it("should handle HALF value for setBalance", async () => {
+      await contract.write(walletClient, "setBalance", [USER_A, HALF]);
+      const result = await contract.read("getBalance", [USER_A]);
+      expect(result).toBe(HALF);
     });
 
-    it("setBalance(userA, 1) ⇒ reflected", () => {
-      send(calldata(SELECTOR.SET, USER_A, ONE_HEX));
-      expectHex(calldata(SELECTOR.GET, USER_A), ONE_HEX);
+    it("should handle 1 value for setBalance", async () => {
+      await contract.write(walletClient, "setBalance", [USER_A, ONE]);
+      const result = await contract.read("getBalance", [USER_A]);
+      expect(result).toBe(ONE);
     });
 
-    it("approve(userA, userA, MAX) ⇒ valid", () => {
-      send(calldata(SELECTOR.APPROVE, USER_A, USER_A, MAX_HEX));
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_A), MAX_HEX);
+    it("should handle self-approval with MAX value", async () => {
+      await contract.write(walletClient, "approve", [USER_A, USER_A, MAX]);
+      const result = await contract.read("allowanceOf", [USER_A, USER_A]);
+      expect(result).toBe(MAX);
     });
 
-    it("approve(userA, userB, MAX-1) ⇒ reflected", () => {
-      send(calldata(SELECTOR.APPROVE, USER_A, USER_B, MAX_MINUS_1_HEX));
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), MAX_MINUS_1_HEX);
+    it("should handle MAX-1 value for approve", async () => {
+      await contract.write(walletClient, "approve", [USER_A, USER_B, MAX_MINUS_1]);
+      const result = await contract.read("allowanceOf", [USER_A, USER_B]);
+      expect(result).toBe(MAX_MINUS_1);
     });
 
-    it("approve(userA, userB, HALF) ⇒ reflected", () => {
-      send(calldata(SELECTOR.APPROVE, USER_A, USER_B, HALF_HEX));
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), HALF_HEX);
+    it("should handle HALF value for approve", async () => {
+      await contract.write(walletClient, "approve", [USER_A, USER_B, HALF]);
+      const result = await contract.read("allowanceOf", [USER_A, USER_B]);
+      expect(result).toBe(HALF);
     });
 
-    it("approve(userA, userB, 1) ⇒ reflected", () => {
-      send(calldata(SELECTOR.APPROVE, USER_A, USER_B, ONE_HEX));
-      expectHex(calldata(SELECTOR.ALLOWANCE, USER_A, USER_B), ONE_HEX);
+    it("should handle 1 value for approve", async () => {
+      await contract.write(walletClient, "approve", [USER_A, USER_B, ONE]);
+      const result = await contract.read("allowanceOf", [USER_A, USER_B]);
+      expect(result).toBe(ONE);
     });
   });
 });

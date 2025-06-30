@@ -65,6 +65,7 @@ export function convertType(type: string): AbiType {
     case "bool":
     case "boolean":
       return AbiType.Bool;
+    case "str":
     case "string":
       return AbiType.String;
     case "address":

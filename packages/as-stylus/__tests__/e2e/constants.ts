@@ -25,4 +25,16 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/counter"),
     abi: path.join(ROOT_PATH, "/counter/artifacts/abi/Counter-abi.json"),
   },
+  STORAGE: {
+    contract: path.join(ROOT_PATH, "/storage"),
+    abi: path.join(ROOT_PATH, "/storage/artifacts/abi/Storage-abi.json"),
+  },
+  STRING: {
+    contract: path.join(ROOT_PATH, "/string"),
+    abi: path.join(ROOT_PATH, "/string/artifacts/abi/StringStorage-abi.json"),
+  },
+  ERC20: {
+    contract: path.join(ROOT_PATH, "/erc20"),
+    abi: path.join(ROOT_PATH, "/erc20/artifacts/abi/ERC20-abi.json"),
+  },
 } as const;
