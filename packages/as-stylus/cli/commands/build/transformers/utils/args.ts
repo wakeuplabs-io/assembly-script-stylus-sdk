@@ -45,6 +45,7 @@ export function generateArgsLoadBlock(
   return { argLines, callArgs };
 }
 
+// TODO: not used. Check if it's needed.
 export function generateArgsLoadBlockWithStringSupport(
   inputs: AbiInput[],
   baseOffset: number = 4

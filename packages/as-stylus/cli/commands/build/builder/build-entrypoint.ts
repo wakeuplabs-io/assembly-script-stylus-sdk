@@ -10,7 +10,6 @@ import { getUserEntrypointTemplate } from "@/templates/entrypoint.js";
 import { convertType } from "./build-abi.js";
 import {
   generateArgsLoadBlock,
-  generateArgsLoadBlockWithStringSupport,
 } from "../transformers/utils/args.js";
 
 // Constants
@@ -186,12 +185,7 @@ function generateMethodEntry(method: IRMethod, contract: IRContract): { import: 
 
 function generateConstructorEntry(constructor: { inputs: AbiInput[] }): { imports: string[]; entry: string } {
   const { inputs } = constructor;
-  const deployHasStrings = inputs.some(
-    (input) => input.type === AbiType.String,
-  );
-  const { argLines, callArgs } = deployHasStrings
-    ? generateArgsLoadBlockWithStringSupport(inputs)
-    : generateArgsLoadBlock(inputs);
+  const { argLines, callArgs } = generateArgsLoadBlock(inputs);
 
   
   const deployMethod: IRMethod = {
