@@ -16,7 +16,7 @@ import {
   pad64,
   USER_B_PRIVATE_KEY,
   getFunctionSelector,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 const SELECTOR = {
   DEPLOY: getFunctionSelector("deploy(uint256)"),

@@ -7,7 +7,7 @@ import path from "path";
 
 config();
 
-import { decodeStringReturn } from "./string-abi.js";
+import { decodeStringReturn } from "../helpers/string-abi.js";
 import {
   ROOT,
   RPC_URL,
@@ -25,7 +25,7 @@ import {
   validateStructFieldValues,
   calculateExpectedStructSize,
   validateStringContentInABI,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 const abi = new AbiCoder();
 

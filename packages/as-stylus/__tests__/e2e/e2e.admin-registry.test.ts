@@ -15,7 +15,7 @@ import {
   calldata,
   createContractHelpers,
   getFunctionSelector,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 const SELECTOR = {
   DEPLOY: getFunctionSelector("deploy(address)"),

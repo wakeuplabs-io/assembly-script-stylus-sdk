@@ -7,8 +7,8 @@ config();
 
 import { generateEventSignature } from "@/cli/commands/build/transformers/event/event-transformer.js";
 
-import { encodeStringsDynamic, decodeStringReturn } from "./string-abi.js";
-import { TransferEventLog } from "./types.js";
+import { encodeStringsDynamic, decodeStringReturn } from "../helpers/string-abi.js";
+import { TransferEventLog } from "../helpers/types.js";
 import {
   ROOT,
   RPC_URL,
@@ -20,7 +20,7 @@ import {
   createContractHelpers,
   pad64,
   getFunctionSelector,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 const TRANSFER_EVENT = {
   name: "Transfer",

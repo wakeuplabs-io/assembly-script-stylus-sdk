@@ -15,7 +15,7 @@ import {
   calldata,
   createContractHelpers,
   pad64,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 const SELECTOR = {
   DEPLOY: "0x775c300c",

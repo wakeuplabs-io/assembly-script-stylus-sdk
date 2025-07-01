@@ -5,7 +5,7 @@ import { config } from "dotenv";
 import path from "path";
 config();
 
-import { decodeStringReturn, encodeStringInput, parseAbiString } from "./string-abi.js";
+import { decodeStringReturn, encodeStringInput, parseAbiString } from "../helpers/string-abi.js";
 import {
   ROOT,
   PRIVATE_KEY,
@@ -14,7 +14,7 @@ import {
   pad64,
   createContractHelpers,
   getFunctionSelector,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 const SELECTOR = {
   SET_STORAGE: getFunctionSelector("setStorage(string)"),

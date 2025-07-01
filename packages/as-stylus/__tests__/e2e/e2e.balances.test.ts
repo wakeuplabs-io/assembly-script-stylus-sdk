@@ -15,7 +15,7 @@ import {
   createContractHelpers,
   pad64,
   getFunctionSelector,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 const SELECTOR = {
   SET: getFunctionSelector("setBalance(address,uint256)"),

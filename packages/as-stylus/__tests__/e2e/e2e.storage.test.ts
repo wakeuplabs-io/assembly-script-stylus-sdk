@@ -16,7 +16,7 @@ import {
   createContractHelpers,
   pad64,
   getFunctionSelector,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 const SELECTOR = {
   DEPLOY: getFunctionSelector("deploy(uint256)"),
