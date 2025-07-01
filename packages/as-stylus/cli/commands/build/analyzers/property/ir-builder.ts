@@ -31,7 +31,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     if (type === AbiType.Mapping2) {
       return {
         name,
-        type: "mapping2",
+        type: AbiType.Mapping2,
         slot: this.slot,
         keyType1: "Address",
         keyType2: "Address",
@@ -43,7 +43,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     if (type === AbiType.Mapping) {
       return {
         name,
-        type: "mapping",
+        type: AbiType.Mapping,
         slot: this.slot,
         keyType: "Address",
         valueType: "U256",
@@ -53,7 +53,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
 
     return {
       name,
-      type,
+      type: convertType(type),
       slot: this.slot,
       kind: "simple",
     };

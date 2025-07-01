@@ -122,10 +122,10 @@ export type IRStatement =
 // Variables (storage)
 // ───────────────────────
 
-export type IRSimpleVar = { name: string; type: string; slot: number; kind: "simple" };
+export type IRSimpleVar = { name: string; type: AbiType; slot: number; kind: "simple" };
 export type IRMappingVar = {
   name: string;
-  type: "mapping";
+  type: AbiType.Mapping;
   slot: number;
   keyType: string;
   valueType: string;
@@ -133,7 +133,7 @@ export type IRMappingVar = {
 };
 export type IRMapping2Var = {
   name: string;
-  type: "mapping2";
+  type: AbiType.Mapping2;
   slot: number;
   keyType1: string;
   keyType2: string;
