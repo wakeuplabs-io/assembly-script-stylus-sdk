@@ -16,6 +16,7 @@ const POINTER_RETURN_TYPES: AbiType[] = [
   AbiType.Address,
   AbiType.Bool,
   AbiType.Bytes32,
+  AbiType.Struct,
   AbiType.Void
 ];
 

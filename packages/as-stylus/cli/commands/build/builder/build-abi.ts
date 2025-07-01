@@ -70,6 +70,7 @@ export function convertType(type: string): AbiType {
     case "bytes32":
       return AbiType.Bytes32;
     default:
-      return AbiType.Unknown;
+      // TODO: Implement this better for structs
+      return type as AbiType;
   }
 }
