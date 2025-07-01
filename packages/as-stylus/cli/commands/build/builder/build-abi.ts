@@ -5,6 +5,8 @@ import { IRContract } from "@/cli/types/ir.types.js";
 import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
 
+import { extractStructName } from "../analyzers/struct/struct-utils.js";
+
 export function buildAbi(targetPath: string, contract: IRContract) {
   const abi: AbiItem[] = [];
 
@@ -71,6 +73,6 @@ export function convertType(type: string): AbiType {
       return AbiType.Bytes32;
     default:
       // TODO: Implement this better for structs
-      return type as AbiType;
+      return extractStructName(type) as AbiType;
   }
 }

@@ -113,7 +113,7 @@ function generateStructReturnLogic(methodName: string, callArgs: Array<{ name: s
       if (dynamic) {
         // Dynamic struct: calculate size based on string content at offset 160
         callLine = [
-          `let ptr = ${name}(${callArgs.join(", ")});`,
+          `let ptr = ${methodName}(${callArgs.join(", ")});`,
           `const stringLen = loadU32BE(ptr + 160 + 28);`,
           `const paddedLen = (stringLen + 31) & ~31;`,
           `const totalSize = 160 + 32 + paddedLen;`,

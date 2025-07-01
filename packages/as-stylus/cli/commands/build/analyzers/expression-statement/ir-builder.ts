@@ -63,9 +63,14 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
             let finalValueExpr = valueExpr;
             
             if (fieldType && isPrimitiveType(fieldType)) {
+              const targets = {
+                [AbiType.Uint256]: "U256.copy",
+                [AbiType.Bool]: "boolean.copy",
+                [AbiType.Address]: "Address.copy",
+              };
               finalValueExpr = {
                 kind: "call",
-                target: `${fieldType}.copy`,
+                target: targets[fieldType as keyof typeof targets],
                 args: [valueExpr],
                 returnType: fieldType as AbiType,
                 scope: "memory"

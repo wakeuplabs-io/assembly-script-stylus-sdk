@@ -9,15 +9,11 @@ export class Boolean {
   }
 
   static copyNew(src: usize): usize {
-    const dst = malloc(1);
-    store<u8>(dst, load<u8>(src));
-    return dst;
+    return Boolean.create(Boolean.toValue(src));
   }
 
-  static copyValue(value: u8): usize {
-    const dst = malloc(1);
-    store<u8>(dst, value);
-    return dst;
+  static copyValue(value: usize): usize {
+    return Boolean.create(Boolean.toValue(value));
   }
 
   static toValue(ptr: usize): boolean {

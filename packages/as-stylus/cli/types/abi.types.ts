@@ -17,6 +17,7 @@ export enum AbiType {
   Int256 = "int256",
   Bytes32 = "bytes32",
   Struct = "struct",
+  Array = "array",
   // TODO: Analyze if we need these
   Void = "void",
   Any = "any",

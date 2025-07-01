@@ -26,6 +26,7 @@ export class AnalysisContext {
     this.symbolTable.declareFunction("StrFactory.toString", { name: "StrFactory.toString", parameters: [], returnType: AbiType.String });
     this.symbolTable.declareFunction("StrFactory.slice", { name: "StrFactory.slice", parameters: [], returnType: AbiType.String });
     this.symbolTable.declareFunction("StrFactory.length", { name: "StrFactory.length", parameters: [], returnType: AbiType.Uint256 });
+    this.symbolTable.declareFunction("Address.copy", { name: "Address.copy", parameters: [], returnType: AbiType.Address });
 
     // Address
     this.symbolTable.declareFunction("AddressFactory.create", { name: "AddressFactory.create", parameters: [], returnType: AbiType.Address });

@@ -9,17 +9,6 @@ import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
 import { generateStorageImports, generateStorageHelpers } from "../utils/storage.js";
 
-// TODO: unify use of types
-const POINTER_RETURN_TYPES: AbiType[] = [
-  AbiType.Uint256,
-  AbiType.String,
-  AbiType.Address,
-  AbiType.Bool,
-  AbiType.Bytes32,
-  AbiType.Struct,
-  AbiType.Void
-];
-
 interface ArgumentSignature {
   argsSignature: string;
   aliasLines: string[];
@@ -55,10 +44,7 @@ function getMethodReturnType(outputs: AbiOutput[] | undefined): string {
     return "void";
   }
   
-  const firstOutputType = outputs[0].type;
-  
-  // Fix this
-  return Object.values(POINTER_RETURN_TYPES).includes(firstOutputType) ? "usize" : "void";
+  return "usize";
 }
 
 /**

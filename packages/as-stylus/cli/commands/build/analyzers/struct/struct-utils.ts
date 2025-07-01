@@ -42,7 +42,7 @@ export function isExpressionOfStructType(objectIR: IRExpression): { isStruct: bo
 
   const structName = extractStructName(objectType);
 
-  if (ctx.structRegistry.has(structName)) {
+  if (ctx.structRegistry.has(structName) || (objectIR.kind === "var" && objectIR.type === AbiType.Struct)) {
     return { isStruct: true, structName };
   }
 
@@ -152,8 +152,8 @@ export function isStructFieldAccess(objectExpr: any): { isStruct: boolean; struc
  * Primitives (pass by value): U256, boolean, Address, numbers
  * Non-primitives (pass by reference): string, Str, structs
  */
-export function isPrimitiveType(type: string): boolean {
-  const primitiveTypes = ["U256", "boolean", "Address", "number", "u64", "i64", "u32", "i32"];
+export function isPrimitiveType(type: AbiType): boolean {
+  const primitiveTypes = [AbiType.Uint256, AbiType.Bool, AbiType.Address];
   return primitiveTypes.includes(type);
 }
 
