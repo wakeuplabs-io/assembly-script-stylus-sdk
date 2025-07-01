@@ -6,8 +6,8 @@ import { fileURLToPath } from "url";
 
 config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// // const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.resolve();
 
 export const ROOT = path.resolve(__dirname, "../../..");
 export const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";

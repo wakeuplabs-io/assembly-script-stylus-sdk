@@ -1,4 +1,4 @@
-import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, PropertyAccessExpression } from "ts-morph";
+import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, PropertyAccessExpression, CallExpression } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
@@ -24,7 +24,25 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
   buildIR(): IRStatement {
     const expr = this.statement.getExpression();
 
-    // Handle assignment expressions (x = y)
+    if (expr.getKind() === SyntaxKind.CallExpression) {
+      const callExpr = expr as CallExpression;
+      const exprText = callExpr.getExpression().getText();
+      
+      if (exprText.endsWith('.revert')) {
+        const errorName = exprText.slice(0, -'.revert'.length);
+        const args = callExpr.getArguments().map(arg => {
+          const builder = new ExpressionIRBuilder(arg as any);
+          return builder.validateAndBuildIR();
+        });
+        
+        return {
+          kind: "revert",
+          error: errorName,
+          args
+        };
+      }
+    }
+
     if (expr.getKind() === SyntaxKind.BinaryExpression) {
       const bin = expr as BinaryExpression;
       if (bin.getOperatorToken().getKind() === SyntaxKind.EqualsToken) {

@@ -1,4 +1,5 @@
 import { IRContract } from "../../../../types/ir.types.js";
+import { registerErrorTransformer } from "../error/error-transformer.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
 import { registerStructTransformer } from "../struct/struct-transformer.js";
 import { generateDeployFunction } from "../utils/deploy.js";
@@ -25,6 +26,9 @@ export function emitContract(contract: IRContract): string {
 
   // Events
   parts.push(...registerEventTransformer(contract)); 
+
+  // Custom Errors
+  parts.push(...registerErrorTransformer(contract));
 
   // Constructor
   parts.push(generateDeployFunction(contract));

@@ -108,7 +108,8 @@ export type IRStatement =
   | ExpressionStatement
   | Return
   | If
-  | Block;
+  | Block
+  | IRRevert;
 
 // ───────────────────────
 // Variables (storage)
@@ -190,6 +191,28 @@ export interface IRStruct {
   alignment: number;
 }
 
+// ───────────────────────
+// Custom error structure
+// ───────────────────────
+
+export interface IRErrorField {
+  name: string;
+  type: string;
+}
+
+export interface IRErrorDecl {
+  node: "ErrorDeclNode";
+  name: string;
+  selector: string;
+  fields: IRErrorField[];
+}
+
+export type IRRevert = {
+  kind: "revert";
+  error: string;
+  args: IRExpression[];
+};
+
 export interface IRContract {
   name: string;
   methods: IRMethod[];
@@ -197,4 +220,5 @@ export interface IRContract {
   storage: IRVariable[];
   events?: IREvent[];
   structs?: IRStruct[];
+  errors?: IRErrorDecl[];
 }
