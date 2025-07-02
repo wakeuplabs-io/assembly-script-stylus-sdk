@@ -21,7 +21,7 @@ import {
   validateStructFieldValues,
   calculateExpectedStructSize,
   validateStringContentInABI,
-} from "./utils.js";
+} from "../helpers/utils.js";
 
 // Test constants
 const TEST_ADDRESS = "0x1234567890123456789012345678901234567890" as Address;

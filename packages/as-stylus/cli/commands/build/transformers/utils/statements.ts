@@ -1,5 +1,5 @@
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRStatement } from "@/cli/types/ir.types.js";
+import { IRExpression, IRStatement } from "@/cli/types/ir.types.js";
 
 import { emitExpression } from "./expressions.js";
 import { SupportedType } from "../../analyzers/shared/supported-types.js";
@@ -259,6 +259,33 @@ function emitStatement(s: IRStatement, indent: string): string {
       }
 
       code = lines[0];
+      break;
+    }
+
+    /**
+     * Case "revert": Custom error revert statement
+     *
+     * Example: ERC721InvalidOwner.revert(owner);
+     *
+     * Generates code to revert with custom error data.
+     */
+    case "revert": {
+      // Use the error transformer to handle the revert
+      const revertExpression: IRExpression = {
+        kind: "call",
+        target: `${s.error}.revert`,
+        args: s.args,
+        returnType: AbiType.Void,
+        scope: "memory"
+      };
+      
+      const result = emitExpression(revertExpression, true);
+      
+      if (result.setupLines && result.setupLines.length > 0) {
+        return result.setupLines.map((line) => `${indent}${line}`).join("\n");
+      }
+      
+      code = `${indent}${result.valueExpr};`;
       break;
     }
 

@@ -1,10 +1,9 @@
 export function getUserEntrypointTemplate(): string {
   return `
-// @ts-nocheck
 /* eslint-disable */
 
 // Auto-generated contract template
-
+import "./assembly/stylus/stylus";
 import { __keep_imports } from "as-stylus/core/modules/keep-imports";
 import { read_args, write_result } from "as-stylus/core/modules/hostio";
 import { initHeap, malloc } from "as-stylus/core/modules/memory";

@@ -6,6 +6,7 @@ import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
 
 import { extractStructName } from "../analyzers/struct/struct-utils.js";
+import { generateErrorABI } from "../transformers/error/error-transformer.js";
 
 export function buildAbi(targetPath: string, contract: IRContract) {
   const abi: AbiItem[] = [];
@@ -46,6 +47,10 @@ export function buildAbi(targetPath: string, contract: IRContract) {
       outputs: [],
     });
   }
+
+  // Add custom errors to ABI
+  const errorABI = generateErrorABI(contract);
+  abi.push(...errorABI);
 
   const abiPath = path.join(targetPath, ABI_PATH, `${contract.name}-abi.json`);
   writeFile(abiPath, JSON.stringify(abi, null, 2));

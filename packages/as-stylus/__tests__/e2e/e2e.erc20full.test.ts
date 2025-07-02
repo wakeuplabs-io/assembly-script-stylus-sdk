@@ -13,7 +13,7 @@ import {
   USER_B_PRIVATE_KEY,
 } from "./constants.js";
 import { fundUser, setupE2EContract } from "./setup.js";
-import { handleDeploymentError } from "./utils.js";
+import { handleDeploymentError } from "../helpers/utils.js";
 
 config();
 
