@@ -9,6 +9,7 @@ import { buildU256IR } from "./u256.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { SupportedType } from "../shared/supported-types.js";
+import { StructFactoryBuilder } from "../struct/struct-factory-builder.js";
 
 export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
   private call: CallExpression;
@@ -39,6 +40,10 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
   buildIR(): IRExpression {
     const expr = this.call.getExpression();
+    
+    if (StructFactoryBuilder.isStructFactoryCreate(this.call)) {
+      return StructFactoryBuilder.buildStructCreateIR(this.call);
+    }
     
     // Try to detect Mapping access: Balances.balances.get(user) or .set(user, value)
     if (expr.getKindName() === "PropertyAccessExpression") {

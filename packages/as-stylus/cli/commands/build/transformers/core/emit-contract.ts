@@ -1,10 +1,9 @@
 import { IRContract } from "../../../../types/ir.types.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
 import { registerStructTransformer } from "../struct/struct-transformer.js";
-import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
 import { initExpressionContext } from "../utils/expressions.js";
-import { emitStatements } from "../utils/statements.js";
+import { generateMethods } from "../utils/methods.js";
 import { generateStorageImports, generateStorageHelpers } from "../utils/storage.js";
 /**
  * Generates the AssemblyScript code for a contract from its IR representation
@@ -31,32 +30,8 @@ export function emitContract(contract: IRContract): string {
   parts.push(generateDeployFunction(contract));
   parts.push("");
   
-  
   // Methods
-  contract.methods.forEach((m) => {
-    let returnType = "void";
-  
-    if (m.outputs && m.outputs.length > 0 &&
-        (["U256", "u64", "string", "Address", "boolean", "Str"].includes(m.outputs[0].type))) {
-      returnType = "usize";
-    }
-  
-    const { callArgs } = generateArgsLoadBlock(m.inputs);
-    const argsSignature = callArgs.map(arg => `${arg}: usize`).join(", ");
-    
-    const body = emitStatements(m.ir);
-    const aliasLines = m.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
-    if (m.inputs.some(inp => inp.type === "string")) {
-      aliasLines.push(`  const argsStart: usize = arg0;`);
-    }
-
-    parts.push(
-      `export function ${m.name}(${argsSignature}): ${returnType} {\n` +
-      aliasLines.join("\n") + "\n" +
-      body + "\n}"
-    );
-    parts.push(""); 
-  });
+  parts.push(...generateMethods(contract));
 
   return parts.join("\n");
  

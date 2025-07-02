@@ -5,7 +5,7 @@ import { IRStatement } from "@/cli/types/ir.types.js";
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { isExpressionOfStructType } from "../struct/struct-utils.js";
+import { isExpressionOfStructType, getStructFieldType, isPrimitiveType } from "../struct/struct-utils.js";
 
 // TODO: rename to AssignmentIRBuilder. Merge with VariableIRBuilder.
 export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
@@ -57,12 +57,26 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
           const structInfo = isExpressionOfStructType(objectExpr);
           if (structInfo.isStruct && structInfo.structName) {
             const struct = this.symbolTable.lookup(structInfo.structName);
+            
+            const fieldType = getStructFieldType(structInfo.structName, fieldName);
+            let finalValueExpr = valueExpr;
+            
+            if (fieldType && isPrimitiveType(fieldType)) {
+              finalValueExpr = {
+                kind: "call",
+                target: `${fieldType}.copy`,
+                args: [valueExpr],
+                returnType: fieldType,
+                scope: "memory"
+              };
+            }
+            
             return {
               kind: "expr",
               expr: {
                 kind: "call",
                 target: `${structInfo.structName}_set_${fieldName}`,
-                args: [objectExpr, valueExpr],
+                args: [objectExpr, finalValueExpr],
                 returnType: "void",
                 scope: struct?.scope || "memory"
               }

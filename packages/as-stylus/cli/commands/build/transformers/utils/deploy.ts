@@ -72,7 +72,7 @@ function getInitializer(type: string, defaultValue: string): string {
     case "Address":
       return `Address.create()`;
     case "boolean":
-      return `allocBool(${defaultValue})`;
+      return `Boolean.create(${defaultValue})`;
     case "Str":
       return `Str.create()`;
     default:

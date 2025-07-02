@@ -5,7 +5,7 @@ import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { getExpressionType, isExpressionOfStructType } from "../struct/struct-utils.js";
+import { isExpressionOfStructType } from "../struct/struct-utils.js";
 
 export class MemberIRBuilder extends IRBuilder<IRExpression> {
   private expression: PropertyAccessExpression;
@@ -33,28 +33,27 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
     const structInfo = isExpressionOfStructType(objectIR);
     
     if (structInfo.isStruct && structInfo.structName) {
-      // console.log(`Detected struct field access: ${structInfo.structName}.${propertyName}`);
       const struct = ctx.structRegistry.get(structInfo.structName);
       if (struct) {
         const field = struct.fields.find(f => f.name === propertyName);
         if (field) {
-          // console.log(`Generating getter call: ${structInfo.structName}_get_${propertyName}`);
+          
+          let scope: "storage" | "memory" = "storage";
+          if (objectIR.kind === "var" && (objectIR as any).scope === "memory") {
+            scope = "memory";
+          }
           
           return {
             kind: "call",
             target: `${structInfo.structName}_get_${propertyName}`,
             args: [objectIR],
             returnType: expressionType,
-            scope: "storage"
+            scope: scope
           };
         }
       }
-      
-      // console.log(`Field ${propertyName} not found in struct ${structInfo.structName}`);
     }
 
-    // console.log("Generating regular member access");
-    
     return {
       kind: "member",
       object: objectIR,

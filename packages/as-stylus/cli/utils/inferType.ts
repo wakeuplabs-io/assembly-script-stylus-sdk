@@ -23,6 +23,10 @@ export function inferType(target: string): SupportedType {
     return "Str";
   }
 
+  if (target.startsWith("StructFactory")) {
+    return "struct";
+  }
+
   if (/^Mapping2(<|$)/.test(target)) {
     return "mapping2";
   }

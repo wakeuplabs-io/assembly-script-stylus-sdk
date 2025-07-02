@@ -1,6 +1,7 @@
 import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
 
 import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+import { U256CopyHandler } from "./handlers/copy-handler.js";
 import { U256CreateHandler } from "./handlers/create-handler.js";
 import { U256FromStringHandler } from "./handlers/from-string-handler.js";
 import { U256LessThanHandler } from "./handlers/less-than-handler.js";
@@ -21,6 +22,7 @@ export class U256Transformer extends BaseTypeTransformer {
 
     // Register specific handlers for different U256 operations
     this.registerHandler(new U256CreateHandler());
+    this.registerHandler(new U256CopyHandler());
     this.registerHandler(new U256FromStringHandler());
     this.registerHandler(new U256OperationHandler());
     this.registerHandler(new U256LessThanHandler());
@@ -36,6 +38,10 @@ export class U256Transformer extends BaseTypeTransformer {
 
       // Factory methods
       if (target === "U256Factory.create" || target === "U256Factory.fromString") {
+        return true;
+      }
+
+      if (target === "U256.copy") {
         return true;
       }
 
