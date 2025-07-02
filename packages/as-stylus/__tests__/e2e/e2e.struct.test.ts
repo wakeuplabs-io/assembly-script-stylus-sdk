@@ -21,7 +21,6 @@ import {
   validateStructFieldValues,
   calculateExpectedStructSize,
   validateStringContentInABI,
-  getAbi,
 } from "./utils.js";
 
 // Test constants
@@ -49,7 +48,7 @@ beforeAll(async () => {
   }
 }, DEPLOY_TIMEOUT);
 
-describe.skip("Struct Contract Tests", () => {
+describe("Struct Contract Tests", () => {
   describe("Storage Operations", () => {
     it("should deploy successfully", () => {
       expect(contract).toBeTruthy();

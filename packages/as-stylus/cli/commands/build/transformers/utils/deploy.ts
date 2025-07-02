@@ -10,12 +10,9 @@ export function generateDeployFunction(contract: IRContract): string {
   if (contract.constructor) {
     const { inputs } = contract.constructor;
     const { callArgs } = generateArgsLoadBlock(inputs);
-    const argsSignature = callArgs.map(a => `${a.name}: usize`).join(", ");
+    const argsSignature = callArgs.map(a => `${a.name}: ${a.type}`).join(", ");
     const aliasLines = inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i].name};`);
     
-    if (inputs.some(inp => inp.type === "string")) {
-      aliasLines.push(`  const argsStart: usize = arg0;`);
-    }
     
     lines.push(`export function deploy(${argsSignature}): void {`);
     lines.push(...aliasLines);
