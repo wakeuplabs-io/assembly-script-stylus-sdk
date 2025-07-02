@@ -2,7 +2,7 @@ import { Address, WalletClient } from "viem";
 
 import { contractService, ContractService } from "./client.js";
 import { PRIVATE_KEY, ROOT_PATH, RPC_URL } from "./constants.js";
-import { getAbi, run, stripAnsi } from "./utils.js";
+import { getAbi, run, stripAnsi } from "../helpers/utils.js";
 
 export type ContractArgs = (string | boolean | Address | bigint)[];
 

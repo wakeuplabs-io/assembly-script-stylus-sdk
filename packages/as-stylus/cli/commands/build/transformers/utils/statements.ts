@@ -1,5 +1,5 @@
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRStatement } from "@/cli/types/ir.types.js";
+import { IRExpression, IRStatement } from "@/cli/types/ir.types.js";
 
 import { emitExpression } from "./expressions.js";
 import { SupportedType } from "../../analyzers/shared/supported-types.js";
@@ -271,10 +271,12 @@ function emitStatement(s: IRStatement, indent: string): string {
      */
     case "revert": {
       // Use the error transformer to handle the revert
-      const revertExpression = {
+      const revertExpression: IRExpression = {
         kind: "call",
         target: `${s.error}.revert`,
-        args: s.args
+        args: s.args,
+        returnType: AbiType.Void,
+        scope: "memory"
       };
       
       const result = emitExpression(revertExpression, true);
