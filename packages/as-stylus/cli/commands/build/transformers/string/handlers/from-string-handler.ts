@@ -23,7 +23,7 @@ export class StrFromStringHandler implements ExpressionHandler {
     if (arg.kind === "literal") {
       setup.push(`const ${resultStr}: usize = Str.fromString(${arg.value});`);
     }else {
-      setup.push(`const ${resultStr}: usize = ${argIR.valueExpr}`);
+      setup.push(`const ${resultStr}: usize = ${argIR.valueExpr};`);
     }
 
     return {

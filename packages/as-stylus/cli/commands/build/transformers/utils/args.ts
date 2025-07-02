@@ -32,7 +32,7 @@ export function generateArgsLoadBlock(
         type = AssemblyScriptType.Pointer;
         break;
         
-        case AbiType.Address:
+      case AbiType.Address:
         argLines.push(`const ${argName} = position + ${offset};`);
         offset += 32;
         type = AssemblyScriptType.Pointer;
