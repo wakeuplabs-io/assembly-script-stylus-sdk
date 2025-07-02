@@ -2,12 +2,8 @@ import { execSync } from "child_process";
 import { config } from "dotenv";
 import path from "path";
 import stripAnsiRaw from "strip-ansi";
-import { fileURLToPath } from "url";
 
 config();
-
-// // const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.resolve();
 
 export const ROOT = path.resolve(__dirname, "../../..");
 export const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";

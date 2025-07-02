@@ -45,9 +45,10 @@ export class RevertContract721 {
   static TWO: U256;
 
   constructor() {
-    ZERO = Address.ZERO;
-    ONE = U256Factory.fromString("1");
-    TWO = U256Factory.fromString("2");
+    const ONEMemory = U256Factory.fromString("1");
+    const TWOMemory = U256Factory.fromString("2");
+    ONE = ONEMemory;
+    TWO = TWOMemory;
   }
 
   @External

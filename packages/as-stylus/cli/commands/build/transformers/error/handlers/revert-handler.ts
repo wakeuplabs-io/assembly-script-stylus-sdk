@@ -37,49 +37,35 @@ export class ErrorRevertHandler implements ExpressionHandler {
     const setup: string[] = [];
     const errorDataTemp = makeTemp("errorData");
 
-    // Calcular el tamaño total del error data
-    // 4 bytes para el selector + 32 bytes por cada campo
-    const totalSize = 4 + (errorDecl.fields.length * 32);
-    
     setup.push(`// Revert with custom error ${errorName}`);
-    setup.push(`const ${errorDataTemp}: usize = malloc(${totalSize});`);
-    
-    // Escribir el selector (primeros 4 bytes)
-    const selectorBytes = this.hexToBytes(errorDecl.selector);
-    selectorBytes.forEach((byte, index) => {
-      setup.push(`store<u8>(${errorDataTemp} + ${index}, ${byte});`);
-    });
 
-    // Escribir los argumentos (cada uno en 32 bytes)
-    expr.args.forEach((arg: any, index: number) => {
-      const argResult = emit(arg, ctx);
-      setup.push(...argResult.setupLines);
+    if (errorDecl.fields.length === 0) {
+      // Error sin parámetros - solo usar el selector
+      setup.push(`const ${errorDataTemp}: usize = malloc(4);`);
+      setup.push(`__write_error_selector_${errorName}(${errorDataTemp});`);
+      setup.push(`abort_with_data(${errorDataTemp}, 4);`);
+    } else {
+      // Error con parámetros - usar la función helper completa
+      const argResults: string[] = [];
       
-      const offset = 4 + (index * 32);
-      setup.push(`// Argument ${index + 1}: ${errorDecl.fields[index]?.name || 'unknown'}`);
-      setup.push(`U256.copy(${errorDataTemp} + ${offset}, ${argResult.valueExpr});`);
-    });
+      // Procesar cada argumento
+      expr.args.forEach((arg: any) => {
+        const argResult = emit(arg, ctx);
+        setup.push(...argResult.setupLines);
+        argResults.push(argResult.valueExpr);
+      });
 
-    // Hacer el revert con los datos del error
-    setup.push(`// Revert with error data`);
-    setup.push(`abort_with_data(${errorDataTemp}, ${totalSize});`);
+      // Usar la función helper para crear el error data
+      const argsList = argResults.join(", ");
+      setup.push(`const ${errorDataTemp}: usize = __create_error_data_${errorName}(${argsList});`);
+      
+      const totalSize = 4 + (errorDecl.fields.length * 32);
+      setup.push(`abort_with_data(${errorDataTemp}, ${totalSize});`);
+    }
 
     return {
       setupLines: setup,
       valueExpr: "/* Custom error reverted */",
     };
-  }
-
-  private hexToBytes(hex: string): string[] {
-    // Remover el "0x" si está presente
-    const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
-    const bytes: string[] = [];
-    
-    for (let i = 0; i < cleanHex.length; i += 2) {
-      const byte = cleanHex.substring(i, i + 2);
-      bytes.push(`0x${byte}`);
-    }
-    
-    return bytes;
   }
 } 
