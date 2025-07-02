@@ -18,31 +18,12 @@ export class StrFromStringHandler implements ExpressionHandler {
     const argIR = emit(arg, ctx);
     const setup = [...argIR.setupLines];
 
-    const strPtr = makeTemp("strPtr");
-    const offsetBE = makeTemp("offsetBE");
-    const lenPtr = makeTemp("lenPtr");
-    const lenBE = makeTemp("lenBE");
-    const dataPtr = makeTemp("dataPtr");
-    const resultStr = makeTemp("strObj");
+     const resultStr = makeTemp("strObj");
 
     if (arg.kind === "literal") {
-      const raw: string = arg.value as string;
-
-      setup.push(`const ${strPtr}: usize = malloc(${raw.length});`);
-      for (let i = 0; i < raw.length; ++i) {
-        setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
-      }
-      setup.push(`const ${lenBE}: u32 = ${raw.length};`);
-      setup.push(`const ${resultStr}: usize = Str.fromBytes(${strPtr}, ${lenBE});`);
-    }
-
-    else {
-      setup.push(`const ${strPtr}: usize = ${argIR.valueExpr};`);
-      setup.push(`const ${offsetBE}: u32 = loadU32BE(${strPtr} + 28);`);
-      setup.push(`const ${lenPtr}: usize = argsStart + ${offsetBE};`);
-      setup.push(`const ${lenBE}: u32 = loadU32BE(${lenPtr} + 28);`);
-      setup.push(`const ${dataPtr}: usize = ${lenPtr} + 32;`);
-      setup.push(`const ${resultStr}: usize = Str.fromBytes(${dataPtr}, ${lenBE});`);
+      setup.push(`const ${resultStr}: usize = Str.fromString(${arg.value});`);
+    }else {
+      setup.push(`const ${resultStr}: usize = ${argIR.valueExpr}`);
     }
 
     return {

@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------
 
 import { U256 } from "./u256";
-import { storeU32BE } from "../modules/endianness";
+import { storeU32BE, loadU32BE } from "../modules/endianness";
 import {
   storage_cache_bytes32,
   storage_load_bytes32,
@@ -38,12 +38,47 @@ export class Str {
     return ptr;
   }
 
-  /* Copia bytes crudos y los envuelve en formato [len][data] */
+  static fromString(str: string): usize {
+    const ptr = malloc(str.length);
+    for (let i: u32 = 0; i < str.length; ++i) store<u8>(ptr + i, str.charCodeAt(i));
+    return Str.fromBytes(ptr, str.length);
+  }
+
+  /**
+   * Create a new string from a pointer and a length
+   * @param src - pointer to the source string
+   * @param len - length of the source string
+   * @returns pointer to the new string
+   */
+
   static fromBytes(src: usize, len: u32): usize {
     const ptr = malloc(4 + len);
     store<u32>(ptr, len);
     for (let i: u32 = 0; i < len; ++i) store<u8>(ptr + 4 + i, load<u8>(src + i));
     return ptr;
+  }
+
+  /**
+   * Reads a string argument from ABI-encoded data at a specific position
+   * Simplifies reading string arguments in contract entry points
+   * @param argsPtr - pointer to the arguments data
+   * @returns pointer to the created string
+   */
+  static fromArg(argsPtr: usize): usize {
+    // For simple fixed-size string arguments, just read the data directly
+    return Str.fromBytes(argsPtr, 32);
+  }
+
+  /**
+   * Reads a dynamic string argument from ABI-encoded data
+   * @param argsPtr - pointer to the arguments data
+   * @returns pointer to the created string
+   */
+  static fromDynamicArg(arg: usize): usize {
+    const off = loadU32BE(arg + 28);
+    const len = loadU32BE(arg + off + 28);
+    const dataPtr = arg + off + 32;
+    return Str.fromBytes(dataPtr, len);
   }
 
   /* Decodifica a string JS (solo para debugging - costoso) */
