@@ -10,13 +10,13 @@ export function buildAsconfig(targetPath: string) {
       {
         options: {
           bindings: false,
-          disable: ["bulk-memory"],
-          // use: [`abort=${ASSEMBLY_BUILD_PATH}/stylus/abort`],
-          use: [],
+          disable: [
+            "bulk-memory"
+          ],
+          use: ["abort=assembly/stylus/stylus/abort"],
           runtime: "stub",
           exportStart: "myStart"
         },
-      
         targets: {
           debug: {
             outFile: `${BUILD_WASM_PATH}/debug.wasm`,

@@ -1,20 +1,20 @@
 
 import { CallExpression, Expression } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
-import { SupportedType } from "../shared/supported-types.js";
 import { SymbolTableStack } from "../shared/symbol-table.js";
 
-const returnType: Record<string, SupportedType> = {
-  "slice": "Str",
-  "length": "U256",
-  "toString": "Str",
-  "toABI": "Str",
-  "fromString": "Str",
-  "create": "Str",
-  "fromABI": "Str",
+const returnType: Record<string, AbiType> = {
+  "slice": AbiType.String,
+  "length": AbiType.Uint256,
+  "toString": AbiType.String,
+  "toABI": AbiType.String,
+  "fromString": AbiType.String,
+  "create": AbiType.String,
+  "fromABI": AbiType.String,
 };
 
 export function buildStringIR(target: string, call: CallExpression, symbolTable: SymbolTableStack): IRExpression {

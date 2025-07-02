@@ -2,6 +2,7 @@
  * Utilities for handling storage in the IR-to-AssemblyScript transformation
  */
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRVariable } from "@/cli/types/ir.types.js";
 
 
@@ -50,7 +51,7 @@ export function generateStorageImports(variables: IRVariable[], hasStructs: bool
       'import { addTopic, emitTopics } from "as-stylus/core/modules/events";',
     );
   }
-  
+
   lines.push('import { malloc } from "as-stylus/core/modules/memory";');  
   lines.push('import { Address } from "as-stylus/core/types/address";');
   lines.push('import { U256 } from "as-stylus/core/types/u256";');
@@ -76,14 +77,13 @@ export function generateStorageImports(variables: IRVariable[], hasStructs: bool
 export function generateStorageHelpers(variables: IRVariable[], structs: any[] = []): string[] {
   const lines: string[] = [];
 
-  // Crear un mapa de structs por nombre para lookup rápido
   const structMap = new Map(structs.map(s => [s.name, s]));
 
   for (const v of variables) {
     lines.push(slotConst(v.slot));
 
     if (v.kind === "simple") {
-      if (v.type === "string" || v.type === "Str") {
+      if (v.type === AbiType.String) {
         lines.push(`
 function load_${v.name}(): usize {
   return Str.loadFrom(${formatSlotName(v.slot)});

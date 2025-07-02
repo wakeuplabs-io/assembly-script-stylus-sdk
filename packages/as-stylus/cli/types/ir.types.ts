@@ -1,9 +1,16 @@
-import { AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "./abi.types.js";
+import { AbiType, AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "./abi.types.js";
 import { SupportedType } from "../commands/build/analyzers/shared/supported-types.js";
 
 // Statements// ───────────────────────
 // Base IR node types
 // ───────────────────────
+
+export type IRUnaryExpression = {
+  kind: "unary";
+  op: string;
+  expr: IRExpression;
+  type: SupportedType;
+};
 
 export type Literal = {
   kind: "literal";
@@ -69,6 +76,7 @@ export type IRCondition = {
 // ───────────────────────
 
 export type IRExpression =
+  | IRUnaryExpression
   | Literal
   | Variable
   | Call
@@ -108,16 +116,17 @@ export type IRStatement =
   | ExpressionStatement
   | Return
   | If
-  | Block;
+  | Block
+  | IRRevert;
 
 // ───────────────────────
 // Variables (storage)
 // ───────────────────────
 
-export type IRSimpleVar = { name: string; type: string; slot: number; kind: "simple" };
+export type IRSimpleVar = { name: string; type: AbiType; slot: number; kind: "simple" };
 export type IRMappingVar = {
   name: string;
-  type: "mapping";
+  type: AbiType.Mapping;
   slot: number;
   keyType: string;
   valueType: string;
@@ -125,7 +134,7 @@ export type IRMappingVar = {
 };
 export type IRMapping2Var = {
   name: string;
-  type: "mapping2";
+  type: AbiType.Mapping2;
   slot: number;
   keyType1: string;
   keyType2: string;
@@ -139,7 +148,7 @@ export type IRVariable = IRSimpleVar | IRMappingVar | IRMapping2Var;
 // Contract structure
 // ───────────────────────
 
-export type IRArgument = { name: string; type: string };
+export type IRArgument = { name: string; type: AbiType };
 
 export type IRMethod = {
   name: string;
@@ -190,6 +199,28 @@ export interface IRStruct {
   alignment: number;
 }
 
+// ───────────────────────
+// Custom error structure
+// ───────────────────────
+
+export interface IRErrorField {
+  name: string;
+  type: string;
+}
+
+export interface IRErrorDecl {
+  node: "ErrorDeclNode";
+  name: string;
+  selector: string;
+  fields: IRErrorField[];
+}
+
+export type IRRevert = {
+  kind: "revert";
+  error: string;
+  args: IRExpression[];
+};
+
 export interface IRContract {
   name: string;
   methods: IRMethod[];
@@ -197,4 +228,5 @@ export interface IRContract {
   storage: IRVariable[];
   events?: IREvent[];
   structs?: IRStruct[];
+  errors?: IRErrorDecl[];
 }

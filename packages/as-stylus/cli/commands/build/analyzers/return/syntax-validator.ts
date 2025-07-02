@@ -1,5 +1,6 @@
 import { ReturnStatement } from "ts-morph";
 
+import { convertType } from "../../builder/build-abi.js";
 import { BaseValidator } from "../shared/base-validator.js";
 import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
@@ -22,7 +23,7 @@ export class ReturnSyntaxValidator extends BaseValidator {
 
     if (expr) {
       const returnType = expr.getType().getText();
-      if (!SUPPORTED_TYPES.includes(returnType)) {
+      if (!SUPPORTED_TYPES.includes(convertType(returnType))) {
         this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(returnType, SUPPORTED_TYPES));
         hasErrors = true;
       }

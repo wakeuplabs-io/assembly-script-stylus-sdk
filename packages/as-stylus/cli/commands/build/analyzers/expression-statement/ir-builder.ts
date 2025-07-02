@@ -1,5 +1,6 @@
-import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, PropertyAccessExpression } from "ts-morph";
+import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, PropertyAccessExpression, CallExpression } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRStatement } from "@/cli/types/ir.types.js";
 
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
@@ -24,7 +25,25 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
   buildIR(): IRStatement {
     const expr = this.statement.getExpression();
 
-    // Handle assignment expressions (x = y)
+    if (expr.getKind() === SyntaxKind.CallExpression) {
+      const callExpr = expr as CallExpression;
+      const exprText = callExpr.getExpression().getText();
+      
+      if (exprText.endsWith('.revert')) {
+        const errorName = exprText.slice(0, -'.revert'.length);
+        const args = callExpr.getArguments().map(arg => {
+          const builder = new ExpressionIRBuilder(arg as any);
+          return builder.validateAndBuildIR();
+        });
+        
+        return {
+          kind: "revert",
+          error: errorName,
+          args
+        };
+      }
+    }
+
     if (expr.getKind() === SyntaxKind.BinaryExpression) {
       const bin = expr as BinaryExpression;
       if (bin.getOperatorToken().getKind() === SyntaxKind.EqualsToken) {
@@ -62,11 +81,16 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
             let finalValueExpr = valueExpr;
             
             if (fieldType && isPrimitiveType(fieldType)) {
+              const targets = {
+                [AbiType.Uint256]: "U256.copy",
+                [AbiType.Bool]: "boolean.copy",
+                [AbiType.Address]: "Address.copy",
+              };
               finalValueExpr = {
                 kind: "call",
-                target: `${fieldType}.copy`,
+                target: targets[fieldType as keyof typeof targets],
                 args: [valueExpr],
-                returnType: fieldType,
+                returnType: fieldType as AbiType,
                 scope: "memory"
               };
             }
@@ -77,7 +101,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
                 kind: "call",
                 target: `${structInfo.structName}_set_${fieldName}`,
                 args: [objectExpr, finalValueExpr],
-                returnType: "void",
+                returnType: AbiType.Void,
                 scope: struct?.scope || "memory"
               }
             };
@@ -91,10 +115,10 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
                 target: `property_set`,
                 args: [
                   objectExpr,
-                  { kind: "literal", value: fieldName, type: "string" },
+                  { kind: "literal", value: fieldName, type: AbiType.String },
                   valueExpr
                 ],
-                returnType: "void",
+                returnType: AbiType.Void,
                 scope: "memory"
               }
             };

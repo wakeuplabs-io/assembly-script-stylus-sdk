@@ -28,7 +28,7 @@ export class BooleanCopyHandler implements ExpressionHandler {
     return {
       setupLines: [
         ...srcArg.setupLines,
-        `const ${dstPtr}: usize = ${copyMethod}(<u8>${srcArg.valueExpr});`
+        `const ${dstPtr}: usize = ${copyMethod}(${srcArg.valueExpr});`
       ],
       valueExpr: dstPtr,
       valueType: "boolean",

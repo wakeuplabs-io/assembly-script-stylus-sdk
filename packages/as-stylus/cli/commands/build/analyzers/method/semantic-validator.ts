@@ -2,6 +2,7 @@ import { MethodDeclaration } from "ts-morph";
 
 import { VISIBILITY_DECORATORS, STATE_MUTABILITY_DECORATORS } from "@/cli/types/abi.types.js";
 
+import { convertType } from "../../builder/build-abi.js";
 import { ERROR_CODES } from "../../errors/codes.js";
 import { BaseValidator } from "../shared/base-validator.js";
 import { SUPPORTED_TYPES } from "../shared/supported-types.js";
@@ -36,7 +37,7 @@ export class MethodSemanticValidator extends BaseValidator {
     }
 
     const returnType = this.method.getReturnType();
-    if (returnType && !SUPPORTED_TYPES.includes(returnType.getText())) {
+    if (returnType && !SUPPORTED_TYPES.includes(convertType(returnType.getText()))) {
       this.addSemanticError(ERROR_CODES.INVALID_RETURN_TYPE, [this.method.getName()]);
       hasErrors = true;
     }

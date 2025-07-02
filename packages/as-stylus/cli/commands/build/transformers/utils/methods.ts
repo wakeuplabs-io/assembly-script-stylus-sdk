@@ -17,7 +17,7 @@ export function generateMethods(contract: IRContract): string[] {
     }
 
     const { callArgs } = generateArgsLoadBlock(m.inputs);
-    const argsSignature = callArgs.map(arg => `${arg}: usize`).join(", ");
+    const argsSignature = callArgs.map(arg => `${arg.name}: ${arg.type}`).join(", ");
     
     const body = emitStatements(m.ir);
     const aliasLines = m.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);

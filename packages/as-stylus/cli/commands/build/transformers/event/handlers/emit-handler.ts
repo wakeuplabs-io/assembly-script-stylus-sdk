@@ -1,3 +1,4 @@
+import { AbiType } from "@/cli/types/abi.types.js";
 import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
 import { IREvent } from "@/cli/types/ir.types.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
@@ -50,7 +51,7 @@ export class EventEmitHandler implements ExpressionHandler {
       setup.push(...argExpr.setupLines);
     
       if (field.indexed) {
-        const size = getReturnSize(field.type);
+        const size = getReturnSize(field.type as AbiType);
         setup.push(`addTopic(${topicsTemp} + ${topicOffset}, ${argExpr.valueExpr}, ${size});`);
         topicOffset += 32;
       } else {

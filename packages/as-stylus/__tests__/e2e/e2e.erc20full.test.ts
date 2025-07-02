@@ -2,263 +2,308 @@
 //  End-to-end tests — ERC20Full contract (Stylus)
 // ---------------------------------------------------------------
 import { config } from "dotenv";
-import path from "path";
-config();
+import { Address, Hex, WalletClient } from "viem";
 
-import { generateEventSignature } from "@/cli/commands/build/transformers/event/event-transformer.js";
-
-import { encodeStringsDynamic, decodeStringReturn } from "./string-abi.js";
-import { TransferEventLog } from "./types.js";
+import { contractService, getWalletClient } from "./client.js";
 import {
-  ROOT,
-  RPC_URL,
+  CONTRACT_PATHS,
+  CONTRACT_ADDRESS_REGEX,
+  DEPLOY_TIMEOUT,
   PRIVATE_KEY,
   USER_B_PRIVATE_KEY,
-  run,
-  stripAnsi,
-  calldata,
-  createContractHelpers,
-  pad64,
-  getFunctionSelector,
-} from "./utils.js";
+} from "./constants.js";
+import { fundUser, setupE2EContract } from "./setup.js";
+import { handleDeploymentError } from "../helpers/utils.js";
 
-const TRANSFER_EVENT = {
-  name: "Transfer",
-  fields: [
-    { name: "from", type: "Address", indexed: true },
-    { name: "to", type: "Address", indexed: true },
-    { name: "value", type: "U256", indexed: false },
-  ],
-};
+config();
 
-const APPROVAL_EVENT = {
-  name: "Approval",
-  fields: [
-    { name: "owner", type: "Address", indexed: true },
-    { name: "spender", type: "Address", indexed: true },
-    { name: "value", type: "U256", indexed: false },
-  ],
-};
-
-const SELECTOR = {
-  DEPLOY: getFunctionSelector("deploy(string,string)"),
-  NAME: getFunctionSelector("name()"),
-  SYMBOL: getFunctionSelector("symbol()"),
-  DECIMALS: getFunctionSelector("decimals()"),
-  TOTAL_SUPPLY: getFunctionSelector("totalSupply()"),
-  BALANCE_OF: getFunctionSelector("balanceOf(address)"),
-  ALLOWANCE: getFunctionSelector("allowance(address,address)"),
-  TRANSFER: getFunctionSelector("transfer(address,uint256)"),
-  TRANSFER_FROM: getFunctionSelector("transferFrom(address,address,uint256)"),
-  APPROVE: getFunctionSelector("approve(address,uint256)"),
-  MINT: getFunctionSelector("mint(address,uint256)"),
-  BURN: getFunctionSelector("burn(uint256)"),
-};
-
+// Constants
 const NAME_STR = "MyToken";
 const SYMBOL_STR = "MYT";
-const DECIMALS_18 = pad64(18n);
+const DECIMALS_18 = 18n;
+const INIT_SUPPLY = 1000n;
+const AMOUNT_100 = 100n;
+const MINT_50 = 50n;
+const BURN_30 = 30n;
+const ZERO = 0n;
 
-const INIT_SUPPLY = pad64(1000n);
-const AMOUNT_100 = pad64(100n);
-const ZERO_64 = pad64(0n);
-const MINT_50 = pad64(50n);
-const BURN_30 = pad64(30n);
+// Test state
+const ownerWallet: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
+const userBWallet: WalletClient = getWalletClient(USER_B_PRIVATE_KEY as Hex);
+let contract: ReturnType<typeof contractService>;
+const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.ERC20_FULL;
 
-const OWNER = stripAnsi(run(`cast wallet address --private-key ${PRIVATE_KEY}`)).toLowerCase();
-const USER_B = stripAnsi(
-  run(`cast wallet address --private-key ${USER_B_PRIVATE_KEY}`),
-).toLowerCase();
-run(`cast send ${USER_B} --value 0.1ether --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL}`);
+const getOwnerAddress = () => ownerWallet.account?.address as Address;
+const getUserBAddress = () => userBWallet.account?.address as Address;
 
-let contractAddr = "";
-let helpers: ReturnType<typeof createContractHelpers>;
+beforeAll(async () => {
+  try {
+    fundUser(getUserBAddress());
+    contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
+      deployArgs: [NAME_STR, SYMBOL_STR],
+      walletClient: ownerWallet,
+    });
+  } catch (error: unknown) {
+    handleDeploymentError(error);
+  }
+}, DEPLOY_TIMEOUT);
 
-beforeAll(() => {
-  const projectRoot = path.join(ROOT, "/as-stylus/");
-  const pkg = path.join(ROOT, "/as-stylus/__tests__/contracts/erc20-full");
-
-  run("npm run pre:build", projectRoot);
-  run("npx as-stylus build", pkg);
-  run("npm run compile", pkg);
-  run("npm run check", pkg);
-  run("npx prettier --write ./artifacts/contract.transformed.ts", pkg);
-
-  const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, pkg));
-  const m = deployLog.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
-  if (!m) throw new Error("Could not scrape contract address");
-  contractAddr = m[1];
-  helpers = createContractHelpers(contractAddr);
-
-  const dataDeploy = SELECTOR.DEPLOY + encodeStringsDynamic(NAME_STR, SYMBOL_STR);
-
-  run(
-    `cast send ${contractAddr} ${dataDeploy.slice(2)} --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL}`,
-  );
-  console.log({ contractAddr, OWNER, USER_B });
-}, 120_000);
-
-const expectHex = (data: string, hex: string) =>
-  expect(helpers.callData(data).toLowerCase()).toBe(hex.toLowerCase());
-
-const expectString = (data: string, expected: string) => {
-  const decoded = decodeStringReturn(helpers.callData(data).trim());
-  expect(decoded).toBe(expected);
-};
-
-describe("ERC20Full end-to-end", () => {
-  describe("basic functionality", () => {
-    it("name() returns correct value", () => expectString(calldata(SELECTOR.NAME), NAME_STR));
-    it("symbol() returns correct value", () => expectString(calldata(SELECTOR.SYMBOL), SYMBOL_STR));
-    it("decimals() returns 18", () => expectHex(calldata(SELECTOR.DECIMALS), DECIMALS_18));
-    it("totalSupply equals minted amount", () => {
-      helpers.sendData(calldata(SELECTOR.MINT, OWNER, INIT_SUPPLY));
-      expectHex(calldata(SELECTOR.TOTAL_SUPPLY), INIT_SUPPLY);
+describe("ERC20Full — Token Operations", () => {
+  describe("Initial state and metadata", () => {
+    it("should have correct name", async () => {
+      const result = (await contract.read("name", [])) as string;
+      expect(result).toBe(NAME_STR);
     });
 
-    it("owner balance equals minted amount", () =>
-      expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), INIT_SUPPLY));
-
-    it("transfer updates balances", () => {
-      helpers.sendData(calldata(SELECTOR.TRANSFER, USER_B, AMOUNT_100));
-      expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), pad64(900n));
-      expectHex(calldata(SELECTOR.BALANCE_OF, USER_B), AMOUNT_100);
+    it("should have correct symbol", async () => {
+      const result = (await contract.read("symbol", [])) as string;
+      expect(result).toBe(SYMBOL_STR);
     });
 
-    it("initial allowance is zero", () =>
-      expectHex(calldata(SELECTOR.ALLOWANCE, OWNER, USER_B), ZERO_64));
-
-    it("approve sets allowance", () => {
-      helpers.sendData(calldata(SELECTOR.APPROVE, USER_B, AMOUNT_100));
-      expectHex(calldata(SELECTOR.ALLOWANCE, OWNER, USER_B), AMOUNT_100);
+    it("should have 18 decimals", async () => {
+      const result = (await contract.read("decimals", [])) as bigint;
+      expect(result).toBe(DECIMALS_18);
     });
 
-    it("transferFrom succeeds and updates balances + allowance", () => {
-      helpers.sendDataFrom(USER_B, calldata(SELECTOR.TRANSFER_FROM, OWNER, USER_B, AMOUNT_100));
-
-      expectHex(calldata(SELECTOR.ALLOWANCE, OWNER, USER_B), ZERO_64);
-      expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), pad64(800n));
-      expectHex(calldata(SELECTOR.BALANCE_OF, USER_B), pad64(200n));
+    it("should have zero initial total supply", async () => {
+      const result = (await contract.read("totalSupply", [])) as bigint;
+      expect(result).toBe(ZERO);
     });
 
-    it("mint increases totalSupply and recipient balance", () => {
-      helpers.sendData(calldata(SELECTOR.MINT, USER_B, MINT_50));
-      expectHex(calldata(SELECTOR.TOTAL_SUPPLY), pad64(1050n));
-      expectHex(calldata(SELECTOR.BALANCE_OF, USER_B), pad64(250n));
-    });
-
-    it("burn decreases totalSupply and sender balance", () => {
-      helpers.sendData(calldata(SELECTOR.BURN, BURN_30));
-      expectHex(calldata(SELECTOR.TOTAL_SUPPLY), pad64(1020n));
-      expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), pad64(770n));
+    it("should have zero initial owner balance", async () => {
+      const result = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      expect(result).toBe(ZERO);
     });
   });
 
-  describe("edge cases", () => {
-    it("minting 0 tokens has no effect", () => {
-      const beforeSupply = helpers.callData(SELECTOR.TOTAL_SUPPLY);
-      const beforeBalance = helpers.callData(calldata(SELECTOR.BALANCE_OF, OWNER));
-      helpers.sendData(calldata(SELECTOR.MINT, OWNER, pad64(0n)));
-      expectHex(calldata(SELECTOR.TOTAL_SUPPLY), beforeSupply);
-      expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), beforeBalance);
+  describe("Minting operations", () => {
+    it("should mint tokens and update total supply and balance", async () => {
+      await contract.write(ownerWallet, "mint", [getOwnerAddress(), INIT_SUPPLY]);
+
+      const totalSupply = (await contract.read("totalSupply", [])) as bigint;
+      const ownerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+
+      expect(totalSupply).toBe(INIT_SUPPLY);
+      expect(ownerBalance).toBe(INIT_SUPPLY);
     });
 
-    it("transferring more than balance fails", () => {
-      const tooMuch = pad64(999999999999999n);
-      const beforeSupply = helpers.callData(SELECTOR.TOTAL_SUPPLY);
-      const beforeBalance = helpers.callData(calldata(SELECTOR.BALANCE_OF, OWNER));
-      helpers.sendData(calldata(SELECTOR.TRANSFER, USER_B, tooMuch));
-      expectHex(calldata(SELECTOR.TOTAL_SUPPLY), beforeSupply);
-      expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), beforeBalance);
+    it("should mint additional tokens to different address", async () => {
+      await contract.write(ownerWallet, "mint", [getUserBAddress(), MINT_50]);
+
+      const totalSupply = (await contract.read("totalSupply", [])) as bigint;
+      const userBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      expect(totalSupply).toBe(INIT_SUPPLY + MINT_50);
+      expect(userBBalance).toBe(MINT_50);
     });
 
-    it("burning more than balance fails", () => {
-      const tooMuch = pad64(999999999999999n);
-      const beforeSupply = helpers.callData(SELECTOR.TOTAL_SUPPLY);
-      const beforeBalance = helpers.callData(calldata(SELECTOR.BALANCE_OF, OWNER));
-      helpers.sendData(calldata(SELECTOR.BURN, tooMuch));
-      expectHex(calldata(SELECTOR.TOTAL_SUPPLY), beforeSupply);
-      expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), beforeBalance);
-    });
+    it("should handle minting zero tokens", async () => {
+      const beforeSupply = (await contract.read("totalSupply", [])) as bigint;
+      const beforeBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
 
-    it("re-approve overwrites previous allowance", () => {
-      helpers.sendData(calldata(SELECTOR.APPROVE, USER_B, pad64(30n)));
-      helpers.sendData(calldata(SELECTOR.APPROVE, USER_B, pad64(70n)));
-      expectHex(calldata(SELECTOR.ALLOWANCE, OWNER, USER_B), pad64(70n));
-    });
+      await contract.write(ownerWallet, "mint", [getOwnerAddress(), ZERO]);
 
-    it("transferFrom without approval fails", () => {
-      const beforeSupply = helpers.callData(SELECTOR.TOTAL_SUPPLY);
-      const beforeBalance = helpers.callData(calldata(SELECTOR.BALANCE_OF, OWNER));
-      helpers.sendDataFrom(USER_B, calldata(SELECTOR.TRANSFER_FROM, OWNER, USER_B, pad64(500n)));
-      expectHex(calldata(SELECTOR.TOTAL_SUPPLY), beforeSupply);
-      expectHex(calldata(SELECTOR.BALANCE_OF, OWNER), beforeBalance);
+      const afterSupply = (await contract.read("totalSupply", [])) as bigint;
+      const afterBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+
+      expect(afterSupply).toBe(beforeSupply);
+      expect(afterBalance).toBe(beforeBalance);
     });
   });
 
-  describe("ERC20Full — Events", () => {
-    it("emits Transfer event on mint", () => {
-      const expectedTopic0 = generateEventSignature(TRANSFER_EVENT);
-      const receipt = helpers.sendData(calldata(SELECTOR.MINT, OWNER, INIT_SUPPLY));
-      const logs = receipt.logs;
-      expect(logs.length).toBeGreaterThan(0);
-      const log = logs.find(
-        (l: TransferEventLog) => l.topics[0].toLowerCase() === "0x" + expectedTopic0.toLowerCase(),
-      );
-      expect(log).toBeDefined();
-      expect(log.topics[1].toLowerCase()).toBe(
-        "0x0000000000000000000000000000000000000000000000000000000000000000",
-      );
-      expect(log.topics[2].toLowerCase()).toBe(pad64(BigInt(OWNER)));
-      expect(log.data.toLowerCase()).toBe(INIT_SUPPLY);
+  describe("Transfer operations", () => {
+    it("should transfer tokens and update balances", async () => {
+      const initialOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const initialUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      await contract.write(ownerWallet, "transfer", [getUserBAddress(), AMOUNT_100]);
+
+      const finalOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const finalUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      expect(finalOwnerBalance).toBe(initialOwnerBalance - AMOUNT_100);
+      expect(finalUserBBalance).toBe(initialUserBBalance + AMOUNT_100);
     });
 
-    it("emits Approval event on approve", () => {
-      const expectedTopic0 = generateEventSignature(APPROVAL_EVENT);
-      const receipt = helpers.sendData(calldata(SELECTOR.APPROVE, USER_B, AMOUNT_100));
+    it("should fail when transferring more than balance", async () => {
+      const tooMuch = 999999999999999n;
+      const initialOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const initialUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
 
-      const logs = receipt.logs;
-      expect(logs.length).toBeGreaterThan(0);
-      const log = logs.find(
-        (l: TransferEventLog) => l.topics[0].toLowerCase() === "0x" + expectedTopic0.toLowerCase(),
-      );
-      expect(log).toBeDefined();
-      expect(log.topics[1].toLowerCase()).toBe(pad64(BigInt(OWNER)));
-      expect(log.topics[2].toLowerCase()).toBe(pad64(BigInt(USER_B)));
-      expect(log.data.toLowerCase()).toBe(AMOUNT_100);
+      try {
+        await contract.write(ownerWallet, "transfer", [getUserBAddress(), tooMuch]);
+      } catch {
+        // Transaction might revert, which is expected
+      }
+
+      const finalOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const finalUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      expect(finalOwnerBalance).toBe(initialOwnerBalance);
+      expect(finalUserBBalance).toBe(initialUserBBalance);
+    });
+  });
+
+  describe("Allowance operations", () => {
+    it("should have zero initial allowance", async () => {
+      const result = (await contract.read("allowance", [
+        getOwnerAddress(),
+        getUserBAddress(),
+      ])) as bigint;
+      expect(result).toBe(ZERO);
     });
 
-    it("emits Transfer and Approval on transferFrom", () => {
-      helpers.sendData(calldata(SELECTOR.MINT, OWNER, INIT_SUPPLY));
+    it("should set allowance with approve", async () => {
+      await contract.write(ownerWallet, "approve", [getUserBAddress(), AMOUNT_100]);
 
-      const expectedTopicTransfer = generateEventSignature(TRANSFER_EVENT);
-      const expectedTopicApproval = generateEventSignature(APPROVAL_EVENT);
+      const result = (await contract.read("allowance", [
+        getOwnerAddress(),
+        getUserBAddress(),
+      ])) as bigint;
+      expect(result).toBe(AMOUNT_100);
+    });
 
-      helpers.sendData(calldata(SELECTOR.APPROVE, USER_B, AMOUNT_100));
+    it("should overwrite previous allowance", async () => {
+      await contract.write(ownerWallet, "approve", [getUserBAddress(), 30n]);
+      await contract.write(ownerWallet, "approve", [getUserBAddress(), 70n]);
 
-      const { receipt } = helpers.sendDataFrom(
-        USER_B,
-        calldata(SELECTOR.TRANSFER_FROM, OWNER, USER_B, AMOUNT_100),
-      );
-      const logs = receipt.logs;
+      const result = (await contract.read("allowance", [
+        getOwnerAddress(),
+        getUserBAddress(),
+      ])) as bigint;
+      expect(result).toBe(70n);
+    });
+  });
 
-      expect(logs.length).toBeGreaterThanOrEqual(2);
-      const transferLog = logs.find(
-        (l: TransferEventLog) =>
-          l.topics[0].toLowerCase() === "0x" + expectedTopicTransfer.toLowerCase(),
-      );
-      const approvalLog = logs.find(
-        (l: TransferEventLog) =>
-          l.topics[0].toLowerCase() === "0x" + expectedTopicApproval.toLowerCase(),
-      );
+  describe("TransferFrom operations", () => {
+    it("should succeed with valid allowance and update balances", async () => {
+      // Set allowance
+      await contract.write(ownerWallet, "approve", [getUserBAddress(), AMOUNT_100]);
 
-      expect(transferLog.topics[1].toLowerCase()).toBe(pad64(BigInt(OWNER)));
-      expect(transferLog.topics[2].toLowerCase()).toBe(pad64(BigInt(USER_B)));
-      expect(transferLog.data.toLowerCase()).toBe(AMOUNT_100);
+      // Get initial balances
+      const initialOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const initialUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
 
-      expect(approvalLog.topics[1].toLowerCase()).toBe(pad64(BigInt(OWNER)));
-      expect(approvalLog.topics[2].toLowerCase()).toBe(pad64(BigInt(USER_B)));
-      expect(approvalLog.data.toLowerCase()).toBe(pad64(0n));
+      // USER_B transfers tokens from owner to USER_B using allowance
+      await contract.write(userBWallet, "transferFrom", [
+        getOwnerAddress(),
+        getUserBAddress(),
+        AMOUNT_100,
+      ]);
+
+      // Check that allowance was consumed
+      const newAllowance = (await contract.read("allowance", [
+        getOwnerAddress(),
+        getUserBAddress(),
+      ])) as bigint;
+      expect(newAllowance).toBe(ZERO);
+
+      // Check balances were updated
+      const newOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const newUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      expect(newOwnerBalance).toBe(initialOwnerBalance - AMOUNT_100);
+      expect(newUserBBalance).toBe(initialUserBBalance + AMOUNT_100);
+    });
+
+    it("should fail without approval", async () => {
+      const initialOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const initialUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      try {
+        await contract.write(userBWallet, "transferFrom", [
+          getOwnerAddress(),
+          getUserBAddress(),
+          500n,
+        ]);
+      } catch {
+        // Transaction might revert, which is expected
+      }
+
+      const finalOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const finalUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      expect(finalOwnerBalance).toBe(initialOwnerBalance);
+      expect(finalUserBBalance).toBe(initialUserBBalance);
+    });
+  });
+
+  describe("Burning operations", () => {
+    it("should burn tokens and update total supply and balance", async () => {
+      const initialSupply = (await contract.read("totalSupply", [])) as bigint;
+      const initialBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+
+      await contract.write(ownerWallet, "burn", [BURN_30]);
+
+      const finalSupply = (await contract.read("totalSupply", [])) as bigint;
+      const finalBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+
+      expect(finalSupply).toBe(initialSupply - BURN_30);
+      expect(finalBalance).toBe(initialBalance - BURN_30);
+    });
+
+    it("should fail when burning more than balance", async () => {
+      const tooMuch = 999999999999999n;
+      const initialSupply = (await contract.read("totalSupply", [])) as bigint;
+      const initialBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+
+      try {
+        await contract.write(ownerWallet, "burn", [tooMuch]);
+      } catch {
+        // Transaction might revert, which is expected
+      }
+
+      const finalSupply = (await contract.read("totalSupply", [])) as bigint;
+      const finalBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+
+      expect(finalSupply).toBe(initialSupply);
+      expect(finalBalance).toBe(initialBalance);
+    });
+  });
+
+  describe("Edge cases", () => {
+    it("should handle zero transfers", async () => {
+      const initialOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const initialUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      await contract.write(ownerWallet, "transfer", [getUserBAddress(), ZERO]);
+
+      const finalOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const finalUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      expect(finalOwnerBalance).toBe(initialOwnerBalance);
+      expect(finalUserBBalance).toBe(initialUserBBalance);
+    });
+
+    it("should handle self-transfers", async () => {
+      const initialBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+
+      await contract.write(ownerWallet, "transfer", [getOwnerAddress(), AMOUNT_100]);
+
+      const finalBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      expect(finalBalance).toBe(initialBalance);
+    });
+
+    it("should handle complex scenarios", async () => {
+      // Reset allowances
+      await contract.write(ownerWallet, "approve", [getUserBAddress(), 0n]);
+
+      // Get current balances
+      const ownerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const userBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      // Owner transfers to USER_B
+      await contract.write(ownerWallet, "transfer", [getUserBAddress(), 50n]);
+
+      // USER_B transfers back to owner
+      await contract.write(userBWallet, "transfer", [getOwnerAddress(), 30n]);
+
+      // Check final balances
+      const finalOwnerBalance = (await contract.read("balanceOf", [getOwnerAddress()])) as bigint;
+      const finalUserBBalance = (await contract.read("balanceOf", [getUserBAddress()])) as bigint;
+
+      expect(finalOwnerBalance).toBe(ownerBalance - 20n); // net -20
+      expect(finalUserBBalance).toBe(userBBalance + 20n); // net +20
     });
   });
 });

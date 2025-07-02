@@ -5,6 +5,7 @@ import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
 import { inferType } from "@/cli/utils/inferType.js";
 
 import { VariableDeclarationSyntaxValidator } from "./syntax-validator.js";
+import { convertType } from "../../builder/build-abi.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
@@ -28,8 +29,7 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
   buildIR(): IRStatement {
     const initializer = this.declaration.getInitializer();
     const type = inferType(initializer?.getText() ?? "");
-    const variable: VariableSymbol = { name: this.declaration.getName(), type, scope: "memory" };
-
+    const variable: VariableSymbol = { name: this.declaration.getName(), type: convertType(type), scope: "memory" };
     // TODO: revise this case
     if (!initializer) {
       this.symbolTable.declareVariable(variable.name, variable);
@@ -44,7 +44,7 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
     }
 
     const expression = new ExpressionIRBuilder(initializer as Expression).validateAndBuildIR();
-    variable.type = (expression as any).returnType;
+    variable.type = (expression as any).returnType ?? (expression as any).type;
     this.symbolTable.declareVariable(variable.name, variable);
 
     return {

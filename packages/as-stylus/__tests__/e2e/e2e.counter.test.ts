@@ -2,82 +2,185 @@
 //  End-to-end tests — Counter contract (Stylus)
 // ---------------------------------------------------------------
 import { config } from "dotenv";
-import path from "path";
+import { Hex, WalletClient } from "viem";
+
+import { contractService, getWalletClient } from "./client.js";
+import {
+  CONTRACT_PATHS,
+  CONTRACT_ADDRESS_REGEX,
+  DEPLOY_TIMEOUT,
+  PRIVATE_KEY,
+} from "./constants.js";
+import { setupE2EContract } from "./setup.js";
+import { handleDeploymentError } from "../helpers/utils.js";
 
 config();
 
-import {
-  ROOT,
-  RPC_URL,
-  PRIVATE_KEY,
-  run,
-  stripAnsi,
-  calldata,
-  createContractHelpers,
-  pad64,
-  getFunctionSelector,
-} from "./utils.js";
+// Constants
+const U256_MAX = (1n << 256n) - 1n;
+const ZERO = 0n;
+const ONE = 1n;
 
-const SELECTOR = {
-  DEPLOY: getFunctionSelector("deploy()"),
-  GET: getFunctionSelector("get()"),
-  INC: getFunctionSelector("increment()"),
-  DEC: getFunctionSelector("decrement()"),
-};
+// Test state
+const walletClient: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
+let contract: ReturnType<typeof contractService>;
+const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.COUNTER;
 
-const U256_MAX = pad64((1n << 256n) - 1n);
-const ZERO64 = pad64(0n);
-const ONE64 = pad64(1n);
-
-let contractAddr = "";
-let helpers: ReturnType<typeof createContractHelpers>;
-
-beforeAll(() => {
+/**
+ * Deploys the Counter contract and initializes the test environment
+ */
+beforeAll(async () => {
   try {
-    const projectRoot = path.join(ROOT, "/as-stylus/");
-    run("npm run pre:build", projectRoot);
-    const pkg = path.join(ROOT, "/as-stylus/__tests__/contracts/counter");
-    run("npx as-stylus build", pkg);
-    run("npm run compile", pkg);
-    run("npm run check", pkg);
-
-    const dataDeploy = calldata(SELECTOR.DEPLOY);
-
-    const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, pkg));
-    const m = deployLog.match(/deployed code at address:\s*(0x[0-9a-fA-F]{40})/i);
-    if (!m) throw new Error("Could not scrape contract address");
-    contractAddr = m[1];
-    helpers = createContractHelpers(contractAddr);
-    run(
-      `cast send ${contractAddr} ${dataDeploy} --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL}`,
-    );
-
-    console.log("📍 Deployed at", contractAddr);
+    contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
+      deployArgs: [],
+      walletClient,
+    });
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Failed to deploy contract:", errorMessage);
-    throw error;
+    handleDeploymentError(error);
   }
-}, 120_000);
+}, DEPLOY_TIMEOUT);
 
-const castSend = (sel: string) => helpers.sendData(sel);
-const castCall = (sel: string) => helpers.callData(sel);
-const expectHex = (sel: string, hex: string) =>
-  expect(castCall(sel).toLowerCase()).toBe(hex.toLowerCase());
+describe("Counter (U256) — Operations", () => {
+  describe("Underflow and overflow behavior", () => {
+    it("should handle underflow: 0 → decrement → MAX → increment → 0", async () => {
+      // Check initial value is 0
+      let result = await contract.read("get", []);
+      expect(result).toBe(ZERO);
 
-describe("Counter (U256) — happy paths", () => {
-  it("0 → underflow → MAX → wrap-back", () => {
-    expectHex(SELECTOR.GET, ZERO64);
-    castSend(SELECTOR.DEC);
-    expectHex(SELECTOR.GET, U256_MAX);
-    castSend(SELECTOR.INC);
-    expectHex(SELECTOR.GET, ZERO64);
+      // Decrement from 0 should wrap to MAX
+      await contract.write(walletClient, "decrement", []);
+      result = await contract.read("get", []);
+      expect(result).toBe(U256_MAX);
+
+      // Increment from MAX should wrap back to 0
+      await contract.write(walletClient, "increment", []);
+      result = await contract.read("get", []);
+      expect(result).toBe(ZERO);
+    });
   });
 
-  it("small progression: +1 +1 −1 ⇒ 1", () => {
-    castSend(SELECTOR.INC);
-    castSend(SELECTOR.INC);
-    castSend(SELECTOR.DEC);
-    expectHex(SELECTOR.GET, ONE64);
+  describe("Basic arithmetic operations", () => {
+    it("should handle small progression: +1 +1 −1 ⇒ 1", async () => {
+      // First increment: 0 → 1
+      await contract.write(walletClient, "increment", []);
+
+      // Second increment: 1 → 2
+      await contract.write(walletClient, "increment", []);
+
+      // Decrement: 2 → 1
+      await contract.write(walletClient, "decrement", []);
+
+      // Should be 1
+      const result = await contract.read("get", []);
+      expect(result).toBe(ONE);
+    });
+
+    it("should correctly increment from current value", async () => {
+      // Get current value (should be 1 from previous test)
+      let result = await contract.read("get", []);
+      const currentValue = result as bigint;
+
+      // Increment
+      await contract.write(walletClient, "increment", []);
+
+      // Should be currentValue + 1
+      result = await contract.read("get", []);
+      expect(result).toBe(currentValue + 1n);
+    });
+
+    it("should correctly decrement from current value", async () => {
+      // Get current value
+      let result = await contract.read("get", []);
+      const currentValue = result as bigint;
+
+      // Decrement
+      await contract.write(walletClient, "decrement", []);
+
+      // Should be currentValue - 1
+      result = await contract.read("get", []);
+      expect(result).toBe(currentValue - 1n);
+    });
+  });
+
+  describe("Edge cases", () => {
+    it("should handle multiple increments correctly", async () => {
+      // Reset to known state (0)
+      let result = (await contract.read("get", [])) as bigint;
+      while (result !== ZERO) {
+        await contract.write(walletClient, "decrement", []);
+        result = (await contract.read("get", [])) as bigint;
+        // Safety check to avoid infinite loop
+        if (result > 10n) break;
+      }
+
+      // Perform 5 increments
+      for (let i = 0; i < 5; i++) {
+        await contract.write(walletClient, "increment", []);
+      }
+
+      result = (await contract.read("get", [])) as bigint;
+      expect(result).toBe(5n);
+    });
+
+    it("should handle multiple decrements correctly", async () => {
+      // From current value (5), decrement 3 times
+      for (let i = 0; i < 3; i++) {
+        await contract.write(walletClient, "decrement", []);
+      }
+
+      const result = await contract.read("get", []);
+      expect(result).toBe(2n);
+    });
+  });
+});
+
+describe("Counter (U256) — Edge Cases", () => {
+  describe("Boundary conditions", () => {
+    it("should handle underflow from 0 correctly", async () => {
+      // Reset to 0
+      await contract.write(walletClient, "set", [ZERO]);
+
+      // Decrement from 0 should wrap to U256_MAX
+      await contract.write(walletClient, "decrement", []);
+      const result = await contract.read("get", []);
+      expect(result).toBe(U256_MAX);
+    });
+
+    it("should handle overflow from U256_MAX correctly", async () => {
+      // Set to U256_MAX
+      await contract.write(walletClient, "set", [U256_MAX]);
+
+      // Increment from U256_MAX should wrap to 0
+      await contract.write(walletClient, "increment", []);
+      const result = await contract.read("get", []);
+      expect(result).toBe(ZERO);
+    });
+  });
+
+  describe("Large values and edge cases", () => {
+    it("should handle large increments correctly", async () => {
+      // Reset to 0
+      await contract.write(walletClient, "set", [ZERO]);
+
+      // Increment by a large value
+      const largeIncrement = U256_MAX - 100n;
+      await contract.write(walletClient, "set", [largeIncrement]);
+
+      // Increment should wrap around correctly
+      await contract.write(walletClient, "increment", []);
+      const result = await contract.read("get", []);
+      expect(result).toBe(largeIncrement + 1n);
+    });
+
+    it("should handle large decrements correctly", async () => {
+      // Set to a large value
+      const largeValue = U256_MAX - 50n;
+      await contract.write(walletClient, "set", [largeValue]);
+
+      // Decrement should wrap around correctly
+      await contract.write(walletClient, "decrement", []);
+      const result = await contract.read("get", []);
+      expect(result).toBe(largeValue - 1n);
+    });
   });
 });

@@ -1,5 +1,6 @@
 import { CallExpression, Expression } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { ComparisonOperator, IRCondition, IRExpression } from "@/cli/types/ir.types.js";
 import { U256 } from "@/cli/types/u256.interface.js";
 
@@ -31,12 +32,12 @@ export function buildU256IR(target: string, call: CallExpression, symbolTable: S
   if (isComparisonOperation) {
     return {
       kind: "condition",
-      left: { kind: "var", name: varName, type: "U256", scope },
+      left: { kind: "var", name: varName, type: AbiType.Uint256, scope },
       right: args[0],
       op: operationConvertor[operation as U256ComparisonOperation] as ComparisonOperator,
     } satisfies IRCondition;
   }
 
-  return { kind: "call", target, args, returnType: "U256", scope };
+  return { kind: "call", target, args, returnType: AbiType.Uint256, scope };
 }
 

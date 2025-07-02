@@ -1,3 +1,5 @@
+import { AbiType } from "@/cli/types/abi.types.js";
+
 import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
 import { IRStruct, IRContract } from "../../../../types/ir.types.js";
 import { BaseTypeTransformer } from "../core/base-transformer.js";
@@ -171,29 +173,28 @@ export function ${structName}_get_${field.name}(ptr: usize): usize {
     const slotForField = baseSlot + Math.floor(field.offset / 32);
     const slotNumber = slotForField.toString(16).padStart(2, "0");
     
-    if (field.type === "Address") {
+    if (field.type === AbiType.Address) {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
   Struct.setAddress(ptr + ${field.offset}, v, __SLOT${slotNumber});
   Struct.flushStorage();
 }`);
-    } else if (field.type === "string" || field.type === "Str") {
+    } else if (field.type === AbiType.String) {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
   Struct.setString(ptr + ${field.offset}, v, __SLOT${slotNumber});
   Struct.flushStorage();
 }`);
-    } else if (field.type === "U256") {
+    } else if (field.type === AbiType.Uint256) {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
   Struct.setU256(ptr + ${field.offset}, v, __SLOT${slotNumber});
   Struct.flushStorage();
 }`);
-    } else if (field.type === "boolean") {
+    } else if (field.type === AbiType.Bool) {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
-  const boolValue = load<u8>(v);
-  Struct.setBoolean(ptr + ${field.offset}, boolValue != 0, __SLOT${slotNumber});
+  Struct.setBoolean(ptr + ${field.offset}, Boolean.toValue(v), __SLOT${slotNumber});
   Struct.flushStorage();
 }`);
     } else {

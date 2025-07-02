@@ -1,5 +1,6 @@
 import { Expression, SyntaxKind, StringLiteral, NumericLiteral } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { IRBuilder } from "../shared/ir-builder.js";
@@ -32,31 +33,31 @@ export class LiteralIRBuilder extends IRBuilder<IRExpression> {
 
   buildIR(): IRExpression {
     let value: string | number | boolean;
-    let type: string;
+    let type: AbiType;
     switch (this.expression.getKind()) {
       case SyntaxKind.StringLiteral: {
         const lit = this.expression as StringLiteral;
         value = lit.getLiteralText();
-        type = "string";
+        type = AbiType.String;
         if (this.isAddress(value)) {
-          type = "Address";
+          type = AbiType.Address;
         }
         break;
       }
       case SyntaxKind.NumericLiteral: {
         const lit = this.expression as NumericLiteral;
         value = Number(lit.getLiteralText());
-        type = "U256";
+        type = AbiType.Uint256;
         break;
       }
       case SyntaxKind.TrueKeyword: {
         value = true;
-        type = "boolean";
+        type = AbiType.Bool;
         break;
       }
       case SyntaxKind.FalseKeyword: {
         value = false;
-        type = "boolean";
+        type = AbiType.Bool;
         break;
       }
       default:

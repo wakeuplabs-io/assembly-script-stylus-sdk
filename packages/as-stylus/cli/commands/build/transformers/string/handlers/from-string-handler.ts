@@ -17,24 +17,15 @@ export class StrFromStringHandler implements ExpressionHandler {
     const arg = expr.args[0];
     const argIR = emit(arg, ctx);
     const setup = [...argIR.setupLines];
-  
-    const resultStr = makeTemp("strObj");
-  
+
+     const resultStr = makeTemp("strObj");
+
     if (arg.kind === "literal") {
-      const raw: string = arg.value as string;
-  
-      const strPtr = makeTemp("strPtr");
-      setup.push(`const ${strPtr}: usize = malloc(${raw.length});`);
-      for (let i = 0; i < raw.length; ++i) {
-        setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
-      }
-      setup.push(`const ${resultStr}: usize = Str.fromBytes(${strPtr}, ${raw.length});`);
-    }
-  
-    else {
+      setup.push(`const ${resultStr}: usize = Str.fromString(${arg.value});`);
+    }else {
       setup.push(`const ${resultStr}: usize = ${argIR.valueExpr};`);
     }
-  
+
     return {
       setupLines: setup,
       valueExpr: resultStr,

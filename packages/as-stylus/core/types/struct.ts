@@ -1,3 +1,4 @@
+import { Boolean } from "./boolean";
 import { Str } from "./str";
 import { storeU32BE, loadU32BE } from "../modules/endianness";
 import {
@@ -35,8 +36,7 @@ export class Struct {
 
   /*──────── Type-specific setters ─────*/
   static setAddress(p: usize, v: usize, slot: u64): void {
-    for (let i = 0; i < 20; i++) store<u8>(p + i, load<u8>(v + i));
-    for (let i = 20; i < 32; i++) store<u8>(p + i, 0);
+    for (let i = 0; i < 32; i++) store<u8>(p + i, load<u8>(v + i));
     storage_cache_bytes32(createStorageKey(slot), p);
   }
 
@@ -100,15 +100,12 @@ export class Struct {
   }
 
   static setBoolean(p: usize, val: boolean, slot: u64): void {
-    store<u8>(p, val ? 1 : 0);
-    for (let i = 1; i < 32; i++) store<u8>(p + i, 0);
-    storage_cache_bytes32(createStorageKey(slot), p);
+    const bool = Boolean.create(val);
+    memory.copy(p, bool, 32);
+    storage_cache_bytes32(createStorageKey(slot), bool);
   }
 
   static getBoolean(ptr: usize, off: u32): usize {
-    const boolPtr = malloc(1);
-    store<u8>(boolPtr, load<u8>(ptr + off));
-
-    return boolPtr;
+    return Boolean.copyNew(ptr + off);
   }
 }

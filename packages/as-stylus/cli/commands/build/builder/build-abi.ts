@@ -1,9 +1,12 @@
 import path from "path";
 
-import { AbiItem, AbiInput, AbiOutput } from "@/cli/types/abi.types.js";
+import { AbiItem, AbiInput, AbiOutput, AbiType } from "@/cli/types/abi.types.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
+
+import { extractStructName } from "../analyzers/struct/struct-utils.js";
+import { generateErrorABI } from "../transformers/error/error-transformer.js";
 
 export function buildAbi(targetPath: string, contract: IRContract) {
   const abi: AbiItem[] = [];
@@ -21,20 +24,21 @@ export function buildAbi(targetPath: string, contract: IRContract) {
       type: convertType(param.type),
     }));
 
-    const stateMutability: AbiItem["stateMutability"] =
-      method.outputs.length > 0 ? "view" : "nonpayable";
     abi.push({
       name: method.name,
       type: "function",
-      stateMutability,
+      stateMutability: method.stateMutability,
       inputs,
       outputs,
     });
   }
 
   if (contract.constructor) {
+     // TODO: rethink this
     abi.push({
-      type: "constructor",
+      // type: "constructor",
+      type: "function",
+      name: "deploy",
       stateMutability: "nonpayable",
       inputs: contract.constructor.inputs.map((param) => ({
         name: param.name,
@@ -44,33 +48,36 @@ export function buildAbi(targetPath: string, contract: IRContract) {
     });
   }
 
+  // Add custom errors to ABI
+  const errorABI = generateErrorABI(contract);
+  abi.push(...errorABI);
+
   const abiPath = path.join(targetPath, ABI_PATH, `${contract.name}-abi.json`);
   writeFile(abiPath, JSON.stringify(abi, null, 2));
 }
 
-export function convertType(type: string): string {
-  switch (type) {
-    case "U256":
+export function convertType(type: string): AbiType {
+  if (Object.values(AbiType).includes(type as AbiType)) {
+    return type as AbiType;
+  }
+
+  switch (type.toLowerCase()) {
     case "u256":
-      return "uint256";
-    case "I256":
+      return AbiType.Uint256;
     case "i256":
-      return "int256";
-    case "u32":
-    case "i32":
-      return "uint32";
+      return AbiType.Int256;
     case "bool":
     case "boolean":
-      return "bool";
+      return AbiType.Bool;
+    case "str":
     case "string":
-    case "Str":
-      return "string";
-    case "Address":
+      return AbiType.String;
     case "address":
-      return "address";
+      return AbiType.Address;
     case "bytes32":
-      return "bytes32";
+      return AbiType.Bytes32;
     default:
-      return "uint256";
+      // TODO: Implement this better for structs
+      return extractStructName(type) as AbiType;
   }
 }

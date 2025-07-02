@@ -3,6 +3,7 @@ import { ParameterDeclaration } from "ts-morph";
 import { IRArgument } from "@/cli/types/ir.types.js";
 import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
+import { convertType } from "../../builder/build-abi.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 /**
@@ -25,7 +26,7 @@ export class ArgumentIRBuilder extends IRBuilder<IRArgument> {
   buildIR(): IRArgument {
     const variable: VariableSymbol = {
       name: this.argument.getName(),
-      type: this.argument.getType().getText(),
+      type: convertType(this.argument.getType().getText()),
       scope: "memory",
     };
     this.symbolTable.declareVariable(variable.name, variable);

@@ -11,6 +11,7 @@ import "./boolean/boolean-transformer.js";
 import "./msg/msg-transformer.js";
 import "./event/event-transformer.js";
 import "./struct/struct-transformer.js";
+import "./error/error-transformer.js";
 
 // Re-export key transformers functionality
 export { transformFromIR } from "./core/transform-ir.js";

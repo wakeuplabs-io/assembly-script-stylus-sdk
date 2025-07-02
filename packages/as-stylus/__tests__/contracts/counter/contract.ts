@@ -10,6 +10,11 @@ export class Counter {
   }
 
   @External
+  static set(value: U256): void {
+    counter = value;
+  }
+
+  @External
   static increment(): void {
     const delta: U256 = U256Factory.fromString("1");
     counter = counter.add(delta);

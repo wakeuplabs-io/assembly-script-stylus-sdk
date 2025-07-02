@@ -1,9 +1,11 @@
 import { PropertyDeclaration } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRVariable } from "@/cli/types/ir.types.js";
 import { inferType } from "@/cli/utils/inferType.js";
 
 import { PropertySyntaxValidator } from "./syntax-validator.js";
+import { convertType } from "../../builder/build-abi.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 export class PropertyIRBuilder extends IRBuilder<IRVariable> {
@@ -22,14 +24,14 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   }
 
   buildIR(): IRVariable {
-    const [name] = this.property.getName().split(":");
-    const type = inferType(this.property.getType().getText());
-    this.symbolTable.declareVariable(name, { name, type, scope: "storage" });
+    const [name, typeDefined] = this.property.getName().split(":");
+    const type = typeDefined ? typeDefined : inferType(this.property.getType().getText());
+    this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage" });
   
-    if (type === "mapping2") {
+    if (type === AbiType.Mapping2) {
       return {
         name,
-        type: "mapping2",
+        type: AbiType.Mapping2,
         slot: this.slot,
         keyType1: "Address",
         keyType2: "Address",
@@ -38,10 +40,10 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       };
     }
 
-    if (type === "mapping") {
+    if (type === AbiType.Mapping) {
       return {
         name,
-        type: "mapping",
+        type: AbiType.Mapping,
         slot: this.slot,
         keyType: "Address",
         valueType: "U256",
@@ -51,7 +53,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
 
     return {
       name,
-      type,
+      type: convertType(type),
       slot: this.slot,
       kind: "simple",
     };

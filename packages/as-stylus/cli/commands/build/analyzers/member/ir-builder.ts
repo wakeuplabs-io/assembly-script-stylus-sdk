@@ -1,6 +1,7 @@
 import { PropertyAccessExpression } from "ts-morph";
 
 import { ctx } from "@/cli/shared/compilation-context.js";
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
@@ -24,12 +25,6 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
     const propertyName = this.expression.getName();
     const expressionType = this.expression.getType().getText();
 
-    // console.log("🔍 MemberIRBuilder processing:", {
-    //   propertyName,
-    //   objectType: getExpressionType(objectIR),
-    //   expressionType
-    // });
-
     const structInfo = isExpressionOfStructType(objectIR);
     
     if (structInfo.isStruct && structInfo.structName) {
@@ -47,7 +42,7 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
             kind: "call",
             target: `${structInfo.structName}_get_${propertyName}`,
             args: [objectIR],
-            returnType: expressionType,
+            returnType: expressionType as AbiType,
             scope: scope
           };
         }
@@ -58,7 +53,7 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
       kind: "member",
       object: objectIR,
       property: propertyName,
-      type: expressionType
+      type: expressionType as AbiType,
     };
   }
-} 
+}

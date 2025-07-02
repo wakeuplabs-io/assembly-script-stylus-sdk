@@ -55,6 +55,10 @@ export declare function abort(
   col: u32
 ): void;
 
+@external("vm_hooks", "exit_early")
+declare function _exit_early(status: i32): void;
+
+
 export function msg_reentrant(): i32 {
   return _msg_reentrant();
 }
@@ -116,4 +120,8 @@ export function call_contract(
 
 export function read_return_data(dest: usize, offset: usize, size: usize): usize {
   return _read_return_data(dest, offset, size);
+}
+
+export function exit_early(status: i32): void {
+  _exit_early(status);
 }

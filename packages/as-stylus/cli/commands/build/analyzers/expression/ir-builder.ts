@@ -1,5 +1,6 @@
-import { BinaryExpression, CallExpression, Expression, Identifier, PropertyAccessExpression, SyntaxKind } from "ts-morph";
+import { BinaryExpression, CallExpression, Expression, Identifier, PrefixUnaryExpression, PropertyAccessExpression, SyntaxKind } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { BinaryExpressionIRBuilder } from "../binary-expression/ir-builder.js";
@@ -7,6 +8,7 @@ import { CallFunctionIRBuilder } from "../call-function/ir-builder.js";
 import { LiteralIRBuilder } from "../literal/ir-builder.js";
 import { MemberIRBuilder } from "../member/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { UnaryExpressionIRBuilder } from "../unary-expression/ir-builder.js";
 
 /**
  * Builds the IR for an expression
@@ -25,7 +27,7 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
   }
 
   buildIR(): IRExpression {
-    switch (this.expression.getKind()) {
+     switch (this.expression.getKind()) {
       /* ---------- Literal values ---------- */
       // Example: "hello", 42, true, false
       case SyntaxKind.StringLiteral:
@@ -41,8 +43,9 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       // Example: counter, value, amount
       case SyntaxKind.Identifier: {
         const id = this.expression as Identifier;
-        const variable = this.symbolTable.lookup(id.getText());
-        return { kind: "var", name: id.getText(), type: variable?.type ?? "void", scope: variable?.scope ?? "memory" };
+        const [name] = id.getText().split(".");
+        const variable = this.symbolTable.lookup(name);
+        return { kind: "var", name: id.getText(), type: variable?.type ?? AbiType.Void, scope: variable?.scope ?? "memory" };
       }
   
       /* ---------- Function calls ---------- */
@@ -64,6 +67,11 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       case SyntaxKind.BinaryExpression: {
         const bin = new BinaryExpressionIRBuilder(this.expression as BinaryExpression);
         return bin.validateAndBuildIR();
+      }
+
+      case SyntaxKind.PrefixUnaryExpression: {
+        const unary = new UnaryExpressionIRBuilder(this.expression as PrefixUnaryExpression);
+        return unary.buildIR();
       }
   
       default:

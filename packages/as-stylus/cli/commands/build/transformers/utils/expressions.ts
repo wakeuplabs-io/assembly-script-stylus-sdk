@@ -1,3 +1,6 @@
+import { AbiType } from "@/cli/types/abi.types.js";
+import { IRExpression } from "@/cli/types/ir.types.js";
+
 import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
 import { detectExpressionType, typeTransformers } from "../core/base-transformer.js";
 
@@ -20,11 +23,11 @@ export function initExpressionContext(name: string): void {
  * @param isInStatement - Whether the expression is inside a statement
  * @returns EmitResult with setup lines and final expression
  */
-function emitExpressionWrapper(expr: any, ctx: EmitContext): EmitResult {
+function emitExpressionWrapper(expr: IRExpression, ctx: EmitContext): EmitResult {
   return emitExpression(expr, ctx.isInStatement);
 }
 
-export function emitExpression(expr: any, isInStatement: boolean = false): EmitResult {
+export function emitExpression(expr: IRExpression, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
   const typeName = detectExpressionType(expr);
   const transformer = typeName ? typeTransformers[typeName] : null;
@@ -41,12 +44,12 @@ export function emitExpression(expr: any, isInStatement: boolean = false): EmitR
  * Compatibility function for existing code that expects a string.
  * @deprecated Use emitExpression that returns EmitResult
  */
-export function emitExpressionAsString(expr: any, isInStatement: boolean = false): string {
+export function emitExpressionAsString(expr: IRExpression, isInStatement: boolean = false): string {
   const result = emitExpression(expr, isInStatement);
   return result.valueExpr;
 }
 
-function handleFallbackExpression(expr: any): string {
+function handleFallbackExpression(expr: IRExpression): string {
   switch (expr.kind) {
     /**
      * Case "literal": Literal value
@@ -67,6 +70,10 @@ function handleFallbackExpression(expr: any): string {
      */
     case "var": {
       if (expr.scope === "storage") {
+        // TODO: can we use generateLoadCode?
+        if (expr.type === "bool") {
+          return `Boolean.toValue(load_${expr.name}())`;
+        }
         return `load_${expr.name}()`;
       }
       return expr.name;
@@ -96,7 +103,10 @@ function handleFallbackExpression(expr: any): string {
      *   U256.add(a, b)
      */
     case "call": {
-      const argResults = expr.args.map((a: any) => emitExpression(a));
+      if (expr.returnType === AbiType.Bool) {
+        return `Boolean.toValue(${expr.target}(${expr.args.map((a: IRExpression) => emitExpression(a).valueExpr).join(", ")}))`;
+      }
+      const argResults = expr.args.map((a: IRExpression) => emitExpression(a));
       return `${expr.target}(${argResults.map((r: EmitResult) => r.valueExpr).join(", ")})`;
     }
 
@@ -131,9 +141,9 @@ function handleFallbackExpression(expr: any): string {
 
     case "condition": {
       const relOps = ["<", ">", "<=", ">=", "==", "!="];
-      if (relOps.includes(expr.op)) {
+      if (expr.op && relOps.includes(expr.op)) {
         const lhs = emitExpression(expr.left);   // EmitResult
-        const rhs = emitExpression(expr.right);  // EmitResult
+        const rhs = emitExpression(expr.right!);  // EmitResult
     
         switch (expr.op) {
           case "<":  return `U256.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
@@ -177,10 +187,16 @@ function handleFallbackExpression(expr: any): string {
       const v  = emitExpression(expr.value);
       return `Mapping2.set(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr}, ${v.valueExpr})`;
     }
+
+    case "unary": {
+      const exprResult = emitExpression(expr.expr);
+      return `${expr.op}${exprResult.valueExpr}`;
+    }
+
     /**
      * Default: Unsupported expression kind
      */
     default:
-      return `/* Unsupported expression: ${expr.kind} */`;
+      return `/* Unsupported expression: ${(expr as { kind: string }).kind} */`;
   }
 }

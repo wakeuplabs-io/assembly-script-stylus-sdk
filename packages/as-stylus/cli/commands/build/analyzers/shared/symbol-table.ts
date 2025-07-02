@@ -1,3 +1,4 @@
+import { AbiType } from "@/cli/types/abi.types.js";
 import { FunctionSymbol, SymbolInfo, SymbolTable, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
 export class SymbolTableStack {
@@ -24,7 +25,7 @@ export class SymbolTableStack {
   declareVariable(name: string, info: Omit<VariableSymbol, "scopeLevel">): boolean {  
     const current = this.scopes[this.scopes.length - 1];
     if (current.has(name)) return false;
-    
+
     current.set(name, { ...info, scopeLevel: this.scopes.length - 1 }); 
     return true;
   }
@@ -33,7 +34,7 @@ export class SymbolTableStack {
     const current = this.scopes[this.scopes.length - 1];
     if (current.has(name)) return false;
     
-    current.set(name, { ...info, scopeLevel: this.scopes.length - 1, type: "function" });
+    current.set(name, { ...info, scopeLevel: this.scopes.length - 1, type: AbiType.Function });
     return true;
   }
 

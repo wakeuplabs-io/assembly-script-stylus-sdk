@@ -2,6 +2,7 @@ import { ClassDeclaration } from "ts-morph";
 
 import { calculateFieldLayout } from "./type-utils.js";
 import { IRStruct, IRStructField } from "../../../../types/ir.types.js";
+import { convertType } from "../../builder/build-abi.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 export class StructIRBuilder extends IRBuilder<IRStruct> {
@@ -39,7 +40,7 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
     
     const basicFields = this.structClass.getProperties().map(property => ({
       name: property.getName(),
-      type: property.getType().getText()
+      type: convertType(property.getType().getText())
     }));
 
     const layout = calculateFieldLayout(basicFields);
