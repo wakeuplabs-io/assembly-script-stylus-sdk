@@ -12,7 +12,7 @@ import {
   PRIVATE_KEY,
 } from "./constants.js";
 import { setupE2EContract } from "./setup.js";
-import { handleDeploymentError } from "./utils.js";
+import { handleDeploymentError } from "../helpers/utils.js";
 
 config();
 

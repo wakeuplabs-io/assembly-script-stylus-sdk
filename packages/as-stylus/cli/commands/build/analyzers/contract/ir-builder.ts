@@ -7,6 +7,7 @@ import { ContractSemanticValidator } from "./semantic-validator.js";
 import { ContractSyntaxValidator } from "./syntax-validator.js";
 import { convertType } from "../../builder/build-abi.js";
 import { ConstructorIRBuilder } from "../constructor/ir-builder.js";
+import { ErrorIRBuilder } from "../error/ir-builder.js";
 import { EventIRBuilder } from "../event/ir-builder.js";
 import { MethodIRBuilder } from "../method/ir-builder.js";
 import { PropertyIRBuilder } from "../property/ir-builder.js";
@@ -125,13 +126,24 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       return eventIRBuilder.validateAndBuildIR();
     });
 
+    const errorClasses = this.sourceFile.getClasses().filter(cls => {
+      const decorators = cls.getDecorators();
+      return decorators.some(decorator => decorator.getName() === 'Error');
+    });
+
+    const errors = errorClasses.map(errorClass => {
+      const errorIRBuilder = new ErrorIRBuilder(errorClass);
+      return errorIRBuilder.validateAndBuildIR();
+    });
+
     return {
       name: name ?? "Main",
       constructor,
       methods,
       storage,
       events,
-      structs
+      structs,
+      errors
     };
   }
 }

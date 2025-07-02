@@ -262,6 +262,31 @@ function emitStatement(s: IRStatement, indent: string): string {
       break;
     }
 
+    /**
+     * Case "revert": Custom error revert statement
+     *
+     * Example: ERC721InvalidOwner.revert(owner);
+     *
+     * Generates code to revert with custom error data.
+     */
+    case "revert": {
+      // Use the error transformer to handle the revert
+      const revertExpression = {
+        kind: "call",
+        target: `${s.error}.revert`,
+        args: s.args
+      };
+      
+      const result = emitExpression(revertExpression, true);
+      
+      if (result.setupLines && result.setupLines.length > 0) {
+        return result.setupLines.map((line) => `${indent}${line}`).join("\n");
+      }
+      
+      code = `${indent}${result.valueExpr};`;
+      break;
+    }
+
     default:
       code = `${indent}/* Unsupported statement: ${(s as { kind: string }).kind} */`;
   }

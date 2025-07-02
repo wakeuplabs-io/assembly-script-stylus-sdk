@@ -1,6 +1,7 @@
 import { AbiInput, AbiOutput, AbiType, AssemblyScriptType } from "@/cli/types/abi.types.js";
 
 import { IRContract, IRMethod } from "../../../../types/ir.types.js";
+import { registerErrorTransformer } from "../error/error-transformer.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
 import { registerStructTransformer } from "../struct/struct-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
@@ -84,6 +85,9 @@ export function emitContract(contract: IRContract): string {
     parts.push(...registerEventTransformer(contract)); 
   }
 
+  // Custom Errors
+  parts.push(...registerErrorTransformer(contract));
+  
   // Add constructor
   if (contract.constructor) {
     parts.push(generateDeployFunction(contract));
