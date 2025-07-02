@@ -74,10 +74,11 @@ export class Str {
    * @param argsPtr - pointer to the arguments data
    * @returns pointer to the created string
    */
-  static fromDynamicArg(arg: usize): usize {
-    const off = loadU32BE(arg + 28);
-    const len = loadU32BE(arg + off + 28);
-    const dataPtr = arg + off + 32;
+  static fromDynamicArg(argStart: usize, current: usize): usize {
+    const off = loadU32BE(current + 28);
+    const lenPtr = argStart + off;
+    const len = loadU32BE(lenPtr + 28);
+    const dataPtr = lenPtr + 32;
     return Str.fromBytes(dataPtr, len);
   }
 

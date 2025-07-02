@@ -27,7 +27,7 @@ export function generateArgsLoadBlock(
         break;
         
         case AbiType.String:
-        argLines.push(`const ${argName} = Str.fromDynamicArg(position + ${offset});`);
+        argLines.push(`const ${argName} = Str.fromDynamicArg( ${baseOffset}, position + ${offset});`);
         offset += 32;
         type = AssemblyScriptType.Pointer;
         break;
