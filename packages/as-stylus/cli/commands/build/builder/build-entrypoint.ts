@@ -106,27 +106,37 @@ function generateStringReturnLogic(methodName: string, callArgs: Array<{ name: s
   ].join(`\n${INDENTATION.BODY}`);
 }
 
-function generateStructReturnLogic(methodName: string, callArgs: Array<{ name: string }>, structInfo: IRStruct): string {
-    const { name, dynamic, size } = structInfo;
-    let callLine = "";
-      // For structs, we need to handle dynamic sizing
-      if (dynamic) {
-        // Dynamic struct: calculate size based on string content at offset 160
-        callLine = [
-          `let ptr = ${methodName}(${callArgs.join(", ")});`,
-          `const stringLen = loadU32BE(ptr + 160 + 28);`,
-          `const paddedLen = (stringLen + 31) & ~31;`,
-          `const totalSize = 160 + 32 + paddedLen;`,
-          `write_result(ptr, totalSize);`,
-          `return 0;`,
-        ].join("\n    ");
-      } else {
-        // Static struct: use fixed size
-        callLine = `let ptr = ${name}(${callArgs.join(", ")}); write_result(ptr, ${size}); return 0;`;
-      }
-    
-      return callLine;
+function generateStructReturnLogic(
+  methodName: string,
+  callArgs: Array<{ name: string }>,
+  structInfo: IRStruct,
+): string {
+  const { dynamic, size } = structInfo;
+  let callLine = "";
+
+  if (dynamic) {
+    callLine = [
+      `const structPtr = ${methodName}(${callArgs.join(", ")});`,
+      `const strLen   = loadU32BE(structPtr + 160 + 28);`,
+      `const padded   = ((strLen + 31) & ~31);`,
+      `const tupleSz  = 160 + 32 + padded;`,
+      `const resultPtr = malloc(tupleSz + 32);`,
+      `store<u8>(resultPtr + 31, 0x20);`,
+      `memory.copy(resultPtr + 32, structPtr, tupleSz);`,
+      `write_result(resultPtr, tupleSz + 32);`,
+      `return 0;`,
+    ].join("\n    ");
+  } else {
+    callLine = [
+      `const ptr = ${methodName}(${callArgs.join(", ")});`,
+      `write_result(ptr, ${size});`,
+      `return 0;`,
+    ].join("\n    ");
+  }
+
+  return callLine;
 }
+
 
 function generateReturnLogic(methodName: string, callArgs: Array<{ name: string }>, outputType: AbiType | string, contract: IRContract): string {
   const argsList = callArgs.map(arg => arg.name).join(", ");
