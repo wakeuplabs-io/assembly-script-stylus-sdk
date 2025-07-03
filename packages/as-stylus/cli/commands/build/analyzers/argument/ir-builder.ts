@@ -3,8 +3,8 @@ import { ParameterDeclaration } from "ts-morph";
 import { IRArgument } from "@/cli/types/ir.types.js";
 import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
+import { convertType } from "../../builder/build-abi.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { convertTypeForIR } from "../struct/struct-utils.js";
 
 /**
  * Builds the IR for a function argument expression
@@ -23,15 +23,10 @@ export class ArgumentIRBuilder extends IRBuilder<IRArgument> {
     return true;
   }
 
-
-
   buildIR(): IRArgument {
-    const typeString = this.argument.getType().getText();
-    const convertedType = convertTypeForIR(typeString);
-    
     const variable: VariableSymbol = {
       name: this.argument.getName(),
-      type: convertedType.type,
+      type: convertType(this.argument.getType().getText()),
       scope: "memory",
     };
     this.symbolTable.declareVariable(variable.name, variable);
@@ -39,7 +34,6 @@ export class ArgumentIRBuilder extends IRBuilder<IRArgument> {
     return {
       name: variable.name,
       type: variable.type,
-      ...(convertedType.originalType && { originalType: convertedType.originalType })
     };
   }
 }

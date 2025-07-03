@@ -1,14 +1,14 @@
 import { Block, MethodDeclaration } from "ts-morph";
 
-import { AbiType, STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS, AbiOutput } from "@/cli/types/abi.types.js";
+import { AbiType, STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types.js";
 import { IRMethod } from "@/cli/types/ir.types.js";
 
 import { MethodSemanticValidator } from "./semantic-validator.js";
 import { MethodSyntaxValidator } from "./syntax-validator.js";
+import { convertType } from "../../builder/build-abi.js";
 import { ArgumentIRBuilder } from "../argument/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { StatementIRBuilder } from "../statement/ir-builder.js";
-import { convertTypeForIR } from "../struct/struct-utils.js";
 
 export class MethodIRBuilder extends IRBuilder<IRMethod> {
   private methodDecl: MethodDeclaration;
@@ -25,8 +25,6 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     const semanticValidator = new MethodSemanticValidator(this.methodDecl, this.names);
     return syntaxValidator.validate() && semanticValidator.validate();
   }
-
-
 
   buildIR(): IRMethod {
     this.symbolTable.enterScope();
@@ -53,20 +51,12 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       return statementBuilder.validateAndBuildIR();
     });
 
-    const outputs: AbiOutput[] = returnType === AbiType.Void ? [] : (() => {
-      const convertedType = convertTypeForIR(returnType);
-      return [{ 
-        type: convertedType.type,
-        ...(convertedType.originalType && { originalType: convertedType.originalType })
-      }];
-    })();
-
     this.symbolTable.exitScope();
     return {
       name,
       visibility,
       inputs,
-      outputs,
+      outputs: returnType === AbiType.Void ? [] : [{ type: convertType(returnType) }],
       stateMutability,
       ir: irBody,
     };

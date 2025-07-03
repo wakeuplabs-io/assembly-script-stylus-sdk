@@ -148,7 +148,7 @@ export type IRVariable = IRSimpleVar | IRMappingVar | IRMapping2Var;
 // Contract structure
 // ───────────────────────
 
-export type IRArgument = { name: string; type: AbiType; originalType?: string };
+export type IRArgument = { name: string; type: AbiType };
 
 export type IRMethod = {
   name: string;

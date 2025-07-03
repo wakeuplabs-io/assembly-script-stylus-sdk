@@ -18,7 +18,6 @@ export enum AbiType {
   Bytes32 = "bytes32",
   Struct = "struct",
   Array = "array",
-  Tuple = "tuple",
   // TODO: Analyze if we need these
   Void = "void",
   Any = "any",
@@ -36,23 +35,14 @@ export enum AssemblyScriptType {
   Pointer = "usize",
 }
 
-export type AbiComponent = {
-  name: string;
-  type: AbiType | string;
-};
-
 export type AbiInput = {
   name: string;
   type: AbiType;
-  components?: AbiComponent[];
-  originalType?: string;
 };
 
 export type AbiOutput = {
   name?: string;
   type: AbiType;
-  components?: AbiComponent[];
-  originalType?: string;
 };
 
 export type AbiItem = {
