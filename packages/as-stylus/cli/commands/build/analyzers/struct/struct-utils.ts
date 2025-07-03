@@ -2,6 +2,8 @@ import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
+import { convertType } from "../../builder/build-abi.js";
+
 /**
  * Extracts the struct name from a full type
  * Example: "import(...).StructTest" -> "StructTest"
@@ -15,6 +17,56 @@ export function extractStructName(fullType: string): string {
   
   // If it's just the name, return it as is
   return fullType;
+}
+
+/**
+ * Converts basic types to AbiType. Returns null if not a basic type.
+ * This is shared logic between different type conversion functions.
+ */
+export function convertBasicType(typeString: string): AbiType | null {
+  if (Object.values(AbiType).includes(typeString as AbiType)) {
+    return typeString as AbiType;
+  }
+
+  switch (typeString.toLowerCase()) {
+    case "u256":
+      return AbiType.Uint256;
+    case "i256":
+      return AbiType.Int256;
+    case "bool":
+    case "boolean":
+      return AbiType.Bool;
+    case "str":
+    case "string":
+      return AbiType.String;
+    case "address":
+      return AbiType.Address;
+    case "bytes32":
+      return AbiType.Bytes32;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Converts a type string to appropriate IR format, preserving struct information
+ * This is shared between MethodIRBuilder and ArgumentIRBuilder
+ */
+export function convertTypeForIR(typeString: string): { type: AbiType; originalType?: string } {
+  // Try to convert as basic type first
+  const basicType = convertBasicType(typeString);
+  if (basicType) {
+    return { type: basicType };
+  }
+  const structName = extractStructName(typeString);
+  if (ctx.structRegistry.has(structName)) {
+    return { 
+      type: AbiType.Struct, 
+      originalType: typeString 
+    };
+  }
+  // Fallback
+  return { type: convertType(typeString) };
 }
 
 /**
