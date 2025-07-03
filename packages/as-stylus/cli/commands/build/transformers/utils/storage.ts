@@ -92,12 +92,10 @@ function load_${v.name}(): usize {
 function store_${v.name}(strPtr: usize): void {
   Str.storeTo(${formatSlotName(v.slot)}, strPtr);
 }`.trim());
-      } else if (structMap.has(v.type)) {
-        // Es un struct - generar versión multi-slot
-        const struct = structMap.get(v.type);
+      } else if (v.originalType && structMap.has(v.originalType)) {
+        const struct = structMap.get(v.originalType);
         const numSlots = Math.ceil(struct.size / 32);
         
-        // Load function para struct
         let loadBody = `  const ptr = Struct.alloc(${struct.size});`;
         for (let i = 0; i < numSlots; i++) {
           const slotValue = v.slot + i;
@@ -126,6 +124,9 @@ ${loadBody}
 function store_${v.name}(ptr: usize): void {
 ${storeBody}
 }`);
+      } else if (v.type === AbiType.Struct || v.type === "struct") {
+        lines.push(loadSimple(v.name, v.slot));
+        lines.push(storeSimple(v.name, v.slot));
       } else {
         lines.push(loadSimple(v.name, v.slot));
         lines.push(storeSimple(v.name, v.slot));

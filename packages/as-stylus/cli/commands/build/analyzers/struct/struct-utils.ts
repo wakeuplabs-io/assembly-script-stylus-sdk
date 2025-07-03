@@ -89,13 +89,41 @@ export function getExpressionType(expr: IRExpression): string | undefined {
  * Checks if an IR expression is of struct type
  */
 export function isExpressionOfStructType(objectIR: IRExpression): { isStruct: boolean; structName?: string } {
+  if ((objectIR.kind === "var" || objectIR.kind === "call" || objectIR.kind === "member") && 
+      objectIR.originalType && ctx.structRegistry.has(objectIR.originalType)) {
+    return { isStruct: true, structName: objectIR.originalType };
+  }
+
+  if (objectIR.kind === "var") {
+    const fullVariableName = `${ctx.contractName}.${objectIR.name}`;
+    const contextType = ctx.variableTypes.get(fullVariableName);
+    
+    if (contextType && ctx.structRegistry.has(contextType)) {
+      return { isStruct: true, structName: contextType };
+    }
+  }
+
   const objectType = getExpressionType(objectIR);
   if (!objectType) return { isStruct: false };
 
-  const structName = extractStructName(objectType);
+  if (objectType === "struct" && objectIR.kind === "var") {
+    const fullVariableName = `${ctx.contractName}.${objectIR.name}`;
+    const actualType = ctx.variableTypes.get(fullVariableName);
+    
+    if (actualType && ctx.structRegistry.has(actualType)) {
+      return { isStruct: true, structName: actualType };
+    }
+    
+    return { isStruct: false };
+  }
 
-  if (ctx.structRegistry.has(structName) || (objectIR.kind === "var" && objectIR.type === AbiType.Struct)) {
-    return { isStruct: true, structName };
+  if (ctx.structRegistry.has(objectType)) {
+    return { isStruct: true, structName: objectType };
+  }
+
+  const extractedStructName = extractStructName(objectType);
+  if (extractedStructName && ctx.structRegistry.has(extractedStructName)) {
+    return { isStruct: true, structName: extractedStructName };
   }
 
   return { isStruct: false };
@@ -130,72 +158,6 @@ export function getStructInfoFromVariableName(variableName: string): { isStruct:
     };
   }
 
-  return { isStruct: false };
-}
-
-export function isStructFieldAccess(objectExpr: any): { isStruct: boolean; structName?: string; variableName?: string } {
-  console.log("isStructFieldAccess called with:", JSON.stringify(objectExpr, null, 2));
-  console.log("Current variableTypes:", Array.from(ctx.variableTypes.entries()));
-  console.log("Current structRegistry:", Array.from(ctx.structRegistry.keys()));
-  
-  if (objectExpr.kind === "var") {
-    const variableName = objectExpr.name;
-    console.log(`Simple var: ${variableName}`);
-    
-    const result = getStructInfoFromVariableName(variableName);
-    if (result.isStruct) {
-        console.log("Detected as struct!");
-    }
-    return result;
-  }
-  
-  // If it's a nested member access (obj.prop.field)
-  if (objectExpr.kind === "member") {
-    // Recursively analyze: StructContract.myStruct -> myStruct must be a struct
-    const memberName = objectExpr.property; // "myStruct" 
-    const baseObject = objectExpr.object;   // StructContract o base
-    
-    console.log(`Member access: ${memberName}, base:`, baseObject);
-    
-    // Build the full variable name
-    let fullVariableName = "";
-    
-    if (baseObject.kind === "var") {
-      // Case: ClassName.structField
-      const className = baseObject.name;
-      fullVariableName = `${className}.${memberName}`;
-      console.log(`Class.field pattern: ${className}.${memberName} -> ${fullVariableName}`);
-    } else if (baseObject.kind === "member") {
-      // More complex case: obj.prop.structField (recursive)
-      // For now, we simplify: we assume it's ContractName.structField
-      fullVariableName = `${ctx.contractName}.${memberName}`;
-      console.log(`Nested member pattern: ${ctx.contractName}.${memberName} -> ${fullVariableName}`);
-    } else {
-      console.log("❌ Unknown base object kind:", baseObject.kind);
-      return { isStruct: false };
-    }
-    
-    // Check if the variable is of type struct
-    const variableType = ctx.variableTypes.get(fullVariableName);
-    
-    console.log(`Member lookup: ${fullVariableName} -> type: ${variableType}`);
-    
-    if (variableType) {
-      const structName = extractStructName(variableType);
-      console.log(`Extracted struct name: ${structName}`);
-      
-      if (ctx.structRegistry.has(structName)) {
-        console.log("Detected as struct!");
-        return {
-          isStruct: true,
-          structName: structName,
-          variableName: fullVariableName
-        };
-      }
-    }
-  }
-  
-  console.log("Not detected as struct");
   return { isStruct: false };
 }
 
