@@ -128,7 +128,7 @@ function generateStructReturnLogic(methodName: string, callArgs: Array<{ name: s
       return callLine;
 }
 
-function generateReturnLogic(methodName: string, callArgs: Array<{ name: string }>, outputType: AbiType, contract: IRContract): string {
+function generateReturnLogic(methodName: string, callArgs: Array<{ name: string }>, outputType: AbiType | string, contract: IRContract): string {
   const argsList = callArgs.map(arg => arg.name).join(", ");
   
   if (outputType === AbiType.String) {
@@ -143,13 +143,13 @@ function generateReturnLogic(methodName: string, callArgs: Array<{ name: string 
     return generateStructReturnLogic(methodName, callArgs, structInfo);
   }
   
-  const size = getReturnSize(outputType);
+  const size = getReturnSize(outputType as AbiType);
   return `let ptr = ${methodName}(${argsList}); write_result(ptr, ${size}); return 0;`;
 }
 
 function generateMethodCallLogic(method: IRMethod, callArgs: Array<{ name: string }>, contract: IRContract): string {
   const { name } = method;
-  const outputType = method.outputs?.[0]?.type;
+  const outputType = method.outputs?.[0]?.type !== "struct" ? method.outputs?.[0]?.type : method.outputs?.[0]?.originalType;
   const argsList = callArgs.map(arg => arg.name).join(", ");
 
   if (!outputType || outputType === AbiType.Void || outputType === AbiType.Any) {

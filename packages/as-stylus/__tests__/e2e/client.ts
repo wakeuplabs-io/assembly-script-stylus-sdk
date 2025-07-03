@@ -11,6 +11,8 @@ import {
   WalletClient,
   Account,
   Abi,
+  encodeFunctionData,
+  decodeFunctionResult,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
@@ -47,7 +49,7 @@ export const getWalletClient = (privateKey: string) =>
     transport: http(RPC_URL),
   }) as WalletClient;
 
-export function contractService(contractAddr: Address, abi: Abi) {
+export function contractService(contractAddr: Address, abi: Abi, verbose: boolean = false) {
   return {
     write: async (walletClient: WalletClient, functionName: string, args: ContractArgs) => {
       const { request } = await publicClient.simulateContract({
@@ -64,14 +66,14 @@ export function contractService(contractAddr: Address, abi: Abi) {
     },
 
     read: async (functionName: string, args: (string | boolean | Address | bigint)[]) => {
-      const result = await publicClient.readContract({
-        address: contractAddr as Address,
-        abi,
-        functionName,
-        args,
-      });
+      const data = encodeFunctionData({ abi, functionName, args });
+      if (verbose) console.log("→ calldata:", data);
+      const { data: raw } = await publicClient.call({ to: contractAddr, data });
+      if (verbose) console.log("← raw:", raw);
+      const decoded = decodeFunctionResult({ abi, functionName, data: raw || "0x" });
+      if (verbose) console.log("← decoded:", decoded);
 
-      return result;
+      return decoded;
     },
   };
 }
