@@ -49,6 +49,6 @@ export const CONTRACT_PATHS = {
   },
   STRUCT: {
     contract: path.join(ROOT_PATH, "/struct"),
-    abi: path.join(ROOT_PATH, "/struct/artifacts/abi-2/StructContract-abi.json"),
+    abi: path.join(ROOT_PATH, "/struct/artifacts/abi/StructContract-abi.json"),
   },
 } as const;
