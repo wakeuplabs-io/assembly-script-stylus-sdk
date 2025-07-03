@@ -1,6 +1,6 @@
 import path from "path";
 
-import { AbiItem, AbiInput, AbiOutput, AbiType } from "@/cli/types/abi.types.js";
+import { AbiItem, AbiInput, AbiOutput, AbiType, Visibility } from "@/cli/types/abi.types.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
@@ -8,7 +8,7 @@ import { writeFile } from "@/cli/utils/fs.js";
 import { extractStructName } from "../analyzers/struct/struct-utils.js";
 import { generateErrorABI } from "../transformers/error/error-transformer.js";
 
-export function buildAbi(targetPath: string, contract: IRContract) {
+const createAbiRepresentation = (contract: IRContract, isParent: boolean = false): AbiItem[] => {
   const abi: AbiItem[] = [];
 
   for (const method of contract.methods) {
@@ -33,13 +33,13 @@ export function buildAbi(targetPath: string, contract: IRContract) {
     });
   }
 
-  if (contract.constructor) {
+  if (contract.constructor && !isParent) {
      // TODO: rethink this
     abi.push({
       // type: "constructor",
       type: "function",
       name: "deploy",
-      stateMutability: "nonpayable",
+      stateMutability: Visibility.NONPAYABLE,
       inputs: contract.constructor.inputs.map((param) => ({
         name: param.name,
         type: convertType(param.type),
@@ -51,6 +51,23 @@ export function buildAbi(targetPath: string, contract: IRContract) {
   // Add custom errors to ABI
   const errorABI = generateErrorABI(contract);
   abi.push(...errorABI);
+
+  return abi;
+};
+
+export function buildAbi(targetPath: string, contract: IRContract, allContracts: IRContract[]) {
+  const abi: AbiItem[] = [];
+
+  const abiRepresentation = createAbiRepresentation(contract);
+  abi.push(...abiRepresentation);
+
+  for (const parent of contract.parents) {
+    const parentContract = allContracts.find((c) => c.name === parent);
+    if (parentContract) {
+      const parentAbi = createAbiRepresentation(parentContract, true);
+      abi.push(...parentAbi);
+    }
+  }
 
   const abiPath = path.join(targetPath, ABI_PATH, `${contract.name}-abi.json`);
   writeFile(abiPath, JSON.stringify(abi, null, 2));

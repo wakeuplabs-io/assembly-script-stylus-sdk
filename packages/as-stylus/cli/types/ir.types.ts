@@ -222,7 +222,9 @@ export type IRRevert = {
 };
 
 export interface IRContract {
+  path: string;
   name: string;
+  parents: string[];
   methods: IRMethod[];
   constructor?: IRConstructor;
   storage: IRVariable[];

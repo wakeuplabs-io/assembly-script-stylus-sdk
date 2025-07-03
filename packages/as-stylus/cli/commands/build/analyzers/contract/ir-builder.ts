@@ -1,4 +1,4 @@
-import { SourceFile, ConstructorDeclaration } from "ts-morph";
+import { SourceFile, ConstructorDeclaration, SyntaxKind, HeritageClause } from "ts-morph";
 
 import { ctx } from "@/cli/shared/compilation-context.js";
 import { IRContract } from "@/cli/types/ir.types.js";
@@ -16,10 +16,12 @@ import { StructIRBuilder } from "../struct/ir-builder.js";
 
 export class ContractIRBuilder extends IRBuilder<IRContract> {
   private sourceFile: SourceFile;
+  private contractName: string;
 
-  constructor(sourceFile: SourceFile) {
+  constructor(sourceFile: SourceFile, contractName: string) {
     super(sourceFile);
     this.sourceFile = sourceFile;
+    this.contractName = contractName;
   }
 
   validate(): boolean {
@@ -36,7 +38,9 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     const classes = this.sourceFile.getClasses();
     if (classes.length === 0) {
       return {
+        path: this.contractName,
         name: "Main",
+        parents: [],
         constructor: undefined,
         methods: [],
         storage: [],
@@ -62,7 +66,17 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       );
       throw new Error("No contract class found");
     }
-    
+
+    const parents: string[] = [];
+    const extendsExpr = classDefinition.getHeritageClauses().find(
+      (h: HeritageClause) => h.getToken() === SyntaxKind.ExtendsKeyword
+    );
+    if (extendsExpr) {
+      extendsExpr.getTypeNodes().forEach(typeNode => {
+        parents.push(typeNode.getText());
+      });
+    }
+  
     const name = classDefinition.getName();
     ctx.contractName = name ?? "Main";
 
@@ -137,7 +151,9 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     return {
+      path: this.contractName,
       name: name ?? "Main",
+      parents,
       constructor,
       methods,
       storage,
