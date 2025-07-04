@@ -6,14 +6,14 @@ import { Address, Hex, WalletClient } from "viem";
 
 config();
 
-import { contractService, getWalletClient } from "./client.js";
+import { contractService, getWalletClient } from "../helpers/client.js";
 import {
   CONTRACT_PATHS,
   CONTRACT_ADDRESS_REGEX,
   DEPLOY_TIMEOUT,
   PRIVATE_KEY,
-} from "./constants.js";
-import { setupE2EContract } from "./setup.js";
+} from "../helpers/constants.js";
+import { setupE2EContract } from "../helpers/setup.js";
 import { StructInfo } from "../helpers/types.js";
 import { handleDeploymentError } from "../helpers/utils.js";
 
