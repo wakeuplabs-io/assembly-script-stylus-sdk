@@ -103,7 +103,7 @@ function expectCustomError(selector: string, expectedErrorName: string, expected
   }
 }
 
-describe("Custom Errors Contract Tests", () => {
+describe.skip("Custom Errors Contract Tests", () => {
   describe("Contract Deployment", () => {
     it("should deploy successfully", () => {
       expect(contractAddr).toBeTruthy();

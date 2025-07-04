@@ -1,12 +1,11 @@
 import { PropertyAccessExpression } from "ts-morph";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRExpression } from "@/cli/types/ir.types.js";
+import { IRExpression, Call, Member } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { isExpressionOfStructType } from "../struct/struct-utils.js";
+import { isExpressionOfStructType, getStructInfoFromVariableName } from "../struct/struct-utils.js";
 
 export class MemberIRBuilder extends IRBuilder<IRExpression> {
   private expression: PropertyAccessExpression;
@@ -23,37 +22,41 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
   buildIR(): IRExpression {
     const objectIR = new ExpressionIRBuilder(this.expression.getExpression()).validateAndBuildIR();
     const propertyName = this.expression.getName();
-    const expressionType = this.expression.getType().getText();
 
     const structInfo = isExpressionOfStructType(objectIR);
-    
     if (structInfo.isStruct && structInfo.structName) {
-      const struct = ctx.structRegistry.get(structInfo.structName);
-      if (struct) {
-        const field = struct.fields.find(f => f.name === propertyName);
-        if (field) {
-          
-          let scope: "storage" | "memory" = "storage";
-          if (objectIR.kind === "var" && (objectIR as any).scope === "memory") {
-            scope = "memory";
-          }
-          
+      if (objectIR.kind === "var") {
+        const variableInfo = getStructInfoFromVariableName(objectIR.name);
+        
+        if (variableInfo.isStruct) {
           return {
             kind: "call",
             target: `${structInfo.structName}_get_${propertyName}`,
             args: [objectIR],
-            returnType: expressionType as AbiType,
-            scope: scope
-          };
+            returnType: AbiType.Uint256,
+            scope: "storage",
+            originalType: structInfo.structName,
+          } as Call;
         }
       }
+      
+      return {
+        kind: "call",
+        target: `${structInfo.structName}_get_${propertyName}`,
+        args: [objectIR],
+        returnType: AbiType.Uint256,
+        scope: (objectIR.kind === "var" || objectIR.kind === "call") && objectIR.scope ? objectIR.scope : "memory",
+        originalType: structInfo.structName,
+      } as Call;
     }
 
+    // Regular member access
     return {
       kind: "member",
       object: objectIR,
       property: propertyName,
-      type: expressionType as AbiType,
-    };
+      type: AbiType.Uint256,
+      originalType: (objectIR.kind === "var" || objectIR.kind === "call" || objectIR.kind === "member") ? objectIR.originalType : undefined,
+    } as Member;
   }
 }

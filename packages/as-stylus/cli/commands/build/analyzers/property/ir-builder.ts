@@ -1,5 +1,6 @@
 import { PropertyDeclaration } from "ts-morph";
 
+import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRVariable } from "@/cli/types/ir.types.js";
 import { inferType } from "@/cli/utils/inferType.js";
@@ -51,9 +52,20 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       };
     }
 
+    const isStructType = ctx.structRegistry.has(type);
+    
+    if (isStructType) {
+      ctx.variableTypes.set(`${ctx.contractName}.${name}`, type);
+      ctx.variableTypes.set(name, "struct");
+    } else {
+      ctx.variableTypes.set(`${ctx.contractName}.${name}`, type);
+      ctx.variableTypes.set(name, type);
+    }
+
     return {
       name,
-      type: convertType(type),
+      type: isStructType ? AbiType.Struct : convertType(type),
+      originalType: isStructType ? type : undefined,
       slot: this.slot,
       kind: "simple",
     };

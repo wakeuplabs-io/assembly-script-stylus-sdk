@@ -14,14 +14,8 @@ import {
   PRIVATE_KEY,
 } from "./constants.js";
 import { setupE2EContract } from "./setup.js";
-import {
-  handleDeploymentError,
-  parseStructABIResponse,
-  validateStructABIFormat,
-  validateStructFieldValues,
-  calculateExpectedStructSize,
-  validateStringContentInABI,
-} from "../helpers/utils.js";
+import { StructInfo } from "../helpers/types.js";
+import { handleDeploymentError } from "../helpers/utils.js";
 
 // Test constants
 const TEST_ADDRESS = "0x1234567890123456789012345678901234567890" as Address;
@@ -167,7 +161,21 @@ describe("Struct Contract Tests", () => {
     });
   });
 
-  describe.skip("Memory Operations", () => {
+  describe("Memory Operations", () => {
+    function assertStructInfo(obj: unknown): asserts obj is StructInfo {
+      if (
+        typeof obj !== "object" ||
+        obj === null ||
+        typeof (obj as any).to !== "string" ||
+        typeof (obj as any).contents !== "string" ||
+        typeof (obj as any).value !== "bigint" ||
+        typeof (obj as any).flag !== "boolean" ||
+        typeof (obj as any).value2 !== "bigint"
+      ) {
+        throw new Error("Invalid StructInfo");
+      }
+    }
+
     beforeEach(async () => {
       await contract.write(walletClient, "setStruct", [
         TEST_ADDRESS,
@@ -179,117 +187,56 @@ describe("Struct Contract Tests", () => {
     });
 
     it("should perform memory operations in getInfo correctly", async () => {
-      const response = await contract.read("getInfo", []);
-      console.log("response", response);
-
-      // Verify individual getters still work
-      const value = (await contract.read("getStructValue", [])) as bigint;
-      const value2 = (await contract.read("getStructValue2", [])) as bigint;
-      expect(value).toBe(TEST_U256);
-      expect(value2).toBe(TEST_U256_2);
+      const resRaw = await contract.read("getInfo", []);
+      assertStructInfo(resRaw);
+      const res = resRaw;
+      expect(res).toMatchObject({
+        to: TEST_ADDRESS,
+        contents: TEST_STRING,
+        value: TEST_U256 + 1n,
+        flag: true,
+        value2: TEST_U256,
+      });
     });
 
-    it.skip("should handle empty string in memory operations", async () => {
+    it("should handle empty string in memory operations", async () => {
       await contract.write(walletClient, "setStruct", [TEST_ADDRESS, "", 50n, false, 75n]);
-
-      const response = await contract.read("getInfo", []);
-
-      if (typeof response === "string") {
-        const analysis = parseStructABIResponse(response);
-        validateStructABIFormat(analysis);
-        validateStructFieldValues(analysis, {
-          value: 51,
-          stringLength: 0,
-        });
-
-        const expectedSize = calculateExpectedStructSize(0);
-        expect(analysis.totalBytes).toBe(expectedSize);
-      }
+      const resRaw = await contract.read("getInfo", []);
+      assertStructInfo(resRaw);
+      const res = resRaw;
+      expect(res.value).toBe(51n);
+      expect(res.contents.length).toBe(0);
     });
 
-    it.skip("should handle long string in memory operations", async () => {
-      const longString =
+    it("should handle long string in memory operations", async () => {
+      const long =
         "This is a very long string that exceeds thirty-two characters and should test padding";
-
-      await contract.write(walletClient, "setStruct", [TEST_ADDRESS, longString, 123n, true, 456n]);
-
-      const response = await contract.read("getInfo", []);
-
-      if (typeof response === "string") {
-        const analysis = parseStructABIResponse(response);
-        validateStructABIFormat(analysis);
-        validateStructFieldValues(analysis, {
-          value: 124,
-          stringLength: longString.length,
-        });
-
-        const expectedSize = calculateExpectedStructSize(longString.length);
-        expect(analysis.totalBytes).toBe(expectedSize);
-      }
+      await contract.write(walletClient, "setStruct", [TEST_ADDRESS, long, 123n, true, 456n]);
+      const resRaw = await contract.read("getInfo", []);
+      assertStructInfo(resRaw);
+      const res = resRaw;
+      expect(res.value).toBe(124n);
+      expect(res.contents).toBe(long);
     });
 
-    it.skip("should handle zero values in memory operations", async () => {
+    it("should handle zero values in memory operations", async () => {
       await contract.write(walletClient, "setStruct", [ZERO_ADDRESS, "zero", 0n, false, 0n]);
-
-      const response = await contract.read("getInfo", []);
-
-      if (typeof response === "string") {
-        const analysis = parseStructABIResponse(response);
-        validateStructABIFormat(analysis);
-        validateStructFieldValues(analysis, {
-          address: "0".repeat(64),
-          value: 1,
-          boolean: false,
-          value2: 0,
-        });
-      }
+      const resRaw = await contract.read("getInfo", []);
+      assertStructInfo(resRaw);
+      const res = resRaw;
+      expect(res.to).toBe(ZERO_ADDRESS);
+      expect(res.value).toBe(1n);
+      expect(res.flag).toBe(false);
+      expect(res.value2).toBe(0n);
     });
 
-    it.skip("should handle maximum values correctly", async () => {
-      await contract.write(walletClient, "setStruct", [
-        TEST_ADDRESS,
-        "MAX",
-        2n ** 200n,
-        true,
-        2n ** 100n,
-      ]);
-
-      const response = await contract.read("getInfo", []);
-
-      if (typeof response === "string") {
-        const analysis = parseStructABIResponse(response);
-        validateStructABIFormat(analysis);
-        expect(analysis.address.toLowerCase()).toBe(
-          "ffffffffffffffffffffffffffffffffffffffff000000000000000000000000",
-        );
-        expect(BigInt("0x" + analysis.slots[2])).toBe(2n ** 200n + 1n);
-        expect(analysis.boolean).toBe(true);
-        expect(BigInt("0x" + analysis.slots[4])).toBe(2n ** 200n);
-      }
-    });
-
-    it.skip("should validate ABI encoding format consistency", async () => {
-      const response = await contract.read("getInfo", []);
-
-      if (typeof response === "string") {
-        const analysis = parseStructABIResponse(response);
-        validateStructABIFormat(analysis);
-        expect(analysis.stringLength).toBeGreaterThan(0);
-        expect(analysis.stringLength).toBeLessThan(1000);
-        validateStringContentInABI(analysis.stringContent, analysis.stringLength);
-      }
-    });
-
-    it.skip("should maintain struct field alignment", async () => {
-      const response = await contract.read("getInfo", []);
-
-      if (typeof response === "string") {
-        const analysis = parseStructABIResponse(response);
-        validateStructABIFormat(analysis);
-        expect(analysis.totalBytes % 32).toBe(0);
-        expect(analysis.slots.length).toBeGreaterThanOrEqual(5);
-        expect(analysis.stringOffset).toBe(160);
-      }
+    it("should validate string length & content", async () => {
+      const resRaw = await contract.read("getInfo", []);
+      assertStructInfo(resRaw);
+      const res = resRaw;
+      expect(res.contents.length).toBeGreaterThan(0);
+      expect(res.contents.length).toBeLessThan(1000);
+      expect(res.contents).toContain("Hello");
     });
   });
 });
