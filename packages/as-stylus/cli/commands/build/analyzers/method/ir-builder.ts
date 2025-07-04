@@ -1,6 +1,6 @@
 import { Block, MethodDeclaration } from "ts-morph";
 
-import { AbiType, STATE_MUTABILITY_DECORATORS, VISIBILITY_DECORATORS } from "@/cli/types/abi.types.js";
+import { AbiType, StateMutability, Visibility } from "@/cli/types/abi.types.js";
 import { IRMethod } from "@/cli/types/ir.types.js";
 
 import { MethodSemanticValidator } from "./semantic-validator.js";
@@ -31,10 +31,8 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     const name = this.methodDecl.getName();
     const decorators = this.methodDecl.getDecorators();
 
-    const visDecorators = decorators.filter((d) => VISIBILITY_DECORATORS.includes(d.getName()));
-    const stateDecorators = decorators.filter((d) =>
-      STATE_MUTABILITY_DECORATORS.includes(d.getName()),
-    );
+    const visDecorators = decorators.filter((d) => Object.values(Visibility).includes(d.getName() as Visibility));
+    const stateDecorators = decorators.filter((d) => Object.values(StateMutability).includes(d.getName() as StateMutability));
 
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? "public";
     const stateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? "nonpayable";
@@ -54,10 +52,10 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     this.symbolTable.exitScope();
     return {
       name,
-      visibility,
+      visibility: visibility as Visibility,
       inputs,
       outputs: returnType === AbiType.Void ? [] : [{ type: convertType(returnType) }],
-      stateMutability,
+      stateMutability: stateMutability as StateMutability,
       ir: irBody,
     };
   }

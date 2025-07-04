@@ -1,6 +1,6 @@
 import path from "path";
 
-import { AbiItem, AbiInput, AbiOutput, AbiType, Visibility } from "@/cli/types/abi.types.js";
+import { AbiItem, AbiInput, AbiOutput, AbiType, StateMutability } from "@/cli/types/abi.types.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
@@ -39,7 +39,7 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
       // type: "constructor",
       type: "function",
       name: "deploy",
-      stateMutability: Visibility.NONPAYABLE,
+      stateMutability: StateMutability.NONPAYABLE,
       inputs: contract.constructor.inputs.map((param) => ({
         name: param.name,
         type: convertType(param.type),

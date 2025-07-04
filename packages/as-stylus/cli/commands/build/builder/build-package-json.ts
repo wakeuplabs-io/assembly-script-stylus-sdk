@@ -9,7 +9,7 @@ export function buildPackageJson(targetPath: string) {
         name: "generated-contract",
         version: "0.1.0",
         scripts: {
-          compile: "asc entrypoint.ts --config asconfig.json",
+          compile: "asc --entrypoint ${entrypoint} --config asconfig.json",
           check: "cargo stylus check --wasm-file build/module.wasm",
           deploy:
             "PRIVATE_KEY=$PRIVATE_KEY cargo stylus deploy --wasm-file build/module.wasm --private-key $PRIVATE_KEY",

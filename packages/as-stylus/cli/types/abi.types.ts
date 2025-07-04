@@ -3,32 +3,17 @@ export enum Visibility {
   PRIVATE = "private",
   INTERNAL = "internal",
   EXTERNAL = "external",
+}
+
+export enum StateMutability {
   PURE = "pure",
   VIEW = "view",
   NONPAYABLE = "nonpayable",
   PAYABLE = "payable",
 }
 
-export const VISIBILITY_ABI = [
-  Visibility.PUBLIC,
-  Visibility.PRIVATE,
-  Visibility.INTERNAL,
-  Visibility.EXTERNAL,
-  Visibility.PURE,
-  Visibility.VIEW,
-  Visibility.NONPAYABLE,
-  Visibility.PAYABLE,
-];
-export const STATE_MUTABILITY_ABI = [
-  Visibility.PURE,
-  Visibility.VIEW,
-  Visibility.NONPAYABLE,
-  Visibility.PAYABLE,
-];
 export const ABI_ITEM_TYPES = ["function", "constructor"];
 
-export type AbiVisibility = (typeof VISIBILITY_ABI)[number];
-export type AbiStateMutability = (typeof STATE_MUTABILITY_ABI)[number];
 export type AbiItemType = (typeof ABI_ITEM_TYPES)[number];
 
 export enum AbiType {
@@ -70,7 +55,7 @@ export type AbiOutput = {
 export type AbiItem = {
   name?: string;
   type: AbiItemType;
-  stateMutability: AbiStateMutability;
+  stateMutability: StateMutability;
   inputs: AbiInput[];
   outputs: AbiOutput[];
 };

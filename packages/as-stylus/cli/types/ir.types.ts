@@ -1,4 +1,4 @@
-import { AbiType, AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "./abi.types.js";
+import { AbiType, AbiInput, AbiOutput, StateMutability, Visibility } from "./abi.types.js";
 import { SupportedType } from "../commands/build/analyzers/shared/supported-types.js";
 
 // Statements// ───────────────────────
@@ -152,8 +152,8 @@ export type IRArgument = { name: string; type: AbiType };
 
 export type IRMethod = {
   name: string;
-  visibility: AbiVisibility;
-  stateMutability: AbiStateMutability;
+  visibility: Visibility;
+  stateMutability: StateMutability;
   inputs: AbiInput[];
   outputs: AbiOutput[];
   ir: IRStatement[];

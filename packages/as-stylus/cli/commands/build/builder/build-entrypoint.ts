@@ -1,7 +1,7 @@
 import path from "path";
 import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from "viem";
 
-import { AbiType, AbiInput, VISIBILITY_ABI, Visibility } from "@/cli/types/abi.types.js";
+import { AbiType, AbiInput, Visibility, StateMutability } from "@/cli/types/abi.types.js";
 import { IRContract, IRMethod, IRStruct } from "@/cli/types/ir.types.js";
 import { writeFile } from "@/cli/utils/fs.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
@@ -160,7 +160,7 @@ function generateMethodEntry(method: IRMethod, contract: IRContract): { import: 
   
   const { name, visibility } = method;
   
-  if (!VISIBILITY_ABI.includes(visibility)) {
+  if (!Object.values(Visibility).includes(visibility as Visibility)) {
     throw new Error(`Method ${name} has invalid visibility: ${visibility}`);
   }
 
@@ -188,7 +188,7 @@ function generateConstructorEntry(constructor: { inputs: AbiInput[] }, contractP
   const deployMethod: IRMethod = {
     name: "deploy",
     visibility: Visibility.PUBLIC,
-    stateMutability: Visibility.NONPAYABLE,
+    stateMutability: StateMutability.NONPAYABLE,
     inputs: inputs.map(input => ({
       name: input.name,
       type: convertType(input.type),
@@ -218,7 +218,7 @@ function processContractMethods(contract: IRContract): CodeBlock {
   const entries: string[] = [];
 
   for (const method of contract.methods) {
-    if ([Visibility.PUBLIC, Visibility.EXTERNAL, Visibility.NONPAYABLE].includes(method.visibility)) {
+    if ([Visibility.PUBLIC, Visibility.EXTERNAL, StateMutability.NONPAYABLE].includes(method.visibility)) {
       try {
         const { import: methodImport, entry } = generateMethodEntry(method, contract);
         imports.push(methodImport);
