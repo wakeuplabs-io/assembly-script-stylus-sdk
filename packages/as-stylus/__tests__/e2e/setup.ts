@@ -44,7 +44,7 @@ export async function setupE2EContract(
   const contractAddr = addressMatch[1];
   console.log("📍 Contract deployed at:", contractAddr);
 
-  const contract = contractService(contractAddr as Address, abi, true);
+  const contract = contractService(contractAddr as Address, abi, false);
 
   // Initialize the contract with deploy method if args provided and wallet available
   if (deployArgs !== undefined && walletClient) {

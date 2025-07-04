@@ -14,15 +14,8 @@ import {
   PRIVATE_KEY,
 } from "./constants.js";
 import { setupE2EContract } from "./setup.js";
+import { StructInfo } from "../helpers/types.js";
 import { handleDeploymentError } from "../helpers/utils.js";
-
-interface StructInfo {
-  to: Address;
-  contents: string;
-  value: bigint;
-  flag: boolean;
-  value2: bigint;
-}
 
 // Test constants
 const TEST_ADDRESS = "0x1234567890123456789012345678901234567890" as Address;

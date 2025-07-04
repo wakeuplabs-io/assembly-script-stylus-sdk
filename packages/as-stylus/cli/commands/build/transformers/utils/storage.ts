@@ -58,6 +58,7 @@ export function generateStorageImports(variables: IRVariable[], hasStructs: bool
   lines.push('import { Str } from "as-stylus/core/types/str";');
   lines.push('import { Struct } from "as-stylus/core/types/struct";');
   lines.push('import { loadU32BE } from "as-stylus/core/modules/endianness";');
+  lines.push('import { abort_with_data } from "as-stylus/core/modules/errors";');
 
   if (hasMapping) {
     lines.push('import { Mapping } from "as-stylus/core/types/mapping";');

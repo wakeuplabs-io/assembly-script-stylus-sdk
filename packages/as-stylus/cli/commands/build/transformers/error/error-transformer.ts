@@ -52,15 +52,6 @@ export function registerErrorTransformer(contract: IRContract): string[] {
     const instance = new ErrorTransformer(errors);
     registerTransformer(instance);
 
-    // Generar función helper para abortar con datos de error
-    lines.push(`// Custom error helper function`);
-    lines.push(`export function abort_with_data(dataPtr: usize, dataLen: usize): void {`);
-    lines.push(`  // TODO: Implement proper custom error abort mechanism`);
-    lines.push(`  // For now, use unreachable() to abort execution`);
-    lines.push(`  unreachable();`);
-    lines.push(`}`);
-    lines.push("");
-
     // Generar funciones helper para escribir selectores de errores
     for (const error of errors) {
       const signature = generateErrorSignature(error);
