@@ -166,7 +166,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
   private processStorage(contractClass: ClassDeclaration) {
     const storage = contractClass.getProperties().map((property, index) => {
-      const propertyIRBuilder = new PropertyIRBuilder(property, index);
+      const propertyIRBuilder = new PropertyIRBuilder(property, index + 1);
       return propertyIRBuilder.validateAndBuildIR();
     });
 

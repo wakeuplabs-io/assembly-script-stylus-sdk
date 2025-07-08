@@ -2,6 +2,7 @@ import { AbiType } from "@/cli/types/abi.types.js";
 import { FunctionSymbol, SymbolInfo, SymbolTable, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
 export class SymbolTableStack {
+  private types: Set<AbiType> = new Set();
   private scopes: SymbolTable[] = [];
   private currentScope: number;
   
@@ -15,6 +16,10 @@ export class SymbolTableStack {
     this.currentScope++;
   }
 
+  getTypes(): Set<AbiType> {
+    return this.types;
+  }
+
   exitScope() { 
     if (this.scopes.length <= 1) {
       throw new Error("Cannot exit global scope");
@@ -26,6 +31,7 @@ export class SymbolTableStack {
     const current = this.scopes[this.scopes.length - 1];
     if (current.has(name)) return false;
 
+    this.types.add(info.type);
     current.set(name, { ...info, scopeLevel: this.scopes.length - 1 }); 
     return true;
   }
@@ -34,6 +40,7 @@ export class SymbolTableStack {
     const current = this.scopes[this.scopes.length - 1];
     if (current.has(name)) return false;
     
+    this.types.add(info.returnType);
     current.set(name, { ...info, scopeLevel: this.scopes.length - 1, type: AbiType.Function });
     return true;
   }
