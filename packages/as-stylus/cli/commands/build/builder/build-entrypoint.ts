@@ -230,7 +230,6 @@ function generateConstructorEntry(constructor: { inputs: AbiInput[] }): { import
 function processContractMethods(contract: IRContract): CodeBlock {
   const imports: string[] = [];
   const entries: string[] = [];
-
   for (const method of contract.methods) {
     if (VISIBILITY_TYPES.PUBLIC_EXTERNAL.includes(method.visibility as any)) {
       try {

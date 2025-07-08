@@ -72,6 +72,15 @@ export class ERC721 {
     Address,
     boolean
   >();
+  static name: Str;
+  static symbol: Str;
+
+  constructor(_name: string, _symbol: string) {
+    const nameStr = StrFactory.fromString(_name);
+    const symbolStr = StrFactory.fromString(_symbol);
+    name = nameStr;
+    symbol = symbolStr;
+  }
 
   // ===== EXTERNAL FUNCTIONS =====
 
@@ -177,7 +186,7 @@ export class ERC721 {
   }
 
   @External
-  static safeTransferFrom(_from: Address, _to: Address, _tokenId: U256, _data: Bytes): void {
+  static safeTransferFromData(_from: Address, _to: Address, _tokenId: U256, _data: U256): void {
     //TODO: Implement safeTransferFrom
   }
 
@@ -218,31 +227,31 @@ export class ERC721 {
     }
 
     // Safe mint check: if 'to' is a contract, it must implement onERC721Received
-    const isContract = to.hasCode();
-    if (isContract) {
-      // TODO: Call onERC721Received - requires interface implementation
-      // For now, we assume the contract implements the interface correctly
-      //Implementacion Proposed: TODO: Contract.call
-      /* -------------------- build calldata -------------------- */
-      // const selector = BytesFactory.fromHex("0x150b7a02"); // onERC721Received
-      // const operator = msg.sender; // quien mintéa
-      // const fromZero = zeroAddress; // Address.ZERO
-      // // abi.encode(selector, operator, from, tokenId, data)
-      // const callData = Abi.encode(
-      //   selector,
-      //   operator,
-      //   fromZero, // 'from' es address(0) en un mint
-      //   tokenId,
-      //   _data,
-      // );
-      // /* -------------------- low-level call -------------------- */
-      // const retData = Contract.call(to, callData);
-      // /* -------------------- validar magic value -------------------- */
-      // const okMagic = retData.equals(selector);
-      // if (!okMagic) {
-      //   ERC721InvalidReceiver.revert(to);
-      // }
-    }
+    // const isContract = to.hasCode();
+    // if (isContract) {
+    // TODO: Call onERC721Received - requires interface implementation
+    // For now, we assume the contract implements the interface correctly
+    //Implementacion Proposed: TODO: Contract.call
+    /* -------------------- build calldata -------------------- */
+    // const selector = BytesFactory.fromHex("0x150b7a02"); // onERC721Received
+    // const operator = msg.sender; // quien mintéa
+    // const fromZero = zeroAddress; // Address.ZERO
+    // // abi.encode(selector, operator, from, tokenId, data)
+    // const callData = Abi.encode(
+    //   selector,
+    //   operator,
+    //   fromZero, // 'from' es address(0) en un mint
+    //   tokenId,
+    //   _data,
+    // );
+    // /* -------------------- low-level call -------------------- */
+    // const retData = Contract.call(to, callData);
+    // /* -------------------- validar magic value -------------------- */
+    // const okMagic = retData.equals(selector);
+    // if (!okMagic) {
+    //   ERC721InvalidReceiver.revert(to);
+    // }
+    // }
   }
 
   @External

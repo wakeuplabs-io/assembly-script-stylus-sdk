@@ -46,12 +46,11 @@ export function generateStorageImports(variables: IRVariable[], hasStructs: bool
       '  storage_flush_cache,',
       '} from "as-stylus/core/modules/hostio";',
       'import { createStorageKey } from "as-stylus/core/modules/storage";',
-      'import { Msg } from "as-stylus/core/types/msg";',
-      'import { Boolean } from "as-stylus/core/types/boolean";',
-      'import { addTopic, emitTopics } from "as-stylus/core/modules/events";',
     );
   }
-
+  lines.push('import { Boolean } from "as-stylus/core/types/boolean";');
+  lines.push('import { addTopic, emitTopics } from "as-stylus/core/modules/events";');
+  lines.push('import { Msg } from "as-stylus/core/types/msg";');
   lines.push('import { malloc } from "as-stylus/core/modules/memory";');  
   lines.push('import { Address } from "as-stylus/core/types/address";');
   lines.push('import { U256 } from "as-stylus/core/types/u256";');
