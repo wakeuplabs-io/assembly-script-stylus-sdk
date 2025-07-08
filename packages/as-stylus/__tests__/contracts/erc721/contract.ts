@@ -182,8 +182,67 @@ export class ERC721 {
   }
 
   @External
-  static safeMint(_to: Address, _tokenId: U256, _data: Bytes): void {
-    //TODO: Implement safeTransferFrom
+  static safeMint(to: Address, tokenId: U256, _data: Bytes): void {
+    const zeroAddress = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
+    const one = U256Factory.fromString("1");
+
+    // _mint validations
+    const isToZero = to.isZero();
+    if (isToZero) {
+      ERC721InvalidReceiver.revert(zeroAddress);
+    }
+
+    // _update
+    const from = owners.get(tokenId);
+
+    // Como auth es address(0), no hacemos _checkAuthorized
+
+    const isFromZero = from.isZero();
+    if (!isFromZero) {
+      tokenApprovals.set(tokenId, zeroAddress);
+      const fromBalance = balances.get(from);
+      balances.set(from, fromBalance.sub(one));
+    }
+
+    if (!isToZero) {
+      const toBalance = balances.get(to);
+      balances.set(to, toBalance.add(one));
+    }
+
+    owners.set(tokenId, to);
+    Transfer.emit(from, to, tokenId);
+
+    // _mint final validation
+    if (!isFromZero) {
+      ERC721InvalidSender.revert(zeroAddress);
+    }
+
+    // Safe mint check: if 'to' is a contract, it must implement onERC721Received
+    const isContract = to.hasCode();
+    if (isContract) {
+      // TODO: Call onERC721Received - requires interface implementation
+      // For now, we assume the contract implements the interface correctly
+      //Implementacion Proposed: TODO: Contract.call
+      /* -------------------- build calldata -------------------- */
+      // const selector = BytesFactory.fromHex("0x150b7a02"); // onERC721Received
+      // const operator = msg.sender; // quien mintéa
+      // const fromZero = zeroAddress; // Address.ZERO
+      // // abi.encode(selector, operator, from, tokenId, data)
+      // const callData = Abi.encode(
+      //   selector,
+      //   operator,
+      //   fromZero, // 'from' es address(0) en un mint
+      //   tokenId,
+      //   _data,
+      // );
+      // /* -------------------- low-level call -------------------- */
+      // const retData = Contract.call(to, callData);
+      // /* -------------------- validar magic value -------------------- */
+      // const okMagic = retData.equals(selector);
+      // if (!okMagic) {
+      //   ERC721InvalidReceiver.revert(to);
+      // }
+    }
   }
 
   @External
@@ -228,8 +287,6 @@ export class ERC721 {
 
     // _update
     const from = owners.get(tokenId);
-
-    // Como auth es address(0), no hacemos _checkAuthorized
 
     const isFromZero = from.isZero();
     if (!isFromZero) {
