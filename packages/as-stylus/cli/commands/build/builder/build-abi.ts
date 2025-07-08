@@ -55,18 +55,15 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
   return abi;
 };
 
-export function buildAbi(targetPath: string, contract: IRContract, allContracts: IRContract[]) {
+export function buildAbi(targetPath: string, contract: IRContract) {
   const abi: AbiItem[] = [];
 
   const abiRepresentation = createAbiRepresentation(contract);
   abi.push(...abiRepresentation);
 
-  for (const parent of contract.parents) {
-    const parentContract = allContracts.find((c) => c.name === parent);
-    if (parentContract) {
-      const parentAbi = createAbiRepresentation(parentContract, true);
-      abi.push(...parentAbi);
-    }
+  if (contract.parent) {
+    const parentAbi = createAbiRepresentation(contract.parent, true);
+    abi.push(...parentAbi);
   }
 
   const abiPath = path.join(targetPath, ABI_PATH, `${contract.name}-abi.json`);

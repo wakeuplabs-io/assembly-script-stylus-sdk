@@ -53,6 +53,17 @@ export class SymbolTableStack {
     return this.scopes[this.scopes.length - 1];
   }
 
+  merge(other: SymbolTableStack) {
+    for (const scope of other.scopes) {
+      for (const [name, symbol] of scope) {
+        if (this.lookup(name)) {
+          continue;
+        }
+        this.scopes[this.scopes.length - 1].set(name, symbol);
+      }
+    }
+  }
+
   toJSON() {
     return this.scopes.map(scope => {
       return {

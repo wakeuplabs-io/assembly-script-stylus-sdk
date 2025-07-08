@@ -66,7 +66,7 @@ export class ProjectBuilder {
     buildTsconfig(contractBasePath);
     buildPackageJson(contractBasePath);
     buildRustToolchain(contractBasePath);
-    buildAbi(contractBasePath, this.contract, this.allContracts);
+    buildAbi(contractBasePath, this.contract);
 
     Logger.getInstance().info(`Build artifacts generated at ${contractBasePath}`);
   }

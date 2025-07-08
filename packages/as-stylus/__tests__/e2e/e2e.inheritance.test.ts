@@ -17,7 +17,6 @@ const walletClient: WalletClient = getWalletClient(PRIVATE_KEY);
 beforeAll(async () => {
   try {
     contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
-      deployArgs: [],
       walletClient,
     });
   } catch (error: unknown) {
@@ -27,7 +26,8 @@ beforeAll(async () => {
 
 describe("Inheritance", () => {
   it("should inherit from parent", async () => {
+    await contract.write(walletClient, "setValue", [10n, 20n]);
     const sum = await contract.read("getSum", []);
-    expect(sum).toBe(30);
+    expect(sum).toBe(30n);
   });
 });
