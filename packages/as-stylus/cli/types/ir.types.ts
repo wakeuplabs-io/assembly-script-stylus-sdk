@@ -22,6 +22,7 @@ export type Variable = {
   kind: "var";
   name: string;
   type: SupportedType;
+  originalType?: string;
   scope: "storage" | "memory";
 };
 export type Call = {
@@ -29,6 +30,7 @@ export type Call = {
   target: string;
   args: IRExpression[];
   returnType: SupportedType;
+  originalType?: string;
   scope: "storage" | "memory";
 };
 export type Member = {
@@ -36,6 +38,7 @@ export type Member = {
   object: IRExpression;
   property: string;
   type: SupportedType;
+  originalType?: string;
 };
 export type IRExpressionBinary = {
   kind: "binary";
@@ -124,7 +127,14 @@ export type IRStatement =
 // Variables (storage)
 // ───────────────────────
 
-export type IRSimpleVar = { name: string; type: AbiType; slot: number; kind: "simple" };
+export interface IRSimpleVar {
+  name: string;
+  type: AbiType | string;
+  originalType?: string;
+  slot: number;
+  kind: "simple";
+}
+
 export type IRMappingVar = {
   name: string;
   type: AbiType.Mapping;
@@ -149,7 +159,7 @@ export type IRVariable = IRSimpleVar | IRMappingVar | IRMapping2Var;
 // Contract structure
 // ───────────────────────
 
-export type IRArgument = { name: string; type: AbiType };
+export type IRArgument = { name: string; type: AbiType; originalType?: string };
 
 export type IRMethod = {
   name: string;

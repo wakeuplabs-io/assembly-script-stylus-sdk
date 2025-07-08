@@ -1,7 +1,7 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 
 import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
-import { IRStruct, IRContract } from "../../../../types/ir.types.js";
+import { IRStruct, IRContract, IRSimpleVar } from "../../../../types/ir.types.js";
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { StructFactoryCreateHandler } from "./handlers/factory-create-handler.js";
 import { StructFieldAccessHandler } from "./handlers/field-access-handler.js";
@@ -218,30 +218,49 @@ export function registerStructTransformer(contract: IRContract): string[] {
   
   if (contract.structs && contract.structs.length > 0) {
     contract.structs.forEach(struct => {
-      const structVariable = contract.storage.find(v => 
-        v.type === struct.name && v.kind === "simple"
-      );
+      const structVariable = contract.storage.find(v => {
+        if (v.kind === "simple") {
+          const simpleVar = v as IRSimpleVar;
+          return simpleVar.originalType === struct.name || 
+                 (simpleVar.type === "struct" && simpleVar.originalType === struct.name);
+        }
+        return false;
+      }) as IRSimpleVar | undefined;
       
       if (structVariable) {
         const baseSlot = structVariable.slot;
         
         const existingSlots = new Set(contract.storage.map(v => v.slot));
-        const numSlots = Math.ceil(struct.size / 32);
         
+        const neededSlots = new Set<number>();
+        
+        const numSlots = Math.ceil(struct.size / 32);
         for (let i = 0; i < numSlots; i++) {
-          const slotValue = baseSlot + i;
-          if (!existingSlots.has(slotValue)) {
-            const slotNumber = slotValue.toString(16).padStart(2, "0");
-            parts.push(`const __SLOT${slotNumber}: u64 = ${slotValue};`);
-          }
+          neededSlots.add(baseSlot + i);
         }
-        if (numSlots > 1) {
-          parts.push(''); // Add empty line after slot constants only if we added some
+        
+        struct.fields.forEach(field => {
+          const fieldSlot = baseSlot + Math.floor(field.offset / 32);
+          neededSlots.add(fieldSlot);
+        });
+        
+        // Generate slot constants for all needed slots that don't exist
+        const slotsToGenerate = Array.from(neededSlots)
+          .filter(slot => !existingSlots.has(slot))
+          .sort((a, b) => a - b);
+        
+        slotsToGenerate.forEach(slotValue => {
+          const slotNumber = slotValue.toString(16).padStart(2, "0");
+          parts.push(`const __SLOT${slotNumber}: u64 = ${slotValue};`);
+        });
+        
+        if (slotsToGenerate.length > 0) {
+          parts.push(''); // Add empty line after slot constants
         }
         
         parts.push(...generateStructHelpers(struct, baseSlot));
       } else {
-        // Fallback si no se encuentra la variable de storage
+        // Fallback if storage variable is not found
         parts.push(...generateStructHelpers(struct, 0));
       }
     });

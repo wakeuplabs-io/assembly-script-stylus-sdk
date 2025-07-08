@@ -2,7 +2,7 @@ import { Address, WalletClient } from "viem";
 
 import { contractService, ContractService } from "./client.js";
 import { PRIVATE_KEY, ROOT_PATH, RPC_URL } from "./constants.js";
-import { getAbi, run, stripAnsi } from "../helpers/utils.js";
+import { getAbi, run, stripAnsi } from "./utils.js";
 
 export type ContractArgs = (string | boolean | Address | bigint)[];
 
@@ -44,7 +44,7 @@ export async function setupE2EContract(
   const contractAddr = addressMatch[1];
   console.log("📍 Contract deployed at:", contractAddr);
 
-  const contract = contractService(contractAddr as Address, abi);
+  const contract = contractService(contractAddr as Address, abi, false);
 
   // Initialize the contract with deploy method if args provided and wallet available
   if (deployArgs !== undefined && walletClient) {

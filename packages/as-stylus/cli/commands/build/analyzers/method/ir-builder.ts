@@ -1,14 +1,14 @@
 import { Block, MethodDeclaration } from "ts-morph";
 
-import { AbiType, StateMutability, Visibility } from "@/cli/types/abi.types.js";
+import { AbiType, StateMutability, Visibility, AbiOutput } from "@/cli/types/abi.types.js";
 import { IRMethod } from "@/cli/types/ir.types.js";
 
 import { MethodSemanticValidator } from "./semantic-validator.js";
 import { MethodSyntaxValidator } from "./syntax-validator.js";
-import { convertType } from "../../builder/build-abi.js";
 import { ArgumentIRBuilder } from "../argument/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { StatementIRBuilder } from "../statement/ir-builder.js";
+import { convertTypeForIR } from "../struct/struct-utils.js";
 
 export class MethodIRBuilder extends IRBuilder<IRMethod> {
   private methodDecl: MethodDeclaration;
@@ -26,6 +26,8 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     return syntaxValidator.validate() && semanticValidator.validate();
   }
 
+
+
   buildIR(): IRMethod {
     this.symbolTable.enterScope();
     const name = this.methodDecl.getName();
@@ -34,8 +36,8 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     const visDecorators = decorators.filter((d) => Object.values(Visibility).includes(d.getName() as Visibility));
     const stateDecorators = decorators.filter((d) => Object.values(StateMutability).includes(d.getName() as StateMutability));
 
-    const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? "public";
-    const stateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? "nonpayable";
+    const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? Visibility.PUBLIC;
+    const stateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? StateMutability.NONPAYABLE;
 
     const inputs = this.methodDecl.getParameters().map((param) => {
       const argumentBuilder = new ArgumentIRBuilder(param);
@@ -49,12 +51,20 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       return statementBuilder.validateAndBuildIR();
     });
 
+    const outputs: AbiOutput[] = returnType === AbiType.Void ? [] : (() => {
+      const convertedType = convertTypeForIR(returnType);
+      return [{ 
+        type: convertedType.type,
+        ...(convertedType.originalType && { originalType: convertedType.originalType })
+      }];
+    })();
+
     this.symbolTable.exitScope();
     return {
       name,
       visibility: visibility as Visibility,
       inputs,
-      outputs: returnType === AbiType.Void ? [] : [{ type: convertType(returnType) }],
+      outputs,
       stateMutability: stateMutability as StateMutability,
       ir: irBody,
     };

@@ -1,11 +1,12 @@
 import path from "path";
 
-import { AbiItem, AbiInput, AbiOutput, AbiType, StateMutability } from "@/cli/types/abi.types.js";
+import { ctx } from "@/cli/shared/compilation-context.js";
+import { AbiItem, AbiInput, AbiOutput, AbiType, StateMutability , AbiComponent } from "@/cli/types/abi.types.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
 
-import { extractStructName } from "../analyzers/struct/struct-utils.js";
+import { extractStructName, convertBasicType } from "../analyzers/struct/struct-utils.js";
 import { generateErrorABI } from "../transformers/error/error-transformer.js";
 
 const createAbiRepresentation = (contract: IRContract, isParent: boolean = false): AbiItem[] => {
@@ -14,15 +15,25 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
   for (const method of contract.methods) {
     if (method.visibility !== "public" && method.visibility !== "external") continue;
 
-    const inputs: AbiInput[] = method.inputs.map((param) => ({
-      name: param.name,
-      type: convertType(param.type),
-    }));
+    const inputs: AbiInput[] = method.inputs.map((param) => {
+      const typeToConvert = param.originalType || param.type;
+      const converted = convertTypeWithComponents(typeToConvert as string);
+      return {
+        name: param.name,
+        type: converted.type,
+        ...(converted.components && { components: converted.components })
+      };
+    });
 
-    const outputs: AbiOutput[] = method.outputs.map((param) => ({
-      name: param.name || undefined,
-      type: convertType(param.type),
-    }));
+    const outputs: AbiOutput[] = method.outputs.map((param) => {
+      const typeToConvert = param.originalType || param.type;
+      const converted = convertTypeWithComponents(typeToConvert as string);
+      return {
+        name: param.name || undefined,
+        type: converted.type,
+        ...(converted.components && { components: converted.components })
+      };
+    });
 
     abi.push({
       name: method.name,
@@ -36,14 +47,18 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
   if (contract.constructor && !isParent) {
      // TODO: rethink this
     abi.push({
-      // type: "constructor",
       type: "function",
       name: "deploy",
-      stateMutability: StateMutability.NONPAYABLE,
-      inputs: contract.constructor.inputs.map((param) => ({
-        name: param.name,
-        type: convertType(param.type),
-      })),
+stateMutability: StateMutability.NONPAYABLE,
+inputs: contract.constructor.inputs.map((param) => {
+        const typeToConvert = param.originalType || param.type;
+        const converted = convertTypeWithComponents(typeToConvert as string);
+        return {
+          name: param.name,
+          type: converted.type,
+          ...(converted.components && { components: converted.components })
+        };
+      }),
       outputs: [],
     });
   }
@@ -70,28 +85,48 @@ export function buildAbi(targetPath: string, contract: IRContract) {
   writeFile(abiPath, JSON.stringify(abi, null, 2));
 }
 
-export function convertType(type: string): AbiType {
-  if (Object.values(AbiType).includes(type as AbiType)) {
-    return type as AbiType;
+/**
+ * Converts a struct to its ABI tuple representation with components
+ */
+function convertStructToTuple(structName: string): { type: AbiType; components: AbiComponent[] } | null {
+  const struct = ctx.structRegistry.get(structName);
+  if (!struct) {
+    return null;
   }
 
-  switch (type.toLowerCase()) {
-    case "u256":
-      return AbiType.Uint256;
-    case "i256":
-      return AbiType.Int256;
-    case "bool":
-    case "boolean":
-      return AbiType.Bool;
-    case "str":
-    case "string":
-      return AbiType.String;
-    case "address":
-      return AbiType.Address;
-    case "bytes32":
-      return AbiType.Bytes32;
-    default:
-      // TODO: Implement this better for structs
-      return extractStructName(type) as AbiType;
+  const components: AbiComponent[] = struct.fields.map(field => {
+    const convertedField = convertTypeWithComponents(field.type);
+    return {
+      name: field.name,
+      type: convertedField.type,
+      ...(convertedField.components && { components: convertedField.components })
+    } as AbiComponent;
+  });
+
+  return {
+    type: AbiType.Tuple,
+    components
+  };
+}
+
+/**
+ * Converts a type to ABI format, handling structs as tuples with components
+ */
+function convertTypeWithComponents(type: string): { type: AbiType; components?: AbiComponent[] } {
+  const basicType = convertBasicType(type);
+  if (basicType) {
+    return { type: basicType };
   }
+  const structName = extractStructName(type);
+  const structTuple = convertStructToTuple(structName);
+  
+  if (structTuple) {
+    return structTuple;
+  }
+  return { type: AbiType.Unknown };
+}
+
+export function convertType(type: string): AbiType {
+  const result = convertTypeWithComponents(type);
+  return result.type as AbiType;
 }

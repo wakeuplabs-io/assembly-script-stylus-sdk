@@ -1,3 +1,5 @@
+import { Address } from "viem";
+
 export interface TransferEventLog {
   address: string;
   topics: [string, string, string, ...string[]];
@@ -20,4 +22,12 @@ export interface StructABIAnalysis {
   value2: number;
   stringLength: number;
   stringContent: string;
+}
+
+export interface StructInfo {
+  to: Address;
+  contents: string;
+  value: bigint;
+  flag: boolean;
+  value2: bigint;
 }
