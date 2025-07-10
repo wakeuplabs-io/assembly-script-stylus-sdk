@@ -36,10 +36,6 @@ class ERC721InvalidOperator {
   operator: Address;
 }
 
-// Variables para name y symbol
-const name: string = "MyNFT";
-const symbol: string = "MNFT";
-
 @Event
 export class Transfer {
   @Indexed from: Address;

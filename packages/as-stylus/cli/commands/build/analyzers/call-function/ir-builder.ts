@@ -63,14 +63,47 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
         });
 
         if (slot !== undefined) {
+          // Get mapping type information from context
+          const mappingTypeInfo = ctx.mappingTypes.get(mappingName);
+          
           if (methodName === "get" && args.length === 1) {
-            return { kind: "map_get", slot, key: args[0] } as IRMapGet;
+            return { 
+              kind: "map_get", 
+              slot, 
+              key: args[0],
+              keyType: mappingTypeInfo?.keyType || "Address",
+              valueType: mappingTypeInfo?.valueType || "U256"
+            } as IRMapGet;
           } else if (methodName === "set" && args.length === 2) {
-            return { kind: "map_set", slot, key: args[0], value: args[1] } as IRMapSet;
+            return { 
+              kind: "map_set", 
+              slot, 
+              key: args[0], 
+              value: args[1],
+              keyType: mappingTypeInfo?.keyType || "Address",
+              valueType: mappingTypeInfo?.valueType || "U256"
+            } as IRMapSet;
           } else if (methodName === "get" && args.length === 2) {
-            return { kind: "map_get2", slot, key1: args[0], key2: args[1] } as IRMapGet2;
+            return { 
+              kind: "map_get2", 
+              slot, 
+              key1: args[0], 
+              key2: args[1],
+              keyType1: mappingTypeInfo?.keyType1 || "Address",
+              keyType2: mappingTypeInfo?.keyType2 || "Address",
+              valueType: mappingTypeInfo?.valueType || "U256"
+            } as IRMapGet2;
           } else if (methodName === "set" && args.length === 3) {
-            return { kind: "map_set2", slot, key1: args[0], key2: args[1], value: args[2] } as IRMapSet2;
+            return { 
+              kind: "map_set2", 
+              slot, 
+              key1: args[0], 
+              key2: args[1], 
+              value: args[2],
+              keyType1: mappingTypeInfo?.keyType1 || "Address",
+              keyType2: mappingTypeInfo?.keyType2 || "Address",
+              valueType: mappingTypeInfo?.valueType || "U256"
+            } as IRMapSet2;
           }
         }
       }

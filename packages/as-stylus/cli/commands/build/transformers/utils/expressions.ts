@@ -168,16 +168,27 @@ function handleFallbackExpression(expr: IRExpression): string {
     case "map_set": {
       const keyResult = emitExpression(expr.key);
       const valueResult = emitExpression(expr.value);
-      return `Mapping.set(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr}, ${valueResult.valueExpr})`;
+      
+      // Choose mapping method based on key type
+      const method = expr.keyType === "U256" ? "setU256" : "setAddress";
+      
+      return `Mapping.${method}(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr}, ${valueResult.valueExpr})`;
     }
     
     case "map_get": {
       const keyResult = emitExpression(expr.key);
-      return `Mapping.get(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr})`;
+      
+      // Choose mapping method based on key type  
+      const method = expr.keyType === "U256" ? "getU256" : "getAddress";
+      
+      return `Mapping.${method}(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr})`;
     }
     case "map_get2": {
       const k1 = emitExpression(expr.key1);
       const k2 = emitExpression(expr.key2);
+      
+      // For now, Mapping2 handles both keys generically
+      // Could be enhanced later to support different key type combinations
       return `Mapping2.get(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr})`;
     }
     
@@ -185,6 +196,9 @@ function handleFallbackExpression(expr: IRExpression): string {
       const k1 = emitExpression(expr.key1);
       const k2 = emitExpression(expr.key2);
       const v  = emitExpression(expr.value);
+      
+      // For now, Mapping2 handles both keys generically 
+      // Could be enhanced later to support different key type combinations
       return `Mapping2.set(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr}, ${v.valueExpr})`;
     }
 
