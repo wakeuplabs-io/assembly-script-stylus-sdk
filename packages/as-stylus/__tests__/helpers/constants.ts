@@ -55,4 +55,8 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/custom-errors"),
     abi: path.join(ROOT_PATH, "/custom-errors/artifacts/abi/RevertContract721-abi.json"),
   },
+  ERC721: {
+    contract: path.join(ROOT_PATH, "/erc721"),
+    abi: path.join(ROOT_PATH, "/erc721/artifacts/abi/ERC721-abi.json"),
+  },
 } as const;
