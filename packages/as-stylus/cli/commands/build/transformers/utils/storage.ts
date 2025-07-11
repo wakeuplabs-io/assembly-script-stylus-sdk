@@ -1,9 +1,5 @@
-/**
- * Utilities for handling storage in the IR-to-AssemblyScript transformation
- */
-
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRVariable } from "@/cli/types/ir.types.js";
+import { IRContract, IRStruct, IRVariable } from "@/cli/types/ir.types.js";
 
 
 function formatSlotName(slot: number): string {
@@ -31,106 +27,149 @@ function store_${name}(ptr: usize): void {
 }`;
 }
 
-export function generateStorageImports(variables: IRVariable[], hasStructs: boolean = false): string {
+export function generateImports(contract: IRContract): string {
   const lines: string[] = ['// eslint-disable-next-line import/namespace'];
 
-  const hasSimple = variables.some(v => v.kind === "simple");
-  const hasMapping = variables.some(v => v.kind === "mapping");
-  const hasMapping2 = variables.some(v => v.kind === "mapping2");
+  const types = contract.symbolTable.getTypes();
+  const hasStructs = contract.structs && contract.structs.length > 0;
+  const hasEvents = contract.events && contract.events.length > 0;
+  const hasErrors = contract.errors && contract.errors.length > 0;
+
+  if (types.size === 0) {
+    return '';
+  }
+
+  const hasSimple = types.has(AbiType.String) || types.has(AbiType.Bool) || types.has(AbiType.Address) || types.has(AbiType.Uint256);
 
   if (hasSimple) {
-    lines.push(
-      'import {',
-      '  storage_load_bytes32,',
-      '  storage_cache_bytes32,',
-      '  storage_flush_cache,',
-      '} from "as-stylus/core/modules/hostio";',
-      'import { createStorageKey } from "as-stylus/core/modules/storage";',
-      'import { Msg } from "as-stylus/core/types/msg";',
-      'import { Boolean } from "as-stylus/core/types/boolean";',
-      'import { addTopic, emitTopics } from "as-stylus/core/modules/events";',
-    );
+    lines.push('import { malloc } from "as-stylus/core/modules/memory";');  
+    lines.push('import { createStorageKey } from "as-stylus/core/modules/storage";');
+    lines.push('import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "as-stylus/core/modules/hostio";');
   }
 
-  lines.push('import { malloc } from "as-stylus/core/modules/memory";');  
-  lines.push('import { Address } from "as-stylus/core/types/address";');
-  lines.push('import { U256 } from "as-stylus/core/types/u256";');
-  lines.push('import { Str } from "as-stylus/core/types/str";');
-  lines.push('import { Struct } from "as-stylus/core/types/struct";');
-  lines.push('import { loadU32BE } from "as-stylus/core/modules/endianness";');
-  lines.push('import { abort_with_data } from "as-stylus/core/modules/errors";');
+  if (hasErrors) {
+    lines.push('import { abort_with_data } from "as-stylus/core/modules/errors";');
+  }
 
-  if (hasMapping) {
-    lines.push('import { Mapping } from "as-stylus/core/types/mapping";');
-  }
-  if (hasMapping2) {
-    lines.push('import { Mapping2 } from "as-stylus/core/types/mapping2";');
-  }
-  
   if (hasStructs) {
     lines.push('import { Struct } from "as-stylus/core/types/struct";');
   }
+
+  if (hasEvents) {
+    lines.push('import { addTopic, emitTopics } from "as-stylus/core/modules/events";');
+  }
+
+  if (types.has(AbiType.Mapping)) {
+    lines.push('import { Mapping } from "as-stylus/core/types/mapping";');
+  }
+
+  if (types.has(AbiType.Mapping2)) {
+    lines.push('import { Mapping2 } from "as-stylus/core/types/mapping2";');
+  }
+
+  if (types.has(AbiType.Struct)) {
+    lines.push('import { Struct } from "as-stylus/core/types/struct";');
+  }
+
+  if (types.has(AbiType.Bool)) {
+    lines.push('import { Boolean } from "as-stylus/core/types/boolean";');
+  }
+
+  if (types.has(AbiType.Address)) {
+    lines.push('import { Address } from "as-stylus/core/types/address";');
+  }
+
+  if (types.has(AbiType.Uint256)) {
+    lines.push('import { U256 } from "as-stylus/core/types/u256";');
+  }
+
+  if (types.has(AbiType.String)) {
+    lines.push('import { Str } from "as-stylus/core/types/str";');
+    lines.push('import { loadU32BE } from "as-stylus/core/modules/endianness";');
+  }
+
+  lines.push('import { Msg } from "as-stylus/core/types/msg";');
 
   lines.push('');
   return lines.join("\n");
 }
 
-export function generateStorageHelpers(variables: IRVariable[], structs: any[] = []): string[] {
+function generateStructStorageFunctions(variable: IRVariable, struct: IRStruct): string[] {
   const lines: string[] = [];
-
-  const structMap = new Map(structs.map(s => [s.name, s]));
-
-  for (const v of variables) {
-    lines.push(slotConst(v.slot));
-
-    if (v.kind === "simple") {
-      if (v.type === AbiType.String) {
-        lines.push(`
-function load_${v.name}(): usize {
-  return Str.loadFrom(${formatSlotName(v.slot)});
-}
-
-function store_${v.name}(strPtr: usize): void {
-  Str.storeTo(${formatSlotName(v.slot)}, strPtr);
-}`.trim());
-      } else if (v.originalType && structMap.has(v.originalType)) {
-        const struct = structMap.get(v.originalType);
-        const numSlots = Math.ceil(struct.size / 32);
-        
-        let loadBody = `  const ptr = Struct.alloc(${struct.size});`;
-        for (let i = 0; i < numSlots; i++) {
-          const slotValue = v.slot + i;
-          const slotName = formatSlotName(slotValue);
-          const offset = i * 32;
-          loadBody += `\n  Struct.loadFromStorage(ptr${offset > 0 ? ` + ${offset}` : ''}, ${slotName});`;
-        }
-        loadBody += `\n  return ptr;`;
-        
-        lines.push(`
-function load_${v.name}(): usize {
+  const numSlots = Math.ceil(struct.size / 32);
+  
+  // Generate load function
+  let loadBody = `  const ptr = Struct.alloc(${struct.size});`;
+  for (let i = 0; i < numSlots; i++) {
+    const slotValue = variable.slot + i;
+    const slotName = formatSlotName(slotValue);
+    const offset = i * 32;
+    loadBody += `\n  Struct.loadFromStorage(ptr${offset > 0 ? ` + ${offset}` : ''}, ${slotName});`;
+  }
+  loadBody += `\n  return ptr;`;
+  
+  lines.push(`
+function load_${variable.name}(): usize {
 ${loadBody}
 }`);
 
-        // Store function para struct  
-        let storeBody = '';
-        for (let i = 0; i < numSlots; i++) {
-          const slotValue = v.slot + i;
-          const slotName = formatSlotName(slotValue);
-          const offset = i * 32;
-          storeBody += `  Struct.storeToStorage(ptr${offset > 0 ? ` + ${offset}` : ''}, ${slotName});\n`;
-        }
-        storeBody += `  Struct.flushStorage();`;
-        
-        lines.push(`
-function store_${v.name}(ptr: usize): void {
+  // Generate store function
+  let storeBody = '';
+  for (let i = 0; i < numSlots; i++) {
+    const slotValue = variable.slot + i;
+    const slotName = formatSlotName(slotValue);
+    const offset = i * 32;
+    storeBody += `  Struct.storeToStorage(ptr${offset > 0 ? ` + ${offset}` : ''}, ${slotName});\n`;
+  }
+  storeBody += `  Struct.flushStorage();`;
+  
+  lines.push(`
+function store_${variable.name}(ptr: usize): void {
 ${storeBody}
 }`);
-      } else if (v.type === AbiType.Struct || v.type === "struct") {
-        lines.push(loadSimple(v.name, v.slot));
-        lines.push(storeSimple(v.name, v.slot));
-      } else {
-        lines.push(loadSimple(v.name, v.slot));
-        lines.push(storeSimple(v.name, v.slot));
+
+  return lines;
+}
+
+export function generateStorageHelpers(variables: IRVariable[], structs: IRStruct[] = []): string[] {
+  const lines: string[] = [];
+  const structMap = new Map(structs.map(s => [s.name, s]));
+
+  for (const variable of variables) {
+    lines.push(slotConst(variable.slot));
+
+    if (variable.kind === "simple") {
+      // Handle different types of simple variables
+      switch (variable.type) {
+        case AbiType.String:
+          lines.push(`
+function load_${variable.name}(): usize {
+  return Str.loadFrom(${formatSlotName(variable.slot)});
+}
+
+function store_${variable.name}(strPtr: usize): void {
+  Str.storeTo(${formatSlotName(variable.slot)}, strPtr);
+}`.trim());
+          break;
+
+        case AbiType.Struct:
+          if (variable.originalType && structMap.has(variable.originalType)) {
+            const struct = structMap.get(variable.originalType);
+            if (struct) {
+              lines.push(...generateStructStorageFunctions(variable, struct));
+            }
+          } else {
+            // Fallback to simple storage
+            lines.push(loadSimple(variable.name, variable.slot));
+            lines.push(storeSimple(variable.name, variable.slot));
+          }
+          break;
+
+        default:
+          // Handle other types with simple storage
+          lines.push(loadSimple(variable.name, variable.slot));
+          lines.push(storeSimple(variable.name, variable.slot));
+          break;
       }
     }
   }

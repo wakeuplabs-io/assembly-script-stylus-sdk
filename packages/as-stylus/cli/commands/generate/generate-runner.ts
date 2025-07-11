@@ -1,8 +1,9 @@
 import fs from "fs";
-import { IRBuilder } from "../build/analyzers/shared/ir-builder.js";
-import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
-import { ProjectGenerator } from "./generator/project-generator.js";
+
 import { Logger } from "@/cli/services/logger.js";
+
+import { ProjectGenerator } from "./generator/project-generator.js";
+import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
 
 export class GenerateRunner {
   private errorManager: ErrorManager;

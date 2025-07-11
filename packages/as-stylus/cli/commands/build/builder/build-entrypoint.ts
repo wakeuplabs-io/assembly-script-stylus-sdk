@@ -1,7 +1,7 @@
 import path from "path";
 import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from "viem";
 
-import { AbiType, AbiInput } from "@/cli/types/abi.types.js";
+import { AbiType, AbiInput, Visibility, StateMutability } from "@/cli/types/abi.types.js";
 import { IRContract, IRMethod, IRStruct } from "@/cli/types/ir.types.js";
 import { writeFile } from "@/cli/utils/fs.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
@@ -19,10 +19,6 @@ const MEMORY_OFFSETS = {
   PADDING_MASK: 31,
 } as const;
 
-const VISIBILITY_TYPES = {
-  PUBLIC_EXTERNAL: ['public', 'external', 'nonpayable'] as const,
-  READ_ONLY: ['pure', 'view'] as const,
-} as const;
 
 const INDENTATION = {
   BODY: '    ',
@@ -174,12 +170,12 @@ function generateMethodEntry(method: IRMethod, contract: IRContract): { import: 
   
   const { name, visibility } = method;
   
-  if (!VISIBILITY_TYPES.PUBLIC_EXTERNAL.includes(visibility as any)) {
+  if (!Object.values(Visibility).includes(visibility as Visibility)) {
     throw new Error(`Method ${name} has invalid visibility: ${visibility}`);
   }
 
   const selector = getFunctionSelector(method);
-  const importStatement = `import { ${name} } from "./contract.transformed";`;
+  const importStatement = `import { ${name} } from "./${contract.path}.transformed";`;
   
   const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
   const callLogic = generateMethodCallLogic(method, callArgs, contract);
@@ -193,7 +189,7 @@ function generateMethodEntry(method: IRMethod, contract: IRContract): { import: 
   return { import: importStatement, entry };
 }
 
-function generateConstructorEntry(constructor: { inputs: AbiInput[] }): { imports: string[]; entry: string } {
+function generateConstructorEntry(constructor: { inputs: AbiInput[] }, contractPath: string): { imports: string[]; entry: string } {
   const { inputs } = constructor;
 
   const { argLines, callArgs } = generateArgsLoadBlock(inputs);
@@ -201,8 +197,8 @@ function generateConstructorEntry(constructor: { inputs: AbiInput[] }): { import
   
   const deployMethod: IRMethod = {
     name: "deploy",
-    visibility: "public",
-    stateMutability: "nonpayable",
+    visibility: Visibility.PUBLIC,
+    stateMutability: StateMutability.NONPAYABLE,
     inputs: inputs.map(input => ({
       name: input.name,
       type: convertType(input.type),
@@ -213,7 +209,7 @@ function generateConstructorEntry(constructor: { inputs: AbiInput[] }): { import
   
   const deploySig = getFunctionSelector(deployMethod);
   const imports = [
-    `import { deploy } from "./contract.transformed";`,
+    `import { deploy } from "./${contractPath}.transformed";`,
   ];
 
   const callLine = `deploy(${callArgs.map(arg => arg.name).join(", ")}); return 0;`;
@@ -232,7 +228,7 @@ function processContractMethods(contract: IRContract): CodeBlock {
   const entries: string[] = [];
 
   for (const method of contract.methods) {
-    if (VISIBILITY_TYPES.PUBLIC_EXTERNAL.includes(method.visibility as any)) {
+    if ([Visibility.PUBLIC, Visibility.EXTERNAL, StateMutability.NONPAYABLE].includes(method.visibility)) {
       try {
         const { import: methodImport, entry } = generateMethodEntry(method, contract);
         imports.push(methodImport);
@@ -253,7 +249,7 @@ function processConstructor(contract: IRContract): CodeBlock {
   }
 
   try {
-    const { imports, entry } = generateConstructorEntry(contract.constructor);
+    const { imports, entry } = generateConstructorEntry(contract.constructor, contract.path);
     return { imports, entries: [entry] };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -294,7 +290,7 @@ export function buildEntrypoint(userFilePath: string, contract: IRContract): voi
     indexTemplate = indexTemplate.replace("// @logic_imports", imports);
     indexTemplate = indexTemplate.replace("// @user_entrypoint", entrypointBody);
 
-    const outputPath = path.join(contractBasePath, "entrypoint.ts");
+    const outputPath = path.join(contractBasePath, `${contract.path}.entrypoint.ts`);
     writeFile(outputPath, indexTemplate);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

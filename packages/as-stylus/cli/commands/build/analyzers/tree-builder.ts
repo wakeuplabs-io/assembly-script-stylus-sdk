@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 
-import { Logger } from "@/cli/services/logger.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 import { INTERMEDIATE_REPRESENTATION_PATH } from "@/cli/utils/constants.js";
 
@@ -64,7 +63,6 @@ export function exportContractToJSON(contract: IRContract, outputDir?: string): 
   const indexFilePath = path.join(dir, `${contract.name}-index.json`);
   fs.writeFileSync(indexFilePath, JSON.stringify(indexData, null, 2));
 
-  Logger.getInstance().info(`Contract IR exported as JSON to: ${contractFilePath}`);
   return contractFilePath;
 }
 
@@ -125,7 +123,6 @@ export function generateContractTree(contract: IRContract): any {
   const treeFilePath = path.join(dir, `${contract.name}-tree.json`);
   fs.writeFileSync(treeFilePath, JSON.stringify(tree, null, 2));
 
-  Logger.getInstance().info(`Contract tree structure exported to: ${treeFilePath}`);
   return tree;
 }
 

@@ -1,6 +1,7 @@
 import { Command } from "commander";
-import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
+
 import { GenerateRunner } from "./generate-runner.js";
+import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
 
 export function runGenerate(projectName: string) {
   const contractsRoot = process.cwd();

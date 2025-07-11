@@ -4,52 +4,53 @@ import path from "path";
 import { Logger } from "@/cli/services/logger.js";
 import { ProjectFinder } from "@/cli/services/project-finder.js";
 import { IRContract } from "@/cli/types/ir.types.js";
+import { BUILD_PATH } from "@/cli/utils/constants.js";
 
 import { applyAnalysis } from "./analyzers/index.js";
 import { ErrorManager } from "./analyzers/shared/error-manager.js";
-import { buildProject } from "./builder/index.js";
-import { transformFromIR } from "./transformers/index.js";
 
 export class BuildRunner {
   private projectFinder: ProjectFinder;
-  private buildPath: string;
+  private contractPath: string;
 
-  constructor(contractsRoot: string, buildPath: string, errorManager: ErrorManager) {
+  constructor(contractsRoot: string, contractPath: string, errorManager: ErrorManager) {
+    this.contractPath = contractPath;
     this.projectFinder = new ProjectFinder(contractsRoot, errorManager);
-    this.buildPath = buildPath;
+    fs.rmSync(path.join(contractsRoot, BUILD_PATH), { recursive: true, force: true });
   }
 
   validate(): boolean {
     return this.projectFinder.validateProjects();
   }
 
-  buildIR(): void {
+  private getContractName(contractPath: string): string {
+    return contractPath.split("/").pop()!.replace(".ts", "");
+  }
+
+  buildIR(): { ir: IRContract, transformedPath: string, projectTargetPath: string } {
     const project = this.projectFinder.getCurrentProject();
 
-    const contractPaths = this.projectFinder.getAllContractPaths(project);
     const projectName = project.split("/").pop()!;
 
-    contractPaths.forEach((contractPath) => {
-      const projectTargetPath = path.join(path.dirname(project), projectName, this.buildPath);
-      const contractName = contractPath.split("/").pop()!;
-      const transformedPath = path.join(
-        projectTargetPath,
-        `${contractName.replace(".ts", "")}.transformed.ts`
-      );
+    const projectTargetPath = path.join(path.dirname(project), projectName, BUILD_PATH);
+    const contractName = this.getContractName(this.contractPath);
+    const transformedPath = path.join(
+      projectTargetPath,
+      `${contractName}.transformed.ts`
+    );
 
-      if (!fs.existsSync(projectTargetPath)) {
-        Logger.getInstance().info(`Creating project: ${projectName}`);
-        fs.mkdirSync(projectTargetPath, { recursive: true });
-      }
+    if (!fs.existsSync(projectTargetPath)) {
+      fs.mkdirSync(projectTargetPath, { recursive: true });
+    }
+    
+    Logger.getInstance().info(`Processing: ${this.contractPath} -> ${transformedPath}`);
+    fs.copyFileSync(this.contractPath, transformedPath);
+    
+    return {
+      ir: applyAnalysis(contractName, transformedPath),
+      transformedPath,
+      projectTargetPath,
+    };
 
-      Logger.getInstance().info(`Processing: ${contractPath} -> ${transformedPath}`);
-      fs.copyFileSync(contractPath, transformedPath);
-
-      const contract: IRContract = applyAnalysis(transformedPath);
-      buildProject(transformedPath, contract);
-      transformFromIR(projectTargetPath, contract);
-
-      Logger.getInstance().info(`Generated contract project at: ${projectTargetPath}`);
-    });
   }
 } 
