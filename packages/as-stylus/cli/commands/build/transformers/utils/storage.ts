@@ -31,7 +31,6 @@ export function generateImports(contract: IRContract): string {
   const lines: string[] = ['// eslint-disable-next-line import/namespace'];
 
   const types = contract.symbolTable.getTypes();
-  const hasStructs = contract.structs && contract.structs.length > 0;
   const hasEvents = contract.events && contract.events.length > 0;
   const hasErrors = contract.errors && contract.errors.length > 0;
 
@@ -90,6 +89,7 @@ export function generateImports(contract: IRContract): string {
   }
 
   lines.push('import { Msg } from "as-stylus/core/types/msg";');
+  lines.push('import { malloc } from "as-stylus/core/modules/memory";');
 
   lines.push('');
   return lines.join("\n");

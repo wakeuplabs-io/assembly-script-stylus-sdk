@@ -171,7 +171,6 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
     },
 
     writeRaw: async (walletClient: WalletClient, functionName: string, args: ContractArgs = []) => {
-      console.log("writeRaw", functionName, args);
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ write calldata:", data);
 
