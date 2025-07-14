@@ -67,10 +67,6 @@ export function generateImports(contract: IRContract): string {
     lines.push('import { Mapping2 } from "as-stylus/core/types/mapping2";');
   }
 
-  if (types.has(AbiType.Struct)) {
-    lines.push('import { Struct } from "as-stylus/core/types/struct";');
-  }
-
   if (types.has(AbiType.Bool)) {
     lines.push('import { Boolean } from "as-stylus/core/types/boolean";');
   }
@@ -87,7 +83,7 @@ export function generateImports(contract: IRContract): string {
     lines.push('import { Str } from "as-stylus/core/types/str";');
     lines.push('import { loadU32BE } from "as-stylus/core/modules/endianness";');
   }
-
+  lines.push('import { Struct } from "as-stylus/core/types/struct";');
   lines.push('import { Msg } from "as-stylus/core/types/msg";');
   lines.push('import { malloc } from "as-stylus/core/modules/memory";');
 
