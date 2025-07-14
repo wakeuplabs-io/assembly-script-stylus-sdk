@@ -87,13 +87,10 @@ export class Address {
     return dst;
   }
 
-  /** `true` si la cuenta tiene byte-code desplegado. */
   static hasCode(addrPtr: usize): boolean {
-    // 1) Obtener codehash
     const hashPtr = malloc(32);
     account_codehash(addrPtr, hashPtr);
 
-    // 2) ¿hash == 0…0?
     let allZero = true;
     for (let i: u32 = 0; i < 32; ++i) {
       if (load<u8>(hashPtr + i) != 0) {
@@ -103,13 +100,12 @@ export class Address {
     }
     if (allZero) return false;
 
-    // 3) ¿hash == keccak256("") ?
     for (let i: u32 = 0; i < 32; ++i) {
       if (load<u8>(hashPtr + i) != Address.EMPTY_HASH[i]) {
-        return true; // distinto ⇒ hay código
+        return true;
       }
     }
-    return false; // igual al hash “vacío”
+    return false;
   }
 }
 
