@@ -1,6 +1,6 @@
 import { MethodDeclaration } from "ts-morph";
 
-import { VISIBILITY_DECORATORS, STATE_MUTABILITY_DECORATORS } from "@/cli/types/abi.types.js";
+import { StateMutability, Visibility } from "@/cli/types/abi.types.js";
 
 import { convertType } from "../../builder/build-abi.js";
 import { ERROR_CODES } from "../../errors/codes.js";
@@ -21,10 +21,8 @@ export class MethodSemanticValidator extends BaseValidator {
     let hasErrors = false;
 
     const decorators = this.method.getDecorators();
-    const visDecorators = decorators.filter((d) => VISIBILITY_DECORATORS.includes(d.getName()));
-    const stateDecorators = decorators.filter((d) =>
-      STATE_MUTABILITY_DECORATORS.includes(d.getName()),
-    );
+    const visDecorators = decorators.filter((d) => [Visibility.PUBLIC, Visibility.EXTERNAL].includes(d.getName() as Visibility));
+    const stateDecorators = decorators.filter((d) => [StateMutability.PURE, StateMutability.VIEW, StateMutability.NONPAYABLE, StateMutability.PAYABLE].includes(d.getName() as StateMutability));
 
     if (visDecorators.length > 1) {
       this.addSemanticError(ERROR_CODES.MULTIPLE_VISIBILITY_DECORATORS_FOUND, [visDecorators.map((d) => d.getName()).join(", ")]);

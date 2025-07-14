@@ -1,12 +1,13 @@
 import { config } from "dotenv";
 import path from "path";
+import { Hex } from "viem";
 
 config();
 
 export const ROOT = path.resolve(__dirname, "../../..");
 export const RPC_URL = process.env.RPC_URL ?? "http://localhost:8547";
-export const PRIVATE_KEY = process.env.PRIVATE_KEY!;
-export const USER_B_PRIVATE_KEY = process.env.USER_B_PRIVATE_KEY!;
+export const PRIVATE_KEY = process.env.PRIVATE_KEY! as Hex;
+export const USER_B_PRIVATE_KEY = process.env.USER_B_PRIVATE_KEY! as Hex;
 
 export const DEPLOY_TIMEOUT = 120_000;
 export const CONTRACT_ADDRESS_REGEX = /deployed code at address:\s*(0x[0-9a-fA-F]{40})/i;
@@ -58,5 +59,9 @@ export const CONTRACT_PATHS = {
   ERC721: {
     contract: path.join(ROOT_PATH, "/erc721"),
     abi: path.join(ROOT_PATH, "/erc721/artifacts/abi/ERC721-abi.json"),
+  },
+  INHERITANCE: {
+    contract: path.join(ROOT_PATH, "/inheritance"),
+    abi: path.join(ROOT_PATH, "/inheritance/artifacts/abi/Child-abi.json"),
   },
 } as const;

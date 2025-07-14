@@ -1,7 +1,7 @@
 import path from "path";
 
 import { ctx } from "@/cli/shared/compilation-context.js";
-import { AbiItem, AbiInput, AbiOutput, AbiType, AbiComponent } from "@/cli/types/abi.types.js";
+import { AbiItem, AbiInput, AbiOutput, AbiType, StateMutability , AbiComponent } from "@/cli/types/abi.types.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
@@ -9,7 +9,7 @@ import { writeFile } from "@/cli/utils/fs.js";
 import { extractStructName, convertBasicType } from "../analyzers/struct/struct-utils.js";
 import { generateErrorABI } from "../transformers/error/error-transformer.js";
 
-export function buildAbi(targetPath: string, contract: IRContract) {
+const createAbiRepresentation = (contract: IRContract, isParent: boolean = false): AbiItem[] => {
   const abi: AbiItem[] = [];
 
   for (const method of contract.methods) {
@@ -44,13 +44,13 @@ export function buildAbi(targetPath: string, contract: IRContract) {
     });
   }
 
-  if (contract.constructor) {
+  if (contract.constructor && !isParent) {
      // TODO: rethink this
     abi.push({
       type: "function",
       name: "deploy",
-      stateMutability: "nonpayable",
-      inputs: contract.constructor.inputs.map((param) => {
+stateMutability: StateMutability.NONPAYABLE,
+inputs: contract.constructor.inputs.map((param) => {
         const typeToConvert = param.originalType || param.type;
         const converted = convertTypeWithComponents(typeToConvert as string);
         return {
@@ -66,6 +66,20 @@ export function buildAbi(targetPath: string, contract: IRContract) {
   // Add custom errors to ABI
   const errorABI = generateErrorABI(contract);
   abi.push(...errorABI);
+
+  return abi;
+};
+
+export function buildAbi(targetPath: string, contract: IRContract) {
+  const abi: AbiItem[] = [];
+
+  const abiRepresentation = createAbiRepresentation(contract);
+  abi.push(...abiRepresentation);
+
+  if (contract.parent) {
+    const parentAbi = createAbiRepresentation(contract.parent, true);
+    abi.push(...parentAbi);
+  }
 
   const abiPath = path.join(targetPath, ABI_PATH, `${contract.name}-abi.json`);
   writeFile(abiPath, JSON.stringify(abi, null, 2));

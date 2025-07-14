@@ -71,6 +71,12 @@ const SEMANTIC_ERRORS: Record<string, SemanticError> = {
     message: ([methodName]: string[]) => `Method "${methodName}" has duplicate name in class`,
     description: 'A method has the same name as another method in the same class.',
     suggestedFix: 'Rename the method to avoid conflicts.'
+  },
+  [ERROR_CODES.MULTIPLE_INHERITANCE_NOT_SUPPORTED]: {
+    code: ERROR_CODES.MULTIPLE_INHERITANCE_NOT_SUPPORTED,
+    message: () => 'Multiple inheritance is not supported',
+    description: 'A contract class has multiple inheritance.',
+    suggestedFix: 'Ensure the contract class has only one inheritance.'
   }
 };
 

@@ -42,7 +42,7 @@ describe("if", () => {
       }`,
     );
 
-    const analyzer = new ContractIRBuilder(sourceFile);
+    const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
     analyzer.validateAndBuildIR();
 
     const errorManager = analyzer.errorManager;

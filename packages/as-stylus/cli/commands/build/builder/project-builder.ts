@@ -16,11 +16,13 @@ import { ErrorManager } from "../analyzers/shared/error-manager.js";
 export class ProjectBuilder {
   private userIndexPath: string;
   private contract: IRContract;
+  private allContracts: IRContract[];
   private errorManager: ErrorManager;
 
-  constructor(userIndexPath: string, contract: IRContract, errorManager: ErrorManager) {
+  constructor(userIndexPath: string, contract: IRContract, allContracts: IRContract[], errorManager: ErrorManager) {
     this.userIndexPath = userIndexPath;
     this.contract = contract;
+    this.allContracts = allContracts;
     this.errorManager = errorManager;
   }
 

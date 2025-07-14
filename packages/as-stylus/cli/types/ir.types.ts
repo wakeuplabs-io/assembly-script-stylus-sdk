@@ -1,5 +1,6 @@
-import { AbiType, AbiVisibility, AbiStateMutability, AbiInput, AbiOutput } from "./abi.types.js";
+import { AbiType, AbiInput, AbiOutput, StateMutability, Visibility } from "./abi.types.js";
 import { SupportedType } from "../commands/build/analyzers/shared/supported-types.js";
+import { SymbolTableStack } from "../commands/build/analyzers/shared/symbol-table.js";
 
 // Statements// ───────────────────────
 // Base IR node types
@@ -189,8 +190,8 @@ export type IRArgument = { name: string; type: AbiType; originalType?: string };
 
 export type IRMethod = {
   name: string;
-  visibility: AbiVisibility;
-  stateMutability: AbiStateMutability;
+  visibility: Visibility;
+  stateMutability: StateMutability;
   inputs: AbiInput[];
   outputs: AbiOutput[];
   ir: IRStatement[];
@@ -259,11 +260,14 @@ export type IRRevert = {
 };
 
 export interface IRContract {
+  path: string;
   name: string;
+  parent?: IRContract;
   methods: IRMethod[];
   constructor?: IRConstructor;
   storage: IRVariable[];
   events?: IREvent[];
   structs?: IRStruct[];
   errors?: IRErrorDecl[];
+  symbolTable: SymbolTableStack;
 }

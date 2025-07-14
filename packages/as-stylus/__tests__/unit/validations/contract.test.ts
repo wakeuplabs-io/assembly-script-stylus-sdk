@@ -18,7 +18,7 @@ describe("Syntax Validation - Contract", () => {
     describe("Syntax Errors", () => {
       it("should detect empty source file", () => {
         const sourceFile = project.createSourceFile("test.ts", "");
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;
@@ -31,7 +31,7 @@ describe("Syntax Validation - Contract", () => {
 
       it("should detect missing class declarations", () => {
         const sourceFile = project.createSourceFile("test.ts", "const x = 1;");
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;
@@ -54,7 +54,7 @@ describe("Syntax Validation - Contract", () => {
           }
           `,
         );
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;
@@ -82,7 +82,7 @@ describe("Syntax Validation - Contract", () => {
           }
           `,
         );
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;

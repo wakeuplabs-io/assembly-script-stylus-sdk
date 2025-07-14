@@ -27,7 +27,8 @@ export class LintRunner {
     contracts.forEach((contractPath) => {
       this.logger.info(`Linting: ${contractPath}`);
 
-      const contract: IRContract = applyAnalysis(contractPath);
+      const contractName = contractPath.split("/").pop()!.replace(".ts", "");
+      const contract: IRContract = applyAnalysis(contractName, contractPath);
       this.validateContract(contract, contractPath);
     });
 

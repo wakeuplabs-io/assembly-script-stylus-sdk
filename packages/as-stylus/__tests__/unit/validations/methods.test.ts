@@ -23,7 +23,7 @@ describe("Syntax Validation - Methods", () => {
           "test.ts",
           "class MyContract { @External @Public static method() {} }",
         );
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;
@@ -39,7 +39,7 @@ describe("Syntax Validation - Methods", () => {
           "test.ts",
           "class MyContract { @View @Pure static method() {} }",
         );
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;
@@ -55,7 +55,7 @@ describe("Syntax Validation - Methods", () => {
           "test.ts",
           "class MyContract { @Public static method(): InvalidType {} }",
         );
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;
@@ -69,7 +69,7 @@ describe("Syntax Validation - Methods", () => {
           "test.ts",
           "class MyContract { @Public static method(): boolean { return 1; } }",
         );
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;
@@ -83,7 +83,7 @@ describe("Syntax Validation - Methods", () => {
           "test.ts",
           "class MyContract { @Public static method(): boolean {} }",
         );
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;
@@ -99,7 +99,7 @@ describe("Syntax Validation - Methods", () => {
           "test.ts",
           "class MyContract { @Public static method() {} @Public static method() {} }",
         );
-        const analyzer = new ContractIRBuilder(sourceFile);
+        const analyzer = new ContractIRBuilder(sourceFile, "MyContract");
         analyzer.validateAndBuildIR();
 
         const errorManager = analyzer.errorManager;

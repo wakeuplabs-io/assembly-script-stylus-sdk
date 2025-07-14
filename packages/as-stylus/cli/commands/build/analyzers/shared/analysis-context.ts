@@ -29,7 +29,7 @@ export class AnalysisContext {
     this.symbolTable.declareFunction("Address.copy", { name: "Address.copy", parameters: [], returnType: AbiType.Address });
 
     // Address
-    this.symbolTable.declareFunction("AddressFactory.create", { name: "AddressFactory.create", parameters: [], returnType: AbiType.Address });
+    this.symbolTable.declareFunction("AddressFactory.create", { name: "AddressFactory.create",  parameters: [], returnType: AbiType.Address });
     this.symbolTable.declareFunction("Address.equals", { name: "Address.equals", parameters: [], returnType: AbiType.Bool });
     this.symbolTable.declareFunction("Address.isZero", { name: "Address.isZero", parameters: [], returnType: AbiType.Bool });
   }

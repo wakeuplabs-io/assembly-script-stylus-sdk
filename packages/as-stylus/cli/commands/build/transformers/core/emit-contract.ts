@@ -8,7 +8,7 @@ import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
 import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
-import { generateStorageImports, generateStorageHelpers } from "../utils/storage.js";
+import { generateImports, generateStorageHelpers } from "../utils/storage.js";
 
 interface ArgumentSignature {
   argsSignature: string;
@@ -72,7 +72,7 @@ export function emitContract(contract: IRContract): string {
   const parts: string[] = [];
 
   // Add imports
-  parts.push(generateStorageImports(contract.storage, contract.structs && contract.structs.length > 0));
+  parts.push(generateImports(contract));
 
   // Add storage slots
   parts.push(...generateStorageHelpers(contract.storage, contract.structs || []));

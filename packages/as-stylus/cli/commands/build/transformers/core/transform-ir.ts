@@ -28,7 +28,7 @@ export function transformFromIR(outDir: string, contract: IRContract) {
 
   try {
     const contractTs = emitContract(contract);
-    fs.writeFileSync(path.join(outDir, "contract.transformed.ts"), contractTs);
+    fs.writeFileSync(path.join(outDir, `${contract.path}.transformed.ts`), contractTs);
   } finally {
     if (structTransformer && typeTransformers["Struct"]) {
       delete typeTransformers["Struct"];
