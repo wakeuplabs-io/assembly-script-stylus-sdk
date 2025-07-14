@@ -1,11 +1,15 @@
 /******************************************************************
  * Address — low-level (20-byte big-endian buffer)
  ******************************************************************/
+import { account_codehash } from "../modules/hostio";
 import { malloc } from "../modules/memory";
 
 export class Address {
   static ADDRESS_SIZE: u32 = 32;
-
+  private static EMPTY_HASH: u8[] = [
+    0xc5, 0xd2, 0x46, 0x01, 0x86, 0xf7, 0x23, 0x3c, 0x92, 0x7e, 0x7d, 0xb2, 0xdc, 0xc7, 0x03, 0xc0,
+    0xe5, 0x00, 0xb6, 0x53, 0xca, 0x82, 0x27, 0x3b, 0x7b, 0xfa, 0xd8, 0x04, 0x5d, 0x85, 0xa4, 0x70,
+  ];
   /*──────── helpers ────────*/
   static create(): usize {
     const ptr = malloc(32);
@@ -81,6 +85,27 @@ export class Address {
       store<u8>(dst + i, load<u8>(src + i));
     }
     return dst;
+  }
+
+  static hasCode(addrPtr: usize): boolean {
+    const hashPtr = malloc(32);
+    account_codehash(addrPtr, hashPtr);
+
+    let allZero = true;
+    for (let i: u32 = 0; i < 32; ++i) {
+      if (load<u8>(hashPtr + i) != 0) {
+        allZero = false;
+        break;
+      }
+    }
+    if (allZero) return false;
+
+    for (let i: u32 = 0; i < 32; ++i) {
+      if (load<u8>(hashPtr + i) != Address.EMPTY_HASH[i]) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

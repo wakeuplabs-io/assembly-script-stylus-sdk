@@ -31,7 +31,6 @@ export function generateImports(contract: IRContract): string {
   const lines: string[] = ['// eslint-disable-next-line import/namespace'];
 
   const types = contract.symbolTable.getTypes();
-  const hasStructs = contract.structs && contract.structs.length > 0;
   const hasEvents = contract.events && contract.events.length > 0;
   const hasErrors = contract.errors && contract.errors.length > 0;
 
@@ -42,17 +41,18 @@ export function generateImports(contract: IRContract): string {
   const hasSimple = types.has(AbiType.String) || types.has(AbiType.Bool) || types.has(AbiType.Address) || types.has(AbiType.Uint256);
 
   if (hasSimple) {
-    lines.push('import { malloc } from "as-stylus/core/modules/memory";');  
-    lines.push('import { createStorageKey } from "as-stylus/core/modules/storage";');
-    lines.push('import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "as-stylus/core/modules/hostio";');
+    lines.push(
+      'import {',
+      '  storage_load_bytes32,',
+      '  storage_cache_bytes32,',
+      '  storage_flush_cache,',
+      '} from "as-stylus/core/modules/hostio";',
+      'import { createStorageKey } from "as-stylus/core/modules/storage";',
+    );
   }
 
   if (hasErrors) {
     lines.push('import { abort_with_data } from "as-stylus/core/modules/errors";');
-  }
-
-  if (hasStructs) {
-    lines.push('import { Struct } from "as-stylus/core/types/struct";');
   }
 
   if (hasEvents) {
@@ -65,10 +65,6 @@ export function generateImports(contract: IRContract): string {
 
   if (types.has(AbiType.Mapping2)) {
     lines.push('import { Mapping2 } from "as-stylus/core/types/mapping2";');
-  }
-
-  if (types.has(AbiType.Struct)) {
-    lines.push('import { Struct } from "as-stylus/core/types/struct";');
   }
 
   if (types.has(AbiType.Bool)) {
@@ -87,8 +83,9 @@ export function generateImports(contract: IRContract): string {
     lines.push('import { Str } from "as-stylus/core/types/str";');
     lines.push('import { loadU32BE } from "as-stylus/core/modules/endianness";');
   }
-
+  lines.push('import { Struct } from "as-stylus/core/types/struct";');
   lines.push('import { Msg } from "as-stylus/core/types/msg";');
+  lines.push('import { malloc } from "as-stylus/core/modules/memory";');
 
   lines.push('');
   return lines.join("\n");
