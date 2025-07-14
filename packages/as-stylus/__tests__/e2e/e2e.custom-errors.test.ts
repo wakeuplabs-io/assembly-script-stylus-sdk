@@ -14,35 +14,13 @@ import {
   PRIVATE_KEY,
 } from "../helpers/constants.js";
 import { setupE2EContract } from "../helpers/setup.js";
-import { handleDeploymentError } from "../helpers/utils.js";
+import { expectRevert, handleDeploymentError } from "../helpers/utils.js";
 
 const walletClient: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
 
 const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.CUSTOM_ERRORS;
 
 let contract: ReturnType<typeof contractService>;
-
-type DecodedError = {
-  errorName: string;
-  args: unknown[];
-};
-
-async function expectRevert(functionName: string): Promise<DecodedError> {
-  const result = await contract.readRaw(functionName, []);
-
-  if (result.success) {
-    throw new Error("Expected revert but call succeeded");
-  }
-
-  if (!result.error) {
-    throw new Error("Expected error but none found");
-  }
-
-  return {
-    errorName: result.error.name,
-    args: result.error.args,
-  };
-}
 
 beforeAll(async () => {
   try {
@@ -60,43 +38,43 @@ describe("Custom Errors Contract Tests", () => {
   });
 
   it("ERC721InvalidOwner", async () => {
-    const dec = await expectRevert("errInvalidOwner");
+    const dec = await expectRevert(contract, "errInvalidOwner");
     expect(dec.errorName).toBe("ERC721InvalidOwner");
   });
 
   it("ERC721NonexistentToken", async () => {
-    const dec = await expectRevert("errNonexistentToken");
+    const dec = await expectRevert(contract, "errNonexistentToken");
     expect(dec.errorName).toBe("ERC721NonexistentToken");
   });
 
   it("ERC721InvalidSender", async () => {
-    const dec = await expectRevert("errInvalidSender");
+    const dec = await expectRevert(contract, "errInvalidSender");
     expect(dec.errorName).toBe("ERC721InvalidSender");
   });
 
   it("ERC721InvalidReceiver", async () => {
-    const dec = await expectRevert("errInvalidReceiver");
+    const dec = await expectRevert(contract, "errInvalidReceiver");
     expect(dec.errorName).toBe("ERC721InvalidReceiver");
   });
 
   it("ERC721InvalidApprover", async () => {
-    const dec = await expectRevert("errInvalidApprover");
+    const dec = await expectRevert(contract, "errInvalidApprover");
     expect(dec.errorName).toBe("ERC721InvalidApprover");
   });
 
   it("ERC721InvalidOperator", async () => {
-    const dec = await expectRevert("errInvalidOperator");
+    const dec = await expectRevert(contract, "errInvalidOperator");
     expect(dec.errorName).toBe("ERC721InvalidOperator");
   });
 
   it("ERC721IncorrectOwner (multi param)", async () => {
-    const dec = await expectRevert("errIncorrectOwner");
+    const dec = await expectRevert(contract, "errIncorrectOwner");
     expect(dec.errorName).toBe("ERC721IncorrectOwner");
     expect(dec.args.length).toBe(3);
   });
 
   it("ERC721InsufficientApproval (multi param)", async () => {
-    const dec = await expectRevert("errInsufficientApproval");
+    const dec = await expectRevert(contract, "errInsufficientApproval");
     expect(dec.errorName).toBe("ERC721InsufficientApproval");
     expect(dec.args.length).toBe(2);
   });

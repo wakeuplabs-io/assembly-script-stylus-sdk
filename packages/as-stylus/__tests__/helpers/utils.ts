@@ -2,6 +2,10 @@
 //  Utils — build / deploy / call helpers for Stylus e2e tests
 // ---------------------------------------------------------------
 import { readFileSync } from "fs";
+import { encodeFunctionData } from "viem";
+
+import { publicClient } from "./client.js";
+import { DecodedError } from "./types.js";
 
 export {
   ROOT,
@@ -47,4 +51,46 @@ export function handleDeploymentError(error: unknown): never {
   }
 
   throw new Error(`Contract deployment failed: ${errorMessage}`);
+}
+
+export async function expectRevert(
+  contract: any,
+  functionName: string,
+  args: any[] = [],
+): Promise<DecodedError> {
+  const result = await contract.readRaw(functionName, args);
+
+  if (result.success) {
+    throw new Error("Expected revert but call succeeded");
+  }
+
+  if (!result.error) {
+    throw new Error("Expected error but none found");
+  }
+
+  return {
+    errorName: result.error.name,
+    args: result.error.args,
+  };
+}
+
+export async function expectWriteRevert(
+  contract: any,
+  functionName: string,
+  args: any[] = [],
+): Promise<DecodedError> {
+  const result = await contract.writeRaw(functionName, args);
+
+  if (result.success) {
+    throw new Error("Expected revert but call succeeded");
+  }
+
+  if (!result.error) {
+    throw new Error("Expected error but none found");
+  }
+
+  return {
+    errorName: result.error.name,
+    args: result.error.args,
+  };
 }

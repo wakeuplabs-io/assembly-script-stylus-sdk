@@ -3,6 +3,7 @@ export interface Address {
   toString(): string;
   isZero(): boolean;
   equals(other: Address): boolean;
+  hasCode(): boolean;
 }
 
 export interface AddressFactory {

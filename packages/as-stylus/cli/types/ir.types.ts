@@ -52,15 +52,42 @@ export type IRExpressionBinary = {
 // Mapping IR extensions
 // ───────────────────────
 
-export type IRMapGet = { kind: "map_get"; slot: number; key: IRExpression };
-export type IRMapSet = { kind: "map_set"; slot: number; key: IRExpression; value: IRExpression };
-export type IRMapGet2 = { kind: "map_get2"; slot: number; key1: IRExpression; key2: IRExpression };
+export type IRMapGet = {
+  kind: "map_get";
+  slot: number;
+  key: IRExpression;
+  keyType: string;
+  valueType: string;
+};
+
+export type IRMapSet = {
+  kind: "map_set";
+  slot: number;
+  key: IRExpression;
+  value: IRExpression;
+  keyType: string;
+  valueType: string;
+};
+
+export type IRMapGet2 = {
+  kind: "map_get2";
+  slot: number;
+  key1: IRExpression;
+  key2: IRExpression;
+  keyType1: string;
+  keyType2: string;
+  valueType: string;
+};
+
 export type IRMapSet2 = {
   kind: "map_set2";
   slot: number;
   key1: IRExpression;
   key2: IRExpression;
   value: IRExpression;
+  keyType1: string;
+  keyType2: string;
+  valueType: string;
 };
 
 // ───────────────────────

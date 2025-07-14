@@ -23,6 +23,7 @@ export enum AbiType {
   Uint256 = "uint256",
   Int256 = "int256",
   Bytes32 = "bytes32",
+  Bytes = "bytes",
   Struct = "struct",
   Array = "array",
   Tuple = "tuple",

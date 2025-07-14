@@ -226,7 +226,6 @@ function generateConstructorEntry(contractName: string, constructor: { inputs: A
 function processContractMethods(contract: IRContract): CodeBlock {
   const imports: string[] = [];
   const entries: string[] = [];
-
   for (const method of contract.methods) {
     if ([Visibility.PUBLIC, Visibility.EXTERNAL, StateMutability.NONPAYABLE].includes(method.visibility)) {
       try {

@@ -31,3 +31,8 @@ export interface StructInfo {
   flag: boolean;
   value2: bigint;
 }
+
+export type DecodedError = {
+  errorName: string;
+  args: unknown[];
+};

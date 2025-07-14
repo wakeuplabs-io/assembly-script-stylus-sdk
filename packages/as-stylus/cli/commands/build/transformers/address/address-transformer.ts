@@ -4,9 +4,9 @@ import { AddressCopyHandler } from "./handlers/copy-handler.js";
 import { AddressCreateHandler }   from "./handlers/create-handler.js";
 import { AddressEqualsHandler } from "./handlers/equals-handler.js";
 import { AddressFromStringHandler } from "./handlers/from-string-handler.js";
+import { AddressHasCodeHandler } from "./handlers/has-code-handler.js";
 import { AddressIsZeroHandler }   from "./handlers/is-zero-handler.js";
 import { AddressToStringHandler } from "./handlers/to-string-handler.js";
-
 
 export class AddressTransformer extends BaseTypeTransformer {
   constructor() {
@@ -18,6 +18,7 @@ export class AddressTransformer extends BaseTypeTransformer {
     this.registerHandler(new AddressToStringHandler());
     this.registerHandler(new AddressEqualsHandler());
     this.registerHandler(new AddressIsZeroHandler());
+    this.registerHandler(new AddressHasCodeHandler());
   }
 
   matchesType(expr: any): boolean {
@@ -30,7 +31,8 @@ export class AddressTransformer extends BaseTypeTransformer {
       target === "Address.copy" ||
       target.endsWith(".equals")   ||
       target.endsWith(".isZero")   ||
-      target.endsWith(".toString")
+      target.endsWith(".toString") ||
+      target.endsWith(".hasCode")
     );
   }
 

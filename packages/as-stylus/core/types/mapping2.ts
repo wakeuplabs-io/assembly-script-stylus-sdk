@@ -1,18 +1,31 @@
+import { Boolean } from "./boolean";
 import { U256 } from "./u256";
 import { mapLoadHash, mapStoreHash, createMappingKey } from "../modules/storage";
 
-const ADDR_LEN: u32 = 20;
+const ADDRESS_LEN: u32 = 32;
 
 export class Mapping2 {
-  static set(slot: u64, k1: usize, k2: usize, val: usize): void {
-    const slot1 = createMappingKey(slot, k1, ADDR_LEN); // ← bytes32
-    mapStoreHash(slot1, k2, ADDR_LEN, val);
+  static setU256(slot: u64, k1: usize, k2: usize, val: usize): void {
+    const slot1 = createMappingKey(slot, k1, ADDRESS_LEN);
+    mapStoreHash(slot1, k2, ADDRESS_LEN, val);
   }
 
-  static get(slot: u64, k1: usize, k2: usize): usize {
+  static getU256(slot: u64, k1: usize, k2: usize): usize {
     const out = U256.create();
-    const slot1 = createMappingKey(slot, k1, ADDR_LEN);
-    mapLoadHash(slot1, k2, ADDR_LEN, out);
+    const slot1 = createMappingKey(slot, k1, ADDRESS_LEN);
+    mapLoadHash(slot1, k2, ADDRESS_LEN, out);
+    return out;
+  }
+
+  static setBoolean(slot: u64, k1: usize, k2: usize, val: usize): void {
+    const slot1 = createMappingKey(slot, k1, ADDRESS_LEN);
+    mapStoreHash(slot1, k2, ADDRESS_LEN, val);
+  }
+
+  static getBoolean(slot: u64, k1: usize, k2: usize): usize {
+    const out = Boolean.create();
+    const slot1 = createMappingKey(slot, k1, ADDRESS_LEN);
+    mapLoadHash(slot1, k2, ADDRESS_LEN, out);
     return out;
   }
 }

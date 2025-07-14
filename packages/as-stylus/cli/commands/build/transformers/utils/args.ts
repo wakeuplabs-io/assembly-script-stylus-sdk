@@ -7,7 +7,6 @@ export function generateArgsLoadBlock(
   const argLines: string[] = [];
   const callArgs: {name: string, type: AssemblyScriptType}[] = [];
   let offset = baseOffset;
-
   for (let i = 0; i < inputs.length; ++i) {
     const input = inputs[i];
     const argName = `arg${i}`;
@@ -27,7 +26,7 @@ export function generateArgsLoadBlock(
         break;
         
         case AbiType.String:
-        argLines.push(`const ${argName} = Str.fromDynamicArg( ${baseOffset}, position + ${offset});`);
+        argLines.push(`const ${argName} = Str.fromDynamicArg(position + ${baseOffset}, position + ${offset});`);
         offset += 32;
         type = AssemblyScriptType.Pointer;
         break;
@@ -37,6 +36,12 @@ export function generateArgsLoadBlock(
         offset += 32;
         type = AssemblyScriptType.Pointer;
         break;
+
+        case AbiType.Bytes:
+          argLines.push(`const ${argName} = Str.fromDynamicArg(position + ${baseOffset}, position + ${offset});`);
+          offset += 32;
+          type = AssemblyScriptType.Pointer;
+          break;
 
       default:
         throw new Error(`Unsupported input type: ${input.type}`);
