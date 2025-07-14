@@ -25,3 +25,5 @@ program.addCommand(buildCommand);
 program.addCommand(lintCommand);
 
 program.parse();
+
+export * from "./sdk-interface/index.js";
