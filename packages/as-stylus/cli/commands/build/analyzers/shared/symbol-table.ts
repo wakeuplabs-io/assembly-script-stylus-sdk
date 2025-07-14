@@ -61,12 +61,14 @@ export class SymbolTableStack {
   }
 
   merge(other: SymbolTableStack) {
-    for (const scope of other.scopes) {
+    for (let i = 0; i < other.scopes.length; i++) {
+      const scope = other.scopes[i];
       for (const [name, symbol] of scope) {
         if (this.lookup(name)) {
           continue;
         }
-        this.scopes[this.scopes.length - 1].set(name, symbol);
+        this.types.add(symbol.type);
+        this.scopes[i].set(name, symbol);
       }
     }
   }

@@ -18,6 +18,7 @@ const walletClient: WalletClient = getWalletClient(PRIVATE_KEY);
 beforeAll(async () => {
   try {
     contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
+      deployArgs: [10n],
       walletClient,
     });
   } catch (error: unknown) {
@@ -26,7 +27,7 @@ beforeAll(async () => {
 }, DEPLOY_TIMEOUT);
 
 describe("Inheritance", () => {
-  describe.skip("Initial state and constructor inheritance", () => {
+  describe("Initial state and constructor inheritance", () => {
     it("should have initial sum value of zero after deployment", async () => {
       const sum = await contract.read("getSum", []);
       expect(sum).toBe(10n);

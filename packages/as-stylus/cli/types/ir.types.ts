@@ -264,7 +264,7 @@ export interface IRContract {
   name: string;
   parent?: IRContract;
   methods: IRMethod[];
-  constructor?: IRConstructor;
+  constructor?: IRMethod;
   storage: IRVariable[];
   events?: IREvent[];
   structs?: IRStruct[];

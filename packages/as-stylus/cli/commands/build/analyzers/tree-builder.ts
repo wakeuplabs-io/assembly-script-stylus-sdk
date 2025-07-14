@@ -89,7 +89,11 @@ export function generateContractTree(contract: IRContract): any {
       },
       {
         id: "constructor",
-        name: "Constructor",
+        name: contract.constructor?.name || "Constructor",
+        data: {
+          visibility: contract.constructor?.visibility,
+          stateMutability: contract.constructor?.stateMutability,
+        },
         children:
           contract.constructor?.ir.map((stmt, index) => ({
             id: `constructor-stmt-${index}`,

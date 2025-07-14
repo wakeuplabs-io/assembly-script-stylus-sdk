@@ -45,10 +45,9 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
   }
 
   if (contract.constructor && !isParent) {
-     // TODO: rethink this
     abi.push({
       type: "function",
-      name: "deploy",
+      name: contract.name + "_constructor",
 stateMutability: StateMutability.NONPAYABLE,
 inputs: contract.constructor.inputs.map((param) => {
         const typeToConvert = param.originalType || param.type;
@@ -127,6 +126,11 @@ function convertTypeWithComponents(type: string): { type: AbiType; components?: 
 }
 
 export function convertType(type: string): AbiType {
-  const result = convertTypeWithComponents(type);
+  let input = type;
+  if (type.startsWith("import(")) {
+    const match = type.match(/(?<=\)\.)\w+/);
+    input = match?.[0] || "";
+  }
+  const result = convertTypeWithComponents(input);
   return result.type as AbiType;
 }
