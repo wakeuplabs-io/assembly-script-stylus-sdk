@@ -27,6 +27,11 @@ function min(a: u32, b: u32): u32 {
   return a < b ? a : b;
 }
 
+// Helper function to read a u32 value from a 32-byte big-endian field
+function loadU32FromBytes32(ptr: usize): u32 {
+  return loadU32BE(ptr + 28);
+}
+
 // ————————————————————————————————————————————————————————————————————
 // Clase Str
 // ————————————————————————————————————————————————————————————————————
@@ -71,13 +76,14 @@ export class Str {
 
   /**
    * Reads a dynamic string argument from ABI-encoded data
-   * @param argsPtr - pointer to the arguments data
+   * @param argStart - pointer to the start of arguments data (after selector)
+   * @param current - pointer to the 32-byte offset field
    * @returns pointer to the created string
    */
   static fromDynamicArg(argStart: usize, current: usize): usize {
-    const off = loadU32BE(current + 28);
+    const off = loadU32FromBytes32(current);
     const lenPtr = argStart + off;
-    const len = loadU32BE(lenPtr + 28);
+    const len = loadU32FromBytes32(lenPtr);
     const dataPtr = lenPtr + 32;
     return Str.fromBytes(dataPtr, len);
   }
@@ -132,7 +138,6 @@ export class Str {
   /* ────────────── API de storage estilo Solidity ────────────── */
   static storeTo(slot: u64, ptr: usize): void {
     const len: u32 = load<u32>(ptr);
-
     // Caso 1 ─ packed (≤28)
     if (len <= 28) {
       const packed = Str.toPacked(ptr);

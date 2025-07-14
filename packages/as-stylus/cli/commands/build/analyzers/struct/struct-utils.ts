@@ -43,6 +43,8 @@ export function convertBasicType(typeString: string): AbiType | null {
       return AbiType.Address;
     case "bytes32":
       return AbiType.Bytes32;
+    case "bytes":
+      return AbiType.Bytes;
     default:
       return null;
   }
