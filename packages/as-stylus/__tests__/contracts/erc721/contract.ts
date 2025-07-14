@@ -82,7 +82,7 @@ export class ERC721 {
 
   @External
   static approve(to: Address, tokenId: U256): void {
-    const auth = msg.sender;
+    const authorizer = msg.sender;
 
     // Unwrapping _approve(to, tokenId, auth, true)
     // Since emitEvent is true and auth is not address(0), we need to verify the owner
@@ -95,15 +95,11 @@ export class ERC721 {
     }
 
     // Authorization check for approval (exact Solidity logic)
-    const isAuthZero = auth.isZero();
-    if (!isAuthZero) {
-      const isOwnerAuth = owner.equals(auth);
-      if (!isOwnerAuth) {
-        const isApprovedForAll = operatorApprovals.get(owner, auth);
-        if (!isApprovedForAll) {
-          ERC721InvalidApprover.revert(auth);
-        }
-      }
+    const isOwnerAuth = owner.equals(authorizer);
+    const isApprovedForAll = operatorApprovals.get(owner, authorizer);
+    const isAuthorized = isOwnerAuth || isApprovedForAll;
+    if (!isAuthorized) {
+      ERC721InvalidApprover.revert(authorizer);
     }
     tokenApprovals.set(tokenId, to);
     Approval.emit(owner, to, tokenId);
@@ -133,25 +129,28 @@ export class ERC721 {
 
     // _update
     const owner = owners.get(tokenId);
-    const auth = msg.sender;
+    const authorizer = msg.sender;
 
     // _checkAuthorized
     const isOwnerZero = owner.isZero();
-    const isAuthZero = auth.isZero();
-    if (!isAuthZero) {
-      const approvedAddress = tokenApprovals.get(tokenId);
-      const isApprovedForAll = operatorApprovals.get(owner, auth);
-      const isAuthOwner = auth.equals(owner);
-      const isAuthApproved = auth.equals(approvedAddress);
-      const isAuthorized = isAuthOwner || isAuthApproved || isApprovedForAll;
+    const approvedAddress = tokenApprovals.get(tokenId);
+    const isApprovedForAll = operatorApprovals.get(owner, authorizer);
+    const isAuthOwner = authorizer.equals(owner);
+    const isAuthApproved = authorizer.equals(approvedAddress);
+    const isAuthorized = isAuthOwner || isAuthApproved || isApprovedForAll;
 
-      if (!isAuthorized) {
-        if (isOwnerZero) {
-          ERC721NonexistentToken.revert(tokenId);
-        } else {
-          ERC721InsufficientApproval.revert(auth, tokenId);
-        }
+    if (!isAuthorized) {
+      if (isOwnerZero) {
+        ERC721NonexistentToken.revert(tokenId);
+      } else {
+        ERC721InsufficientApproval.revert(authorizer, tokenId);
       }
+    }
+
+    // transferFrom final validation
+    const isFromOwner = owner.equals(from);
+    if (!isFromOwner) {
+      ERC721IncorrectOwner.revert(authorizer, tokenId, owner);
     }
 
     const isFromZero = owner.isZero();
@@ -168,12 +167,6 @@ export class ERC721 {
 
     owners.set(tokenId, to);
     Transfer.emit(owner, to, tokenId);
-
-    // transferFrom final validation
-    const isFromOwner = owner.equals(from);
-    if (!isFromOwner) {
-      ERC721IncorrectOwner.revert(auth, tokenId, owner);
-    }
   }
 
   @External
@@ -266,9 +259,7 @@ export class ERC721 {
 
     const isFromZero = from.isZero();
     if (!isFromZero) {
-      tokenApprovals.set(tokenId, zeroAddress);
-      const fromBalance = balances.get(from);
-      balances.set(from, fromBalance.sub(one));
+      ERC721InvalidSender.revert(zeroAddress);
     }
 
     if (!isToZero) {
@@ -278,11 +269,6 @@ export class ERC721 {
 
     owners.set(tokenId, to);
     Transfer.emit(from, to, tokenId);
-
-    // _mint final validation
-    if (!isFromZero) {
-      ERC721InvalidSender.revert(zeroAddress);
-    }
   }
 
   @External

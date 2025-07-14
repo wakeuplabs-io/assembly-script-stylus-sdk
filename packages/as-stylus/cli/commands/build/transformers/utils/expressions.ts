@@ -170,7 +170,7 @@ function handleFallbackExpression(expr: IRExpression): string {
       const valueResult = emitExpression(expr.value);
       
       // Choose mapping method based on key type
-      const method = expr.keyType === "U256" ? "setU256" : "setAddress";
+      const method = expr.valueType === "U256" ? "setU256" : "setAddress";
       
       return `Mapping.${method}(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr}, ${valueResult.valueExpr})`;
     }
@@ -179,17 +179,27 @@ function handleFallbackExpression(expr: IRExpression): string {
       const keyResult = emitExpression(expr.key);
       
       // Choose mapping method based on key type  
-      const method = expr.keyType === "U256" ? "getU256" : "getAddress";
+      const method = expr.valueType === "U256" ? "getU256" : "getAddress";
       
       return `Mapping.${method}(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr})`;
     }
     case "map_get2": {
+      // Save the current context before calling nested expressions
+      const savedIsInStatement = globalContext.isInStatement;
+      
       const k1 = emitExpression(expr.key1);
       const k2 = emitExpression(expr.key2);
       
-      // For now, Mapping2 handles both keys generically
-      // Could be enhanced later to support different key type combinations
-      return `Mapping2.get(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr})`;
+      // Choose mapping method based on value type
+      const method = expr.valueType === "boolean" ? "getBoolean" : "getU256";
+      const baseExpr = `Mapping2.${method}(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr})`;
+      
+      // For boolean mappings, always wrap with Boolean.toValue() except for return statements
+      if (expr.valueType === "boolean" && savedIsInStatement) {
+        return `Boolean.toValue(${baseExpr})`;
+      }
+      
+      return baseExpr;
     }
     
     case "map_set2": {
@@ -197,9 +207,9 @@ function handleFallbackExpression(expr: IRExpression): string {
       const k2 = emitExpression(expr.key2);
       const v  = emitExpression(expr.value);
       
-      // For now, Mapping2 handles both keys generically 
-      // Could be enhanced later to support different key type combinations
-      return `Mapping2.set(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr}, ${v.valueExpr})`;
+      const method = expr.valueType === "boolean" ? "setBoolean" : "setU256";
+      
+      return `Mapping2.${method}(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr}, ${v.valueExpr})`;
     }
 
     case "unary": {

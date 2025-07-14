@@ -1,7 +1,7 @@
 import { U256 } from "./u256";
 import { mapLoad, mapStore } from "../modules/storage";
 
-const ADDRESS_LEN: u32 = 20;
+const ADDRESS_LEN: u32 = 32;
 const U256_LEN: u32 = 32;
 
 export class Mapping {

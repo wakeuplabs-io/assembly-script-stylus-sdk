@@ -17,6 +17,7 @@ import {
   CallExecutionError,
   BaseError,
   ContractFunctionRevertedError,
+  ContractFunctionExecutionError,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
@@ -164,6 +165,102 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
           };
         } catch (decodeErr) {
           if (verbose) console.log("← failed to decode error:", decodeErr);
+          return { success: false, error: { name: "DecodeError", args: [] } };
+        }
+      }
+    },
+
+    writeRaw: async (walletClient: WalletClient, functionName: string, args: ContractArgs = []) => {
+      console.log("writeRaw", functionName, args);
+      const data = encodeFunctionData({ abi, functionName, args });
+      if (verbose) console.log("→ write calldata:", data);
+
+      try {
+        const { request } = await publicClient.simulateContract({
+          address: contractAddr as Address,
+          abi,
+          functionName,
+          args,
+          account: walletClient.account as Account,
+          chain,
+        });
+
+        const txHash = await walletClient.writeContract(request);
+        if (verbose) console.log("← txHash:", txHash);
+
+        return { success: true, txHash };
+      } catch (err) {
+        if (verbose) console.log("← write error caught:", err);
+
+        if (!(err instanceof ContractFunctionExecutionError)) throw err;
+
+        const errAny = err as any;
+        if (errAny.data && typeof errAny.data === "object" && "errorName" in errAny.data) {
+          const errorData = errAny.data;
+          if (verbose) console.log("← error data from ContractFunctionExecutionError:", errorData);
+
+          return {
+            success: false,
+            error: {
+              name: errorData.errorName,
+              args: Array.isArray(errorData.args) ? [...errorData.args] : [],
+            },
+          };
+        }
+
+        let revertData: Hex | undefined;
+
+        if (errAny.raw && typeof errAny.raw === "string" && errAny.raw.startsWith("0x")) {
+          revertData = errAny.raw as Hex;
+        }
+
+        if (!revertData && err.cause && typeof err.cause === "object") {
+          const cause = err.cause as any;
+
+          if (cause.data && typeof cause.data === "string" && cause.data.startsWith("0x")) {
+            revertData = cause.data as Hex;
+          }
+
+          if (
+            !revertData &&
+            cause.raw &&
+            typeof cause.raw === "string" &&
+            cause.raw.startsWith("0x")
+          ) {
+            revertData = cause.raw as Hex;
+          }
+        }
+
+        if (!revertData && errAny.metaMessages) {
+          for (const message of errAny.metaMessages) {
+            const match = message.match(/0x[a-fA-F0-9]+/);
+            if (match) {
+              revertData = match[0] as Hex;
+              break;
+            }
+          }
+        }
+
+        if (!revertData || revertData === "0x") {
+          if (verbose) console.log("← no revert data found (write)");
+          return { success: false, error: { name: "Unknown", args: [] } };
+        }
+
+        if (verbose) console.log("← revert data (write):", revertData);
+
+        try {
+          const { errorName, args: errorArgs } = decodeErrorResult({ abi, data: revertData });
+          if (verbose) console.log("← decoded error (write):", { errorName, args: errorArgs });
+
+          return {
+            success: false,
+            error: {
+              name: errorName,
+              args: Array.isArray(errorArgs) ? [...errorArgs] : [],
+            },
+          };
+        } catch (decodeErr) {
+          if (verbose) console.log("← failed to decode error (write):", decodeErr);
           return { success: false, error: { name: "DecodeError", args: [] } };
         }
       }
