@@ -21,7 +21,6 @@ function extractMappingTypes(typeText: string): {
   keyType1?: string;
   keyType2?: string;
 } {
-  // Remove whitespace and extract content between < >
   const cleanType = typeText.replace(/\s/g, "");
   const genericMatch = cleanType.match(/^Mapping2?<(.+)>$/);
   
@@ -68,7 +67,6 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     const type = typeDefined ? typeDefined : inferType(this.property.getType().getText());
     this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage" });
   
-    // Get the full type text to extract generics
     const fullTypeText = this.property.getType().getText();
     const mappingTypes = extractMappingTypes(fullTypeText);
     
@@ -83,8 +81,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
         kind: "mapping2",
       };
       
-      // Store mapping type info in context for later use
-      ctx.mappingTypes.set(name, {
+        ctx.mappingTypes.set(name, {
         keyType1: variable.keyType1,
         keyType2: variable.keyType2,
         valueType: variable.valueType
@@ -103,7 +100,6 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
         kind: "mapping",
       };
       
-      // Store mapping type info in context for later use
       ctx.mappingTypes.set(name, {
         keyType: variable.keyType,
         valueType: variable.valueType
