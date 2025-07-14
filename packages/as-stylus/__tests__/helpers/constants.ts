@@ -58,6 +58,10 @@ export const CONTRACT_PATHS = {
   },
   INHERITANCE: {
     contract: path.join(ROOT_PATH, "/inheritance"),
-    abi: path.join(ROOT_PATH, "/inheritance/artifacts/abi/Child-abi.json"),
+    abi: path.join(ROOT_PATH, "/inheritance/artifacts/abi/contract-abi.json"),
+  },
+  ERC20_OVERRIDE: {
+    contract: path.join(ROOT_PATH, "/erc20-override"),
+    abi: path.join(ROOT_PATH, "/erc20-override/artifacts/abi/contract-abi.json"),
   },
 } as const;

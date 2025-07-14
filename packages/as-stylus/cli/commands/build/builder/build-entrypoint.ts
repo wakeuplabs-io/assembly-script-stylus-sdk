@@ -189,14 +189,14 @@ function generateMethodEntry(method: IRMethod, contract: IRContract): { import: 
   return { import: importStatement, entry };
 }
 
-function generateConstructorEntry(constructor: { inputs: AbiInput[] }, contractPath: string): { imports: string[]; entry: string } {
+function generateConstructorEntry(contractName: string, constructor: { inputs: AbiInput[] }, contractPath: string): { imports: string[]; entry: string } {
   const { inputs } = constructor;
 
   const { argLines, callArgs } = generateArgsLoadBlock(inputs);
 
   
   const deployMethod: IRMethod = {
-    name: "deploy",
+    name: `${contractName}_constructor`,
     visibility: Visibility.PUBLIC,
     stateMutability: StateMutability.NONPAYABLE,
     inputs: inputs.map(input => ({
@@ -209,10 +209,10 @@ function generateConstructorEntry(constructor: { inputs: AbiInput[] }, contractP
   
   const deploySig = getFunctionSelector(deployMethod);
   const imports = [
-    `import { deploy } from "./${contractPath}.transformed";`,
+    `import { ${contractName}_constructor } from "./${contractPath}.transformed";`,
   ];
 
-  const callLine = `deploy(${callArgs.map(arg => arg.name).join(", ")}); return 0;`;
+  const callLine = `${contractName}_constructor(${callArgs.map(arg => arg.name).join(", ")}); return 0;`;
   const bodyLines = [...argLines, callLine]
     .map(line => `${INDENTATION.BODY}${line}`)
     .filter(line => line.trim() !== "")
@@ -249,7 +249,7 @@ function processConstructor(contract: IRContract): CodeBlock {
   }
 
   try {
-    const { imports, entry } = generateConstructorEntry(contract.constructor, contract.path);
+    const { imports, entry } = generateConstructorEntry(contract.name, contract.constructor, contract.path);
     return { imports, entries: [entry] };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

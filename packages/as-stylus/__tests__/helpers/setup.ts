@@ -19,11 +19,12 @@ export async function setupE2EContract(
   abiPath: string,
   CONTRACT_ADDRESS_REGEX: RegExp,
   options: {
+    constructorName?: string;
     deployArgs?: ContractArgs;
     walletClient?: WalletClient;
   } = {},
 ): Promise<ContractService> {
-  const { deployArgs, walletClient } = options;
+  const { deployArgs, walletClient, constructorName = "contract_constructor" } = options;
 
   // Build and compile the contract
   run("npm run pre:build", ROOT_PATH);
@@ -48,7 +49,7 @@ export async function setupE2EContract(
 
   // Initialize the contract with deploy method if args provided and wallet available
   if (deployArgs !== undefined && walletClient) {
-    await contract.write(walletClient, "deploy", deployArgs);
+    await contract.write(walletClient, constructorName, deployArgs);
   }
 
   return contract;

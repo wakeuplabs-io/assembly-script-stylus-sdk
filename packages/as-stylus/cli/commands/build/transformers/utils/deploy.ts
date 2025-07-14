@@ -14,10 +14,10 @@ export function generateDeployFunction(contract: IRContract): string {
     const aliasLines = inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i].name};`);
     
     
-    lines.push(`export function deploy(${argsSignature}): void {`);
+    lines.push(`export function ${contract.name}_constructor(${argsSignature}): void {`);
     lines.push(...aliasLines);
   } else {
-    lines.push(`export function deploy(): void {`);
+    lines.push(`export function ${contract.name}_constructor(): void {`);
   }
 
   contract.storage.forEach(variable => {

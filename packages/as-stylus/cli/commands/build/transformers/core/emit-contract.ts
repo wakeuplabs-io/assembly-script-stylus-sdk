@@ -68,7 +68,7 @@ function generateMethod(method: IRMethod): string {
  * @returns Generated AssemblyScript code
  */
 export function emitContract(contract: IRContract): string {
-  initExpressionContext(contract.name);
+  initExpressionContext(contract.name, contract.parent?.name);
   const parts: string[] = [];
 
   // Add imports

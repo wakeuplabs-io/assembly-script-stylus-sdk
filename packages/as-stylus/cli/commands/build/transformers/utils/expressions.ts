@@ -7,12 +7,14 @@ import { detectExpressionType, typeTransformers } from "../core/base-transformer
 export const globalContext: EmitContext = {
   isInStatement: false,
   contractName: "",
+  parentName: "",
   strCounter: 0,
   ptrCounter: 0,
 };
 
-export function initExpressionContext(name: string): void {
+export function initExpressionContext(name: string, parentName?: string): void {
   globalContext.contractName = name;
+  globalContext.parentName = parentName || "";
 }
 
 /**
@@ -105,6 +107,9 @@ function handleFallbackExpression(expr: IRExpression): string {
     case "call": {
       if (expr.returnType === AbiType.Bool) {
         return `Boolean.toValue(${expr.target}(${expr.args.map((a: IRExpression) => emitExpression(a).valueExpr).join(", ")}))`;
+      }
+      if (expr.target === "super") {
+        return `${globalContext.parentName}_constructor(${expr.args.map((a: IRExpression) => emitExpression(a).valueExpr).join(", ")})`;
       }
       const argResults = expr.args.map((a: IRExpression) => emitExpression(a));
       return `${expr.target}(${argResults.map((r: EmitResult) => r.valueExpr).join(", ")})`;
