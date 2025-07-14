@@ -18,43 +18,43 @@ export const ROOT_PATH = path.join(ROOT, "/as-stylus/__tests__/contracts");
 export const CONTRACT_PATHS = {
   IF_HAPPY_PATH: {
     contract: path.join(ROOT_PATH, "/if-happy-path"),
-    abi: path.join(ROOT_PATH, "/if-happy-path/artifacts/abi/IfHappyPath-abi.json"),
+    abi: path.join(ROOT_PATH, "/if-happy-path/artifacts/abi/contract-abi.json"),
   },
   ADMIN_REGISTRY: {
     contract: path.join(ROOT_PATH, "/admin-registry"),
-    abi: path.join(ROOT_PATH, "/admin-registry/artifacts/abi/AdminRegistry-abi.json"),
+    abi: path.join(ROOT_PATH, "/admin-registry/artifacts/abi/contract-abi.json"),
   },
   BALANCES: {
     contract: path.join(ROOT_PATH, "/balances"),
-    abi: path.join(ROOT_PATH, "/balances/artifacts/abi/Token-abi.json"),
+    abi: path.join(ROOT_PATH, "/balances/artifacts/abi/contract-abi.json"),
   },
   COUNTER: {
     contract: path.join(ROOT_PATH, "/counter"),
-    abi: path.join(ROOT_PATH, "/counter/artifacts/abi/Counter-abi.json"),
+    abi: path.join(ROOT_PATH, "/counter/artifacts/abi/contract-abi.json"),
   },
   STORAGE: {
     contract: path.join(ROOT_PATH, "/storage"),
-    abi: path.join(ROOT_PATH, "/storage/artifacts/abi/Storage-abi.json"),
+    abi: path.join(ROOT_PATH, "/storage/artifacts/abi/contract-abi.json"),
   },
   STRING: {
     contract: path.join(ROOT_PATH, "/string"),
-    abi: path.join(ROOT_PATH, "/string/artifacts/abi/StringStorage-abi.json"),
+    abi: path.join(ROOT_PATH, "/string/artifacts/abi/contract-abi.json"),
   },
   ERC20: {
     contract: path.join(ROOT_PATH, "/erc20"),
-    abi: path.join(ROOT_PATH, "/erc20/artifacts/abi/ERC20-abi.json"),
+    abi: path.join(ROOT_PATH, "/erc20/artifacts/abi/contract-abi.json"),
   },
   ERC20_FULL: {
     contract: path.join(ROOT_PATH, "/erc20-full"),
-    abi: path.join(ROOT_PATH, "/erc20-full/artifacts/abi/ERC20Full-abi.json"),
+    abi: path.join(ROOT_PATH, "/erc20-full/artifacts/abi/contract-abi.json"),
   },
   STRUCT: {
     contract: path.join(ROOT_PATH, "/struct"),
-    abi: path.join(ROOT_PATH, "/struct/artifacts/abi/StructContract-abi.json"),
+    abi: path.join(ROOT_PATH, "/struct/artifacts/abi/contract-abi.json"),
   },
   CUSTOM_ERRORS: {
     contract: path.join(ROOT_PATH, "/custom-errors"),
-    abi: path.join(ROOT_PATH, "/custom-errors/artifacts/abi/RevertContract721-abi.json"),
+    abi: path.join(ROOT_PATH, "/custom-errors/artifacts/abi/contract-abi.json"),
   },
   INHERITANCE: {
     contract: path.join(ROOT_PATH, "/inheritance"),
