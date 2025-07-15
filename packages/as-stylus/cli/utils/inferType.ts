@@ -13,6 +13,10 @@ export function inferType(target: string): AbiType {
     return AbiType.Uint256;
   }
 
+  if (target.startsWith("I256Factory")) {
+    return AbiType.Int256;
+  }
+
   if (target.startsWith("AddressFactory")) {
     return AbiType.Address;
   }

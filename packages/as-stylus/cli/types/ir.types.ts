@@ -139,6 +139,23 @@ export type VariableDeclaration = {
 export type ExpressionStatement = { kind: "expr"; expr: IRExpression };
 export type Return = { kind: "return"; expr?: IRExpression; type: SupportedType };
 export type If = { kind: "if"; condition: IRCondition; then: IRStatement[]; else?: IRStatement[] };
+export type For = {
+  kind: "for";
+  init?: IRStatement;
+  condition?: IRCondition | IRExpression;
+  update?: IRExpression;
+  body: IRStatement[];
+};
+export type DoWhile = {
+  kind: "do_while";
+  body: IRStatement[];
+  condition: IRCondition | IRExpression;
+};
+export type While = {
+  kind: "while";
+  condition: IRCondition | IRExpression;
+  body: IRStatement[];
+};
 export type Block = { kind: "block"; body: IRStatement[] };
 
 export type IRStatement =
@@ -147,6 +164,9 @@ export type IRStatement =
   | ExpressionStatement
   | Return
   | If
+  | For
+  | DoWhile
+  | While
   | Block
   | IRRevert;
 
