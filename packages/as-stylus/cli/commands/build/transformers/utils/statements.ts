@@ -99,9 +99,21 @@ function emitStatement(s: IRStatement, indent: string): string {
         ? `Str.toABI(${exprResult.valueExpr})`
         : exprResult.valueExpr;
     
-      const returnExpr = type === AbiType.Bool && !baseExpr.includes("_storage")
-        ? `Boolean.create(${baseExpr})`
-        : baseExpr;
+      // For boolean mappings, don't wrap with Boolean.create() since they already return proper format
+      const isBooleanMapping = baseExpr.includes("Mapping2.getBoolean") || 
+                               baseExpr.includes("Mapping.getBoolean");
+      
+      let returnExpr: string;
+      
+      if (isBooleanMapping) {
+        // Mapping booleans already return correct 32-byte format
+        returnExpr = baseExpr;
+      } else if (type === AbiType.Bool && !baseExpr.includes("_storage")) {
+        // Regular boolean literals get wrapped with Boolean.create()
+        returnExpr = `Boolean.create(${baseExpr})`;
+      } else {
+        returnExpr = baseExpr;
+      }
     
       if (exprResult.setupLines.length > 0) {
         const lines = exprResult.setupLines.map((line) => `${indent}${line}`);

@@ -1,4 +1,3 @@
-import { Boolean } from "./boolean";
 import { Str } from "./str";
 import { storeU32BE, loadU32BE } from "../modules/endianness";
 import {
@@ -48,6 +47,16 @@ export class Struct {
     storeU32BE(ptr + 28, strObj as u32);
   }
 
+  static setU256(slot: u64, v: usize): void {
+    storage_cache_bytes32(createStorageKey(slot), v);
+    storage_flush_cache(0);
+  }
+
+  static setBoolean(slot: u64, v: usize): void {
+    storage_cache_bytes32(createStorageKey(slot), v);
+    storage_flush_cache(0);
+  }
+
   /**
    * Creates a struct with proper ABI encoding for return values.
    * This manually constructs the full ABI layout including dynamic data.
@@ -94,18 +103,16 @@ export class Struct {
     return 0;
   }
 
-  static setU256(p: usize, v: usize, slot: u64): void {
-    memory.copy(p, v, 32);
-    storage_cache_bytes32(createStorageKey(slot), p);
+  /*──────── Type-specific getters ─────*/
+  static getU256(slot: u64): usize {
+    const out = malloc(32);
+    storage_load_bytes32(createStorageKey(slot), out);
+    return out;
   }
 
-  static setBoolean(p: usize, val: boolean, slot: u64): void {
-    const bool = Boolean.create(val);
-    memory.copy(p, bool, 32);
-    storage_cache_bytes32(createStorageKey(slot), bool);
-  }
-
-  static getBoolean(ptr: usize, off: u32): usize {
-    return Boolean.copyNew(ptr + off);
+  static getBoolean(slot: u64): usize {
+    const out = malloc(32);
+    storage_load_bytes32(createStorageKey(slot), out);
+    return out;
   }
 }

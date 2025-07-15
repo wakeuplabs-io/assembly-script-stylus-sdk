@@ -147,17 +147,23 @@ export function ${structName}_copy(dst: usize, src: usize): void {
     const slotForField = baseSlot + Math.floor(field.offset / 32);
     const slotNumber = slotForField.toString(16).padStart(2, "0");
     
-    if (field.type === "string" || field.type === "Str") {
+    if (field.type === AbiType.String || field.type === "Str") {
       // Special handling for strings - read directly from storage
       helpers.push(`
 export function ${structName}_get_${field.name}(ptr: usize): usize {
   return Struct.getString(__SLOT${slotNumber});
 }`);
-    } else if (field.type === "boolean") {
-      // Special handling for booleans - use Boolean.copyNew to return 1-byte value
+    } else if (field.type === AbiType.Bool) {
+      // Special handling for booleans - read directly from storage
       helpers.push(`
 export function ${structName}_get_${field.name}(ptr: usize): usize {
-  return Boolean.copyNew(ptr + ${field.offset});
+  return Struct.getBoolean(__SLOT${slotNumber});
+}`);
+    } else if (field.type === AbiType.Uint256) {
+      // Special handling for U256 - read directly from storage
+      helpers.push(`
+export function ${structName}_get_${field.name}(ptr: usize): usize {
+  return Struct.getU256(__SLOT${slotNumber});
 }`);
     } else {
       // For other types, use getField to get pointer to field location
@@ -177,32 +183,27 @@ export function ${structName}_get_${field.name}(ptr: usize): usize {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
   Struct.setAddress(ptr + ${field.offset}, v, __SLOT${slotNumber});
-  Struct.flushStorage();
 }`);
     } else if (field.type === AbiType.String) {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
   Struct.setString(ptr + ${field.offset}, v, __SLOT${slotNumber});
-  Struct.flushStorage();
 }`);
     } else if (field.type === AbiType.Uint256) {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
-  Struct.setU256(ptr + ${field.offset}, v, __SLOT${slotNumber});
-  Struct.flushStorage();
+  Struct.setU256(__SLOT${slotNumber}, v);
 }`);
     } else if (field.type === AbiType.Bool) {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
-  Struct.setBoolean(ptr + ${field.offset}, Boolean.toValue(v), __SLOT${slotNumber});
-  Struct.flushStorage();
+  Struct.setBoolean(__SLOT${slotNumber}, v);
 }`);
     } else {
       // Generic fallback for other types
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
   store<usize>(ptr + ${field.offset}, v);
-  Struct.flushStorage();
 }`);
     }
   });

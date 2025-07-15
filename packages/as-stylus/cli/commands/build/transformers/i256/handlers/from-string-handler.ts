@@ -1,7 +1,7 @@
 import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
 
 import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp, addGlobalTemp } from "../../utils/temp-factory.js";
+import { makeTemp } from "../../utils/temp-factory.js";
 
 /**
  * I256Factory.fromString(...)
@@ -19,8 +19,8 @@ export class I256FromStringHandler implements ExpressionHandler {
     return (
       expr.kind === "call" &&
       expr.target === "I256Factory.fromString" &&
-      expr.args.length === 1 &&
-      ["literal", "var"].includes(expr.args[0].kind)
+      expr.args &&
+      expr.args.length === 1
     );
   }
 
@@ -29,37 +29,27 @@ export class I256FromStringHandler implements ExpressionHandler {
     ctx: EmitContext,
     emit: (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
-    const arg = expr.args[0];
-    const argRes = emit(arg, ctx);
-    const setup = [...argRes.setupLines];
+    const [arg] = expr.args;
 
-    const strPtr = makeTemp("hexPtr");
-    const lenVar = makeTemp("hexLen");
+    // emit arg first
+    const argRes = emit(arg, ctx);
+
     const i256Ptr = makeTemp("i256");
+    const strPtr = makeTemp("str");
+    const lenVar = makeTemp("len");
+
+    const setup: string[] = [...argRes.setupLines];
 
     if (arg.kind === "literal") {
       const raw: string = arg.value as string;
       const strLen: number = raw.length;
 
-      // For literals, we need to create global constants
-      // Create the malloc call first
-      const mallocCall = `malloc(${strLen})`;
-      addGlobalTemp(strPtr, mallocCall);
-
-      // Build the setup for the string content
-      const contentSetup: string[] = [];
+      setup.push(`const ${strPtr}: usize = malloc(${strLen});`);
       for (let i = 0; i < strLen; ++i) {
-        contentSetup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
+        setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
-
-      // Add length as global constant
-      addGlobalTemp(lenVar, strLen.toString());
-      
-      // Add I256 creation as global constant  
-      addGlobalTemp(i256Ptr, "I256.create()");
-
-      // The setup lines now just do the store operations and setFromString
-      setup.push(...contentSetup);
+      setup.push(`const ${lenVar}: u32 = ${strLen};`);
+      setup.push(`const ${i256Ptr}: usize = I256.create();`);
       setup.push(`I256.setFromString(${i256Ptr}, ${strPtr}, ${lenVar});`);
     } else {
       setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);

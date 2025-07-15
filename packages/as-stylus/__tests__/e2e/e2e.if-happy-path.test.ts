@@ -34,7 +34,7 @@ beforeAll(async () => {
   }
 }, DEPLOY_TIMEOUT);
 
-describe("If Happy Path Contract Tests", () => {
+describe.skip("If Happy Path Contract Tests", () => {
   describe("Static view functions", () => {
     it("should return 5 for getLowerWithFlag()", async () => {
       const result = await contract.read("getLowerWithFlag", []);

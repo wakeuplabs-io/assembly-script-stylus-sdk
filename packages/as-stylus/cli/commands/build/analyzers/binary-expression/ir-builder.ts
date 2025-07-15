@@ -35,7 +35,7 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
 
     if (leftType !== rightType) {
       Logger.getInstance().warn(`TODO: implement conversion from ${leftType} to ${rightType}`);
-      return leftType;
+      return leftType;  
     }
 
     return leftType;

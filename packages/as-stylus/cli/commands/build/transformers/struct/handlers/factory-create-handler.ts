@@ -1,3 +1,4 @@
+import { AbiType } from "../../../../../types/abi.types.js";
 import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
 import { IRStruct } from "../../../../../types/ir.types.js";
 import { ExpressionHandler } from "../../core/interfaces.js";
@@ -56,7 +57,7 @@ export class StructFactoryCreateHandler implements ExpressionHandler {
       const valueArg = initialValues[i];
       
       // Skip string fields - we'll handle them specially for ABI encoding
-      if (field.type === "string" || field.type === "Str") {
+      if (field.type === AbiType.String || field.type === "Str") {
         continue;
       }
       
@@ -66,10 +67,10 @@ export class StructFactoryCreateHandler implements ExpressionHandler {
     }
 
     // Check if this struct has dynamic strings and handle ABI encoding
-    const hasStrings = struct.fields.some(field => field.type === "string" || field.type === "Str");
+    const hasStrings = struct.fields.some(field => field.type === AbiType.String || field.type === "Str");
     if (hasStrings && struct.dynamic) {
       // Find the string field and its value
-      const stringFieldIndex = struct.fields.findIndex(field => field.type === "string" || field.type === "Str");
+      const stringFieldIndex = struct.fields.findIndex(field => field.type === AbiType.String || field.type === "Str");
       if (stringFieldIndex !== -1 && stringFieldIndex < initialValues.length) {
         const stringField = struct.fields[stringFieldIndex];
         
@@ -87,7 +88,7 @@ export class StructFactoryCreateHandler implements ExpressionHandler {
         const field = struct.fields[i];
         const valueArg = initialValues[i];
         
-        if (field.type === "string" || field.type === "Str") {
+        if (field.type === AbiType.String || field.type === "Str") {
           const valueResult = emit(valueArg, ctx);
           setup.push(...valueResult.setupLines);
           setup.push(`${structType}_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
