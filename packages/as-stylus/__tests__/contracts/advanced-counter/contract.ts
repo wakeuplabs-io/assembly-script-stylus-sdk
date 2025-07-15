@@ -11,11 +11,8 @@ export class AdvancedCounter {
   static stepSize: U256;
 
   constructor() {
-    // Inicializar contadores en cero
     unsignedCounter = U256Factory.create();
     signedCounter = I256Factory.create();
-
-    // Configuración por defecto
     stepSize = U256Factory.fromString("1");
   }
 
@@ -28,10 +25,12 @@ export class AdvancedCounter {
   @External
   static testForLoop(): void {
     // FOR loop: Incrementar unsignedCounter 5 veces
+    const iterator = U256Factory.create();
+    const iterations = U256Factory.fromString("5"); // 5
     for (
-      let i: U256 = U256Factory.create();
-      i.lessThan(U256Factory.fromString("5"));
-      i = i.add(U256Factory.fromString("1"))
+      iterator;
+      iterator.lessThan(iterations); // 5
+      iterator = iterator.add(U256Factory.fromString("1"))
     ) {
       unsignedCounter = unsignedCounter.add(stepSize);
     }
@@ -40,20 +39,22 @@ export class AdvancedCounter {
   @External
   static testWhileLoop(): void {
     // WHILE loop: Incrementar signedCounter mientras sea menor que 3
-    let j: I256 = I256Factory.create();
-    while (j.lessThan(I256Factory.fromString("3"))) {
+    const iterator = I256Factory.create();
+    const iterations = I256Factory.fromString("3"); // 3
+    while (iterator.lessThan(iterations)) {
       signedCounter = signedCounter.add(I256Factory.fromString("1"));
-      j = j.add(I256Factory.fromString("1"));
+      iterator = iterator.add(I256Factory.fromString("1"));
     }
   }
 
   @External
   static testDoWhileLoop(): void {
     // DO-WHILE loop: Decrementar signedCounter al menos una vez
-    let k: I256 = I256Factory.create();
+    const iterator = I256Factory.create();
+    const iterations = I256Factory.fromString("2"); // 2
     do {
       signedCounter = signedCounter.sub(I256Factory.fromString("1"));
-      k = k.add(I256Factory.fromString("1"));
+      iterator = iterator.add(I256Factory.fromString("1"));
     } while (k.lessThan(I256Factory.fromString("2")));
   }
 
@@ -62,21 +63,21 @@ export class AdvancedCounter {
     // Test con diferentes tipos de números y operaciones
     const five: U256 = U256Factory.fromString("5");
     const negativeTwo: I256 = I256Factory.fromString("-2");
-
+    const iterator = I256Factory.create();
     // For loop con U256
     for (
-      let i: U256 = U256Factory.create();
-      i.lessThan(five);
-      i = i.add(U256Factory.fromString("1"))
+      iterator;
+      iterator.lessThan(five);
+      iterator = iterator.add(U256Factory.fromString("1"))
     ) {
       unsignedCounter = unsignedCounter.add(U256Factory.fromString("2"));
     }
 
     // While loop con I256
-    let current: I256 = negativeTwo;
-    while (current.lessThan(I256Factory.create())) {
-      signedCounter = signedCounter.add(current);
-      current = current.add(I256Factory.fromString("1"));
+    const iterator2 = I256Factory.create();
+    while (iterator2.lessThan(negativeTwo)) {
+      signedCounter = signedCounter.add(iterator2);
+      iterator2 = iterator2.add(I256Factory.fromString("1"));
     }
   }
 }

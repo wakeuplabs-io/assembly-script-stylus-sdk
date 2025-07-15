@@ -29,11 +29,23 @@ function emitExpressionWrapper(expr: IRExpression, ctx: EmitContext): EmitResult
 
 export function emitExpression(expr: IRExpression, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
+  
+  // Special handling for storage assignments to preserve setupLines
+  if (expr.kind === "binary" && expr.op === "=" && expr.left.kind === "var" && expr.left.scope === "storage") {
+    const property = expr.left.name;
+    const rightResult = emitExpression(expr.right);
+    return {
+      setupLines: rightResult.setupLines,
+      valueExpr: `store_${property}(${rightResult.valueExpr})`
+    };
+  }
+  
   const typeName = detectExpressionType(expr);
   const transformer = typeName ? typeTransformers[typeName] : null;
   if (transformer && typeof transformer.emit === 'function') {
     return transformer.emit(expr, globalContext, emitExpressionWrapper);
   }
+  
   return {
     setupLines: [],
     valueExpr: handleFallbackExpression(expr),
