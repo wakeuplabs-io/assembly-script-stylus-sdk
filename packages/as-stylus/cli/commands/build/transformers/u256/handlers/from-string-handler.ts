@@ -19,8 +19,8 @@ export class U256FromStringHandler implements ExpressionHandler {
     return (
       expr.kind === "call" &&
       expr.target === "U256Factory.fromString" &&
-      expr.args.length === 1 &&
-      ["literal", "var"].includes(expr.args[0].kind)
+      expr.args &&
+      expr.args.length === 1
     );
   }
 
@@ -29,36 +29,36 @@ export class U256FromStringHandler implements ExpressionHandler {
     ctx: EmitContext,
     emit: (e: any, c: EmitContext) => EmitResult
   ): EmitResult {
-    const arg = expr.args[0];
-    const argRes = emit(arg, ctx);
-    const setup = [...argRes.setupLines];
+    const [arg] = expr.args;
 
-    const strPtr = makeTemp("hexPtr");
-    const lenVar = makeTemp("hexLen");
+    // emit arg first
+    const argRes = emit(arg, ctx);
+
     const u256Ptr = makeTemp("u256");
+    const strPtr = makeTemp("str");
+    const lenVar = makeTemp("len");
+
+    const setup: string[] = [...argRes.setupLines];
 
     if (arg.kind === "literal") {
       const raw: string = arg.value as string;
       const strLen: number = raw.length;
 
       setup.push(`const ${strPtr}: usize = malloc(${strLen});`);
-
       for (let i = 0; i < strLen; ++i) {
         setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
-
       setup.push(`const ${lenVar}: u32 = ${strLen};`);
+      setup.push(`const ${u256Ptr}: usize = U256.create();`);
+      setup.push(`U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`);
     } else {
-
       setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
       setup.push(`const ${strPtr}: usize = malloc(66);`);
-      
+      setup.push(
+        `const ${u256Ptr}: usize = U256.create();`,
+        `U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`
+      );
     }
-
-    setup.push(
-      `const ${u256Ptr}: usize = U256.create();`,
-      `U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`
-    );
 
     return {
       setupLines: setup,

@@ -1,5 +1,3 @@
-import { AbiInput, AbiOutput, AbiType, AssemblyScriptType } from "@/cli/types/abi.types.js";
-
 import { IRContract, IRMethod } from "../../../../types/ir.types.js";
 import { registerErrorTransformer } from "../error/error-transformer.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
@@ -16,50 +14,47 @@ interface ArgumentSignature {
 }
 
 /**
- * Generates argument signature and alias lines for function parameters
+ * Generates the method signature and argument aliasing for a given method
+ * @param method Method to generate signature for
+ * @returns Object containing signature and alias lines
  */
-function generateArgumentSignature(
-  inputs: AbiInput[], 
-  callArgs: {name: string, type: AssemblyScriptType}[]
-): ArgumentSignature {
+function generateMethodSignature(method: IRMethod): ArgumentSignature {
+  const { callArgs } = generateArgsLoadBlock(method.inputs);
   const argsSignature = callArgs.map(arg => `${arg.name}: ${arg.type}`).join(", ");
-  const aliasLines = inputs.map((inp, i) => {
-    if (inp.type === AbiType.Bool) {
-      return `  const ${inp.name} = Boolean.create(${callArgs[i].name});`;
-    }
-    return `  const ${inp.name} = ${callArgs[i].name};`;
-  });
+  const aliasLines = method.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i].name};`);
   
-  if (inputs.some(inp => inp.type === AbiType.String)) {
+  if (method.inputs.some(inp => inp.type === "string")) {
     aliasLines.push(`  const argsStart: usize = arg0;`);
   }
-  
-  return { argsSignature, aliasLines };
+
+  return {
+    argsSignature,
+    aliasLines,
+  };
 }
 
 /**
- * Determines the return type for a method based on its outputs
- */
-function getMethodReturnType(outputs: AbiOutput[] | undefined): string {
-  if (!outputs || outputs.length === 0) {
-    return "void";
-  }
-  
-  return "usize";
-}
-
-/**
- * Generates a single method function code
+ * Generates a single method's AssemblyScript code
+ * @param method Method to generate code for
+ * @returns Generated method code
  */
 function generateMethod(method: IRMethod): string {
-  const returnType = getMethodReturnType(method.outputs);
-  const { callArgs } = generateArgsLoadBlock(method.inputs);
-  const { argsSignature, aliasLines } = generateArgumentSignature(method.inputs, callArgs);
+  let returnType = "void";
+  if (method.outputs && method.outputs.length > 0 && method.outputs[0].type !== "void") {
+    returnType = "usize";
+  }
+
+  const { argsSignature, aliasLines } = generateMethodSignature(method);
   const body = emitStatements(method.ir);
 
-  const aliasBlock = aliasLines.length ? aliasLines.join("\n") + "\n" : "";
+  const methodLines = [
+    `export function ${method.name}(${argsSignature}): ${returnType} {`,
+    ...aliasLines.map(line => line),
+    body,
+    "}"
+  ];
 
-  return `\nexport function ${method.name}(${argsSignature}): ${returnType} {\n${aliasBlock}${body}\n}`;
+  return methodLines.join("\n");
 }
 
 /**
@@ -96,9 +91,9 @@ export function emitContract(contract: IRContract): string {
 
   // Add methods
   const methodParts = contract.methods.map(method => generateMethod(method));
-  parts.push(...methodParts.map(method => method));
+
+  parts.push(...methodParts);
 
   return parts.join("\n");
- 
 }
 
