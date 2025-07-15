@@ -2,11 +2,14 @@ import { Statement, SyntaxKind } from "ts-morph";
 
 import { IRStatement } from "@/cli/types/ir.types.js";
 
+import { DoWhileIRBuilder } from "../do-while/ir-builder.js";
 import { ExpressionStatementIRBuilder } from "../expression-statement/ir-builder.js";
+import { ForIRBuilder } from "../for/ir-builder.js";
 import { IfIRBuilder } from "../if/ir-builder.js";
 import { ReturnIRBuilder } from "../return/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { VariableDeclarationIRBuilder } from "../variable-declaration/ir-builder.js";
+import { WhileIRBuilder } from "../while/ir-builder.js";
 
 export class StatementIRBuilder extends IRBuilder<IRStatement> {
   private statement: Statement;
@@ -50,6 +53,33 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
       case SyntaxKind.IfStatement:
         return new IfIRBuilder(
           this.statement.asKindOrThrow(SyntaxKind.IfStatement),
+        ).validateAndBuildIR();
+
+      /**
+       * For statement for loop execution
+       * Example: "for (let i = 0; i < 10; i++) { increment(); }"
+       */
+      case SyntaxKind.ForStatement:
+        return new ForIRBuilder(
+          this.statement.asKindOrThrow(SyntaxKind.ForStatement),
+        ).validateAndBuildIR();
+
+      /**
+       * Do-while statement for loop execution
+       * Example: "do { increment(); } while (counter < 10);"
+       */
+      case SyntaxKind.DoStatement:
+        return new DoWhileIRBuilder(
+          this.statement.asKindOrThrow(SyntaxKind.DoStatement),
+        ).validateAndBuildIR();
+
+      /**
+       * While statement for loop execution
+       * Example: "while (counter < 10) { increment(); }"
+       */
+      case SyntaxKind.WhileStatement:
+        return new WhileIRBuilder(
+          this.statement.asKindOrThrow(SyntaxKind.WhileStatement),
         ).validateAndBuildIR();
 
       /**

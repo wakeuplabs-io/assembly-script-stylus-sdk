@@ -289,6 +289,156 @@ function emitStatement(s: IRStatement, indent: string): string {
       break;
     }
 
+    /**
+     * Case "for": For loop statement
+     *
+     * Example in IR:
+     * {
+     *   kind: "for",
+     *   init: { kind: "let", name: "i", expr: { kind: "call", target: "U256Factory.create" } },
+     *   condition: { kind: "condition", left: { kind: "call", target: "i.lessThan", args: [...] } },
+     *   update: { kind: "binary", op: "=", left: { kind: "var", name: "i" }, right: { kind: "call", target: "i.add", args: [...] } },
+     *   body: [...]
+     * }
+     *
+     * Example in source code:
+     * ```
+     * for (let i = U256.create(); i.lessThan(limit); i = i.add(U256.fromString("1"))) {
+     *   // body statements
+     * }
+     * ```
+     *
+     * Generates code for a for loop with proper U256/I256 support for conditions and updates.
+     */
+         case "for": {
+       const lines: string[] = [];
+       
+       // Handle initialization (can be let statement or expression)
+       let initCode = "";
+       if (s.init) {
+         if (s.init.kind === "let") {
+           const initResult = emitExpression(s.init.expr, true);
+           if (initResult.setupLines && initResult.setupLines.length > 0) {
+             // Add setup lines before the for loop
+             lines.push(...initResult.setupLines.map(line => `${indent}${line}`));
+             initCode = `let ${s.init.name} = ${initResult.valueExpr}`;
+           } else {
+             initCode = `let ${s.init.name} = ${initResult.valueExpr}`;
+           }
+         } else {
+           // For non-let initialization, emit as statement and extract the code
+           const initStatement = emitStatement(s.init, "");
+           initCode = initStatement.trim();
+         }
+       }
+      
+      // Handle condition (supports U256/I256 comparisons)
+      let conditionCode = "";
+      if (s.condition) {
+        const condResult = emitExpression(s.condition);
+        if (condResult.setupLines && condResult.setupLines.length > 0) {
+          lines.push(...condResult.setupLines.map(line => `${indent}${line}`));
+        }
+        conditionCode = condResult.valueExpr;
+      }
+      
+      // Handle update expression  
+      let updateCode = "";
+      if (s.update) {
+        const updateResult = emitExpression(s.update);
+        updateCode = updateResult.valueExpr;
+      }
+      
+      // Generate for statement
+      lines.push(`${indent}for (${initCode}; ${conditionCode}; ${updateCode}) {`);
+      
+      // Generate body with proper indentation
+      const bodyCode = emitStatements(s.body);
+      if (bodyCode.trim()) {
+        lines.push(bodyCode.split("\n").map(line => `${indent}${line}`).join("\n"));
+      }
+      
+      lines.push(`${indent}}`);
+      
+      return lines.join("\n");
+    }
+
+    /**
+     * Case "while": While loop statement
+     *
+     * Example in IR:
+     * {
+     *   kind: "while",
+     *   condition: { kind: "condition", left: { kind: "call", target: "i.lessThan", args: [...] } },
+     *   body: [...]
+     * }
+     *
+     * Example in source code:
+     * ```
+     * while (i.lessThan(limit)) {
+     *   // body statements
+     * }
+     * ```
+     *
+     * Generates code for a while loop with proper U256/I256 condition support.
+     */
+         case "while": {
+       const lines: string[] = [];
+      
+      // Handle condition (supports U256/I256 comparisons)
+      const condResult = emitExpression(s.condition);
+      if (condResult.setupLines && condResult.setupLines.length > 0) {
+        lines.push(...condResult.setupLines.map(line => `${indent}${line}`));
+      }
+      
+      lines.push(`${indent}while (${condResult.valueExpr}) {`);
+      
+      // Generate body with proper indentation
+      const bodyCode = emitStatements(s.body);
+      if (bodyCode.trim()) {
+        lines.push(bodyCode.split("\n").map(line => `${indent}${line}`).join("\n"));
+      }
+      
+      lines.push(`${indent}}`);
+      
+      return lines.join("\n");
+    }
+
+    /**
+     * Case "do_while": Do-while loop statement
+     *
+     * Example in IR:
+     * {
+     *   kind: "do_while",
+     *   body: [...],
+     *   condition: { kind: "condition", left: { kind: "call", target: "i.lessThan", args: [...] } }
+     * }
+     *
+     * Example in source code:
+     * ```
+     * do {
+     *   // body statements
+     * } while (i.lessThan(limit));
+     * ```
+     *
+     * Generates code for a do-while loop with proper U256/I256 condition support.
+     */
+         case "do_while": {
+       const lines: string[] = [];
+      
+      lines.push(`${indent}do {`);
+      
+      // Generate body with proper indentation
+      const bodyCode = emitStatements(s.body);
+      if (bodyCode.trim()) {
+        lines.push(bodyCode.split("\n").map(line => `${indent}${line}`).join("\n"));
+      }
+      
+      lines.push(`${indent}} while (${emitExpression(s.condition).valueExpr});`);
+      
+      return lines.join("\n");
+    }
+
     default:
       code = `${indent}/* Unsupported statement: ${(s as { kind: string }).kind} */`;
   }

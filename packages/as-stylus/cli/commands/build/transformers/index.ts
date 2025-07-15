@@ -5,6 +5,7 @@
 
 // Import transformers to ensure they're registered
 import "./u256/u256-transformer.js";
+import "./i256/i256-transformer.js";
 import "./address/address-transformer.js";
 import "./string/string-transformer.js";
 import "./boolean/boolean-transformer.js";
