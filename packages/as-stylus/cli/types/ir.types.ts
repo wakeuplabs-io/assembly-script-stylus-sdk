@@ -130,7 +130,7 @@ export type Assignment = {
   scope: "storage" | "memory";
 };
 export type VariableDeclaration = {
-  kind: "let";
+  kind: "let" | "const";
   name: string;
   expr: IRExpression;
   scope: "storage" | "memory";

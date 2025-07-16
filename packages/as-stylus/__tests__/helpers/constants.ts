@@ -64,4 +64,8 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/inheritance"),
     abi: path.join(ROOT_PATH, "/inheritance/artifacts/abi/Child-abi.json"),
   },
+  ADVANCED_COUNTER: {
+    contract: path.join(ROOT_PATH, "/advanced-counter"),
+    abi: path.join(ROOT_PATH, "/advanced-counter/artifacts/abi/AdvancedCounter-abi.json"),
+  },
 } as const;

@@ -37,6 +37,26 @@ function emitStatement(s: IRStatement, indent: string): string {
       const result = emitExpression(s.expr, true);
       if (result.setupLines && result.setupLines.length > 0) {
         const lines = [...result.setupLines.map((line) => `${indent}${line}`)];
+        lines.push(`${indent}let ${s.name} = ${result.valueExpr};`);
+        return lines.join("\n");
+      }
+
+      code = `${indent}let ${s.name} = ${result.valueExpr};`;
+      break;
+    }
+
+    /**
+     * Case "const": Constant variable declaration
+     *
+     * Example: `const x = 5;`
+     *
+     * Generates code to declare a constant variable and assign it a value.
+     * Similar to let but uses const keyword for immutable variables.
+     */
+    case "const": {
+      const result = emitExpression(s.expr, true);
+      if (result.setupLines && result.setupLines.length > 0) {
+        const lines = [...result.setupLines.map((line) => `${indent}${line}`)];
         lines.push(`${indent}const ${s.name} = ${result.valueExpr};`);
         return lines.join("\n");
       }

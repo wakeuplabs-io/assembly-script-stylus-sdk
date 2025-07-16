@@ -157,13 +157,20 @@ function handleFallbackExpression(expr: IRExpression): string {
         const lhs = emitExpression(expr.left);   // EmitResult
         const rhs = emitExpression(expr.right!);  // EmitResult
     
+        // Detect if we're working with I256 types by checking the left operand
+        let isI256Type = false;
+        if (expr.left.kind === "var") {
+          isI256Type = expr.left.type === "int256";
+        }
+        const typeClass = isI256Type ? "I256" : "U256";
+    
         switch (expr.op) {
-          case "<":  return `U256.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case ">":  return `U256.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case "==": return `U256.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case "!=": return `!U256.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case "<=": return `!U256.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case ">=": return `!U256.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "<":  return `${typeClass}.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case ">":  return `${typeClass}.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "==": return `${typeClass}.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "!=": return `!${typeClass}.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "<=": return `!${typeClass}.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case ">=": return `!${typeClass}.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
         }
       }
 

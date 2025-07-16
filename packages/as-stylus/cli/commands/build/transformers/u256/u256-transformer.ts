@@ -1,10 +1,10 @@
 import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
 
 import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+import { U256ComparisonHandler } from "./handlers/comparison-handler.js";
 import { U256CopyHandler } from "./handlers/copy-handler.js";
 import { U256CreateHandler } from "./handlers/create-handler.js";
 import { U256FromStringHandler } from "./handlers/from-string-handler.js";
-import { U256LessThanHandler } from "./handlers/less-than-handler.js";
 import { U256OperationHandler } from "./handlers/operation-handler.js";
 import { U256ToStringHandler } from "./handlers/to-string-handler.js";
 
@@ -25,7 +25,7 @@ export class U256Transformer extends BaseTypeTransformer {
     this.registerHandler(new U256CopyHandler());
     this.registerHandler(new U256FromStringHandler());
     this.registerHandler(new U256OperationHandler());
-    this.registerHandler(new U256LessThanHandler());
+    this.registerHandler(new U256ComparisonHandler());
     this.registerHandler(new U256ToStringHandler());
   }
 
@@ -45,8 +45,20 @@ export class U256Transformer extends BaseTypeTransformer {
         return true;
       }
 
-      // Instance methods
-      if (target.endsWith(".add") || target.endsWith(".sub") || target.endsWith(".toString")) {
+      // Arithmetic operations
+      if (target.endsWith(".add") || target.endsWith(".sub")) {
+        return true;
+      }
+
+      // Comparison methods
+      if (target.endsWith(".lessThan") || target.endsWith(".greaterThan") ||
+          target.endsWith(".lessThanOrEqual") || target.endsWith(".greaterThanOrEqual") ||
+          target.endsWith(".equal") || target.endsWith(".notEqual")) {
+        return true;
+      }
+
+      // Conversion methods
+      if (target.endsWith(".toString")) {
         return true;
       }
     }
@@ -57,9 +69,9 @@ export class U256Transformer extends BaseTypeTransformer {
    * Handles expressions that don't match any registered handler
    */
   protected handleDefault(
-    expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
+    expr: any, 
+    _context: EmitContext, 
+    _emitExprFn: (expr: any, ctx: EmitContext) => EmitResult
   ): EmitResult {
     return {
       setupLines: [],

@@ -1,5 +1,6 @@
 import { Expression, VariableDeclaration } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRStatement } from "@/cli/types/ir.types.js";
 import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
 import { inferType } from "@/cli/utils/inferType.js";
@@ -29,13 +30,26 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
   buildIR(): IRStatement {
     const initializer = this.declaration.getInitializer();
     const type = inferType(initializer?.getText() ?? "");
+    
+    const variableStatement = this.declaration.getVariableStatement();
+    let declarationKind = "let";
+    
+    if (variableStatement) {
+      const declarationList = variableStatement.getDeclarationList();
+      const keywordNodes = declarationList.getDeclarationKindKeywords();
+      if (keywordNodes.length > 0) {
+        declarationKind = keywordNodes[0].getText();
+      }
+    }
+    
+    const kind = declarationKind === "const" ? "const" : "let" as "let" | "const";
+    
     const variable: VariableSymbol = { name: this.declaration.getName(), type: convertType(type), scope: "memory" };
-    // TODO: revise this case
     if (!initializer) {
       this.symbolTable.declareVariable(variable.name, variable);
 
       return {
-        kind: "let",
+        kind,
         name: variable.name,
         type: variable.type,
         expr: { kind: "literal", value: null, type: variable.type },
@@ -44,11 +58,13 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
     }
 
     const expression = new ExpressionIRBuilder(initializer as Expression).validateAndBuildIR();
-    variable.type = (expression as any).returnType ?? (expression as any).type;
+    if (type === AbiType.Any || type === AbiType.Unknown) {
+      variable.type = (expression as any).returnType ?? (expression as any).type ?? variable.type;
+    }
     this.symbolTable.declareVariable(variable.name, variable);
 
     return {
-      kind: "let",
+      kind,
       name: variable.name,
       type: variable.type,
       expr: expression,

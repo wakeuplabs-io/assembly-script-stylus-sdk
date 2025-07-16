@@ -41,6 +41,7 @@ export enum AssemblyScriptType {
   String = "string",
   Address = "address",
   Uint256 = "uint256",
+  I256 = "int256",
   Pointer = "usize",
 }
 
