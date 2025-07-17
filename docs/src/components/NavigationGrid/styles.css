@@ -1,90 +1,183 @@
+/* NavigationGrid con tema Arbitrum/Stylus */
 .navigation-container {
   margin: 2rem 0;
   padding: 0;
 }
 
 .navigation-container h3 {
-  margin-bottom: 1.2rem;
-  color: var(--ifm-color-emphasis-700);
-  font-size: 1rem;
-  font-weight: 600;
-  border-bottom: 2px solid var(--ifm-color-emphasis-200);
-  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--ifm-color-emphasis-800);
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: 2px solid var(--arbitrum-blue);
+  padding-bottom: 0.6rem;
 }
+
+
 
 .navigation-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .nav-card {
   display: flex;
   flex-direction: column;
-  padding: 1rem 1.2rem;
+  padding: 1.2rem 1.4rem;
   background: var(--ifm-card-background-color);
   border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 6px;
+  border-radius: 8px;
   text-decoration: none;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .nav-card:hover {
   text-decoration: none;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-color: transparent;
+}
+
+/* Estilos específicos para cada tipo de card con colores Arbitrum/Stylus */
+.decorator-card {
+  border-left: 3px solid var(--arbitrum-blue);
+}
+
+.decorator-card::before {
+  background: var(--arbitrum-blue);
 }
 
 .decorator-card:hover {
-  border-color: var(--ifm-color-primary-light);
-  background: rgba(var(--ifm-color-primary-rgb), 0.02);
+  background: linear-gradient(135deg, rgba(18, 170, 255, 0.03), rgba(18, 170, 255, 0.01));
+  box-shadow: 0 8px 25px rgba(18, 170, 255, 0.2);
+}
+
+.decorator-card:hover::before {
+  height: 100%;
+  opacity: 0.03;
+}
+
+.type-card {
+  border-left: 3px solid var(--ifm-color-success);
+}
+
+.type-card::before {
+  background: var(--ifm-color-success);
 }
 
 .type-card:hover {
-  border-color: var(--ifm-color-success-light);
-  background: rgba(var(--ifm-color-success-rgb), 0.02);
+  background: linear-gradient(135deg, rgba(0, 200, 150, 0.03), rgba(0, 200, 150, 0.01));
+  box-shadow: 0 8px 25px rgba(0, 200, 150, 0.2);
+}
+
+.type-card:hover::before {
+  height: 100%;
+  opacity: 0.03;
+}
+
+.structure-card {
+  border-left: 3px solid var(--stylus-orange);
+}
+
+.structure-card::before {
+  background: var(--stylus-orange);
 }
 
 .structure-card:hover {
-  border-color: var(--ifm-color-warning-light);
-  background: rgba(var(--ifm-color-warning-rgb), 0.02);
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.03), rgba(255, 107, 53, 0.01));
+  box-shadow: 0 8px 25px rgba(255, 107, 53, 0.2);
+}
+
+.structure-card:hover::before {
+  height: 100%;
+  opacity: 0.03;
+}
+
+.example-card {
+  border-left: 3px solid var(--ifm-color-info);
+}
+
+.example-card::before {
+  background: var(--ifm-color-info);
 }
 
 .example-card:hover {
-  border-color: var(--ifm-color-secondary-light);
-  background: rgba(var(--ifm-color-secondary-rgb), 0.02);
+  background: linear-gradient(135deg, rgba(45, 116, 204, 0.03), rgba(45, 116, 204, 0.01));
+  box-shadow: 0 8px 25px rgba(45, 116, 204, 0.2);
+}
+
+.example-card:hover::before {
+  height: 100%;
+  opacity: 0.03;
 }
 
 .nav-title {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--ifm-color-emphasis-800);
-  font-family: var(--ifm-font-family-monospace);
-  margin-bottom: 0.3rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ifm-color-emphasis-900);
+  font-family: var(--ifm-font-family-base);
+  margin-bottom: 0.4rem;
+  transition: color 0.3s ease;
 }
 
 .nav-desc {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--ifm-color-emphasis-600);
-  line-height: 1.3;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+/* Efectos hover para títulos */
+.decorator-card:hover .nav-title {
+  color: var(--arbitrum-blue);
+}
+
+.type-card:hover .nav-title {
+  color: var(--ifm-color-success);
+}
+
+.structure-card:hover .nav-title {
+  color: var(--stylus-orange);
+}
+
+.example-card:hover .nav-title {
+  color: var(--ifm-color-info);
+}
+
+/* Responsive design mejorado */
+@media (max-width: 996px) {
+  .navigation-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.9rem;
+  }
+  
+  .nav-card {
+    padding: 1rem 1.2rem;
+  }
 }
 
 @media (max-width: 768px) {
   .navigation-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
   }
   
   .nav-card {
-    padding: 0.8rem 1rem;
+    padding: 0.9rem 1rem;
   }
   
   .nav-title {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
   
   .nav-desc {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .navigation-container h3 {
+    font-size: 1rem;
   }
 }
 
@@ -92,4 +185,38 @@
   .navigation-grid {
     grid-template-columns: 1fr;
   }
+  
+  .nav-card {
+    padding: 1rem;
+  }
+} 
+
+/* Modo oscuro - ajustes específicos */
+[data-theme='dark'] .nav-card {
+  background: var(--ifm-background-surface-color);
+  border-color: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .nav-card:hover {
+  background: var(--ifm-color-emphasis-100);
+}
+
+[data-theme='dark'] .nav-title {
+  color: var(--ifm-color-emphasis-900);
+}
+
+[data-theme='dark'] .nav-desc {
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* Animaciones suaves para el tema tech */
+@keyframes techGlow {
+  0% { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06); }
+  50% { box-shadow: 0 4px 8px rgba(18, 170, 255, 0.1); }
+  100% { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06); }
+}
+
+.nav-card:focus {
+  animation: techGlow 2s ease-in-out infinite;
+  outline: none;
 } 

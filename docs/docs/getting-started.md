@@ -33,24 +33,24 @@ export class Counter {
   static counter: U256;
 
   constructor() {
-    Counter.counter = U256Factory.create();
+    counter = U256Factory.create();
   }
 
   @External
   static increment(): void {
     const delta: U256 = U256Factory.fromString("1");
-    Counter.counter = Counter.counter.add(delta);
+    counter = counter.add(delta);
   }
 
   @External
   static decrement(): void {
     const delta: U256 = U256Factory.fromString("1");
-    Counter.counter = Counter.counter.sub(delta);
+    counter = counter.sub(delta);
   }
 
   @View
   static get(): U256 {
-    return Counter.counter;
+    return counter;
   }
 }
 ```
@@ -90,6 +90,6 @@ The SDK provides several optimized types for blockchain development:
 
 - Learn about [Decorators](decorators/contract) to understand contract structure
 - Explore [Data Types](types/u256) for efficient data handling
-- Check out [Examples](examples/counter) for practical implementations
+- Check out [Examples](examples/erc20) for practical implementations
 
 Ready to build? Let's start with understanding the decorator system! 

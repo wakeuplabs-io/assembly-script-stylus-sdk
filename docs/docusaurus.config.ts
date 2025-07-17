@@ -72,11 +72,11 @@ const config: Config = {
             },
             {
               label: 'Decorators',
-              to: '/decorators',
+              to: '/decorators/contract',
             },
             {
               label: 'Data Types',
-              to: '/types',
+              to: '/types/u256',
             },
           ],
         },
