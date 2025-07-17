@@ -5,17 +5,17 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'AssemblyScript Stylus SDK',
   tagline: 'Smart Contract Development for Arbitrum Stylus using AssemblyScript',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/arbitrum_stylus_icon.svg',
 
   // Future flags for Docusaurus v4 compatibility
   future: {
     v4: true,
   },
 
-  url: 'https://your-domain.com',
+  url: 'https://assemblyscript-stylus-sdk.wakeuplabs.io',
   baseUrl: '/',
 
-  organizationName: 'your-org',
+  organizationName: 'wakeuplabs-io',
   projectName: 'assembly-script-stylus-sdk',
 
   onBrokenLinks: 'throw',

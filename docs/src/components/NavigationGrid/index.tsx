@@ -12,32 +12,32 @@ const decorators: NavigationItem[] = [
   {
     title: '@Contract',
     description: 'Define your smart contract',
-    link: '/docs/decorators/contract'
+    link: '/decorators/contract'
   },
   {
     title: '@External',
     description: 'Public contract methods',
-    link: '/docs/decorators/external'
+    link: '/decorators/external'
   },
   {
     title: '@View',
     description: 'Read-only methods',
-    link: '/docs/decorators/view'
-  },
-  {
-    title: '@Visibility',
-    description: 'Method visibility control',
-    link: '/docs/decorators/visibility'
+    link: '/decorators/view'
   },
   {
     title: 'Event',
     description: 'Blockchain event logging',
-    link: '/docs/decorators/event'
+    link: '/decorators/event'
   },
   {
     title: 'Error',
     description: 'Custom error definitions',
-    link: '/docs/decorators/error'
+    link: '/decorators/error'
+  },
+  {
+    title: 'Visibility and State Mutability',
+    description: 'Method visibility control',
+    link: '/decorators/visibility'
   }
 ];
 
@@ -45,27 +45,27 @@ const types: NavigationItem[] = [
   {
     title: 'U256',
     description: 'Unsigned 256-bit integers',
-    link: '/docs/types/u256'
+    link: '/types/u256'
   },
   {
     title: 'I256', 
     description: 'Signed 256-bit integers',
-    link: '/docs/types/i256'
+    link: '/types/i256'
   },
   {
     title: 'Address',
     description: 'Ethereum addresses',
-    link: '/docs/types/address'
+    link: '/types/address'
   },
   {
     title: 'String',
     description: 'Text data handling',
-    link: '/docs/types/string'
+    link: '/types/string'
   },
   {
     title: 'Boolean',
     description: 'Logical true/false values',
-    link: '/docs/types/boolean'
+    link: '/types/boolean'
   }
 ];
 
@@ -73,17 +73,17 @@ const structures: NavigationItem[] = [
   {
     title: 'Mapping',
     description: 'Key-value storage',
-    link: '/docs/structures/mapping'
+    link: '/structures/mapping'
   },
   {
     title: 'Mapping2',
     description: 'Nested key-value storage',
-    link: '/docs/structures/mapping2'
+    link: '/structures/mapping2'
   },
   {
     title: 'Struct',
     description: 'Custom data structures',
-    link: '/docs/structures/struct'
+    link: '/structures/struct'
   },
 ];
 
@@ -91,12 +91,12 @@ const examples: NavigationItem[] = [
   {
     title: 'ERC20',
     description: 'Fungible token standard',
-    link: '/docs/examples/erc20'
+    link: '/examples/erc20'
   },
   {
     title: 'ERC721',
     description: 'Non-fungible token (NFT)',
-    link: '/docs/examples/erc721'
+    link: '/examples/erc721'
   }
 ];
 

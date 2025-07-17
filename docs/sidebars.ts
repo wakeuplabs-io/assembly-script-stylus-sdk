@@ -20,9 +20,9 @@ const sidebars: SidebarsConfig = {
         'decorators/contract',
         'decorators/external',
         'decorators/view',
-        'decorators/visibility',
         'decorators/event',
         'decorators/error',
+        'decorators/visibility',
       ],
     },
     {

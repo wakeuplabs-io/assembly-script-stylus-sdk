@@ -1,4 +1,4 @@
-# Visibility and State Mutability Decorators
+# Visibility and State Mutability
 
 Beyond the core `@External` and `@View` decorators, the AssemblyScript Stylus SDK provides additional decorators for fine-grained control over method visibility and state mutability.
 
