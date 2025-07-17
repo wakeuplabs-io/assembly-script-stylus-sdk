@@ -15,31 +15,28 @@ const FeatureList: FeatureItem[] = [
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Build high-performance smart contracts for Arbitrum Stylus using AssemblyScript. 
-        Enjoy familiar TypeScript-like syntax with near-native execution speed and 
-        significantly lower gas costs compared to traditional EVM contracts.
+        TypeScript-like syntax for Arbitrum Stylus. 
+        High performance, low gas costs.
       </>
     ),
   },
   {
-    title: 'Type-Safe Development',
+    title: 'Type-Safe Development', 
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Work with robust data types like <code>U256</code>, <code>I256</code>, <code>Address</code>, 
-        and <code>String</code> that provide compile-time safety and runtime efficiency. 
-        Catch errors early and write more reliable smart contracts with strong typing.
+        <code>U256</code>, <code>I256</code>, <code>Address</code>, <code>String</code> types.
+        Compile-time safety, catch errors early.
       </>
     ),
   },
   {
-    title: 'Developer-Friendly Tooling',
+    title: 'Simple Decorators',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Complete SDK with decorators like <code>@Contract</code>, <code>@External</code>, 
-        and <code>@View</code> for intuitive smart contract development. 
-        Built-in testing, deployment tools, and comprehensive documentation to get you started quickly.
+        <code>@Contract</code>, <code>@External</code>, <code>@View</code> decorators.
+        Start coding contracts immediately.
       </>
     ),
   },

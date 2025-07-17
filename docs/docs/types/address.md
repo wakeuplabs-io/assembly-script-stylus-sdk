@@ -327,78 +327,8 @@ function requireSpecificAddress(caller: Address, required: Address): void {
 }
 ```
 
-## Best Practices
+---
 
-### Security Considerations
+import { TypeNavigation } from '@site/src/components/NavigationGrid';
 
-```typescript
-// Always validate address inputs
-function secureTransfer(to: Address, amount: U256): void {
-    // 1. Validate recipient
-    validateAddressInput(to);
-    
-    // 2. Check for self-transfer
-    const caller = getCaller();
-    if (caller.equals(to)) {
-        revert("Cannot transfer to self");
-    }
-    
-    // 3. Perform transfer...
-}
-
-// Use address cloning for storage
-function storeAddress(addr: Address): void {
-    const storedAddr = addr.clone();
-    // Store the cloned address to avoid reference issues
-}
-```
-
-### Gas Optimization
-
-```typescript
-// Cache frequently accessed addresses
-const ZERO_ADDR = AddressFactory.create();
-
-// Efficient address comparison
-function isAuthorized(caller: Address, allowedAddresses: Array<Address>): boolean {
-    // Use early returns to minimize gas
-    if (caller.isZero()) {
-        return false;
-    }
-    
-    return containsAddress(allowedAddresses, caller);
-}
-
-// Avoid unnecessary cloning
-function quickComparison(addr1: Address, addr2: Address): boolean {
-    return addr1.equals(addr2); // No need to clone for comparison
-}
-```
-
-## Common Use Cases
-
-- **Access control** and permission management
-- **Address allowlists** for restricted operations
-- **Registry systems** for name-to-address mapping
-- **Multi-signature patterns** with address arrays
-- **Contract interaction** validation
-- **Event logging** with address parameters
-
-## Limitations
-
-The current Address interface does NOT include:
-- Direct address arithmetic or manipulation
-- Advanced formatting options (checksumming)
-- Built-in caller/contract address retrieval
-- CREATE2 deterministic address generation
-- ENS or other name service integration
-
-For these advanced features, you'll need to implement them using the available basic operations or wait for expanded interface support.
-
-## Related Types
-
-- **U256**: For token amounts and balances associated with addresses
-- **I256**: For signed calculations involving addresses
-- **String**: For address labels and human-readable names
-- **Boolean**: For permission flags and access control
-- **Mapping**: For address-to-value relationships and registries 
+<TypeNavigation /> 

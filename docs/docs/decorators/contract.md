@@ -142,49 +142,10 @@ When you use `@Contract`, the compiler:
 4. **Creates ABI**: Generates JSON ABI for external interaction
 5. **Optimizes Code**: Performs AssemblyScript optimizations for Stylus
 
-## Error Messages
 
-Common compilation errors related to `@Contract`:
 
-```typescript
-// Error: "No contract decorator found"
-export class MyContract { } // Missing @Contract
+---
 
-// Error: "Multiple contracts found"
-@Contract
-export class First { }
-@Contract
-export class Second { } // Not allowed
+import { DecoratorNavigation } from '@site/src/components/NavigationGrid';
 
-// Error: "Multiple contract decorators found"
-@Contract
-@Contract  // Duplicate decorator
-export class MyContract { }
-```
-
-## Best Practices
-
-1. **Single Responsibility**: Each contract should have a single, well-defined purpose
-2. **Clear Naming**: Use descriptive class names that reflect the contract's functionality
-3. **Export Pattern**: Always export your contract class for proper compilation
-4. **Documentation**: Add comments to describe the contract's purpose and behavior
-
-```typescript
-/**
- * ERC20 Token implementation with mint/burn functionality
- * Supports standard ERC20 operations with additional governance features
- */
-@Contract
-export class GovernanceToken {
-  // Implementation
-}
-```
-
-## Related Decorators
-
-- [`@External`](external.md) - For public contract methods
-- [`@View`](view.md) - For read-only methods
-- [`@Event`](event.md) - For event definitions
-- [`@Error`](error.md) - For custom error types
-
-The `@Contract` decorator is your starting point for smart contract development with AssemblyScript Stylus SDK! 
+<DecoratorNavigation /> 

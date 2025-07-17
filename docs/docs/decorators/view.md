@@ -254,86 +254,8 @@ View methods generate ABI entries with "view" state mutability:
 }
 ```
 
-## Error Messages
+---
 
-Common compilation errors:
+import { DecoratorNavigation } from '@site/src/components/NavigationGrid';
 
-```typescript
-// Error: "View method cannot modify state"
-@View
-static invalidView(): void {
-  SomeContract.value = U256Factory.fromString("10");  // State modification
-}
-
-// Error: "View method cannot emit events"
-@View
-static invalidEvent(): void {
-  SomeEvent.emit();  // Event emission
-}
-
-// Error: "Method must be static"
-@View
-getValue(): U256 { }  // Missing 'static'
-```
-
-## Best Practices
-
-1. **Pure Logic**: Keep view methods focused on reading and computing
-2. **Efficient Queries**: Design efficient data access patterns
-3. **Clear Naming**: Use descriptive names for query methods
-4. **Return Structures**: Use structs for complex return data
-5. **Validation Methods**: Provide view methods for validating inputs
-
-```typescript
-@Contract
-export class BestPracticeExample {
-  static users: Mapping<Address, User>;
-
-  // ✅ Good: Descriptive name and efficient access
-  @View
-  static getUserProfile(userAddress: Address): UserProfile {
-    const user = BestPracticeExample.users.get(userAddress);
-    
-    const profile = new UserProfile();
-    profile.address = userAddress;
-    profile.balance = user.balance;
-    profile.isActive = user.lastActivity.greaterThan(
-      block.timestamp().sub(U256Factory.fromString("86400"))
-    );
-    profile.membershipLevel = BestPracticeExample.calculateMembership(user.balance);
-    
-    return profile;
-  }
-
-  // ✅ Good: Helper view method for calculations
-  @View
-  static calculateMembership(balance: U256): U256 {
-    if (balance.greaterThan(U256Factory.fromString("1000000"))) {
-      return U256Factory.fromString("3"); // Platinum
-    } else if (balance.greaterThan(U256Factory.fromString("100000"))) {
-      return U256Factory.fromString("2"); // Gold
-    } else if (balance.greaterThan(U256Factory.fromString("10000"))) {
-      return U256Factory.fromString("1"); // Silver
-    }
-    return U256Factory.create(); // Bronze
-  }
-}
-```
-
-## Comparison with @External
-
-| Aspect | @View | @External |
-|--------|-------|-----------|
-| **State Modification** | ❌ Read-only | ✅ Can modify state |
-| **Gas Cost** | Free (static calls) | Required (transactions) |
-| **Event Emission** | ❌ Not allowed | ✅ Allowed |
-| **Transaction Required** | ❌ No | ✅ Yes |
-| **ABI StateMutability** | "view" | "nonpayable" or "payable" |
-
-## Related Decorators
-
-- [`@External`](external.md) - For state-modifying methods
-- [`@Contract`](contract.md) - Required container
-- [`@Pure`](visibility.md) - For pure functions (no state access)
-
-The `@View` decorator is perfect for creating efficient query interfaces for your smart contracts! 
+<DecoratorNavigation /> 
