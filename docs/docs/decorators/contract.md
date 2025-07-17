@@ -1,4 +1,4 @@
-# @Contract Decorator
+# @Contract
 
 The `@Contract` decorator is the foundational decorator that marks a TypeScript class as a smart contract. Every smart contract must have exactly one class decorated with `@Contract`.
 
@@ -51,20 +51,10 @@ export class SecondContract { }
 ```typescript
 @Contract
 export class SimpleStorage {
-  static value: U256;
-
-  constructor() {
-    value = U256Factory.create();
-  }
-
-  @External
-  static setValue(newValue: U256): void {
-    value = newValue;
-  }
-
+  
   @View
   static getValue(): U256 {
-    return value;
+    return U256Factory.fromString("1");
   }
 }
 ```

@@ -43,7 +43,7 @@ export class UserManager {
     user.name = name;
     user.isActive = true;
     
-    UserManager.currentUser = user;
+    currentUser = user;
   }
 
   @View
@@ -68,12 +68,13 @@ export class TokenTracker {
 
   @External
   static recordTransfer(amount: U256, recipient: Address, timestamp: U256): void {
-    const transfer = new TokenInfo();
-    transfer.amount = amount;
-    transfer.recipient = recipient;
-    transfer.timestamp = timestamp;
+    const transfer = StructFactory.create<TokenInfo>([
+      amount,
+      recipient,
+      timestamp,
+    ]);
     
-    TokenTracker.lastTransfer = transfer;
+    lastTransfer = transfer;
   }
 
   @View
@@ -125,17 +126,17 @@ export class ProfileManager {
 
   @External
   static createProfile(username: String, balance: U256, joinDate: U256): void {
-    const profile = new Profile();
-    profile.username = username;
-    profile.balance = balance;
-    profile.joinDate = joinDate;
-    
-    ProfileManager.userProfile = profile;
+    const profile = StructFactory.create<Profile>([
+      username,
+      balance,
+      joinDate,
+    ]);
+    userProfile = profile;
   }
 
   @View
   static getProfile(): Profile {
-    return ProfileManager.userProfile;
+    return userProfile;
   }
 }
 ```
@@ -155,17 +156,17 @@ export class GameContract {
 
   @External
   static updateStats(level: U256, score: U256, lives: U256): void {
-    const stats = new PlayerStats();
-    stats.level = level;
-    stats.score = score;
-    stats.lives = lives;
-    
-    GameContract.player = stats;
+    const stats = StructFactory.create<PlayerStats>([
+      level,
+      score,
+      lives
+    ])
+    player = stats;
   }
 
   @View
   static getStats(): PlayerStats {
-    return GameContract.player;
+    return player;
   }
 }
 ```
@@ -179,40 +180,6 @@ class AllTypes {
   addressField: Address;    // ✅ Addresses
   textField: String;        // ✅ Text
   flagField: Boolean;       // ✅ True/false
-}
-```
-
-## Nested Structures
-
-```typescript
-class ContactInfo {
-  email: String;
-  phone: String;
-}
-
-class UserProfile {
-  name: String;
-  age: U256;
-  contact: ContactInfo;
-}
-
-@Contract
-export class NestedExample {
-  static user: UserProfile;
-
-  @External
-  static setUser(name: String, age: U256, email: String, phone: String): void {
-    const contact = new ContactInfo();
-    contact.email = email;
-    contact.phone = phone;
-    
-    const profile = new UserProfile();
-    profile.name = name;
-    profile.age = age;
-    profile.contact = contact;
-    
-    NestedExample.user = profile;
-  }
 }
 ```
 

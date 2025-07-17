@@ -1,4 +1,4 @@
-# @Error Decorator
+# @Error
 
 The `@Error` decorator defines custom error types that can be thrown to revert transactions with structured error data. Custom errors provide better error handling than simple reverts.
 

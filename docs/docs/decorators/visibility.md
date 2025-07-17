@@ -303,17 +303,12 @@ export class GasOptimized {
   @View
   static getCachedResult(): U256 {
     // Gas-efficient for external calls (no gas when called statically)
-    return GasOptimized.expensiveCalculation;
+    return expensiveCalculation;
   }
 
   @External
   static updateCache(input: U256): void {
     // Expensive: modifies state
-    GasOptimized.expensiveCalculation = GasOptimized.complexCalculation(input);
-  }
-
-  static complexCalculation(input: U256): U256 {
-    // Internal expensive calculation
     let result = input;
     for (let i = U256Factory.create(); i.lessThan(U256Factory.fromString("100")); i = i.add(U256Factory.fromString("1"))) {
       result = result.mul(U256Factory.fromString("2")).add(U256Factory.fromString("1"));

@@ -45,19 +45,19 @@ export class MappingBasics {
   @External
   static setScore(user: Address, score: U256): void {
     // Set value for key
-    MappingBasics.userScores.set(user, score);
+    userScores.set(user, score);
   }
 
   @View
   static getScore(user: Address): U256 {
     // Get value for key
-    return MappingBasics.userScores.get(user);
+    return userScores.get(user);
   }
 
   @External
   static updateScore(user: Address, newScore: U256): void {
     // Update existing value
-    MappingBasics.userScores.set(user, newScore);
+    userScores.set(user, newScore);
   }
 }
 ```
@@ -73,22 +73,22 @@ export class MappingTypes {
 
   @External
   static setAddressValue(addr: Address, value: U256): void {
-    MappingTypes.addressToNumber.set(addr, value);
+    addressToNumber.set(addr, value);
   }
 
   @External
   static setStringFlag(key: String, flag: Boolean): void {
-    MappingTypes.stringToFlag.set(key, flag);
+    stringToFlag.set(key, flag);
   }
 
   @View
   static getAddressValue(addr: Address): U256 {
-    return MappingTypes.addressToNumber.get(addr);
+    return addressToNumber.get(addr);
   }
 
   @View
   static getStringFlag(key: String): Boolean {
-    return MappingTypes.stringToFlag.get(key);
+    return stringToFlag.get(key);
   }
 }
 

@@ -1,4 +1,4 @@
-# @View Decorator
+# @View
 
 The `@View` decorator marks a method as read-only, meaning it cannot modify the contract's state. View methods are gas-free when called statically and are used to query contract data.
 
@@ -31,17 +31,17 @@ export class SimpleStorage {
 
   @View
   static getValue(): U256 {
-    return SimpleStorage.value;
+    return value;
   }
 
   @View
   static getOwner(): Address {
-    return SimpleStorage.owner;
+    return owner;
   }
 
   @View
   static isOwner(address: Address): Boolean {
-    return SimpleStorage.owner.equals(address);
+    return owner.equals(address);
   }
 }
 ```
@@ -62,14 +62,14 @@ export class ViewExample {
 
   @View
   static getCounter(): U256 {
-    return ViewExample.counter;  // ✅ Reading is allowed
+    return counter;  // ✅ Reading is allowed
   }
 
   @View
   static invalidMethod(): U256 {
-    ViewExample.counter = U256Factory.fromString("10");  // ❌ Writing not allowed
+    counter = U256Factory.fromString("10");  // ❌ Writing not allowed
     SomeEvent.emit();  // ❌ Events not allowed
-    return ViewExample.counter;
+    return counter;
   }
 }
 ```
@@ -89,9 +89,9 @@ export class Calculator {
   @View
   static calculate(multiplier: U256): U256 {
     // ✅ All of these are allowed in view methods
-    const base = Calculator.baseValue;           // Read storage
+    const base = baseValue;           // Read storage
     const result = base.mul(multiplier);         // Calculations
-    const bonus = Calculator.getBonus();         // Call other view methods
+    const bonus = getBonus();         // Call other view methods
     const timestamp = block.timestamp();         // Access blockchain data
     
     return result.add(bonus);
@@ -126,92 +126,73 @@ export class Calculator {
 
   @View
   static getCurrentData(): U256 {
-    return Calculator.data;
+    return data;
   }
 ```
 
-### Mathematical Computations
+### Step-by-Step Operations
 
 ```typescript
 @Contract
-export class MathLibrary {
-  @View
-  static add(a: U256, b: U256): U256 {
-    return a.add(b);
+export class Calculator {
+  static counter: U256;
+
+  constructor() {
+    counter = U256Factory.fromString("10");
   }
 
   @View
-  static multiply(a: U256, b: U256): U256 {
-    return a.mul(b);
+  static getCounter(): U256 {
+    return counter;
   }
 
   @View
-  static power(base: U256, exponent: U256): U256 {
-    let result = U256Factory.fromString("1");
-    let exp = exponent;
-    let b = base;
-
-    while (exp.greaterThan(U256Factory.create())) {
-      if (exp.mod(U256Factory.fromString("2")).equals(U256Factory.fromString("1"))) {
-        result = result.mul(b);
-      }
-      b = b.mul(b);
-      exp = exp.div(U256Factory.fromString("2"));
-    }
-
+  static addNumbers(a: U256, b: U256): U256 {
+    // Paso 1: Crear el resultado
+    const result: U256 = a.add(b);
     return result;
   }
 
   @View
-  static sqrt(value: U256): U256 {
-    if (value.isZero()) {
-      return U256Factory.create();
+  static calculateSum(limit: U256): U256 {
+    // Paso 1: Inicializar variables
+    let total = U256Factory.create(); // 0
+    const one = U256Factory.fromString("1");
+    
+    // Paso 2: Sumar números del 1 al limit
+    for (
+      let i = U256Factory.fromString("1");
+      i.lessThanOrEqual(limit);
+      i = i.add(one)
+    ) {
+      total = total.add(i);
     }
+    
+    // Paso 3: Retornar el total
+    return total;
+  }
 
-    let result = value;
-    let x = value.div(U256Factory.fromString("2")).add(U256Factory.fromString("1"));
-
-    while (x.lessThan(result)) {
-      result = x;
-      x = value.div(x).add(x).div(U256Factory.fromString("2"));
+  @View
+  static multiplyBySteps(base: U256, multiplier: U256): U256 {
+    // Paso 1: Inicializar resultado
+    let result = U256Factory.create();
+    const one = U256Factory.fromString("1");
+    
+    // Paso 2: Sumar 'base' tantas veces como 'multiplier'
+    for (
+      let count = U256Factory.create();
+      count.lessThan(multiplier);
+      count = count.add(one)
+    ) {
+      result = result.add(base);
     }
-
+    
+    // Paso 3: Retornar resultado
     return result;
   }
 }
 ```
 
-### Validation and Checks
-
-```typescript
-@Contract
-export class ValidationContract {
-  static whitelist: Mapping<Address, Boolean>;
-  static threshold: U256;
-
-  @View
-  static isWhitelisted(address: Address): Boolean {
-    return ValidationContract.whitelist.get(address);
-  }
-
-  @View
-  static meetsThreshold(amount: U256): Boolean {
-    return amount.greaterThanOrEqual(ValidationContract.threshold);
-  }
-
-  @View
-  static validateTransfer(from: Address, to: Address, amount: U256): ValidationResult {
-    const result = new ValidationResult();
-    
-    result.fromWhitelisted = ValidationContract.isWhitelisted(from);
-    result.toWhitelisted = ValidationContract.isWhitelisted(to);
-    result.amountValid = ValidationContract.meetsThreshold(amount);
-    result.isValid = result.fromWhitelisted && result.toWhitelisted && result.amountValid;
-    
-    return result;
-  }
-}
-```
 
 ## Gas Efficiency
 

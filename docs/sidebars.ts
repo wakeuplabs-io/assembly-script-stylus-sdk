@@ -21,6 +21,8 @@ const sidebars: SidebarsConfig = {
         'decorators/external',
         'decorators/view',
         'decorators/visibility',
+        'decorators/event',
+        'decorators/error',
       ],
     },
     {
@@ -41,8 +43,6 @@ const sidebars: SidebarsConfig = {
         'structures/mapping',
         'structures/mapping2',
         'structures/struct',
-        'structures/event',
-        'structures/error',
       ],
     },
     {

@@ -1,4 +1,4 @@
-# @Event Decorator
+# @Event
 
 The `@Event` decorator defines event structures for logging blockchain events. Events provide a way to communicate with external applications and create an audit trail of contract activity.
 

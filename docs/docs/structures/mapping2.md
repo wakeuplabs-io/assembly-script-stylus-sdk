@@ -45,22 +45,22 @@ export class AllowanceManager {
   @External
   static approve(owner: Address, spender: Address, amount: U256): void {
     // Set nested value with two keys
-    AllowanceManager.allowances.set(owner, spender, amount);
+    allowances.set(owner, spender, amount);
   }
 
   @View
   static allowance(owner: Address, spender: Address): U256 {
     // Get nested value with two keys
-    return AllowanceManager.allowances.get(owner, spender);
+    return allowances.get(owner, spender);
   }
 
   @External
   static transferFrom(from: Address, spender: Address, to: Address, amount: U256): void {
-    const currentAllowance = AllowanceManager.allowances.get(from, spender);
+    const currentAllowance = allowances.get(from, spender);
     
     // Update allowance
     const newAllowance = currentAllowance.sub(amount);
-    AllowanceManager.allowances.set(from, spender, newAllowance);
+    allowances.set(from, spender, newAllowance);
   }
 }
 ```
@@ -75,22 +75,22 @@ export class SimpleMapping2 {
 
   @External
   static setValue(user: Address, key: String, value: U256): void {
-    SimpleMapping2.data.set(user, key, value);
+    data.set(user, key, value);
   }
 
   @External
   static setFlag(category: String, id: U256, flag: Boolean): void {
-    SimpleMapping2.flags.set(category, id, flag);
+    flags.set(category, id, flag);
   }
 
   @View
   static getValue(user: Address, key: String): U256 {
-    return SimpleMapping2.data.get(user, key);
+    return data.get(user, key);
   }
 
   @View
   static getFlag(category: String, id: U256): Boolean {
-    return SimpleMapping2.flags.get(category, id);
+    return flags.get(category, id);
   }
 }
 ```

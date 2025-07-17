@@ -28,6 +28,16 @@ const decorators: NavigationItem[] = [
     title: '@Visibility',
     description: 'Method visibility control',
     link: '/docs/decorators/visibility'
+  },
+  {
+    title: 'Event',
+    description: 'Blockchain event logging',
+    link: '/docs/decorators/event'
+  },
+  {
+    title: 'Error',
+    description: 'Custom error definitions',
+    link: '/docs/decorators/error'
   }
 ];
 
@@ -75,16 +85,6 @@ const structures: NavigationItem[] = [
     description: 'Custom data structures',
     link: '/docs/structures/struct'
   },
-  {
-    title: 'Event',
-    description: 'Blockchain event logging',
-    link: '/docs/structures/event'
-  },
-  {
-    title: 'Error',
-    description: 'Custom error definitions',
-    link: '/docs/structures/error'
-  }
 ];
 
 const examples: NavigationItem[] = [

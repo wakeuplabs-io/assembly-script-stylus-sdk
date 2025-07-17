@@ -1,4 +1,4 @@
-# @External Decorator
+# @External
 
 The `@External` decorator marks a method as publicly callable from outside the contract. External methods can be invoked through transactions and are included in the contract's ABI.
 
@@ -30,13 +30,13 @@ export class SimpleStorage {
 
   @External
   static setValue(newValue: U256): void {
-    SimpleStorage.value = newValue;
+    value = newValue;
   }
 
   @External
   static increment(): void {
     const one = U256Factory.fromString("1");
-    SimpleStorage.value = SimpleStorage.value.add(one);
+    value = value.add(one);
   }
 }
 ```
@@ -70,31 +70,6 @@ static invalid(complexObject: CustomClass): void { } // Error
 ```
 
 ## Advanced Usage
-
-### With Parameter Validation
-
-```typescript
-@Contract
-export class SimpleStorage {
-  static data: U256;
-  static owner: Address;
-
-  @External
-  static setData(newValue: U256): void {
-    SimpleStorage.data = newValue;
-  }
-
-  @External
-  static updateOwner(newOwner: Address): void {
-    SimpleStorage.owner = newOwner;
-  }
-
-  @External
-  static reset(): void {
-    SimpleStorage.data = U256Factory.create();
-  }
-}
-```
 
 ### With Return Values
 
