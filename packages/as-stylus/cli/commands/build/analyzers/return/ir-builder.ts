@@ -22,10 +22,8 @@ export class ReturnIRBuilder extends IRBuilder<IRStatement> {
 
   buildIR(): IRStatement {
     const expression = this.statement.getExpression();
-
     if (expression) {
       const expr = new ExpressionIRBuilder(expression).validateAndBuildIR();
-
       return {
         kind: "return",
         // TODO: remove any when type is added all the expressions

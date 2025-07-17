@@ -1,6 +1,7 @@
 import { BinaryExpression, Expression } from "ts-morph";
 
 import { Logger } from "@/cli/services/logger.js";
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRCondition, IRExpression, IRExpressionBinary } from "@/cli/types/ir.types.js";
 
 import { BinaryExpressionSyntaxValidator } from "./syntax-validator.js";
@@ -45,7 +46,7 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
     const left = new ExpressionIRBuilder(this.left).validateAndBuildIR();
     const right = new ExpressionIRBuilder(this.right).validateAndBuildIR();
     const type = this.getConversionType(left, right);
-
+    
     if (this.isConditional) {
       return {
         kind: "condition",
@@ -54,6 +55,16 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
         right,
         type,
       } as IRCondition;
+    }
+
+    if (this.op === "&&" || this.op === "||") {
+      return {
+        kind: "binary",
+        op: this.op,
+        left,
+        right,
+        type: AbiType.Bool,
+      };
     }
 
     return {

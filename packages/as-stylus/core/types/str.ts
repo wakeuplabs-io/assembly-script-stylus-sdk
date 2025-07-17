@@ -16,9 +16,6 @@ import {
 import { malloc } from "../modules/memory";
 import { createStorageKey } from "../modules/storage";
 
-// ————————————————————————————————————————————————————————————————————
-// Utilidades internas
-// ————————————————————————————————————————————————————————————————————
 function zero(ptr: usize, len: u32): void {
   for (let i: u32 = 0; i < len; ++i) store<u8>(ptr + i, 0);
 }
@@ -32,20 +29,20 @@ function loadU32FromBytes32(ptr: usize): u32 {
   return loadU32BE(ptr + 28);
 }
 
-// ————————————————————————————————————————————————————————————————————
-// Clase Str
-// ————————————————————————————————————————————————————————————————————
 export class Str {
-  /* ────────────── Creación básica ────────────── */
   static create(): usize {
     const ptr = malloc(4);
     store<u32>(ptr, 0);
     return ptr;
   }
 
+  static fromABI(pointer: usize): usize {
+    return Str.fromBytes(pointer, load<u32>(pointer + 28));
+  }
+
   static fromString(str: string): usize {
     const ptr = malloc(str.length);
-    for (let i: u32 = 0; i < str.length; ++i) store<u8>(ptr + i, str.charCodeAt(i));
+    for (let i: i32 = 0; i < str.length; ++i) store<u8>(ptr + i, str.charCodeAt(i));
     return Str.fromBytes(ptr, str.length);
   }
 
@@ -94,7 +91,11 @@ export class Str {
     return String.UTF8.decodeUnsafe(ptr + 4, len, true);
   }
 
-  /* Devuelve la longitud empaquetada en U256 */
+  /**
+   * Returns the length of the string
+   * @param ptr - pointer to the string
+   * @returns pointer to the length
+   */
   static length(ptr: usize): usize {
     const out = malloc(32);
     zero(out, 32);

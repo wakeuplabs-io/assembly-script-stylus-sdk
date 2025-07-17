@@ -72,4 +72,8 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/advanced-counter"),
     abi: path.join(ROOT_PATH, "/advanced-counter/artifacts/abi/AdvancedCounter-abi.json"),
   },
+  NESTED_FUNCTIONS: {
+    contract: path.join(ROOT_PATH, "/nested-functions"),
+    abi: path.join(ROOT_PATH, "/nested-functions/artifacts/abi/contract-abi.json"),
+  },
 } as const;

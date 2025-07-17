@@ -33,8 +33,8 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     const name = this.methodDecl.getName();
     const decorators = this.methodDecl.getDecorators();
 
-    const visDecorators = decorators.filter((d) => Object.values(Visibility).includes(d.getName() as Visibility));
-    const stateDecorators = decorators.filter((d) => Object.values(StateMutability).includes(d.getName() as StateMutability));
+    const visDecorators = decorators.filter((d) => Object.values(Visibility).includes(d.getName().toLowerCase() as Visibility));
+    const stateDecorators = decorators.filter((d) => Object.values(StateMutability).includes(d.getName().toLowerCase() as StateMutability));
 
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? Visibility.PUBLIC;
     const stateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? StateMutability.NONPAYABLE;

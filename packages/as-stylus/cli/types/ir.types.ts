@@ -11,6 +11,7 @@ export type IRUnaryExpression = {
   op: string;
   expr: IRExpression;
   type: SupportedType;
+  returnType: SupportedType;
 };
 
 export type Literal = {
@@ -32,6 +33,7 @@ export type Call = {
   returnType: SupportedType;
   originalType?: string;
   scope: "storage" | "memory";
+  context?: "argument" | "assignment" | "return";
 };
 export type Member = {
   kind: "member";
