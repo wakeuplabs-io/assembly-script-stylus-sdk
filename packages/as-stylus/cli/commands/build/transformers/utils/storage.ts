@@ -79,6 +79,10 @@ export function generateImports(contract: IRContract): string {
     lines.push('import { U256 } from "as-stylus/core/types/u256";');
   }
 
+  if (types.has(AbiType.Int256)) {
+    lines.push('import { I256 } from "as-stylus/core/types/i256";');
+  }
+
   if (types.has(AbiType.String)) {
     lines.push('import { Str } from "as-stylus/core/types/str";');
     lines.push('import { loadU32BE } from "as-stylus/core/modules/endianness";');

@@ -31,11 +31,23 @@ function emitExpressionWrapper(expr: IRExpression, ctx: EmitContext): EmitResult
 
 export function emitExpression(expr: IRExpression, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
+  
+  // Special handling for storage assignments to preserve setupLines
+  if (expr.kind === "binary" && expr.op === "=" && expr.left.kind === "var" && expr.left.scope === "storage") {
+    const property = expr.left.name;
+    const rightResult = emitExpression(expr.right);
+    return {
+      setupLines: rightResult.setupLines,
+      valueExpr: `store_${property}(${rightResult.valueExpr})`
+    };
+  }
+  
   const typeName = detectExpressionType(expr);
   const transformer = typeName ? typeTransformers[typeName] : null;
   if (transformer && typeof transformer.emit === 'function') {
     return transformer.emit(expr, globalContext, emitExpressionWrapper);
   }
+  
   return {
     setupLines: [],
     valueExpr: handleFallbackExpression(expr),
@@ -150,13 +162,20 @@ function handleFallbackExpression(expr: IRExpression): string {
         const lhs = emitExpression(expr.left);   // EmitResult
         const rhs = emitExpression(expr.right!);  // EmitResult
     
+        // Detect if we're working with I256 types by checking the left operand
+        let isI256Type = false;
+        if (expr.left.kind === "var") {
+          isI256Type = expr.left.type === "int256";
+        }
+        const typeClass = isI256Type ? "I256" : "U256";
+    
         switch (expr.op) {
-          case "<":  return `U256.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case ">":  return `U256.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case "==": return `U256.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case "!=": return `!U256.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case "<=": return `!U256.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
-          case ">=": return `!U256.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "<":  return `${typeClass}.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case ">":  return `${typeClass}.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "==": return `${typeClass}.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "!=": return `!${typeClass}.equals(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case "<=": return `!${typeClass}.greaterThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
+          case ">=": return `!${typeClass}.lessThan(${lhs.valueExpr}, ${rhs.valueExpr})`;
         }
       }
 
@@ -199,7 +218,8 @@ function handleFallbackExpression(expr: IRExpression): string {
       const method = expr.valueType === "boolean" ? "getBoolean" : "getU256";
       const baseExpr = `Mapping2.${method}(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr})`;
       
-      // For boolean mappings, always wrap with Boolean.toValue() except for return statements
+      // For boolean mappings, wrap with Boolean.toValue() only for statements (assignments, etc.)
+      // For return values, keep the raw boolean to avoid converting to U256
       if (expr.valueType === "boolean" && savedIsInStatement) {
         return `Boolean.toValue(${baseExpr})`;
       }

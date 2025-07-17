@@ -5,6 +5,7 @@ const ASCII_X_LOWER: u8 = 0x78; // 'x'
 const ASCII_CASE_MASK: u8 = 0x20; // toLower bit
 const HEX_ALPHA_OFFSET: u8 = ASCII_a - 10; // 0x61-0x0A = 0x57
 
+import { panicArithmeticOverflow } from "../modules/errors";
 import { malloc } from "../modules/memory";
 
 export class U256 {
@@ -80,6 +81,49 @@ export class U256 {
   }
 
   static sub(dest: usize, src: usize): usize {
+    let borrow: u8 = 0;
+    for (let i: i32 = 31; i >= 0; --i) {
+      const d: u16 = load<u8>(dest + i);
+      const s: u16 = load<u8>(src + i) + borrow;
+      if (d < s) {
+        store<u8>(dest + i, <u8>(d + 256 - s));
+        borrow = 1;
+      } else {
+        store<u8>(dest + i, <u8>(d - s));
+        borrow = 0;
+      }
+    }
+    return dest;
+  }
+
+  /*──────────────────────────*
+   *  Checked arithmetic       *
+   *──────────────────────────*/
+
+  /** Addition with overflow checking (Solidity 0.8.x behavior) */
+  static addChecked(dest: usize, src: usize): usize {
+    let carry: u16 = 0;
+    for (let i: i32 = 31; i >= 0; --i) {
+      const sum: u16 = load<u8>(dest + i) + load<u8>(src + i) + carry;
+      store<u8>(dest + i, <u8>sum);
+      carry = sum > 0xff ? 1 : 0;
+    }
+
+    // Check for overflow: if final carry exists, we overflowed
+    if (carry > 0) {
+      panicArithmeticOverflow();
+    }
+
+    return dest;
+  }
+
+  /** Subtraction with underflow checking (Solidity 0.8.x behavior) */
+  static subChecked(dest: usize, src: usize): usize {
+    // Check if dest < src (would cause underflow)
+    if (this.lessThan(dest, src)) {
+      panicArithmeticOverflow();
+    }
+
     let borrow: u8 = 0;
     for (let i: i32 = 31; i >= 0; --i) {
       const d: u16 = load<u8>(dest + i);
@@ -182,6 +226,20 @@ export class U256 {
     const out = malloc(32);
     this.copy(out, a);
     this.add(out, b);
+    return out;
+  }
+
+  static addNewChecked(a: usize, b: usize): usize {
+    const out = malloc(32);
+    this.copy(out, a);
+    this.addChecked(out, b);
+    return out;
+  }
+
+  static subNewChecked(a: usize, b: usize): usize {
+    const out = malloc(32);
+    this.copy(out, a);
+    this.subChecked(out, b);
     return out;
   }
 

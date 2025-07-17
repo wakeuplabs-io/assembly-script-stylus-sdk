@@ -4,21 +4,21 @@ import { ExpressionHandler } from "../../core/interfaces.js";
 import { makeTemp } from "../../utils/temp-factory.js";
 
 /**
- * U256Factory.fromString(...)
+ * I256Factory.fromString(...)
  *
- *  - If the argument is a **literal** (`"0x…"`) copy the bytes at compile-time
+ *  - If the argument is a **literal** (`"0x…"` or `"-123"`) copy the bytes at compile-time
  *    using `store<u8>()`.
  *
- *  - If the argument is a **variable** (`string`) reserve 66 bytes
- *    (`"0x" + 64 hex digits`) and copy at runtime using `memory.copy`.
+ *  - If the argument is a **variable** (`string`) reserve bytes
+ *    and copy at runtime using `memory.copy`.
  *
- *  Then call `U256.setFromString(ptrU256, ptrStr, len)`.
+ *  Then call `I256.setFromString(ptrI256, ptrStr, len)`.
  */
-export class U256FromStringHandler implements ExpressionHandler {
+export class I256FromStringHandler implements ExpressionHandler {
   canHandle(expr: any): boolean {
     return (
       expr.kind === "call" &&
-      expr.target === "U256Factory.fromString" &&
+      expr.target === "I256Factory.fromString" &&
       expr.args &&
       expr.args.length === 1
     );
@@ -34,7 +34,7 @@ export class U256FromStringHandler implements ExpressionHandler {
     // emit arg first
     const argRes = emit(arg, ctx);
 
-    const u256Ptr = makeTemp("u256");
+    const i256Ptr = makeTemp("i256");
     const strPtr = makeTemp("str");
     const lenVar = makeTemp("len");
 
@@ -49,21 +49,21 @@ export class U256FromStringHandler implements ExpressionHandler {
         setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
       setup.push(`const ${lenVar}: u32 = ${strLen};`);
-      setup.push(`const ${u256Ptr}: usize = U256.create();`);
-      setup.push(`U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`);
+      setup.push(`const ${i256Ptr}: usize = I256.create();`);
+      setup.push(`I256.setFromString(${i256Ptr}, ${strPtr}, ${lenVar});`);
     } else {
       setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
       setup.push(`const ${strPtr}: usize = malloc(66);`);
       setup.push(
-        `const ${u256Ptr}: usize = U256.create();`,
-        `U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`
+        `const ${i256Ptr}: usize = I256.create();`,
+        `I256.setFromString(${i256Ptr}, ${strPtr}, ${lenVar});`
       );
     }
 
     return {
       setupLines: setup,
-      valueExpr: u256Ptr,
-      valueType: "U256",
+      valueExpr: i256Ptr,
+      valueType: "I256",
     };
   }
-}
+} 

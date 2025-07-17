@@ -6,6 +6,7 @@ import { IRExpression, IRMapGet, IRMapGet2, IRMapSet, IRMapSet2 } from "@/cli/ty
 import { FunctionSymbol, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
 import { buildAddressIR } from "./address.js";
+import { buildI256IR } from "./i256.js";
 import { buildStringIR } from "./string.js";
 import { buildU256IR } from "./u256.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
@@ -120,6 +121,10 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
     if (variable?.type === AbiType.Uint256) {
       return buildU256IR(target, this.call, this.symbolTable);
+    }
+
+    if (variable?.type === AbiType.Int256) {
+      return buildI256IR(target, this.call, this.symbolTable);
     }
 
     if (variable?.type === AbiType.String) {

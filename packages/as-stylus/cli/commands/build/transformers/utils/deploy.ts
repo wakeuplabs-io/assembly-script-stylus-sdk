@@ -37,7 +37,9 @@ export function generateDeployFunction(contract: IRContract): string {
 
   if (contract.constructor) {
     const constructorBody = emitStatements(contract.constructor.ir);
-    lines.push(constructorBody);
+    if (constructorBody.trim()) {
+      lines.push(constructorBody);
+    }
   }
 
   lines.push(`}`);

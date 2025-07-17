@@ -68,4 +68,8 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/erc20-override"),
     abi: path.join(ROOT_PATH, "/erc20-override/artifacts/abi/contract-abi.json"),
   },
+  ADVANCED_COUNTER: {
+    contract: path.join(ROOT_PATH, "/advanced-counter"),
+    abi: path.join(ROOT_PATH, "/advanced-counter/artifacts/abi/AdvancedCounter-abi.json"),
+  },
 } as const;

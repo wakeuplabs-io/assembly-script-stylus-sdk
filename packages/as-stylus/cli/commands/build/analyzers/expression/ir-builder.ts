@@ -1,4 +1,4 @@
-import { BinaryExpression, CallExpression, Expression, Identifier, PrefixUnaryExpression, PropertyAccessExpression, SyntaxKind } from "ts-morph";
+import { BinaryExpression, CallExpression, ConditionalExpression, Expression, Identifier, PrefixUnaryExpression, PropertyAccessExpression, SyntaxKind } from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
@@ -72,6 +72,24 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       case SyntaxKind.PrefixUnaryExpression: {
         const unary = new UnaryExpressionIRBuilder(this.expression as PrefixUnaryExpression);
         return unary.buildIR();
+      }
+
+      /* ---------- Conditional (ternary) expression ---------- */
+      // Example: condition ? trueValue : falseValue
+      case SyntaxKind.ConditionalExpression: {
+        const conditional = this.expression as ConditionalExpression;
+        const condition = new ExpressionIRBuilder(conditional.getCondition()).validateAndBuildIR();
+        const whenTrue = new ExpressionIRBuilder(conditional.getWhenTrue()).validateAndBuildIR();
+        const whenFalse = new ExpressionIRBuilder(conditional.getWhenFalse()).validateAndBuildIR();
+        
+        // For now, return a simple representation (TODO: implement proper conditional IR)
+        return {
+          kind: "call",
+          target: "conditional",
+          args: [condition, whenTrue, whenFalse],
+          returnType: AbiType.Any,
+          scope: "memory"
+        } as any;
       }
   
       default:

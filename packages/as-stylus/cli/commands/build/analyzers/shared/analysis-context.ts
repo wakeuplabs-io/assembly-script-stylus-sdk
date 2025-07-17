@@ -20,6 +20,11 @@ export class AnalysisContext {
   private populatedSymbolTable(): void {
     this.symbolTable.declareFunction("U256Factory.create", { name: "U256Factory.create", parameters: [], returnType: AbiType.Uint256 });
     this.symbolTable.declareFunction("U256Factory.fromString", { name: "U256Factory.fromString", parameters: [], returnType: AbiType.Uint256 });
+    
+    // I256
+    this.symbolTable.declareFunction("I256Factory.create", { name: "I256Factory.create", parameters: [], returnType: AbiType.Int256 });
+    this.symbolTable.declareFunction("I256Factory.fromString", { name: "I256Factory.fromString", parameters: [], returnType: AbiType.Int256 });
+    
     // String
     this.symbolTable.declareFunction("StrFactory.create", { name: "StrFactory.create", parameters: [], returnType: AbiType.String });
     this.symbolTable.declareFunction("StrFactory.fromString", { name: "StrFactory.fromString", parameters: [], returnType: AbiType.String });
