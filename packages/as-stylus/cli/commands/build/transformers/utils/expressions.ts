@@ -221,12 +221,8 @@ function handleFallbackExpression(expr: IRExpression): string {
       const method = expr.valueType === "boolean" ? "getBoolean" : "getU256";
       const baseExpr = `Mapping2.${method}(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr})`;
       
-<<<<<<< Updated upstream
       // For boolean mappings, wrap with Boolean.toABI() only for statements (assignments, etc.)
       // For return values, keep the raw boolean to avoid converting to U256
-=======
-      // For boolean mappings, always wrap with Boolean.toABI() except for return statements
->>>>>>> Stashed changes
       if (expr.valueType === "boolean" && savedIsInStatement) {
         return `Boolean.toABI(${baseExpr})`;
       }

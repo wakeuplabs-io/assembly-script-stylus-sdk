@@ -97,6 +97,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
             
             return {
               kind: "expr",
+              type: AbiType.Void,
               expr: {
                 kind: "call",
                 target: `${structInfo.structName}_set_${fieldName}`,
@@ -110,6 +111,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
             // TODO: Handle other types of property assignments
             return {
               kind: "expr",
+              type: AbiType.Void,
               expr: {
                 kind: "call",
                 target: `property_set`,
@@ -127,10 +129,12 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
       }
     }
 
+    const expression = new ExpressionIRBuilder(expr).validateAndBuildIR();
     // Handle simple expressions (function calls, etc.)
     return {
       kind: "expr",
-      expr: new ExpressionIRBuilder(expr).validateAndBuildIR(),
+      expr: expression,
+      type: (expression as any).type,
     };
   }
 }

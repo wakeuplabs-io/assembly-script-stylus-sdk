@@ -37,7 +37,12 @@ export class Str {
   }
 
   static fromABI(pointer: usize): usize {
-    return Str.fromBytes(pointer, load<u32>(pointer + 28));
+    // ABI format: [offset: 32 bytes][length: 32 bytes][data: variable bytes]
+    // Read length from bytes 32-63 (position 0x20 + 28)
+    const len: u32 = loadU32BE(pointer + 0x20 + 28);
+    // Read data starting from byte 64 (0x40)
+    const dataPtr = pointer + 0x40;
+    return Str.fromBytes(dataPtr, len);
   }
 
   static fromString(str: string): usize {
