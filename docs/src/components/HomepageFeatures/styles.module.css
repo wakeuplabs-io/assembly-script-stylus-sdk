@@ -1,0 +1,193 @@
+/* HomepageFeatures con tema Arbitrum/Stylus */
+.features {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+  width: 100%;
+  background: linear-gradient(135deg, 
+    rgba(18, 170, 255, 0.02) 0%, 
+    rgba(255, 107, 53, 0.02) 50%, 
+    rgba(0, 200, 150, 0.02) 100%);
+  border-radius: 12px;
+  margin: 2rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.features::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    transparent 0%, 
+    rgba(18, 170, 255, 0.01) 25%, 
+    rgba(255, 107, 53, 0.01) 50%, 
+    rgba(0, 200, 150, 0.01) 75%, 
+    transparent 100%);
+  animation: shimmer 8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.featureSvg {
+  height: 220px;
+  width: 220px;
+  filter: drop-shadow(0 4px 8px rgba(18, 170, 255, 0.15));
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.featureSvg:hover {
+  transform: scale(1.05) rotate(2deg);
+  filter: drop-shadow(0 8px 16px rgba(18, 170, 255, 0.25));
+}
+
+/* Estilos adicionales para features */
+.featureItem {
+  padding: 2rem;
+  text-align: center;
+  background: var(--ifm-card-background-color);
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.featureItem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--arbitrum-blue), var(--stylus-orange));
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.featureItem:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  border-color: rgba(18, 170, 255, 0.3);
+}
+
+.featureItem:hover::before {
+  transform: scaleX(1);
+}
+
+.featureTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1rem 0;
+  background: linear-gradient(45deg, var(--arbitrum-blue), var(--stylus-orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.featureDescription {
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 996px) {
+  .features {
+    padding: 2rem 0;
+  }
+  
+  .featureSvg {
+    height: 180px;
+    width: 180px;
+  }
+  
+  .featureItem {
+    padding: 1.5rem;
+  }
+  
+  .featureTitle {
+    font-size: 1.3rem;
+  }
+  
+  .featureDescription {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .features {
+    padding: 1.5rem 0;
+  }
+  
+  .featureSvg {
+    height: 150px;
+    width: 150px;
+  }
+  
+  .featureItem {
+    padding: 1.2rem;
+  }
+  
+  .featureTitle {
+    font-size: 1.2rem;
+  }
+  
+  .featureDescription {
+    font-size: 0.9rem;
+  }
+}
+
+/* Modo oscuro */
+[data-theme='dark'] .features {
+  background: linear-gradient(135deg, 
+    rgba(102, 209, 255, 0.03) 0%, 
+    rgba(255, 136, 86, 0.03) 50%, 
+    rgba(26, 209, 171, 0.03) 100%);
+}
+
+[data-theme='dark'] .featureItem {
+  background: var(--ifm-background-surface-color);
+  border-color: var(--ifm-color-emphasis-200);
+}
+
+[data-theme='dark'] .featureItem:hover {
+  border-color: rgba(102, 209, 255, 0.3);
+}
+
+[data-theme='dark'] .featureDescription {
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* Efectos especiales para el tema tech */
+.techAccent {
+  position: relative;
+}
+
+.techAccent::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    var(--arbitrum-blue), 
+    var(--stylus-orange), 
+    var(--ifm-color-success));
+  border-radius: 1px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
