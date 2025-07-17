@@ -51,6 +51,11 @@
   background: rgba(var(--ifm-color-warning-rgb), 0.02);
 }
 
+.example-card:hover {
+  border-color: var(--ifm-color-secondary-light);
+  background: rgba(var(--ifm-color-secondary-rgb), 0.02);
+}
+
 .nav-title {
   font-weight: 600;
   font-size: 0.95rem;

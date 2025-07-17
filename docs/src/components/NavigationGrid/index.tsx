@@ -87,6 +87,19 @@ const structures: NavigationItem[] = [
   }
 ];
 
+const examples: NavigationItem[] = [
+  {
+    title: 'ERC20',
+    description: 'Fungible token standard',
+    link: '/docs/examples/erc20'
+  },
+  {
+    title: 'ERC721',
+    description: 'Non-fungible token (NFT)',
+    link: '/docs/examples/erc721'
+  }
+];
+
 export function DecoratorNavigation() {
   return (
     <div className="navigation-container">
@@ -137,6 +150,26 @@ export function StructureNavigation() {
             key={index}
             to={item.link}
             className="nav-card structure-card"
+          >
+            <span className="nav-title">{item.title}</span>
+            <span className="nav-desc">{item.description}</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ExampleNavigation() {
+  return (
+    <div className="navigation-container">
+      <h3>💡 More Examples</h3>
+      <div className="navigation-grid">
+        {examples.map((item, index) => (
+          <Link
+            key={index}
+            to={item.link}
+            className="nav-card example-card"
           >
             <span className="nav-title">{item.title}</span>
             <span className="nav-desc">{item.description}</span>

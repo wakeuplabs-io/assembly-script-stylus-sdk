@@ -45,16 +45,14 @@ const sidebars: SidebarsConfig = {
         'structures/error',
       ],
     },
-    // TODO: Create examples documentation:
-    // {
-    //   type: 'category',
-    //   label: 'Examples',
-    //   items: [
-    //     'examples/counter',
-    //     'examples/erc20',
-    //     'examples/advanced-patterns',
-    //   ],
-    // },
+    {
+      type: 'category',
+      label: 'Examples',
+      items: [
+        'examples/erc20',
+        'examples/erc721',
+      ],
+    },
   ],
 };
 
