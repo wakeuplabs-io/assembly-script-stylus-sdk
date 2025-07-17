@@ -37,7 +37,8 @@ export class InternalExample {
 
   // Internal method - no decorator needed
   static calculateSecret(input: U256): U256 {
-    return input.mul(U256Factory.fromString("42"));
+    const multiplier = U256Factory.fromString("42");
+    return input.add(multiplier);
   }
 
   @External

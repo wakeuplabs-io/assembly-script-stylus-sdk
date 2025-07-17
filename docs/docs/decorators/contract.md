@@ -54,80 +54,42 @@ export class SimpleStorage {
   static value: U256;
 
   constructor() {
-    SimpleStorage.value = U256Factory.create();
+    value = U256Factory.create();
   }
 
   @External
   static setValue(newValue: U256): void {
-    SimpleStorage.value = newValue;
+    value = newValue;
   }
 
   @View
   static getValue(): U256 {
-    return SimpleStorage.value;
+    return value;
   }
 }
 ```
 
 ## Advanced Usage
 
-### With Storage Variables
+### With Constructor
 
 ```typescript
 @Contract
-export class TokenContract {
-  // Contract storage
-  static totalSupply: U256;
-  static balances: Mapping<Address, U256>;
-  static allowances: Mapping<Address, Mapping<Address, U256>>;
+export class Counter {
+  static count: U256;
 
   constructor() {
-    TokenContract.totalSupply = U256Factory.fromString("1000000");
-    // Initialize mappings as needed
+    Counter.count = U256Factory.create();
   }
 
   @External
-  static transfer(to: Address, amount: U256): void {
-    // Transfer logic
+  static increment(): void {
+    Counter.count = Counter.count.add(U256Factory.fromString("1"));
   }
-}
-```
 
-### With Events and Errors
-
-```typescript
-@Event
-class Transfer {
-  from: Address;
-  to: Address;
-  amount: U256;
-}
-
-@Error
-class InsufficientBalance {
-  requested: U256;
-  available: U256;
-}
-
-@Contract
-export class AdvancedToken {
-  static balances: Mapping<Address, U256>;
-
-  @External
-  static transfer(to: Address, amount: U256): void {
-    const sender = msg.sender();
-    const balance = AdvancedToken.balances.get(sender);
-    
-    if (balance.lessThan(amount)) {
-      InsufficientBalance.revert(amount, balance);
-    }
-
-    // Perform transfer
-    AdvancedToken.balances.set(sender, balance.sub(amount));
-    AdvancedToken.balances.set(to, AdvancedToken.balances.get(to).add(amount));
-    
-    // Emit event
-    Transfer.emit(sender, to, amount);
+  @View
+  static getCount(): U256 {
+    return Counter.count;
   }
 }
 ```

@@ -75,32 +75,23 @@ static invalid(complexObject: CustomClass): void { } // Error
 
 ```typescript
 @Contract
-export class TokenContract {
-  static balances: Mapping<Address, U256>;
+export class SimpleStorage {
+  static data: U256;
+  static owner: Address;
 
   @External
-  static transfer(to: Address, amount: U256): void {
-    const sender = msg.sender();
-    
-    // Validate parameters
-    if (Address.isZero(to)) {
-      TransferToZeroAddress.revert();
-    }
-    
-    if (amount.isZero()) {
-      InvalidAmount.revert();
-    }
+  static setData(newValue: U256): void {
+    SimpleStorage.data = newValue;
+  }
 
-    // Perform transfer logic
-    const senderBalance = TokenContract.balances.get(sender);
-    if (senderBalance.lessThan(amount)) {
-      InsufficientBalance.revert();
-    }
+  @External
+  static updateOwner(newOwner: Address): void {
+    SimpleStorage.owner = newOwner;
+  }
 
-    TokenContract.balances.set(sender, senderBalance.sub(amount));
-    TokenContract.balances.set(to, TokenContract.balances.get(to).add(amount));
-    
-    Transfer.emit(sender, to, amount);
+  @External
+  static reset(): void {
+    SimpleStorage.data = U256Factory.create();
   }
 }
 ```
@@ -116,64 +107,14 @@ export class Calculator {
   }
 
   @External
-  static multiply(a: U256, b: U256): U256 {
-    return a.mul(b);
+  static subtract(a: U256, b: U256): U256 {
+    return a.sub(b);
   }
 
   @External
-  static getComplexResult(input: U256): Struct<CalculationResult> {
-    const result = new CalculationResult();
-    result.value = input.mul(U256Factory.fromString("2"));
-    result.timestamp = block.timestamp();
-    return result;
-  }
-}
-```
-
-### With Events and Error Handling
-
-```typescript
-@Event
-class Transfer {
-  from: Address;
-  to: Address;
-  amount: U256;
-}
-
-@Error
-class InsufficientBalance {
-  requested: U256;
-  available: U256;
-}
-
-@Contract
-export class ERC20Token {
-  static balances: Mapping<Address, U256>;
-  static totalSupply: U256;
-
-  @External
-  static mint(to: Address, amount: U256): void {
-    TokenContract.balances.set(to, TokenContract.balances.get(to).add(amount));
-    TokenContract.totalSupply = TokenContract.totalSupply.add(amount);
-    
-    // Emit transfer from zero address (mint)
-    Transfer.emit(Address.zero(), to, amount);
-  }
-
-  @External
-  static burn(amount: U256): void {
-    const sender = msg.sender();
-    const balance = TokenContract.balances.get(sender);
-    
-    if (balance.lessThan(amount)) {
-      InsufficientBalance.revert(amount, balance);
-    }
-
-    TokenContract.balances.set(sender, balance.sub(amount));
-    TokenContract.totalSupply = TokenContract.totalSupply.sub(amount);
-    
-    // Emit transfer to zero address (burn)
-    Transfer.emit(sender, Address.zero(), amount);
+  static double(value: U256): U256 {
+    const two = U256Factory.fromString("2");
+    return value.add(value);
   }
 }
 ```

@@ -41,27 +41,28 @@ class InvalidAddress {
 }
 
 @Contract
-export class SimpleToken {
-  static balances: Mapping<Address, U256>;
+export class SimpleContract {
+  static balance: U256;
 
   @External
-  static transfer(to: Address, amount: U256): void {
-    const sender = msg.sender();
+  static withdraw(amount: U256): void {
+    // Check if amount is valid
+    if (amount.greaterThan(SimpleContract.balance)) {
+      InsufficientBalance.revert(amount, SimpleContract.balance);
+    }
     
+    // Update balance
+    SimpleContract.balance = SimpleContract.balance.sub(amount);
+  }
+
+  @External
+  static setBalance(newBalance: U256, targetAddress: Address): void {
     // Validate address
-    if (Address.isZero(to)) {
-      InvalidAddress.revert(to);
+    if (targetAddress.isZero()) {
+      InvalidAddress.revert(targetAddress);
     }
     
-    // Check balance
-    const balance = SimpleToken.balances.get(sender);
-    if (balance.lessThan(amount)) {
-      InsufficientBalance.revert(amount, balance);
-    }
-    
-    // Perform transfer
-    SimpleToken.balances.set(sender, balance.sub(amount));
-    SimpleToken.balances.set(to, SimpleToken.balances.get(to).add(amount));
+    SimpleContract.balance = newBalance;
   }
 }
 ```

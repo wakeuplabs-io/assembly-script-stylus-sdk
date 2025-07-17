@@ -106,39 +106,28 @@ export class Calculator {
 
 ## Advanced Usage
 
-### Complex Data Queries
+### With Parameters
 
 ```typescript
 @Contract
-export class TokenContract {
-  static balances: Mapping<Address, U256>;
-  static allowances: Mapping<Address, Mapping<Address, U256>>;
-  static totalSupply: U256;
+export class Calculator {
+  static data: U256;
 
   @View
-  static balanceOf(account: Address): U256 {
-    return TokenContract.balances.get(account);
+  static calculate(input: U256): U256 {
+    const two = U256Factory.fromString("2");
+    return input.add(two);
   }
 
   @View
-  static allowance(owner: Address, spender: Address): U256 {
-    return TokenContract.allowances.get(owner).get(spender);
+  static compare(a: U256, b: U256): Boolean {
+    return a.greaterThan(b);
   }
 
   @View
-  static getTotalSupply(): U256 {
-    return TokenContract.totalSupply;
+  static getCurrentData(): U256 {
+    return Calculator.data;
   }
-
-  @View
-  static getAccountInfo(account: Address): AccountInfo {
-    const info = new AccountInfo();
-    info.balance = TokenContract.balances.get(account);
-    info.isActive = info.balance.greaterThan(U256Factory.create());
-    info.lastUpdate = block.timestamp();
-    return info;
-  }
-}
 ```
 
 ### Mathematical Computations

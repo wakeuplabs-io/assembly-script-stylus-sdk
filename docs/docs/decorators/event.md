@@ -34,19 +34,11 @@ class Transfer {
 }
 
 @Contract
-export class Token {
-  static balances: Mapping<Address, U256>;
-
+export class SimpleContract {
   @External
-  static transfer(to: Address, amount: U256): void {
-    const sender = msg.sender();
-    
-    // Perform transfer logic
-    Token.balances.set(sender, Token.balances.get(sender).sub(amount));
-    Token.balances.set(to, Token.balances.get(to).add(amount));
-    
+  static performTransfer(from: Address, to: Address, amount: U256): void {
     // Emit event
-    Transfer.emit(sender, to, amount);
+    Transfer.emit(from, to, amount);
   }
 }
 ```
