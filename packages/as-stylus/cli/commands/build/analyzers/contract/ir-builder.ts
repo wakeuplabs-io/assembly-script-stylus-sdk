@@ -31,6 +31,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     super(sourceFile);
     this.sourceFile = sourceFile;
     this.contractName = contractName;
+    ctx.contractName = contractName;
   }
 
   validate(): boolean {
@@ -56,9 +57,6 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       throw new Error("No contract class found");
     }
 
-    const contractName = contractClass.getName() ?? "Main";
-    ctx.contractName = contractName;
-
     // Process inheritance
     const parent = this.processInheritance(contractClass);
     this.symbolTable.merge(parent?.symbolTable ?? new SymbolTableStack());
@@ -71,9 +69,10 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     const constructor = this.processConstructor(contractClass);
     const methods = this.processMethods(contractClass);
 
+
     return {
       path: this.contractName,
-      name: contractName,
+      name: this.contractName,
       parent,
       constructor,
       methods,
@@ -185,7 +184,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       return undefined;
     }
 
-    const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl);
+    const constructorIRBuilder = new ConstructorIRBuilder(constructorDecl, this.contractName);
     return constructorIRBuilder.validateAndBuildIR();
   }
 

@@ -47,6 +47,12 @@ export interface EmitContext {
    */
   contractName: string;
   /**
+   * parentName is the name of the parent contract being processed
+   * @example
+   * Contract "MyToken" extends "ERC20" will have parentName "ERC20"
+   */
+  parentName: string;
+  /**
    * strCounter is a counter used to generate unique temporary variable names
    * @example
    * let __tmp0 = 5; // strCounter is 0

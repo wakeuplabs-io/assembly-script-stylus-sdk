@@ -1,18 +1,21 @@
 import { Block, ConstructorDeclaration } from "ts-morph";
 
-import { IRConstructor } from "@/cli/types/ir.types.js";
+import { StateMutability, Visibility } from "@/cli/types/abi.types.js";
+import { IRMethod } from "@/cli/types/ir.types.js";
 
 import { ConstructorSemanticValidator } from "./semantic-validator.js";
 import { ArgumentIRBuilder } from "../argument/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { StatementIRBuilder } from "../statement/ir-builder.js";
 
-export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
+export class ConstructorIRBuilder extends IRBuilder<IRMethod> {
   private constructorDecl: ConstructorDeclaration;
+  private contractName: string;
 
-  constructor(constructorDecl: ConstructorDeclaration) {
+  constructor(constructorDecl: ConstructorDeclaration, contractName: string) {
     super(constructorDecl);
     this.constructorDecl = constructorDecl;
+    this.contractName = contractName;
   }
 
   validate(): boolean {
@@ -20,7 +23,7 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
     return semanticValidator.validate();
   }
 
-  buildIR(): IRConstructor {
+  buildIR(): IRMethod {
     const inputs = this.constructorDecl.getParameters().map((param) => {
       const argumentBuilder = new ArgumentIRBuilder(param);
       return argumentBuilder.validateAndBuildIR();
@@ -35,6 +38,10 @@ export class ConstructorIRBuilder extends IRBuilder<IRConstructor> {
     return {
       inputs,
       ir: irBody,
+      name: `${this.contractName}_constructor`,
+      visibility: Visibility.PUBLIC,
+      stateMutability: StateMutability.NONPAYABLE,
+      outputs: [],
     };
   }
 }
