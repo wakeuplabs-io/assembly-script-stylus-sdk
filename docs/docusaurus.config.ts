@@ -32,7 +32,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/your-org/assembly-script-stylus-sdk/tree/main/docs/',
+          editUrl: 'https://github.com/wakeuplabs-io/assembly-script-stylus-sdk/tree/main/docs/',
           routeBasePath: '/', // Serve docs at root
         },
         blog: false, // Disabled as requested
@@ -54,7 +54,7 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: 'https://github.com/your-org/assembly-script-stylus-sdk',
+          href: 'https://github.com/wakeuplabs-io/assembly-script-stylus-sdk',
           label: 'GitHub',
           position: 'right',
         },
@@ -85,7 +85,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/your-org/assembly-script-stylus-sdk',
+              href: 'https://github.com/wakeuplabs-io/assembly-script-stylus-sdk',
             },
           ],
         },
