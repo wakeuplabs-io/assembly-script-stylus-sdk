@@ -25,16 +25,6 @@ const decorators: NavigationItem[] = [
     link: '/docs/decorators/view'
   },
   {
-    title: '@Event',
-    description: 'Log contract events',
-    link: '/docs/decorators/event'
-  },
-  {
-    title: '@Error',
-    description: 'Custom error types',
-    link: '/docs/decorators/error'
-  },
-  {
     title: '@Visibility',
     description: 'Method visibility control',
     link: '/docs/decorators/visibility'
@@ -61,6 +51,39 @@ const types: NavigationItem[] = [
     title: 'String',
     description: 'Text data handling',
     link: '/docs/types/string'
+  },
+  {
+    title: 'Boolean',
+    description: 'Logical true/false values',
+    link: '/docs/types/boolean'
+  }
+];
+
+const structures: NavigationItem[] = [
+  {
+    title: 'Mapping',
+    description: 'Key-value storage',
+    link: '/docs/structures/mapping'
+  },
+  {
+    title: 'Mapping2',
+    description: 'Nested key-value storage',
+    link: '/docs/structures/mapping2'
+  },
+  {
+    title: 'Struct',
+    description: 'Custom data structures',
+    link: '/docs/structures/struct'
+  },
+  {
+    title: 'Event',
+    description: 'Blockchain event logging',
+    link: '/docs/structures/event'
+  },
+  {
+    title: 'Error',
+    description: 'Custom error definitions',
+    link: '/docs/structures/error'
   }
 ];
 
@@ -94,6 +117,26 @@ export function TypeNavigation() {
             key={index}
             to={item.link}
             className="nav-card type-card"
+          >
+            <span className="nav-title">{item.title}</span>
+            <span className="nav-desc">{item.description}</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function StructureNavigation() {
+  return (
+    <div className="navigation-container">
+      <h3>🏗️ More Data Structures</h3>
+      <div className="navigation-grid">
+        {structures.map((item, index) => (
+          <Link
+            key={index}
+            to={item.link}
+            className="nav-card structure-card"
           >
             <span className="nav-title">{item.title}</span>
             <span className="nav-desc">{item.description}</span>

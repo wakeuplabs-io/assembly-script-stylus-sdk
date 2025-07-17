@@ -20,8 +20,6 @@ const sidebars: SidebarsConfig = {
         'decorators/contract',
         'decorators/external',
         'decorators/view',
-        'decorators/event',
-        'decorators/error',
         'decorators/visibility',
       ],
     },
@@ -33,10 +31,18 @@ const sidebars: SidebarsConfig = {
         'types/i256',
         'types/address',
         'types/string',
-        // TODO: Create these documentation files when interfaces are available:
-        // 'types/boolean',
-        // 'types/mapping',
-        // 'types/struct',
+        'types/boolean',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Data Structures',
+      items: [
+        'structures/mapping',
+        'structures/mapping2',
+        'structures/struct',
+        'structures/event',
+        'structures/error',
       ],
     },
     // TODO: Create examples documentation:
