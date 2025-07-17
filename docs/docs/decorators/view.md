@@ -1,0 +1,339 @@
+# @View Decorator
+
+The `@View` decorator marks a method as read-only, meaning it cannot modify the contract's state. View methods are gas-free when called statically and are used to query contract data.
+
+## Syntax
+
+```typescript
+@View
+static methodName(param1: Type1, param2: Type2): ReturnType {
+  // Read-only implementation
+}
+```
+
+## Purpose
+
+The `@View` decorator:
+
+- **Read-Only Access**: Methods can only read state, not modify it
+- **Gas-Free Calls**: No gas cost when called as static calls (queries)
+- **ABI Generation**: Includes methods in ABI with "view" state mutability
+- **Query Interface**: Provides external interface for data access
+- **No Transactions**: Can be called without sending a transaction
+
+## Basic Example
+
+```typescript
+@Contract
+export class SimpleStorage {
+  static value: U256;
+  static owner: Address;
+
+  @View
+  static getValue(): U256 {
+    return SimpleStorage.value;
+  }
+
+  @View
+  static getOwner(): Address {
+    return SimpleStorage.owner;
+  }
+
+  @View
+  static isOwner(address: Address): Boolean {
+    return SimpleStorage.owner.equals(address);
+  }
+}
+```
+
+## Rules and Constraints
+
+### Read-Only Restriction
+View methods **cannot**:
+- Modify storage variables
+- Emit events
+- Call non-view external functions
+- Create or modify contracts
+
+```typescript
+@Contract
+export class ViewExample {
+  static counter: U256;
+
+  @View
+  static getCounter(): U256 {
+    return ViewExample.counter;  // ✅ Reading is allowed
+  }
+
+  @View
+  static invalidMethod(): U256 {
+    ViewExample.counter = U256Factory.fromString("10");  // ❌ Writing not allowed
+    SomeEvent.emit();  // ❌ Events not allowed
+    return ViewExample.counter;
+  }
+}
+```
+
+### Supported Operations
+View methods **can**:
+- Read storage variables
+- Perform calculations
+- Call other view methods
+- Access blockchain data (block, msg info)
+
+```typescript
+@Contract
+export class Calculator {
+  static baseValue: U256;
+
+  @View
+  static calculate(multiplier: U256): U256 {
+    // ✅ All of these are allowed in view methods
+    const base = Calculator.baseValue;           // Read storage
+    const result = base.mul(multiplier);         // Calculations
+    const bonus = Calculator.getBonus();         // Call other view methods
+    const timestamp = block.timestamp();         // Access blockchain data
+    
+    return result.add(bonus);
+  }
+
+  @View
+  static getBonus(): U256 {
+    return U256Factory.fromString("100");
+  }
+}
+```
+
+## Advanced Usage
+
+### Complex Data Queries
+
+```typescript
+@Contract
+export class TokenContract {
+  static balances: Mapping<Address, U256>;
+  static allowances: Mapping<Address, Mapping<Address, U256>>;
+  static totalSupply: U256;
+
+  @View
+  static balanceOf(account: Address): U256 {
+    return TokenContract.balances.get(account);
+  }
+
+  @View
+  static allowance(owner: Address, spender: Address): U256 {
+    return TokenContract.allowances.get(owner).get(spender);
+  }
+
+  @View
+  static getTotalSupply(): U256 {
+    return TokenContract.totalSupply;
+  }
+
+  @View
+  static getAccountInfo(account: Address): AccountInfo {
+    const info = new AccountInfo();
+    info.balance = TokenContract.balances.get(account);
+    info.isActive = info.balance.greaterThan(U256Factory.create());
+    info.lastUpdate = block.timestamp();
+    return info;
+  }
+}
+```
+
+### Mathematical Computations
+
+```typescript
+@Contract
+export class MathLibrary {
+  @View
+  static add(a: U256, b: U256): U256 {
+    return a.add(b);
+  }
+
+  @View
+  static multiply(a: U256, b: U256): U256 {
+    return a.mul(b);
+  }
+
+  @View
+  static power(base: U256, exponent: U256): U256 {
+    let result = U256Factory.fromString("1");
+    let exp = exponent;
+    let b = base;
+
+    while (exp.greaterThan(U256Factory.create())) {
+      if (exp.mod(U256Factory.fromString("2")).equals(U256Factory.fromString("1"))) {
+        result = result.mul(b);
+      }
+      b = b.mul(b);
+      exp = exp.div(U256Factory.fromString("2"));
+    }
+
+    return result;
+  }
+
+  @View
+  static sqrt(value: U256): U256 {
+    if (value.isZero()) {
+      return U256Factory.create();
+    }
+
+    let result = value;
+    let x = value.div(U256Factory.fromString("2")).add(U256Factory.fromString("1"));
+
+    while (x.lessThan(result)) {
+      result = x;
+      x = value.div(x).add(x).div(U256Factory.fromString("2"));
+    }
+
+    return result;
+  }
+}
+```
+
+### Validation and Checks
+
+```typescript
+@Contract
+export class ValidationContract {
+  static whitelist: Mapping<Address, Boolean>;
+  static threshold: U256;
+
+  @View
+  static isWhitelisted(address: Address): Boolean {
+    return ValidationContract.whitelist.get(address);
+  }
+
+  @View
+  static meetsThreshold(amount: U256): Boolean {
+    return amount.greaterThanOrEqual(ValidationContract.threshold);
+  }
+
+  @View
+  static validateTransfer(from: Address, to: Address, amount: U256): ValidationResult {
+    const result = new ValidationResult();
+    
+    result.fromWhitelisted = ValidationContract.isWhitelisted(from);
+    result.toWhitelisted = ValidationContract.isWhitelisted(to);
+    result.amountValid = ValidationContract.meetsThreshold(amount);
+    result.isValid = result.fromWhitelisted && result.toWhitelisted && result.amountValid;
+    
+    return result;
+  }
+}
+```
+
+## Gas Efficiency
+
+View methods are gas-free when called as static calls:
+
+```typescript
+// Called as static call (no gas)
+const balance = await contract.balanceOf.staticCall(userAddress);
+
+// Called in transaction (gas required)
+const tx = await contract.someExternalMethod();
+```
+
+## ABI Generation
+
+View methods generate ABI entries with "view" state mutability:
+
+```json
+{
+  "type": "function",
+  "name": "balanceOf",
+  "inputs": [
+    {"name": "account", "type": "address"}
+  ],
+  "outputs": [
+    {"name": "", "type": "uint256"}
+  ],
+  "stateMutability": "view"
+}
+```
+
+## Error Messages
+
+Common compilation errors:
+
+```typescript
+// Error: "View method cannot modify state"
+@View
+static invalidView(): void {
+  SomeContract.value = U256Factory.fromString("10");  // State modification
+}
+
+// Error: "View method cannot emit events"
+@View
+static invalidEvent(): void {
+  SomeEvent.emit();  // Event emission
+}
+
+// Error: "Method must be static"
+@View
+getValue(): U256 { }  // Missing 'static'
+```
+
+## Best Practices
+
+1. **Pure Logic**: Keep view methods focused on reading and computing
+2. **Efficient Queries**: Design efficient data access patterns
+3. **Clear Naming**: Use descriptive names for query methods
+4. **Return Structures**: Use structs for complex return data
+5. **Validation Methods**: Provide view methods for validating inputs
+
+```typescript
+@Contract
+export class BestPracticeExample {
+  static users: Mapping<Address, User>;
+
+  // ✅ Good: Descriptive name and efficient access
+  @View
+  static getUserProfile(userAddress: Address): UserProfile {
+    const user = BestPracticeExample.users.get(userAddress);
+    
+    const profile = new UserProfile();
+    profile.address = userAddress;
+    profile.balance = user.balance;
+    profile.isActive = user.lastActivity.greaterThan(
+      block.timestamp().sub(U256Factory.fromString("86400"))
+    );
+    profile.membershipLevel = BestPracticeExample.calculateMembership(user.balance);
+    
+    return profile;
+  }
+
+  // ✅ Good: Helper view method for calculations
+  @View
+  static calculateMembership(balance: U256): U256 {
+    if (balance.greaterThan(U256Factory.fromString("1000000"))) {
+      return U256Factory.fromString("3"); // Platinum
+    } else if (balance.greaterThan(U256Factory.fromString("100000"))) {
+      return U256Factory.fromString("2"); // Gold
+    } else if (balance.greaterThan(U256Factory.fromString("10000"))) {
+      return U256Factory.fromString("1"); // Silver
+    }
+    return U256Factory.create(); // Bronze
+  }
+}
+```
+
+## Comparison with @External
+
+| Aspect | @View | @External |
+|--------|-------|-----------|
+| **State Modification** | ❌ Read-only | ✅ Can modify state |
+| **Gas Cost** | Free (static calls) | Required (transactions) |
+| **Event Emission** | ❌ Not allowed | ✅ Allowed |
+| **Transaction Required** | ❌ No | ✅ Yes |
+| **ABI StateMutability** | "view" | "nonpayable" or "payable" |
+
+## Related Decorators
+
+- [`@External`](external.md) - For state-modifying methods
+- [`@Contract`](contract.md) - Required container
+- [`@Pure`](visibility.md) - For pure functions (no state access)
+
+The `@View` decorator is perfect for creating efficient query interfaces for your smart contracts! 
