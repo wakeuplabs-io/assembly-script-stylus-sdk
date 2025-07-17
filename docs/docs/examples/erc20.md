@@ -1,11 +1,11 @@
 # ERC20 Token
 
-Un ejemplo completo de implementación ERC20 usando AssemblyScript Stylus SDK.
+A complete example of an ERC20 implementation using the AssemblyScript Stylus SDK.
 
-## Estructura del Contrato
+## Contract Structure
 
 ### Events
-Los eventos registran actividad del token para indexación externa:
+Events record token activity for external indexing:
 
 ```typescript
 @Event
@@ -24,7 +24,7 @@ export class Approval {
 ```
 
 ### Storage State
-Variables de estado que persisten en blockchain:
+State variables that persist on the blockchain:
 
 ```typescript
 @Contract
@@ -37,7 +37,7 @@ export class ERC20Full {
 ```
 
 ### Constructor
-Inicializa el token con nombre y símbolo:
+Initializes the token with name and symbol:
 
 ```typescript
   constructor(_name: string, _symbol: string) {
@@ -49,7 +49,7 @@ Inicializa el token con nombre y símbolo:
 ```
 
 ### View Functions
-Métodos de solo lectura para consultar información:
+Read-only methods for querying information:
 
 ```typescript
   @View
@@ -79,7 +79,7 @@ Métodos de solo lectura para consultar información:
 ```
 
 ### Transfer Function
-Transfiere tokens entre cuentas:
+Transfers tokens between accounts:
 
 ```typescript
   @External
@@ -100,7 +100,7 @@ Transfiere tokens entre cuentas:
 ```
 
 ### Approval System
-Permite que terceros gasten tokens en tu nombre:
+Allows third parties to spend tokens on your behalf:
 
 ```typescript
   @External
@@ -135,7 +135,7 @@ Permite que terceros gasten tokens en tu nombre:
 ```
 
 ### Mint & Burn
-Funciones para crear y destruir tokens:
+Functions to mint and burn tokens:
 
 ```typescript
   @External
