@@ -50,6 +50,11 @@ describe("functions", () => {
       const result = await contract.read("getIncremented", [0n]);
       expect(result).toBe(1n);
     });
+
+    it("address returned from nested function", async () => {
+      const result = await contract.write(walletClient, "getAddressExternal", []);
+      expect(result).toBe(walletClient.account?.address);
+    });
   });
 
   describe("Call functions in arguments", () => {
