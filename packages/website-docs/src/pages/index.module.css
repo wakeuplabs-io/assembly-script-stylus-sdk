@@ -1,0 +1,185 @@
+.heroBanner {
+  padding: 6rem 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, 
+    rgba(18, 170, 255, 0.02) 0%, 
+    rgba(255, 107, 53, 0.01) 50%, 
+    rgba(0, 200, 150, 0.02) 100%);
+  margin: 0;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.heroTitle {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  color: white;
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  font-size: 1.4rem;
+  color: var(--ifm-color-emphasis-700);
+  margin-bottom: 2.5rem;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.button {
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.buttonPrimary {
+  background: var(--arbitrum-blue);
+  color: white;
+}
+
+.buttonPrimary:hover {
+  background: var(--arbitrum-dark);
+  transform: translateY(-1px);
+}
+
+.buttonSecondary {
+  background: var(--stylus-orange);
+  color: white;
+}
+
+.buttonSecondary:hover {
+  background: #dc5187;
+  transform: translateY(-1px);
+}
+
+.buttonOutline {
+  background: transparent;
+  color: var(--arbitrum-blue);
+  border: 2px solid var(--arbitrum-blue);
+}
+
+.buttonOutline:hover {
+  background: var(--arbitrum-blue);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.features {
+  padding: 4rem 2rem;
+  background: var(--ifm-background-surface-color);
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+  color: var(--ifm-color-emphasis-800);
+}
+
+/* Responsive design */
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 4rem 1.5rem;
+    min-height: 60vh;
+  }
+
+  .heroTitle {
+    font-size: 2.8rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+  }
+
+  .buttons {
+    gap: 1rem;
+  }
+
+  .button {
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .heroBanner {
+    padding: 3rem 1rem;
+    min-height: 50vh;
+  }
+
+  .heroTitle {
+    font-size: 2.2rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .button {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+
+  .sectionTitle {
+    font-size: 2rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .heroTitle {
+    font-size: 1.8rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1rem;
+  }
+
+  .button {
+    padding: 0.8rem 1.2rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Modo oscuro */
+[data-theme='dark'] .heroBanner {
+  background: linear-gradient(135deg, 
+    rgba(102, 209, 255, 0.03) 0%, 
+    rgba(255, 136, 86, 0.02) 50%, 
+    rgba(26, 209, 171, 0.03) 100%);
+}
+
+[data-theme='dark'] .heroSubtitle {
+  color: var(--ifm-color-emphasis-600);
+}
+
+[data-theme='dark'] .features {
+  background: var(--ifm-background-color);
+}
