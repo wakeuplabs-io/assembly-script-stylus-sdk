@@ -21,7 +21,7 @@ export class StrFromStringHandler implements ExpressionHandler {
      const resultStr = makeTemp("strObj");
 
     if (arg.kind === "literal") {
-      setup.push(`const ${resultStr}: usize = Str.fromString(${arg.value});`);
+      setup.push(`const ${resultStr}: usize = Str.fromString("${arg.value}");`);
     }else {
       setup.push(`const ${resultStr}: usize = ${argIR.valueExpr};`);
     }

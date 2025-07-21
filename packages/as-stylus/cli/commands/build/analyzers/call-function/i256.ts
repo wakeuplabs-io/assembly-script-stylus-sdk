@@ -35,6 +35,7 @@ export function buildI256IR(target: string, call: CallExpression, symbolTable: S
       left: { kind: "var", name: varName, type: AbiType.Int256, scope },
       right: args[0],
       op: operationConvertor[operation as I256ComparisonOperation] as ComparisonOperator,
+      type: AbiType.Bool,
     } satisfies IRCondition;
   }
 

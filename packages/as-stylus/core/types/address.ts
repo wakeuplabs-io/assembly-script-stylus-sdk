@@ -3,6 +3,7 @@
  ******************************************************************/
 import { account_codehash } from "../modules/hostio";
 import { malloc } from "../modules/memory";
+import { hexChar, hexIsZeroPrefix } from "../utils/ascii";
 
 export class Address {
   static ADDRESS_SIZE: u32 = 32;
@@ -10,7 +11,7 @@ export class Address {
     0xc5, 0xd2, 0x46, 0x01, 0x86, 0xf7, 0x23, 0x3c, 0x92, 0x7e, 0x7d, 0xb2, 0xdc, 0xc7, 0x03, 0xc0,
     0xe5, 0x00, 0xb6, 0x53, 0xca, 0x82, 0x27, 0x3b, 0x7b, 0xfa, 0xd8, 0x04, 0x5d, 0x85, 0xa4, 0x70,
   ];
-  /*──────── helpers ────────*/
+
   static create(): usize {
     const ptr = malloc(32);
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) store<u8>(ptr + i, 0);
@@ -19,7 +20,7 @@ export class Address {
 
   static setFromStringHex(dest: usize, str: usize, len: u32): void {
     let off: u32 = 0;
-    if (len >= 2 && load<u8>(str) == 0x30 && (load<u8>(str + 1) | 0x20) == 0x78) off = 2;
+    if (hexIsZeroPrefix(str, len)) off = 2;
 
     const nibs: u32 = len - off;
     const start = Address.ADDRESS_SIZE - ((nibs + 1) >>> 1);
@@ -39,6 +40,7 @@ export class Address {
       s -= 2;
     }
   }
+
   static fromBytes(ptr_20: usize): usize {
     const addr = Address.create();
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
@@ -59,7 +61,7 @@ export class Address {
   }
 
   static isZero(ptr_address: usize): boolean {
-    for (let i: u32 = 0; i < this.ADDRESS_SIZE; ++i) {
+    for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
       if (load<u8>(ptr_address + i) != 0) {
         return false;
       }
@@ -107,9 +109,4 @@ export class Address {
     }
     return false;
   }
-}
-
-function hexChar(c: u8): u8 {
-  const lo = c | 0x20;
-  return lo >= 0x61 ? lo - 0x57 : c - 0x30; // 'a'-10 : '0'
 }
