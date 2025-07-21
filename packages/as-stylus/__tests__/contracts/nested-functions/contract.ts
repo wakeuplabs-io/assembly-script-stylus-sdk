@@ -1,16 +1,22 @@
 // @ts-nocheck
 
+@Struct
+export class Person {
+  name: Str;
+  lastName: Str;
+}
+
 @Contract
 export class NestedFunctions {
   // Boolean methods
   @Internal
-  static toogle(arg: boolean): boolean {
+  static toggle(arg: boolean): boolean {
     return !arg;
   }
 
   @External
   static getBooleanExternal(): boolean {
-    return toogle(false) && !toogle(true);
+    return toggle(false) && !toggle(true);
   }
 
   // U256 methods
@@ -50,9 +56,7 @@ export class NestedFunctions {
 
   @External
   static getAddressExternal(): Address {
-    const sender = msg.sender;
-    return getAddress(sender);
+    const sender = AddressFactory.fromString("0x3f1Eae7D46d88F08fc2F8ed27FCb2AB183EB2d0E");
+    return sender;
   }
-
-  // Pasar por param una pos del struct persona.apellido
 }
