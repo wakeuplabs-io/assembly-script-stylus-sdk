@@ -88,8 +88,9 @@ The SDK provides several optimized types for blockchain development:
 
 ## Next Steps
 
-- Learn about [Decorators](decorators/contract) to understand contract structure
+- Learn about [Decorators](decorators/contract) to define your contract structure
 - Explore [Data Types](types/u256) for efficient data handling
+- Discover [Data Structures](structures/mapping) to store and organize information in your contract
 - Check out [Examples](examples/erc20) for practical implementations
 
 Ready to build? Let's start with understanding the decorator system! 
