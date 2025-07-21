@@ -80,7 +80,7 @@ const config: Config = {
             },
             {
               label: 'Data Structures',
-              to: '/data-structures/mapping',
+              to: '/structures/mapping',
             },
             {
               label: 'Examples',
