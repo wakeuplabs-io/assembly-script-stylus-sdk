@@ -23,17 +23,9 @@ export class BuildRunner {
     return this.projectFinder.validateProjects();
   }
 
-  private getContractName(contractPath: string): string {
-    return contractPath.split("/").pop()!.replace(".ts", "");
-  }
-
   buildIR(): { ir: IRContract, transformedPath: string, projectTargetPath: string } {
-    const project = this.projectFinder.getCurrentProject();
-
-    const projectName = project.split("/").pop()!;
-
-    const projectTargetPath = path.join(path.dirname(project), projectName, BUILD_PATH);
-    const contractName = this.getContractName(this.contractPath);
+    const projectTargetPath = this.projectFinder.getProjectBuildPath();
+    const contractName = this.projectFinder.getContractName(this.contractPath);
     const transformedPath = path.join(
       projectTargetPath,
       `${contractName}.transformed.ts`

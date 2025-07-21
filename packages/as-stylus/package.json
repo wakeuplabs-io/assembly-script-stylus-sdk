@@ -1,6 +1,6 @@
 {
   "name": "as-stylus",
-  "version": "1.0.0",
+  "version": "0.0.2",
   "description": "SDK to build AssemblyScript contracts for Stylus",
   "main": "dist/index.js",
   "type": "module",

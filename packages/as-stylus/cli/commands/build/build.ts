@@ -18,7 +18,6 @@ export function runBuild(contractPath: string) {
   const contractWithParents = mixInheritance(contract.ir, contract.ir.parent);
   buildProject(contract.transformedPath, contractWithParents, []);
   transformFromIR(contract.projectTargetPath, contractWithParents);
-
 }
 
 export const buildCommand = new Command('build')
