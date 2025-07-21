@@ -29,7 +29,7 @@ export default function RootLayout({
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" async />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" async />
       </head>
-      <body className={`${inter.variable} ${firaCode.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${firaCode.variable} ${inter.className} font-sans antialiased`}>{children}</body>
     </html>
   )
 }
