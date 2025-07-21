@@ -139,7 +139,7 @@ export function ContractInteraction() {
                     variant={contractType === "ERC20" ? "default" : "outline"}
                     className={
                       contractType === "ERC20"
-                        ? "bg-arbitrum-primary hover:bg-arbitrum-primary-dark text-white"
+                        ? "bg-stylus-primary hover:bg-stylus-primary-dark text-white"
                         : "border-gray-600 text-gray-300 hover:bg-gray-800 disabled:opacity-50"
                     }
                   >
@@ -166,7 +166,7 @@ export function ContractInteraction() {
                 <Button
                   onClick={handleConfirmAddress}
                   disabled={!contractAddress}
-                  className="bg-arbitrum-primary hover:bg-arbitrum-primary-dark text-white disabled:opacity-50"
+                  className="bg-stylus-primary hover:bg-stylus-primary-dark text-white disabled:opacity-50"
                 >
                   Confirm Contract
                 </Button>
@@ -190,7 +190,7 @@ export function ContractInteraction() {
                   href={`https://sepolia.arbiscan.io/address/${contractAddress}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-auto flex items-center gap-1 hover:text-arbitrum-primary-light transition-colors"
+                                        className="ml-auto flex items-center gap-1 hover:text-stylus-primary-light transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                   View on Arbiscan
@@ -220,7 +220,7 @@ export function ContractInteraction() {
                         onClick={() => handleFunctionCall(func.name)}
                         disabled={isLoading}
                         size="sm"
-                        className="bg-arbitrum-primary hover:bg-arbitrum-primary-dark text-white"
+                        className="bg-stylus-primary hover:bg-stylus-primary-dark text-white"
                       >
                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Read"}
                       </Button>
@@ -229,8 +229,8 @@ export function ContractInteraction() {
                     {func.inputs.length > 0 && <div className="space-y-3 mb-3">{renderFunctionInputs(func)}</div>}
 
                     {results[func.name] && (
-                      <div className="mt-3 p-3 bg-arbitrum-primary/10 border border-arbitrum-primary/30 rounded">
-                        <p className="text-arbitrum-primary-light text-sm font-mono">{results[func.name]}</p>
+                      <div className="mt-3 p-3 bg-stylus-primary/10 border border-stylus-primary/30 rounded">
+                        <p className="text-stylus-primary-light text-sm font-mono">{results[func.name]}</p>
                       </div>
                     )}
                   </div>

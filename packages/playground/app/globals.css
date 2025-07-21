@@ -18,8 +18,8 @@
     --card-foreground: 0 0% 98%;
     --popover: 216 22% 9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 214 97% 64%;
-    --primary-foreground: 217 57% 11%;
+    --primary: 330 70% 40%;
+    --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 16%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 16%;
@@ -33,45 +33,78 @@
     --ring: 214 97% 64%;
     --radius: 0.5rem;
 
-    /* Arbitrum Primary Colors */
-    --arbitrum-primary: #12aaff;
-    --arbitrum-primary-dark: #0e8fd8;
-    --arbitrum-primary-darker: #0d84cc;
-    --arbitrum-primary-darkest: #0a6ba8;
-    --arbitrum-primary-light: #2db5ff;
-    --arbitrum-primary-lighter: #3fc0ff;
-    --arbitrum-primary-lightest: #66d1ff;
+    /* Stylus Primary Colors (ahora principal) */
+    --stylus-primary: #ac1c5e;
+    --stylus-primary-dark: #972054;
+    --stylus-primary-darker: #8e1e4f;
+    --stylus-primary-darkest: #751941;
+    --stylus-primary-light: #bf2968;
+    --stylus-primary-lighter: #c73573;
+    --stylus-primary-lightest: #dc5187;
 
-    /* Stylus Secondary Colors */
-    --stylus-secondary: #ac1c5e;
-    --stylus-secondary-dark: #972054;
-    --stylus-secondary-darker: #8e1e4f;
-    --stylus-secondary-darkest: #751941;
-    --stylus-secondary-light: #bf2968;
-    --stylus-secondary-lighter: #c73573;
-    --stylus-secondary-lightest: #dc5187;
+    /* Arbitrum Secondary Colors (ahora secundario) */
+    --arbitrum-secondary: #12aaff;
+    --arbitrum-secondary-dark: #0e8fd8;
+    --arbitrum-secondary-darker: #0d84cc;
+    --arbitrum-secondary-darkest: #0a6ba8;
+    --arbitrum-secondary-light: #2db5ff;
+    --arbitrum-secondary-lighter: #3fc0ff;
+    --arbitrum-secondary-lightest: #66d1ff;
   }
 }
 
 /* Force CSS styles as backup */
-.bg-\[#12aaff\] {
-  background-color: #12aaff !important;
+.bg-\[#ac1c5e\] {
+  background-color: #ac1c5e !important;
 }
 
-.hover\:bg-\[#0e8fd8\]:hover {
-  background-color: #0e8fd8 !important;
+.hover\:bg-\[#972054\]:hover {
+  background-color: #972054 !important;
 }
 
-.text-\[#2db5ff\] {
-  color: #2db5ff !important;
+.text-\[#bf2968\] {
+  color: #bf2968 !important;
 }
 
-.border-\[#12aaff\]\/30 {
-  border-color: rgba(18, 170, 255, 0.3) !important;
+.border-\[#ac1c5e\]\/30 {
+  border-color: rgba(172, 28, 94, 0.3) !important;
 }
 
-.hover\:shadow-\[#12aaff\]\/25:hover {
-  box-shadow: 0 10px 15px -3px rgba(18, 170, 255, 0.25), 0 4px 6px -2px rgba(18, 170, 255, 0.25) !important;
+.hover\:shadow-\[#ac1c5e\]\/25:hover {
+  box-shadow: 0 10px 15px -3px rgba(172, 28, 94, 0.25), 0 4px 6px -2px rgba(172, 28, 94, 0.25) !important;
+}
+
+/* Stylus Primary Classes */
+.bg-stylus-primary {
+  background-color: var(--stylus-primary) !important;
+}
+
+.hover\:bg-stylus-primary-dark:hover {
+  background-color: var(--stylus-primary-dark) !important;
+}
+
+.text-stylus-primary-light {
+  color: var(--stylus-primary-light) !important;
+}
+
+.text-stylus-primary {
+  color: var(--stylus-primary) !important;
+}
+
+.hover\:text-stylus-primary-light:hover {
+  color: var(--stylus-primary-light) !important;
+}
+
+.hover\:text-stylus-primary:hover {
+  color: var(--stylus-primary) !important;
+}
+
+.bg-stylus-primary\/10 {
+  background-color: rgba(172, 28, 94, 0.1) !important;
+}
+
+.border-stylus-primary\/30 {
+  border-color: rgba(172, 28, 94, 0.3) !important;
 }
 
 /* Code block styles */

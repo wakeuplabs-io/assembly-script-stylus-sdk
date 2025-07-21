@@ -13,7 +13,6 @@ export function Hero() {
     const { gsap } = window
     if (!gsap || !headlineRef.current || !glowRef.current) return
 
-    // Hero glow animation
     gsap.fromTo(
       glowRef.current,
       { filter: "brightness(0.8)" },
@@ -26,7 +25,6 @@ export function Hero() {
       },
     )
 
-    // Headline entrance - immediate visibility
     gsap.fromTo(headlineRef.current, {
       y: 20,
       opacity: 0.8,
@@ -83,7 +81,7 @@ export function Hero() {
           <Button
             onClick={scrollToPlayground}
             size="lg"
-            className="bg-[#12aaff] hover:bg-[#0e8fd8] text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-[#12aaff]/25 transition-all duration-300"
+                          className="bg-[#ac1c5e] hover:bg-[#972054] text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-[#ac1c5e]/25 transition-all duration-300"
           >
             Try live contract
           </Button>

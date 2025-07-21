@@ -1,5 +1,3 @@
-/* eslint-disable no-global-assign */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
 @Event

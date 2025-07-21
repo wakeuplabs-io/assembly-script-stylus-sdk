@@ -28,7 +28,7 @@ export function BottomCTA() {
       <div className="max-w-4xl mx-auto">
         <Card
           ref={cardRef}
-          className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-[#12aaff]/30 shadow-2xl"
+          className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-[#ac1c5e]/30 shadow-2xl"
         >
           <CardContent className="p-12 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Ready for your first deploy?</h2>
@@ -39,7 +39,7 @@ export function BottomCTA() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-[#12aaff] hover:bg-[#0e8fd8] text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-[#12aaff]/25 transition-all duration-300"
+                className="bg-[#ac1c5e] hover:bg-[#972054] text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-[#ac1c5e]/25 transition-all duration-300"
               >
                 <Github className="w-5 h-5 mr-2" />
                 Get GitHub Template

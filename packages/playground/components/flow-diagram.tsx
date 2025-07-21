@@ -1,111 +1,130 @@
 "use client"
 
 import { useRef } from "react"
+import gsap from "gsap"
+import ScrollTrigger from "gsap/ScrollTrigger"
 import { useGSAP } from "@/hooks/use-gsap"
+import { FLOW_STEPS, FLOW_DIAGRAM_TITLE } from "@/lib/constants/ui-content"
 
 export function FlowDiagram() {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const container = useRef<HTMLDivElement>(null)
 
   useGSAP(() => {
-    const { gsap, ScrollTrigger } = window
-    if (!gsap || !ScrollTrigger || !containerRef.current) return
+    if (!container.current) return
+    gsap.registerPlugin(ScrollTrigger)
 
-    const connectors = containerRef.current.querySelectorAll(".flow-connector")
-
-    // Animate nodes on scroll
     gsap.fromTo(
-      `.flow-node`,
-      { scale: 0.8, opacity: 0.7 },
+      container.current.querySelectorAll(".flow-node"),
+      { y: 40, opacity: 0, scale: 0.8 },
       {
-        scale: 1,
+        y: 0,
         opacity: 1,
-        duration: 0.6,
-        delay: 0.2,
-        stagger: 0.1,
-        ease: "back.out(1.7)",
+        scale: 1,
+        duration: 0.8,
+        stagger: 0.15,
+        ease: "back.out(1.4)",
+        scrollTrigger: { 
+          trigger: container.current, 
+          start: "top 85%",
+          toggleActions: "play none none reverse"
+        },
       },
     )
 
-    // Animate connectors with stroke reveal
-    connectors.forEach((connector, index) => {
-      gsap.fromTo(
-        connector,
-        { strokeDashoffset: 100 },
-        {
-          strokeDashoffset: 0,
-          duration: 1,
-          delay: (index + 1) * 0.3,
-          ease: "power2.inOut",
-          scrollTrigger: {
-            trigger: connector,
-            start: "top 80%",
-            toggleActions: "play none none reverse",
-          },
+    gsap.fromTo(
+      container.current.querySelectorAll(".flow-line"),
+      { 
+        scaleX: 0,
+        transformOrigin: "left center" 
+      },
+      {
+        scaleX: 1,
+        duration: 0.6,
+        stagger: 0.2,
+        ease: "power2.inOut",
+        scrollTrigger: { 
+          trigger: container.current, 
+          start: "top 85%",
+          toggleActions: "play none none reverse"
         },
-      )
-    })
+      }
+    )
+
+    gsap.fromTo(
+      container.current.querySelectorAll(".flow-arrow"),
+      { 
+        scale: 0,
+        opacity: 0
+      },
+      {
+        scale: 1,
+        opacity: 1,
+        duration: 0.3,
+        stagger: 0.2,
+        delay: 0.6,
+        ease: "back.out(2)",
+        scrollTrigger: { 
+          trigger: container.current, 
+          start: "top 85%",
+          toggleActions: "play none none reverse"
+        },
+      }
+    )
   }, [])
 
   return (
-    <section className="py-20 px-4">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">From TypeScript to Stylus in seconds</h2>
+    <section className="py-20 px-4 overflow-hidden">
+      <h2 className="text-center text-3xl md:text-4xl font-bold mb-16 bg-gradient-to-r from-pink-400 to-pink-600 bg-clip-text text-transparent">
+        {FLOW_DIAGRAM_TITLE}
+      </h2>
 
-        <div ref={containerRef} className="relative">
-          <svg viewBox="0 0 1000 200" className="w-full h-48">
-            {/* Connectors */}
-            <path
-              className="flow-connector"
-              d="M 180 100 L 220 100"
-              stroke="#3B82F6"
-              strokeWidth="2"
-              strokeDasharray="10,5"
-              fill="none"
-            />
-            <path
-              className="flow-connector"
-              d="M 380 100 L 420 100"
-              stroke="#3B82F6"
-              strokeWidth="2"
-              strokeDasharray="10,5"
-              fill="none"
-            />
-            <path
-              className="flow-connector"
-              d="M 580 100 L 620 100"
-              stroke="#3B82F6"
-              strokeWidth="2"
-              strokeDasharray="10,5"
-              fill="none"
-            />
-            <path
-              className="flow-connector"
-              d="M 780 100 L 820 100"
-              stroke="#3B82F6"
-              strokeWidth="2"
-              strokeDasharray="10,5"
-              fill="none"
-            />
-          </svg>
-
-          <div className="absolute inset-0 flex items-center justify-between px-4">
-            {[
-              { title: "TypeScript", desc: "Write contracts" },
-              { title: "as-sdk build", desc: "Compile" },
-              { title: "WASM + ABI", desc: "Generate" },
-              { title: "Deploy", desc: "To Arbitrum" },
-              { title: "Interact", desc: "Call functions" },
-            ].map((step, index) => (
-              <div key={index} className="flow-node text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center mb-3 mx-auto shadow-lg">
-                  <span className="text-white font-bold">{index + 1}</span>
+      <div ref={container} className="relative max-w-6xl mx-auto">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          {FLOW_STEPS.map((step, i) => (
+            <div key={i} className="relative flex items-center">
+              <div className="flow-node text-center">
+                <div className="relative group">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 to-pink-700 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-300" />
+                  
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 mx-auto rounded-full bg-gradient-to-br from-pink-500/20 to-pink-700/20 border-2 border-pink-500/60 shadow-xl backdrop-blur-sm flex items-center justify-center group-hover:border-pink-400 transition-all duration-300">
+                    <span className="text-white font-bold text-lg sm:text-xl md:text-2xl">
+                      {i + 1}
+                    </span>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-white mb-1">{step.title}</h3>
-                <p className="text-sm text-gray-400">{step.desc}</p>
+                
+                <div className="mt-4 max-w-[120px] sm:max-w-[140px]">
+                  <h3 className="font-semibold text-white text-sm sm:text-base mb-1">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-400 leading-tight">
+                    {step.desc}
+                  </p>
+                </div>
               </div>
-            ))}
-          </div>
+
+              {i < FLOW_STEPS.length - 1 && (
+                <div className="absolute left-full top-[2rem] sm:top-[2.5rem] md:top-[3rem] flex items-center z-10">
+                  {/* Línea conectora */}
+                  <div className="flow-line w-8 sm:w-12 md:w-16 lg:w-20 h-1 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full shadow-md" />
+                  
+                  {/* Punta de flecha con triángulo CSS */}
+                  <div className="flow-arrow -ml-2 relative">
+                    <div className="w-0 h-0 
+                      border-t-[6px] border-t-transparent
+                      border-b-[6px] border-b-transparent
+                      border-l-[10px] border-l-pink-600
+                      drop-shadow-sm
+                      sm:border-t-[8px] sm:border-b-[8px] sm:border-l-[12px]
+                    " />
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
+
+        <div className="absolute top-[2rem] sm:top-[2.5rem] md:top-[3rem] left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-pink-600/20 to-transparent -z-10" />
       </div>
     </section>
   )

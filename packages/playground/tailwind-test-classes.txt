@@ -1,1 +1,0 @@
-bg-arbitrum-primary hover:bg-arbitrum-primary-dark bg-stylus-secondary text-arbitrum-primary-light

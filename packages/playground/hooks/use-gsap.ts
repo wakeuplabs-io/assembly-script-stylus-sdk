@@ -1,29 +1,14 @@
 "use client"
 
 import { useEffect } from "react"
+import gsap from "gsap"
+import ScrollTrigger from "gsap/ScrollTrigger"
+import type { DependencyList } from "react"
 
-declare global {
-  interface Window {
-    gsap: any
-    ScrollTrigger: any
-  }
-}
-
-export function useGSAP(callback: () => void, deps: any[] = []) {
+export const useGSAP = (cb: () => void, deps: DependencyList = []) => {
   useEffect(() => {
-    const checkGSAP = () => {
-      if (typeof window === "undefined") return
-
-      // Check if GSAP is loaded from CDN
-      if (window.gsap && window.ScrollTrigger) {
-        callback()
-      } else {
-        // Wait a bit more for GSAP to load
-        setTimeout(checkGSAP, 100)
-      }
-    }
-
-    // Start checking after a short delay
-    setTimeout(checkGSAP, 500)
+    gsap.registerPlugin(ScrollTrigger)
+    cb()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)
 }
