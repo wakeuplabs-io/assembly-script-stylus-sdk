@@ -104,10 +104,6 @@
   filter: drop-shadow(0 4px 8px rgba(18, 170, 255, 0.15));
 }
 
-.featureItem:hover .featureTitle::after {
-  transform: translateX(-50%) scaleX(1);
-  animation: pulse 2s ease-in-out infinite;
-}
 
 .featureDescription {
   color: var(--ifm-color-emphasis-700);
@@ -138,11 +134,6 @@
     rgba(18, 170, 255, 0.2) 0%, 
     rgba(172, 28, 94, 0.2) 100%);
   transform: scale(1.05);
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.5; transform: translateX(-50%) scaleX(1); }
-  50% { opacity: 1; transform: translateX(-50%) scaleX(1.2); }
 }
 
 @media (max-width: 996px) {
@@ -217,23 +208,4 @@
   background: linear-gradient(135deg, 
     rgba(102, 209, 255, 0.25) 0%, 
     rgba(220, 81, 135, 0.25) 100%);
-}
-
-.techAccent {
-  position: relative;
-}
-
-.techAccent::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, 
-    var(--arbitrum-blue), 
-    var(--stylus-magenta), 
-    var(--ifm-color-success));
-  border-radius: 1px;
-  animation: pulse 2s ease-in-out infinite;
 }
