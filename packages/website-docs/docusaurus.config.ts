@@ -78,6 +78,14 @@ const config: Config = {
               label: 'Data Types',
               to: '/types/u256',
             },
+            {
+              label: 'Data Structures',
+              to: '/data-structures/mapping',
+            },
+            {
+              label: 'Examples',
+              to: '/examples/erc20',
+            },
           ],
         },
         {

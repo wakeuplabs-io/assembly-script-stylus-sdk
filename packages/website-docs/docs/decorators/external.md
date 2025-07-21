@@ -17,9 +17,7 @@ The `@External` decorator:
 
 - **Public Interface**: Makes methods callable from external transactions
 - **ABI Generation**: Includes the method in the contract's ABI
-- **Gas Consumption**: Methods consume gas when called
 - **State Modification**: Can read and modify contract state
-- **Transaction Required**: Must be called within a transaction context
 
 ## Basic Example
 

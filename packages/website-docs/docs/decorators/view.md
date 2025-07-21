@@ -78,7 +78,6 @@ export class ViewExample {
 View methods **can**:
 - Read storage variables
 - Perform calculations
-- Call other view methods
 - Access blockchain data (block, msg info)
 
 ```typescript
@@ -89,10 +88,9 @@ export class Calculator {
   @View
   static calculate(multiplier: U256): U256 {
     // ✅ All of these are allowed in view methods
-    const base = baseValue;           // Read storage
-    const result = base.mul(multiplier);         // Calculations
-    const bonus = getBonus();         // Call other view methods
-    const timestamp = block.timestamp();         // Access blockchain data
+    const base = baseValue;               // Read storage
+    const result = base.mul(multiplier);  // Calculations
+    const timestamp = block.timestamp();  // Access blockchain data
     
     return result.add(bonus);
   }
@@ -148,18 +146,15 @@ export class Calculator {
 
   @View
   static addNumbers(a: U256, b: U256): U256 {
-    // Paso 1: Crear el resultado
     const result: U256 = a.add(b);
     return result;
   }
 
   @View
   static calculateSum(limit: U256): U256 {
-    // Paso 1: Inicializar variables
     let total = U256Factory.create(); // 0
     const one = U256Factory.fromString("1");
     
-    // Paso 2: Sumar números del 1 al limit
     for (
       let i = U256Factory.fromString("1");
       i.lessThanOrEqual(limit);
@@ -168,17 +163,14 @@ export class Calculator {
       total = total.add(i);
     }
     
-    // Paso 3: Retornar el total
     return total;
   }
 
   @View
   static multiplyBySteps(base: U256, multiplier: U256): U256 {
-    // Paso 1: Inicializar resultado
     let result = U256Factory.create();
     const one = U256Factory.fromString("1");
     
-    // Paso 2: Sumar 'base' tantas veces como 'multiplier'
     for (
       let count = U256Factory.create();
       count.lessThan(multiplier);
@@ -187,7 +179,6 @@ export class Calculator {
       result = result.add(base);
     }
     
-    // Paso 3: Retornar resultado
     return result;
   }
 }

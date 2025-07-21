@@ -49,3 +49,4 @@ packages/ui/cache
 .windsurf
 
 /packages/other-contracts/**
+.cursor

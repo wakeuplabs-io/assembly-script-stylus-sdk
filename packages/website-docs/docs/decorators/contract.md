@@ -69,17 +69,17 @@ export class Counter {
   static count: U256;
 
   constructor() {
-    Counter.count = U256Factory.create();
+    count = U256Factory.create();
   }
 
   @External
   static increment(): void {
-    Counter.count = Counter.count.add(U256Factory.fromString("1"));
+    count = count.add(U256Factory.fromString("1"));
   }
 
   @View
   static getCount(): U256 {
-    return Counter.count;
+    return count;
   }
 }
 ```

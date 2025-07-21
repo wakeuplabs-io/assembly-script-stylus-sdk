@@ -15,13 +15,13 @@
   --ifm-color-primary-lightest: #66D1FF;
 
   /* Colores secundarios Stylus */
-  --ifm-color-secondary: #FF6B35;
-  --ifm-color-secondary-dark: #E55A2B;
-  --ifm-color-secondary-darker: #D85427;
-  --ifm-color-secondary-darkest: #B3441F;
-  --ifm-color-secondary-light: #FF7C4A;
-  --ifm-color-secondary-lighter: #FF8856;
-  --ifm-color-secondary-lightest: #FFA378;
+  --ifm-color-secondary: #ac1c5e;
+  --ifm-color-secondary-dark: #972054;
+  --ifm-color-secondary-darker: #8e1e4f;
+  --ifm-color-secondary-darkest: #751941;
+  --ifm-color-secondary-light: #bf2968;
+  --ifm-color-secondary-lighter: #c73573;
+  --ifm-color-secondary-lightest: #dc5187;
 
   /* Colores de éxito (mantenemos verde pero más tech) */
   --ifm-color-success: #00C896;
@@ -83,7 +83,7 @@
   
   /* Variables específicas para tema Arbitrum */
   --arbitrum-blue: #12AAFF;
-  --stylus-orange: #FF6B35;
+  --stylus-magenta: #ac1c5e;
   --arbitrum-dark: #1E4B7B;
   --tech-gray: #2A2D3A;
 }
@@ -100,13 +100,13 @@
   --ifm-color-primary-lightest: #CCEFFF;
 
   /* Colores secundarios en modo oscuro */
-  --ifm-color-secondary: #FF8856;
-  --ifm-color-secondary-dark: #FF7C4A;
-  --ifm-color-secondary-darker: #FF7240;
-  --ifm-color-secondary-darkest: #FF5D2B;
-  --ifm-color-secondary-light: #FF9462;
-  --ifm-color-secondary-lighter: #FF9D6B;
-  --ifm-color-secondary-lightest: #FFB187;
+  --ifm-color-secondary: #dc5187;
+  --ifm-color-secondary-dark: #c73573;
+  --ifm-color-secondary-darker: #bf2968;
+  --ifm-color-secondary-darkest: #ac1c5e;
+  --ifm-color-secondary-light: #e16695;
+  --ifm-color-secondary-lighter: #e67ba3;
+  --ifm-color-secondary-lightest: #f0a5bf;
 
   /* Fondo oscuro estilo Arbitrum */
   --ifm-background-color: #0D1117;
@@ -132,6 +132,10 @@
 
 .navbar__title {
   font-weight: 700;
+  color: #222 !important;
+}
+
+[data-theme='dark'] .navbar__title {
   color: white !important;
 }
 
@@ -149,13 +153,13 @@
 }
 
 .button--secondary {
-  background: linear-gradient(135deg, var(--stylus-orange), #FF8556);
+  background: linear-gradient(135deg, var(--stylus-magenta), #dc5187);
   border: none;
   color: white;
 }
 
 .button--secondary:hover {
-  background: linear-gradient(135deg, #FF8556, var(--stylus-orange));
+  background: linear-gradient(135deg, #dc5187, var(--stylus-magenta));
   color: white;
 }
 
@@ -176,7 +180,7 @@ a:hover {
 }
 
 .menu__link--active {
-  background: linear-gradient(90deg, rgba(18, 170, 255, 0.1), rgba(255, 107, 53, 0.05));
+  background: linear-gradient(90deg, rgba(18, 170, 255, 0.1), rgba(172, 28, 94, 0.05));
   border-left: 3px solid var(--arbitrum-blue);
 }
 
@@ -188,7 +192,17 @@ a:hover {
 
 /* Footer con gradiente Arbitrum */
 .footer {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  --ifm-footer-title-color: #222;
+  --ifm-footer-color: #666;
+  --ifm-footer-link-color: #666;
+}
+
+[data-theme='dark'] .footer {
   background: linear-gradient(135deg, #1A1B23, var(--tech-gray));
+  --ifm-footer-title-color: white;
+  --ifm-footer-color: #ccc;
+  --ifm-footer-link-color: #ccc;
 }
 
 /* Código con tema tech */
@@ -202,8 +216,12 @@ a:hover {
   font-size: 3.5rem;
   font-weight: 800;
   margin-bottom: 1.5rem;
-  color: white;
+  color: #222;
   line-height: 1.2;
+}
+
+[data-theme='dark'] .hero__title {
+  color: white;
 }
 
 .hero__subtitle {
