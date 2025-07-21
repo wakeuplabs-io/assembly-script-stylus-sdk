@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 14 14 16;
+    --foreground: 250 250 250;
+    --card: 17 20 23;
+    --card-foreground: 250 250 250;
+    --popover: 17 20 23;
+    --popover-foreground: 250 250 250;
+    --primary: 59 130 246;
+    --primary-foreground: 15 23 42;
+    --secondary: 39 39 42;
+    --secondary-foreground: 250 250 250;
+    --muted: 39 39 42;
+    --muted-foreground: 161 161 170;
+    --accent: 39 39 42;
+    --accent-foreground: 250 250 250;
+    --destructive: 239 68 68;
+    --destructive-foreground: 250 250 250;
+    --border: 39 39 42;
+    --input: 39 39 42;
+    --ring: 59 130 246;
+    --radius: 0.5rem;
+
+    /* Arbitrum Primary Colors */
+    --arbitrum-primary: #12aaff;
+    --arbitrum-primary-dark: #0e8fd8;
+    --arbitrum-primary-darker: #0d84cc;
+    --arbitrum-primary-darkest: #0a6ba8;
+    --arbitrum-primary-light: #2db5ff;
+    --arbitrum-primary-lighter: #3fc0ff;
+    --arbitrum-primary-lightest: #66d1ff;
+
+    /* Stylus Secondary Colors */
+    --stylus-secondary: #ac1c5e;
+    --stylus-secondary-dark: #972054;
+    --stylus-secondary-darker: #8e1e4f;
+    --stylus-secondary-darkest: #751941;
+    --stylus-secondary-light: #bf2968;
+    --stylus-secondary-lighter: #c73573;
+    --stylus-secondary-lightest: #dc5187;
+  }
+}
+
+/* Force CSS styles as backup */
+.bg-\[#12aaff\] {
+  background-color: #12aaff !important;
+}
+
+.hover\:bg-\[#0e8fd8\]:hover {
+  background-color: #0e8fd8 !important;
+}
+
+.text-\[#2db5ff\] {
+  color: #2db5ff !important;
+}
+
+.border-\[#12aaff\]\/30 {
+  border-color: rgba(18, 170, 255, 0.3) !important;
+}
+
+.hover\:shadow-\[#12aaff\]\/25:hover {
+  box-shadow: 0 10px 15px -3px rgba(18, 170, 255, 0.25), 0 4px 6px -2px rgba(18, 170, 255, 0.25) !important;
+}
+
+/* Code block styles */
+.code-block-pre {
+  font-family: var(--font-fira-code), "Fira Code", Consolas, "Courier New", monospace !important;
+  background-color: #0D1117 !important;
+  margin: 0 !important;
+}
+
+@layer utilities {
+  .bg-gradient-radial {
+    background: radial-gradient(var(--tw-gradient-stops));
+  }
+
+  .tw-glow {
+    @apply ring-2 ring-primary/40;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(17 24 39);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(75 85 99);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
+}
