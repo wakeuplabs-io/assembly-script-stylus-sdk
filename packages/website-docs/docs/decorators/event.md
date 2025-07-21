@@ -297,6 +297,6 @@ Events generate ABI entries:
 
 ---
 
-import { StructureNavigation } from '@site/src/components/NavigationGrid';
+import { DecoratorNavigation } from '@site/src/components/NavigationGrid';
 
-<StructureNavigation /> 
+<DecoratorNavigation /> 

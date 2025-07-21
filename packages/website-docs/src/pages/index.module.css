@@ -1,7 +1,3 @@
-/**
- * Página de inicio simple con tema Arbitrum/Stylus
- */
-
 .heroBanner {
   padding: 6rem 2rem;
   text-align: center;
@@ -17,7 +13,6 @@
   align-items: center;
 }
 
-/* Título principal blanco */
 .heroTitle {
   font-size: 3.5rem;
   font-weight: 800;
@@ -42,7 +37,6 @@
   flex-wrap: wrap;
 }
 
-/* Botones simples */
 .button {
   padding: 0.8rem 2rem;
   border-radius: 8px;
@@ -89,7 +83,6 @@
   transform: translateY(-1px);
 }
 
-/* Secciones adicionales */
 .features {
   padding: 4rem 2rem;
   background: var(--ifm-background-surface-color);

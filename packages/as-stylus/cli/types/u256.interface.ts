@@ -7,7 +7,6 @@ export interface U256 {
   lessThanOrEqual(other: U256): boolean;
   equal(other: U256): boolean;
   notEqual(other: U256): boolean;
-  modulo(other: U256): U256;
   toString(): string;
 }
 

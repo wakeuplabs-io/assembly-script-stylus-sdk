@@ -25,12 +25,12 @@ const decorators: NavigationItem[] = [
     link: '/decorators/view'
   },
   {
-    title: 'Event',
+    title: '@Event',
     description: 'Blockchain event logging',
     link: '/decorators/event'
   },
   {
-    title: 'Error',
+    title: '@Error',
     description: 'Custom error definitions',
     link: '/decorators/error'
   },

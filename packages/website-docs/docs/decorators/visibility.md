@@ -287,37 +287,6 @@ export class AccessControlledContract {
 }
 ```
 
-### Gas Optimization with State Mutability
-
-```typescript
-@Contract
-export class GasOptimized {
-  static expensiveCalculation: U256;
-
-  @Pure
-  static cheapCalculation(a: U256, b: U256): U256 {
-    // Gas-efficient: no state access
-    return a.add(b).mul(U256Factory.fromString("2"));
-  }
-
-  @View
-  static getCachedResult(): U256 {
-    // Gas-efficient for external calls (no gas when called statically)
-    return expensiveCalculation;
-  }
-
-  @External
-  static updateCache(input: U256): void {
-    // Expensive: modifies state
-    let result = input;
-    for (let i = U256Factory.create(); i.lessThan(U256Factory.fromString("100")); i = i.add(U256Factory.fromString("1"))) {
-      result = result.mul(U256Factory.fromString("2")).add(U256Factory.fromString("1"));
-    }
-    return result;
-  }
-}
-```
-
 ---
 
 import { DecoratorNavigation } from '@site/src/components/NavigationGrid';

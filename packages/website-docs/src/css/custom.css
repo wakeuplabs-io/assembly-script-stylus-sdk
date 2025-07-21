@@ -132,6 +132,10 @@
 
 .navbar__title {
   font-weight: 700;
+  color: #222 !important;
+}
+
+[data-theme='dark'] .navbar__title {
   color: white !important;
 }
 
@@ -188,7 +192,17 @@ a:hover {
 
 /* Footer con gradiente Arbitrum */
 .footer {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  --ifm-footer-title-color: #222;
+  --ifm-footer-color: #666;
+  --ifm-footer-link-color: #666;
+}
+
+[data-theme='dark'] .footer {
   background: linear-gradient(135deg, #1A1B23, var(--tech-gray));
+  --ifm-footer-title-color: white;
+  --ifm-footer-color: #ccc;
+  --ifm-footer-link-color: #ccc;
 }
 
 /* Código con tema tech */
@@ -202,8 +216,12 @@ a:hover {
   font-size: 3.5rem;
   font-weight: 800;
   margin-bottom: 1.5rem;
-  color: white;
+  color: #222;
   line-height: 1.2;
+}
+
+[data-theme='dark'] .hero__title {
+  color: white;
 }
 
 .hero__subtitle {

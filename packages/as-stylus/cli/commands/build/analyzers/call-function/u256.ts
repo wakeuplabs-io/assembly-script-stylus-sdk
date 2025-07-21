@@ -7,7 +7,7 @@ import { U256 } from "@/cli/types/u256.interface.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { SymbolTableStack } from "../shared/symbol-table.js";
 
-type U256ComparisonOperation = keyof Omit<U256, "toString" | "add" | "sub" | "modulo">;
+type U256ComparisonOperation = keyof Omit<U256, "toString" | "add" | "sub" >;
 const operationConvertor: Record<U256ComparisonOperation, ComparisonOperator> = {
   lessThan: "<",
   greaterThan: ">",
