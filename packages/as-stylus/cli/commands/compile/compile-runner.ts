@@ -1,10 +1,12 @@
-import { execSync } from "child_process";
+import path from "path";
 
-import { Logger } from "@/cli/services/logger.js";
 import { ProjectFinder } from "@/cli/services/project-finder.js";
-import { BUILD_WASM_PATH } from "@/cli/utils/constants.js";
+import { runCommand, runFunction } from "@/cli/utils/command-runner.js";
+import { BUILD_PATH, BUILD_WASM_PATH } from "@/cli/utils/constants.js";
+import { getCurrentWorkingDirectory } from "@/cli/utils/fs.js";
 
 import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
+import { runBuild } from "../build/build.js";
 
 export class CompileRunner {
   private projectFinder: ProjectFinder;
@@ -19,44 +21,47 @@ export class CompileRunner {
     return this.projectFinder.validateProjects();
   }
 
-  private runAssemblyScriptCompiler(projectTargetPath: string, contractName: string): void {
-    const command = `npx asc ${contractName}.entrypoint.ts --config asconfig.json`;
-
-    try {
-      Logger.getInstance().info(`Running: ${command}`);
-      execSync(command, {
-        cwd: projectTargetPath,
-        stdio: "inherit",
-      });
-      Logger.getInstance().info("AssemblyScript compilation completed successfully");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`AssemblyScript compilation failed: ${message}`);
-    }
+  private runBuild(): void {
+    runFunction(
+      () => {
+        const cwd = getCurrentWorkingDirectory();
+        const projectTargetPath = path.resolve(cwd, BUILD_PATH);
+        runBuild(projectTargetPath, this.contractPath);
+      },
+      {
+        infoMessage: "Running build",
+        successMessage: "Build completed successfully",
+        errorMessage: "Build failed",
+      },
+    );
   }
 
-  private runAssemblyScriptChecker(projectTargetPath: string): void {
-    //TODO: save the wasm file with the name of the contract
-    const command = `cargo stylus check --wasm-file ${BUILD_WASM_PATH}/module.wasm`;
+  private runAssemblyScriptCompiler(projectTargetPath: string, contractName: string): void {
+    const command = `npx asc ${contractName}.entrypoint.ts --outFile ${BUILD_WASM_PATH}/${contractName}.wasm --textFile ${BUILD_WASM_PATH}/${contractName}.wat --optimizeLevel 3 --shrinkLevel 2`;
 
-    try {
-      Logger.getInstance().info(`Running: ${command}`);
-      execSync(command, {
-        cwd: projectTargetPath,
-        stdio: "inherit",
-      });
-      Logger.getInstance().info("AssemblyScript checker completed successfully");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`AssemblyScript checker failed: ${message}`);
-    }
+    runCommand(command, {
+      cwd: projectTargetPath,
+      successMessage: "AssemblyScript compilation completed successfully",
+      errorMessage: "AssemblyScript compilation failed",
+    });
+  }
+
+  private runAssemblyScriptChecker(projectTargetPath: string, contractName: string): void {
+    const command = `cargo stylus check --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm`;
+
+    runCommand(command, {
+      cwd: projectTargetPath,
+      successMessage: "AssemblyScript checker completed successfully",
+      errorMessage: "AssemblyScript checker failed",
+    });
   }
 
   compile(): void {
     const projectTargetPath = this.projectFinder.getProjectBuildPath();
     const contractName = this.projectFinder.getContractName(this.contractPath);
 
+    this.runBuild();
     this.runAssemblyScriptCompiler(projectTargetPath, contractName);
-    this.runAssemblyScriptChecker(projectTargetPath);
+    this.runAssemblyScriptChecker(projectTargetPath, contractName);
   }
 }

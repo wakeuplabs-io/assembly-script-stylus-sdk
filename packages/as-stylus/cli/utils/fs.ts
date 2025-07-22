@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
 
+export function getCurrentWorkingDirectory(): string {
+  return path.resolve(process.cwd());
+}
+
 /**
  * Ensures a directory exists, creating it if necessary
  * @param dirPath Path to the directory to ensure exists
