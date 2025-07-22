@@ -34,7 +34,6 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
         ...(converted.components && { components: converted.components })
       };
     });
-    console.log({name: method.name, stateMutability: method.stateMutability});
     abi.push({
       name: method.name,
       type: "function",
@@ -62,7 +61,6 @@ inputs: contract.constructor.inputs.map((param) => {
     });
   }
 
-  // Add custom errors to ABI
   const errorABI = generateErrorABI(contract);
   abi.push(...errorABI);
 
@@ -79,7 +77,6 @@ export function buildAbi(targetPath: string, contract: IRContract) {
     const parentAbi = createAbiRepresentation(contract.parent, true);
     abi.push(...parentAbi);
   }
-
   const abiPath = path.join(targetPath, ABI_PATH, `${contract.name}-abi.json`);
   writeFile(abiPath, JSON.stringify(abi, null, 2));
 }
