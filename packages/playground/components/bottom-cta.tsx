@@ -53,7 +53,7 @@ export function BottomCTA() {
               </a>
 
               <a
-                href="https://develop.d25ybgoq9bhuuf.amplifyapp.com/"
+                href="https://as-stylus.wakeuplabs.io/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block"

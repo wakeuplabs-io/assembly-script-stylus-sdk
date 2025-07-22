@@ -1,40 +1,25 @@
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { CodeBlock } from "@/components/code-block"
 import { ERC20_CONTRACT_CODE, ERC721_CONTRACT_CODE } from "@/lib/constants/code-examples"
 import { ONBOARDING_STEPS } from "@/lib/constants/onboarding"
+import { useContract } from "@/contexts/contract-context"
 
 export function Playground() {
-  const [activeContract, setActiveContract] = useState<"ERC20" | "ERC721">("ERC20")
+  const { activeContract } = useContract()
 
   return (
     <section id="playground" className="py-20 px-4 bg-black/20">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Up and running in under 60s</h2>
-        <p className="text-gray-400 text-center mb-16">Three commands to deploy your first Stylus contract</p>
+        <p className="text-gray-400 text-center mb-8">Three commands to deploy your first Stylus contract</p>
 
-        <div className="flex justify-center mb-8">
-          <div className="bg-gray-800 p-1 rounded-full border border-gray-700">
-            <div className="flex">
-              <button
-                onClick={() => setActiveContract("ERC20")}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                  activeContract === "ERC20" ? "bg-[#ac1c5e] text-white shadow-lg" : "text-gray-400 hover:text-gray-300"
-                }`}
-              >
-                ERC20
-              </button>
-              <button
-                onClick={() => setActiveContract("ERC721")}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                  activeContract === "ERC721" ? "bg-[#ac1c5e] text-white shadow-lg" : "text-gray-400 hover:text-gray-300"
-                }`}
-              >
-                ERC721
-              </button>
-            </div>
+        {/* Indicador del contrato actual */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex items-center px-6 py-3 bg-gray-800 border border-gray-700 rounded-full">
+            <span className="text-gray-400 mr-2">Working with:</span>
+            <span className="text-[#ac1c5e] font-medium">{activeContract} Contract</span>
           </div>
         </div>
 

@@ -73,7 +73,7 @@ export function FlowDiagram() {
   }, [])
 
   return (
-    <section className="py-20 px-4 overflow-hidden">
+    <section id="flow-diagram" className="py-20 px-4 overflow-hidden">
       <h2 className="text-center text-3xl md:text-4xl font-bold mb-16 bg-gradient-to-r from-pink-400 to-pink-600 bg-clip-text text-transparent">
         {FLOW_DIAGRAM_TITLE}
       </h2>
@@ -105,10 +105,7 @@ export function FlowDiagram() {
 
               {i < FLOW_STEPS.length - 1 && (
                 <div className="absolute left-full top-[2rem] sm:top-[2.5rem] md:top-[3rem] flex items-center z-10">
-                  {/* Línea conectora */}
                   <div className="flow-line w-8 sm:w-12 md:w-16 lg:w-20 h-1 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full shadow-md" />
-                  
-                  {/* Punta de flecha con triángulo CSS */}
                   <div className="flow-arrow -ml-2 relative">
                     <div className="w-0 h-0 
                       border-t-[6px] border-t-transparent

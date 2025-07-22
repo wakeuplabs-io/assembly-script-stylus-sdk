@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Loader2, ExternalLink, CheckCircle } from "lucide-react"
 import { useContract } from "@/hooks/use-contract"
+import { useContract as useContractContext } from "@/contexts/contract-context"
 import type { Address } from "viem"
 import erc20Abi from "@/abis/erc20.json"
 import erc721Abi from "@/abis/erc721.json"
@@ -28,10 +29,12 @@ interface ContractFunction {
 
 export function ContractInteraction() {
   const [contractAddress, setContractAddress] = useState("")
-  const [contractType, setContractType] = useState<"ERC20" | "ERC721">("ERC20")
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [results, setResults] = useState<Record<string, React.ReactNode>>({})
   const [inputValues, setInputValues] = useState<Record<string, Record<string, string>>>({})
+
+  // Usar contexto compartido para obtener el tipo de contrato
+  const { activeContract: contractType } = useContractContext()
 
   const { isConnected, address } = useAccount()
   const { connect, connectors } = useConnect()
@@ -164,7 +167,15 @@ export function ContractInteraction() {
     <section className="py-20 px-4">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Interact with your contract</h2>
-        <p className="text-gray-400 text-center mb-16">Connect to your deployed contract and test its functions</p>
+        <p className="text-gray-400 text-center mb-8">Connect to your deployed contract and test its functions</p>
+
+        {/* Indicador del contrato actual */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex items-center px-6 py-3 bg-gray-800 border border-gray-700 rounded-full">
+            <span className="text-gray-400 mr-2">Testing:</span>
+            <span className="text-[#ac1c5e] font-medium">{contractType} Contract</span>
+          </div>
+        </div>
 
         {/* Wallet Connection */}
         <div className="flex justify-center mb-8">
@@ -175,14 +186,7 @@ export function ContractInteraction() {
             {isConnected ? `Connected: ${address?.slice(0, 6)}...${address?.slice(-4)}` : "Connect Wallet"}
           </Button>
         </div>
-        {!isConfirmed && (
-          <div className="text-center py-16">
-            <p className="text-gray-400">
-              Enter your deployed contract address and select the contract type, then click &quot;Confirm Contract&quot; to
-              interact with your smart contract functions.
-            </p>
-          </div>
-        )}
+
         <Card className="bg-gray-900/50 border-gray-700 mb-8">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
@@ -191,46 +195,15 @@ export function ContractInteraction() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-gray-300">Contract Address</Label>
-                <Input
-                  placeholder="0x..."
-                  value={contractAddress}
-                  onChange={(e) => setContractAddress(e.target.value)}
-                  disabled={isConfirmed}
-                  className="bg-gray-800 border-gray-600 text-white disabled:opacity-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-gray-300">Contract Type</Label>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => setContractType("ERC20")}
-                    disabled={isConfirmed}
-                    variant={contractType === "ERC20" ? "default" : "outline"}
-                    className={
-                      contractType === "ERC20"
-                        ? "bg-stylus-primary hover:bg-stylus-primary-dark text-white"
-                        : "border-gray-600 text-gray-300 hover:bg-gray-800 disabled:opacity-50"
-                    }
-                  >
-                    ERC20
-                  </Button>
-                  <Button
-                    onClick={() => setContractType("ERC721")}
-                    disabled={isConfirmed}
-                    variant={contractType === "ERC721" ? "default" : "outline"}
-                    className={
-                      contractType === "ERC721"
-                        ? "bg-stylus-secondary hover:bg-stylus-secondary-dark text-white"
-                        : "border-gray-600 text-gray-300 hover:bg-gray-800 disabled:opacity-50"
-                    }
-                  >
-                    ERC721
-                  </Button>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label className="text-gray-300">Contract Address</Label>
+              <Input
+                placeholder="0x..."
+                value={contractAddress}
+                onChange={(e) => setContractAddress(e.target.value)}
+                disabled={isConfirmed}
+                className="bg-gray-800 border-gray-600 text-white disabled:opacity-50"
+              />
             </div>
 
             <div className="flex gap-4">
@@ -262,7 +235,7 @@ export function ContractInteraction() {
                   href={`https://sepolia.arbiscan.io/address/${contractAddress}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                                        className="ml-auto flex items-center gap-1 hover:text-stylus-primary-light transition-colors"
+                  className="ml-auto flex items-center gap-1 hover:text-stylus-primary-light transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
                   View on Arbiscan
@@ -341,6 +314,15 @@ export function ContractInteraction() {
                 ))}
               </CardContent>
             </Card>
+          </div>
+        )}
+
+        {!isConfirmed && (
+          <div className="text-center py-16">
+            <p className="text-gray-400">
+              Enter your deployed {contractType} contract address, then click &quot;Confirm Contract&quot; to
+              interact with your smart contract functions.
+            </p>
           </div>
         )}
       </div>

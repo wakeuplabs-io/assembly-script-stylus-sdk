@@ -54,8 +54,8 @@ export function Hero() {
     document.getElementById("playground")?.scrollIntoView({ behavior: "smooth" })
   }
 
-  const scrollToQuickstart = () => {
-    document.getElementById("quickstart")?.scrollIntoView({ behavior: "smooth" })
+  const scrollToFlowDiagram = () => {
+    document.getElementById("flow-diagram")?.scrollIntoView({ behavior: "smooth" })
   }
 
   return (
@@ -86,7 +86,7 @@ export function Hero() {
             Try live contract
           </Button>
           <Button
-            onClick={scrollToQuickstart}
+            onClick={scrollToFlowDiagram}
             variant="outline"
             size="lg"
             className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3 text-lg font-semibold bg-transparent"
