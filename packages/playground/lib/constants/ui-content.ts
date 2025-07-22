@@ -21,9 +21,9 @@ export const ACCORDION_ITEMS = {
     title: "Generated entrypoint",
     description: "The main entry point that routes function calls based on selectors",
   },
-  SELECTORS: {
-    title: "Selectors",
-    description: "Function name to 4-byte selector mapping",
+  CONTRACT_TRANSFORMED: {
+    title: "Contract transformed",
+    description: "The contract transformed to AssemblyScript",
   },
   ABI: {
     title: "ABI",

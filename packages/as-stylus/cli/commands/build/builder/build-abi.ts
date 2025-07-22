@@ -34,7 +34,7 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
         ...(converted.components && { components: converted.components })
       };
     });
-
+    console.log({name: method.name, stateMutability: method.stateMutability});
     abi.push({
       name: method.name,
       type: "function",

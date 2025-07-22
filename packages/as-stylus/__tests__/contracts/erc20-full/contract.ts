@@ -1,3 +1,5 @@
+/* eslint-disable no-global-assign */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
 @Event
@@ -30,31 +32,37 @@ export class ERC20Full {
   }
 
   @View
+  @External
   static name(): string {
     return name;
   }
 
   @View
+  @External
   static symbol(): string {
     return symbol;
   }
 
   @View
+  @External
   static decimals(): U256 {
     return U256Factory.fromString("18");
   }
 
   @View
+  @External
   static totalSupply(): U256 {
     return totalSupply;
   }
 
   @View
+  @External
   static balanceOf(account: Address): U256 {
     return balances.get(account);
   }
 
   @View
+  @External
   static allowance(owner: Address, spender: Address): U256 {
     return allowances.get(owner, spender);
   }

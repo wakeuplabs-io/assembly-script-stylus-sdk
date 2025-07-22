@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Loader2, ExternalLink, CheckCircle } from "lucide-react"
+import { useContract } from "@/hooks/use-contract"
+import type { Address } from "viem"
 import erc20Abi from "@/abis/erc20.json"
 import erc721Abi from "@/abis/erc721.json"
 
@@ -26,17 +29,26 @@ export function ContractInteraction() {
   const [contractAddress, setContractAddress] = useState("")
   const [contractType, setContractType] = useState<"ERC20" | "ERC721">("ERC20")
   const [isConfirmed, setIsConfirmed] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [results, setResults] = useState<Record<string, React.ReactNode>>({})
   const [inputValues, setInputValues] = useState<Record<string, Record<string, string>>>({})
 
-  const currentAbi = contractType === "ERC20" ? erc20Abi : erc721Abi
+  // Estado de conexión simplificado
+  const isConnected = false // Por ahora sin wallet
+  
+  // ABI actual basado en el tipo de contrato
+  const currentAbi = (contractType === "ERC20" ? erc20Abi : erc721Abi) as any[]
   const functions = currentAbi.filter((item) => item.type === "function") as ContractFunction[]
-
   const readFunctions = functions.filter((fn) => fn.stateMutability === "view" || fn.stateMutability === "pure")
   const writeFunctions = functions.filter(
     (fn) => fn.stateMutability === "nonpayable" || fn.stateMutability === "payable",
   )
+
+  // Hook de contrato
+  const contract = useContract({
+    address: isConfirmed ? (contractAddress as Address) : undefined,
+    abi: currentAbi as any,
+    enabled: isConfirmed && !!contractAddress
+  })
 
   const handleConfirmAddress = () => {
     if (!contractAddress || !contractAddress.startsWith("0x") || contractAddress.length !== 42) {
@@ -44,7 +56,7 @@ export function ContractInteraction() {
       return
     }
     setIsConfirmed(true)
-    setResults({}) // Clear previous results
+    setResults({})
   }
 
   const handleReset = () => {
@@ -54,28 +66,51 @@ export function ContractInteraction() {
   }
 
   const handleFunctionCall = async (functionName: string, isWrite = false) => {
-    setIsLoading(true)
+    if (!contract) return
 
-    // Simulate contract call
-    setTimeout(() => {
-      const mockResults: Record<string, React.ReactNode> = {
-        name: "MyToken",
-        symbol: "MTK",
-        decimals: "18",
-        totalSupply: "1000000000000000000000000",
-        balanceOf: "500000000000000000000",
-        allowance: "0",
-        ownerOf: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-        getApproved: "0x0000000000000000000000000000000000000000",
-        isApprovedForAll: false,
+    try {
+      const inputs = inputValues[functionName] || {}
+      const args = functions
+        .find((fn) => fn.name === functionName)
+        ?.inputs.map((input) => inputs[input.name] || "") || []
+
+      if (isWrite) {
+        if (!isConnected) {
+          alert("Please connect your wallet to perform write operations")
+          return
+        }
+        const result = await contract.write(functionName, args)
+        if (result.success) {
+          setResults((prev) => ({
+            ...prev,
+            [functionName]: `Transaction sent! Hash: ${result.txHash}`,
+          }))
+        } else {
+          setResults((prev) => ({
+            ...prev,
+            [functionName]: `Error: ${result.error?.name || "Unknown error"}`,
+          }))
+        }
+      } else {
+        const result = await contract.read(functionName, args)
+        if (result.success) {
+          setResults((prev) => ({
+            ...prev,
+            [functionName]: String(result.data),
+          }))
+        } else {
+          setResults((prev) => ({
+            ...prev,
+            [functionName]: `Error: ${result.error?.name || "Unknown error"}`,
+          }))
+        }
       }
-
+    } catch (error) {
       setResults((prev) => ({
         ...prev,
-        [functionName]: mockResults[functionName] || (isWrite ? "Transaction sent successfully!" : "No data"),
+        [functionName]: `Error: ${error}`,
       }))
-      setIsLoading(false)
-    }, 1500)
+    }
   }
 
   const handleInputChange = (functionName: string, inputName: string, value: string) => {
@@ -110,7 +145,13 @@ export function ContractInteraction() {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Interact with your contract</h2>
         <p className="text-gray-400 text-center mb-16">Connect to your deployed contract and test its functions</p>
 
-        {/* Contract Setup */}
+        {/* Wallet Connection - Placeholder */}
+        <div className="flex justify-center mb-8">
+          <Button disabled className="bg-gray-600 text-gray-300">
+            Wallet Connection (Coming Soon)
+          </Button>
+        </div>
+
         <Card className="bg-gray-900/50 border-gray-700 mb-8">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
@@ -200,14 +241,12 @@ export function ContractInteraction() {
           </CardContent>
         </Card>
 
-        {/* Function Sections - Only show when confirmed */}
         {isConfirmed && (
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Read Functions */}
             <Card className="bg-gray-900/50 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  📖 Read Functions
+                  Read Functions
                   <span className="text-sm text-gray-400 font-normal">({readFunctions.length})</span>
                 </CardTitle>
               </CardHeader>
@@ -218,11 +257,11 @@ export function ContractInteraction() {
                       <h4 className="font-medium text-white">{func.name}</h4>
                       <Button
                         onClick={() => handleFunctionCall(func.name)}
-                        disabled={isLoading}
+                        disabled={contract.isLoading}
                         size="sm"
                         className="bg-stylus-primary hover:bg-stylus-primary-dark text-white"
                       >
-                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Read"}
+                        {contract.isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Read"}
                       </Button>
                     </div>
 
@@ -238,11 +277,10 @@ export function ContractInteraction() {
               </CardContent>
             </Card>
 
-            {/* Write Functions */}
             <Card className="bg-gray-900/50 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  ✏️ Write Functions
+                  Write Functions
                   <span className="text-sm text-gray-400 font-normal">({writeFunctions.length})</span>
                 </CardTitle>
               </CardHeader>
@@ -253,11 +291,11 @@ export function ContractInteraction() {
                       <h4 className="font-medium text-white">{func.name}</h4>
                       <Button
                         onClick={() => handleFunctionCall(func.name, true)}
-                        disabled={isLoading}
+                        disabled={contract.isLoading}
                         size="sm"
-                        className="bg-stylus-secondary hover:bg-stylus-secondary-dark text-white"
+                        className="bg-stylus-primary hover:bg-stylus-primary-dark text-white"
                       >
-                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Write"}
+                        {contract.isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Write"}
                       </Button>
                     </div>
 
@@ -275,10 +313,8 @@ export function ContractInteraction() {
           </div>
         )}
 
-        {/* Placeholder when not confirmed */}
         {!isConfirmed && (
           <div className="text-center py-16">
-            <div className="text-gray-500 text-lg mb-4">👆 Please confirm your contract address to continue</div>
             <p className="text-gray-400">
               Enter your deployed contract address and select the contract type, then click &quot;Confirm Contract&quot; to
               interact with your smart contract functions.

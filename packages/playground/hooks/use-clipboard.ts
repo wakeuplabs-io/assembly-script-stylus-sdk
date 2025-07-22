@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState } from 'react'
 
 export function useClipboard() {
   const [copied, setCopied] = useState(false)
@@ -9,9 +9,11 @@ export function useClipboard() {
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (error) {
-      console.error("Failed to copy text:", error)
+      setTimeout(() => {
+        setCopied(false)
+      }, 2000)
+    } catch (err) {
+      console.error('Failed to copy text: ', err)
     }
   }
 

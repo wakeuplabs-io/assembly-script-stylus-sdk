@@ -5,7 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CodeBlock } from "@/components/code-block"
 import { useGSAP } from "@/hooks/use-gsap"
 import gsap from "gsap"
-import { ENTRYPOINT_CODE, SELECTORS_CODE } from "@/lib/constants/code-examples"
+import { ENTRYPOINT_CODE, CONTRACT_TRANSFORMED } from "@/lib/constants/code-examples"
 import { UNDER_THE_HOOD_TITLE, UNDER_THE_HOOD_SUBTITLE, ACCORDION_ITEMS } from "@/lib/constants/ui-content"
 
 
@@ -45,10 +45,10 @@ export function UnderTheHood() {
             </AccordionItem>
 
             <AccordionItem value="selectors" className="bg-gray-900/50 border-gray-700 rounded-lg px-6">
-              <AccordionTrigger className="text-white hover:text-stylus-primary-light">{ACCORDION_ITEMS.SELECTORS.title}</AccordionTrigger>
+              <AccordionTrigger className="text-white hover:text-stylus-primary-light">{ACCORDION_ITEMS.CONTRACT_TRANSFORMED.title}</AccordionTrigger>
               <AccordionContent>
-                <p className="text-gray-400 mb-4">{ACCORDION_ITEMS.SELECTORS.description}</p>
-                <CodeBlock code={SELECTORS_CODE} />
+                <p className="text-gray-400 mb-4">{ACCORDION_ITEMS.CONTRACT_TRANSFORMED.description}</p>
+                <CodeBlock code={CONTRACT_TRANSFORMED} />
               </AccordionContent>
             </AccordionItem>
 
