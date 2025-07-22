@@ -13,7 +13,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     step: "Step 2: Copy contract code", 
     description: "Replace contract.ts with the code shown here",
-    command: "# Copy the contract code from the editor →",
+    command: "",
   },
   {
     step: "Step 3: Build & compile",

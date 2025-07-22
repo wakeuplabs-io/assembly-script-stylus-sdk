@@ -50,12 +50,8 @@ export function Hero() {
     })
   }, [])
 
-  const scrollToPlayground = () => {
-    document.getElementById("playground")?.scrollIntoView({ behavior: "smooth" })
-  }
-
-  const scrollToFlowDiagram = () => {
-    document.getElementById("flow-diagram")?.scrollIntoView({ behavior: "smooth" })
+  const scrollToContractSelector = () => {
+    document.getElementById("contract-selector")?.scrollIntoView({ behavior: "smooth" })
   }
 
   return (
@@ -79,19 +75,11 @@ export function Hero() {
 
         <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center">
           <Button
-            onClick={scrollToPlayground}
+            onClick={scrollToContractSelector}
             size="lg"
                           className="bg-[#ac1c5e] hover:bg-[#972054] text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-[#ac1c5e]/25 transition-all duration-300"
           >
             Try live contract
-          </Button>
-          <Button
-            onClick={scrollToFlowDiagram}
-            variant="outline"
-            size="lg"
-            className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-3 text-lg font-semibold bg-transparent"
-          >
-            Quick start
           </Button>
         </div>
       </div>

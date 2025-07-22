@@ -17,6 +17,9 @@ const firaCode = Fira_Code({
 export const metadata: Metadata = {
   title: "as-sdk - Write Stylus contracts in TypeScript",
   description: "ERC-20, ERC-721 and custom logic. No Solidity. No Rust.",
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
@@ -27,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" async />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" async />
       </head>

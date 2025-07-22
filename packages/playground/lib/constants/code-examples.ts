@@ -486,7 +486,8 @@ export function user_entrypoint(args_len: usize): i32 {
   return 0;
 }`
 
-export const ERC20_CONTRACT_TRANSFORMED = `import {
+export const ERC20_CONTRACT_TRANSFORMED = `// contract_transformed.ts - Auto-generated
+import {
   storage_load_bytes32,
   storage_cache_bytes32,
   storage_flush_cache,
@@ -851,30 +852,10 @@ export const ERC721_ENTRYPOINT_CODE = `// user_entrypoint.ts - Auto-generated
 /* eslint-disable */
 import "./assembly/stylus/stylus";
 import { __keep_imports } from "as-stylus/core/modules/keep-imports";
-import { read_args, write_result } from "as-stylus/core/modules/hostio";
-import { initHeap, malloc } from "as-stylus/core/modules/memory";
-import { loadU32BE } from "as-stylus/core/modules/endianness";
-import { Str } from "as-stylus/core/types/str";
 import { Boolean } from "as-stylus/core/types/boolean";
 import { U256 } from "as-stylus/core/types/u256";
 import { createStorageKey } from "as-stylus/core/modules/storage";
 import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "as-stylus/core/modules/hostio";
-
-import { approve } from "./contract.transformed";
-import { setApprovalForAll } from "./contract.transformed";
-import { transferFrom } from "./contract.transformed";
-import { safeTransferFrom } from "./contract.transformed";
-import { safeTransferFromData } from "./contract.transformed";
-import { safeMint } from "./contract.transformed";
-import { mint } from "./contract.transformed";
-import { burn } from "./contract.transformed";
-import { balanceOf } from "./contract.transformed";
-import { ownerOf } from "./contract.transformed";
-import { name } from "./contract.transformed";
-import { symbol } from "./contract.transformed";
-import { getApproved } from "./contract.transformed";
-import { isApprovedForAll } from "./contract.transformed";
-import { contract_constructor } from "./contract.transformed";
 
 __keep_imports(false);
 
@@ -995,13 +976,8 @@ export function user_entrypoint(args_len: usize): i32 {
   return 0;
 }`
 
-export const ERC721_CONTRACT_TRANSFORMED = `// eslint-disable-next-line import/namespace
-import {
-  storage_load_bytes32,
-  storage_cache_bytes32,
-  storage_flush_cache,
-} from "as-stylus/core/modules/hostio";
-import { createStorageKey } from "as-stylus/core/modules/storage";
+export const ERC721_CONTRACT_TRANSFORMED = `// contract_transformed.ts - Auto-generated
+// eslint-disable-next-line import/namespace
 import { abort_with_data } from "as-stylus/core/modules/errors";
 import { addTopic, emitTopics } from "as-stylus/core/modules/events";
 import { Mapping } from "as-stylus/core/types/mapping";
@@ -1009,10 +985,7 @@ import { Mapping2 } from "as-stylus/core/types/mapping2";
 import { Boolean } from "as-stylus/core/types/boolean";
 import { Address } from "as-stylus/core/types/address";
 import { U256 } from "as-stylus/core/types/u256";
-import { I256 } from "as-stylus/core/types/i256";
 import { Str } from "as-stylus/core/types/str";
-import { loadU32BE } from "as-stylus/core/modules/endianness";
-import { Struct } from "as-stylus/core/types/struct";
 import { Msg } from "as-stylus/core/types/msg";
 import { malloc } from "as-stylus/core/modules/memory";
 

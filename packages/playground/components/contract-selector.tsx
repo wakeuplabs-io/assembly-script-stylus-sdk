@@ -7,7 +7,7 @@ export function ContractSelector() {
   const { activeContract, setActiveContract } = useContract()
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-[#0E0E10] to-transparent">
+    <section id="contract-selector" className="py-20 px-4 bg-gradient-to-b from-[#0E0E10] to-transparent">
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-4xl md:text-5xl font-bold mb-4">
           Choose Your Contract Type
