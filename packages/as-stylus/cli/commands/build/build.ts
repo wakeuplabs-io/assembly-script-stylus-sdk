@@ -25,7 +25,7 @@ export function runBuild(projectTargetPath: string, contractPath: string) {
 
 export const buildCommand = new Command('build')
   .description('Build a Stylus project')
-  .argument('<contract-path>', 'Path to the contracts root')
+  .argument('<contract-path>', 'Path to the contract file')
   .action((contractPath: string) => {
     const projectTargetPath = path.resolve(getCurrentWorkingDirectory(), BUILD_PATH);
     runBuild(projectTargetPath, contractPath);

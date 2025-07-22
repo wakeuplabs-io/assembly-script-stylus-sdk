@@ -66,7 +66,7 @@ export function runDeploy(
 
 export const deployCommand = new Command("deploy")
   .description("Deploy an AssemblyScript Contract")
-  .argument("<contract-path>", "Path to the contracts root")
+  .argument("<contract-path>", "Path to the contract file")
   .option("--private-key <private-key>", "Private key to deploy the contract")
   .option("--endpoint <endpoint>", "Endpoint to deploy the contract")
   .option("--output <output-file>", "Save deployment information to a JSON file")

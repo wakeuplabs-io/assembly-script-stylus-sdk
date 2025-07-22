@@ -15,7 +15,7 @@ export function runCompile(contractPath: string) {
 
 export const compileCommand = new Command("compile")
   .description("Compile an AssemblyScript Contract")
-  .argument("<contract-path>", "Path to the contracts root")
+  .argument("<contract-path>", "Path to the contract file")
   .action((contractPath: string) => {
     runCompile(contractPath);
   });
