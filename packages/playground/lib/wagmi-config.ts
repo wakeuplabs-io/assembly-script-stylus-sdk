@@ -1,9 +1,20 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit'
+import { cookieStorage, createStorage, createConfig, http } from 'wagmi'
 import { arbitrumSepolia } from 'wagmi/chains'
+import { injected, walletConnect } from 'wagmi/connectors'
 
-export const wagmiConfig = getDefaultConfig({
-  appName: 'as-sdk Landing',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
+export const wagmiConfig = createConfig({
   chains: [arbitrumSepolia],
+  connectors: [
+    injected(),
+    walletConnect({ 
+      projectId: 'dummy-project-id'
+    }),
+  ],
+  transports: {
+    [arbitrumSepolia.id]: http(),
+  },
+  storage: createStorage({
+    storage: cookieStorage,
+  }),
   ssr: true,
 }) 

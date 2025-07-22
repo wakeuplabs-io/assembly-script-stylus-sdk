@@ -380,33 +380,13 @@ export class ERC721 {
 }`
 
 export const ENTRYPOINT_CODE = `// user_entrypoint.ts - Auto-generated
-
 /* eslint-disable */
-
-// Auto-generated contract template
 import "./assembly/stylus/stylus";
 import { __keep_imports } from "as-stylus/core/modules/keep-imports";
-import { read_args, write_result } from "as-stylus/core/modules/hostio";
-import { initHeap, malloc } from "as-stylus/core/modules/memory";
-import { loadU32BE } from "as-stylus/core/modules/endianness";
-import { Str } from "as-stylus/core/types/str";
 import { Boolean } from "as-stylus/core/types/boolean";
 import { U256 } from "as-stylus/core/types/u256";
 import { createStorageKey } from "as-stylus/core/modules/storage";
 import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "as-stylus/core/modules/hostio";
-
-import { name } from "./contract.transformed";
-import { symbol } from "./contract.transformed";
-import { decimals } from "./contract.transformed";
-import { totalSupply } from "./contract.transformed";
-import { balanceOf } from "./contract.transformed";
-import { allowance } from "./contract.transformed";
-import { transfer } from "./contract.transformed";
-import { approve } from "./contract.transformed";
-import { transferFrom } from "./contract.transformed";
-import { mint } from "./contract.transformed";
-import { burn } from "./contract.transformed";
-import { contract_constructor } from "./contract.transformed";
 
 __keep_imports(false);
 

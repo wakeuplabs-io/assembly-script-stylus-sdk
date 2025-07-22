@@ -6,11 +6,9 @@ import { useClipboard } from "@/hooks/use-clipboard"
 import { useEffect, useState } from "react"
 import type { editor } from "monaco-editor"
 
-// Importación condicional de Monaco para evitar problemas de SSR
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let MonacoEditor: any = null
 if (typeof window !== 'undefined') {
-  // Solo importar en el lado del cliente
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   MonacoEditor = require('@monaco-editor/react').default
 }

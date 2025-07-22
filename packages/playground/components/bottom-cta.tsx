@@ -13,9 +13,8 @@ export function BottomCTA() {
     const { gsap } = window
     if (!gsap || !cardRef.current) return
 
-    // Infinite neon border glow
     gsap.to(cardRef.current, {
-      boxShadow: "0 0 24px #3B82F6, 0 0 48px #3B82F6",
+      boxShadow: "0 0 24px #ac1c5e, 0 0 48px #ac1c5e",
       repeat: -1,
       yoyo: true,
       duration: 3,
@@ -37,26 +36,40 @@ export function BottomCTA() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-[#ac1c5e] hover:bg-[#972054] text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-[#ac1c5e]/25 transition-all duration-300"
+              <a
+                href="https://github.com/wakeuplabs-io/assembly-script-stylus-sdk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
               >
-                <Github className="w-5 h-5 mr-2" />
-                Go to GitHub
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+                <Button
+                  size="lg"
+                  className="bg-[#ac1c5e] hover:bg-[#972054] text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-[#ac1c5e]/25 transition-all duration-300"
+                >
+                  <Github className="w-5 h-5 mr-2" />
+                  Go to GitHub
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </a>
 
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-4 text-lg font-semibold bg-transparent"
+              <a
+                href="https://develop.d25ybgoq9bhuuf.amplifyapp.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
               >
-                Read Documentation
-              </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800 px-8 py-4 text-lg font-semibold bg-transparent"
+                >
+                  Read Documentation
+                </Button>
+              </a>
             </div>
 
             <div className="mt-8 pt-8 border-t border-gray-700">
-              <p className="text-gray-400">Join 500+ developers building the future of smart contracts</p>
+              <p className="text-gray-400">Join us to building the future of smart contracts</p>
             </div>
           </CardContent>
         </Card>

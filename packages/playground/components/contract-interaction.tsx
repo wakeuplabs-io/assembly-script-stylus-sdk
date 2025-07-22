@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState } from "react"
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -32,10 +33,10 @@ export function ContractInteraction() {
   const [results, setResults] = useState<Record<string, React.ReactNode>>({})
   const [inputValues, setInputValues] = useState<Record<string, Record<string, string>>>({})
 
-  // Estado de conexión simplificado
-  const isConnected = false // Por ahora sin wallet
+  const { isConnected, address } = useAccount()
+  const { connect, connectors } = useConnect()
+  const { disconnect } = useDisconnect()
   
-  // ABI actual basado en el tipo de contrato
   const currentAbi = (contractType === "ERC20" ? erc20Abi : erc721Abi) as any[]
   const functions = currentAbi.filter((item) => item.type === "function") as ContractFunction[]
   const readFunctions = functions.filter((fn) => fn.stateMutability === "view" || fn.stateMutability === "pure")
@@ -43,12 +44,22 @@ export function ContractInteraction() {
     (fn) => fn.stateMutability === "nonpayable" || fn.stateMutability === "payable",
   )
 
-  // Hook de contrato
   const contract = useContract({
     address: isConfirmed ? (contractAddress as Address) : undefined,
     abi: currentAbi as any,
     enabled: isConfirmed && !!contractAddress
   })
+
+  const handleWalletConnection = () => {
+    if (isConnected) {
+      disconnect()
+    } else {
+      const injectedConnector = connectors.find(c => c.id === 'injected')
+      if (injectedConnector) {
+        connect({ connector: injectedConnector })
+      }
+    }
+  }
 
   const handleConfirmAddress = () => {
     if (!contractAddress || !contractAddress.startsWith("0x") || contractAddress.length !== 42) {
@@ -83,7 +94,17 @@ export function ContractInteraction() {
         if (result.success) {
           setResults((prev) => ({
             ...prev,
-            [functionName]: `Transaction sent! Hash: ${result.txHash}`,
+            [functionName]: (
+              <a
+                href={`https://sepolia.arbiscan.io/tx/${result.txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#bf2968] hover:text-[#e04b8a] underline decoration-dotted flex items-center gap-1"
+              >
+                View transaction on Arbiscan
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            ),
           }))
         } else {
           setResults((prev) => ({
@@ -145,13 +166,23 @@ export function ContractInteraction() {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Interact with your contract</h2>
         <p className="text-gray-400 text-center mb-16">Connect to your deployed contract and test its functions</p>
 
-        {/* Wallet Connection - Placeholder */}
+        {/* Wallet Connection */}
         <div className="flex justify-center mb-8">
-          <Button disabled className="bg-gray-600 text-gray-300">
-            Wallet Connection (Coming Soon)
+          <Button 
+            onClick={handleWalletConnection}
+            className={isConnected ? "bg-green-600 hover:bg-green-700" : "bg-stylus-primary hover:bg-stylus-primary-dark"}
+          >
+            {isConnected ? `Connected: ${address?.slice(0, 6)}...${address?.slice(-4)}` : "Connect Wallet"}
           </Button>
         </div>
-
+        {!isConfirmed && (
+          <div className="text-center py-16">
+            <p className="text-gray-400">
+              Enter your deployed contract address and select the contract type, then click &quot;Confirm Contract&quot; to
+              interact with your smart contract functions.
+            </p>
+          </div>
+        )}
         <Card className="bg-gray-900/50 border-gray-700 mb-8">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
@@ -310,15 +341,6 @@ export function ContractInteraction() {
                 ))}
               </CardContent>
             </Card>
-          </div>
-        )}
-
-        {!isConfirmed && (
-          <div className="text-center py-16">
-            <p className="text-gray-400">
-              Enter your deployed contract address and select the contract type, then click &quot;Confirm Contract&quot; to
-              interact with your smart contract functions.
-            </p>
           </div>
         )}
       </div>
