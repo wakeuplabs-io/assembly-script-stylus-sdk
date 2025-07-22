@@ -6,23 +6,23 @@ export interface OnboardingStep {
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
-    step: "Step 1: Generate a project",
-    description: "Create a new contract template",
-    command: "npx as-sdk generate my-contract",
+    step: "Step 1: Generate project",
+    description: "Create a new Stylus contract template",
+    command: "npx as-sdk generate my-token",
   },
   {
-    step: "Step 2: Copy the contract",
-    description: "Copy the contract in contract.ts",
-    command: "",
+    step: "Step 2: Copy contract code", 
+    description: "Replace contract.ts with the code shown here",
+    command: "# Copy the contract code from the editor →",
   },
   {
-    step: "Step 3: Build it",
-    description: "Compile TypeScript to WASM",
-    command: "cd my-contract && npx as-sdk build",
+    step: "Step 3: Build & compile",
+    description: "Transform TypeScript into WebAssembly", 
+    command: "cd my-token && npm run build",
   },
   {
-    step: "Step 5: Deploy it",
-    description: "Deploy to Arbitrum network",
-    command: "npx as-sdk deploy --private-key <YOUR_PRIVATE_KEY>",
+    step: "Step 4: Deploy to Arbitrum",
+    description: "Deploy your contract to Arbitrum Sepolia testnet",
+    command: "npm run deploy --private-key <YOUR_PRIVATE_KEY>",
   },
-] 
+]
