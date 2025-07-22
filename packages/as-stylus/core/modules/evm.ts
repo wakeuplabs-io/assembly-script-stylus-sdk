@@ -1,20 +1,19 @@
-import { malloc } from "../types/memory";
 import { debugLogI32, debugLogTxt } from "./console";
 import { account_balance, call_contract, read_return_data } from "./hostio";
+import { malloc } from "./memory";
 
 const GAS_LIMIT: u64 = 500_000;
-
 
 export function sendEth(to: usize, amount: usize, gas: u64 = GAS_LIMIT): u8 {
   const dataPtr = 0;
   const dataLen = 0;
 
-  const outsLenPtr = malloc(8); // Espacio para recibir return_data_len (usize)
-  store<u64>(outsLenPtr, 0); // Inicializar en 0
+  const outsLenPtr = malloc(8);
+  store<u64>(outsLenPtr, 0);
 
   const res = call_contract(to, dataPtr, dataLen, amount, gas, outsLenPtr);
 
-  debugLogI32(res); // Resultado de la llamada
+  debugLogI32(res);
 
   if (res != 0) {
     const outLen = load<u64>(outsLenPtr);
@@ -26,7 +25,6 @@ export function sendEth(to: usize, amount: usize, gas: u64 = GAS_LIMIT): u8 {
       debugLogI32(<i32>written);
       debugLogTxt(outPtr, <i32>written);
     }
-
   }
 
   return res;
@@ -34,6 +32,6 @@ export function sendEth(to: usize, amount: usize, gas: u64 = GAS_LIMIT): u8 {
 
 export function getBalance(ptrAddress: usize): usize {
   const ptrData = malloc(32);
-  account_balance(ptrAddress + (3 * 4), ptrData);
+  account_balance(ptrAddress + 3 * 4, ptrData);
   return ptrData;
 }

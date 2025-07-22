@@ -1,42 +1,29 @@
-import fs from "fs";
+import { Command } from 'commander';
 import path from "path";
-import { applyValidations } from "./validators/index.js";
-import { buildProject } from "./builder/index.js";
-import { applyTransforms } from "./transformers/index.js";
-import { IRContract } from "../../types/ir.types.js";
 
-export function runBuild() {
+import { ErrorManager } from './analyzers/shared/error-manager.js';
+import { BuildRunner } from "./build-runner.js";
+import { buildProject } from './builder/index.js';
+import { mixInheritance } from './builder/mix-inheritance.js';
+import { transformFromIR } from './transformers/index.js';
 
-  // const projectRoot   = process.cwd();}
+export function runBuild(contractPath: string) {
+  const contractsRoot = path.resolve(process.cwd());
 
-  // const userIndexPath = fs.existsSync(path.resolve(projectRoot, "index.ts"))
-  // ? path.resolve(projectRoot, "index.ts")
-  // : fallbackContractPath;
+  const errorManager = new ErrorManager();
+  const runner = new BuildRunner(contractsRoot, contractPath, errorManager);
+  runner.validate();
+  const contract = runner.buildIR();
 
-  const fallbackProjectRoot = path.resolve("/Users/francoperez/repos/wakeup/assembly-script-stylus-sdk/packages/contracts/test");
-  const fallbackContractPath = path.resolve("/Users/francoperez/repos/wakeup/assembly-script-stylus-sdk/packages/contracts/test/contract.ts");
-  const userIndexPath = fallbackContractPath;
+  const contractWithParents = mixInheritance(contract.ir, contract.ir.parent);
+  buildProject(contract.transformedPath, contractWithParents, []);
+  transformFromIR(contract.projectTargetPath, contractWithParents);
 
-  if (!fs.existsSync(userIndexPath)) {
-    console.error(
-      `[as‑stylus] Error: cannot find "index.ts" in ${userIndexPath}.
-       Make sure you run "npx as-stylus build" inside a contract
-       folder that contains an AssemblyScript entry file named contract.ts.`
-    );
-    process.exit(1);
-  }
-
-  const targetPath = path.join(fallbackProjectRoot, ".dist");
-  if (fs.existsSync(targetPath)) fs.rmSync(targetPath, { recursive: true, force: true });
-  fs.mkdirSync(targetPath, { recursive: true });
-  const transformedPath = path.join(targetPath, "contract.transformed.ts");
-  fs.copyFileSync(userIndexPath, transformedPath);
-
-  const contract: IRContract = applyValidations(userIndexPath) 
-  applyTransforms(transformedPath, contract);  
-  buildProject(userIndexPath, contract);
-
-  console.log(`Generated new contract project at: ${targetPath}`);
 }
 
-runBuild();
+export const buildCommand = new Command('build')
+  .description('Build a Stylus project')
+  .argument('<contract-path>', 'Path to the contracts root')
+  .action((contractPath: string) => {
+    runBuild(contractPath);
+  });

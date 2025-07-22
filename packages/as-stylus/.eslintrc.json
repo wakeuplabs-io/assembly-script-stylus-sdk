@@ -1,0 +1,86 @@
+{
+  "env": {
+    "browser": true, // Enables browser globals like `window` and `document`
+    "es2021": true, // Enables ES2021 syntax
+    "node": true // Enables Node.js globals like `process` and `require`
+  },
+
+  "extends": [
+    "eslint:recommended", // Base ESLint recommended rules
+    "plugin:@typescript-eslint/recommended", // TypeScript-specific linting rules
+    "plugin:prettier/recommended", // Integrates Prettier formatting rules
+    "plugin:import/recommended", // Recommended rules for import/export syntax
+    "plugin:import/typescript" // TypeScript support for import plugin
+  ],
+
+  "parser": "@typescript-eslint/parser", // Parses TypeScript code for ESLint
+  "parserOptions": {
+    "ecmaVersion": "latest", // Use the latest ECMAScript version
+    "sourceType": "module" // Use ES modules (import/export)
+  },
+
+  "plugins": [
+    "@typescript-eslint", // Adds TypeScript linting rules
+    "prettier", // Enables Prettier integration
+    "import" // Adds rules related to module import organization
+  ],
+
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "prettier/prettier": "error", // Treat Prettier formatting issues as ESLint errors
+    "linebreak-style": ["error", "unix"], // Enforce LF (Unix-style) line endings
+    "semi": ["error", "always"], // Require semicolons at the end of statements
+
+    // Import organization rules
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          ["builtin", "external"], // Built-in Node modules and external packages
+          "internal", // Internal paths, like aliases
+          ["parent", "sibling", "index"], // Relative imports (../, ./, etc.)
+          "object", // Imports like `import * as name from`
+          "type" // Type-only imports
+        ],
+        "pathGroups": [
+          {
+            "pattern": "@/**", // Treat `@/...` as internal paths
+            "group": "internal",
+            "position": "before"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["builtin"], // Don't reclassify built-ins
+        "newlines-between": "always", // Always insert new lines between import groups
+        "alphabetize": {
+          "order": "asc", // Alphabetize imports A-Z
+          "caseInsensitive": true // Ignore case while alphabetizing
+        }
+      }
+    ],
+    "import/no-duplicates": "error", // Disallow importing the same module more than once
+    "import/no-unresolved": "off", // Turn off unresolved import errors (e.g., for TypeScript aliases)
+    "@typescript-eslint/no-explicit-any": "warn", // Turn off any type errors
+    "import/namespace": "off", // Turn off namespace import errors
+    "import/no-self-import": "error", // Prevent a file from importing itself
+    "import/no-useless-path-segments": "error", // Avoid unnecessary path segments like `./../file`
+    "import/no-absolute-path": "off" // Allow absolute paths (useful with custom resolvers)
+  },
+
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true // Also try to resolve `@types` packages
+      },
+      "alias": {
+        "map": [["@", "./"]], // Set `@` as an alias for the root directory
+        "extensions": [".ts", ".tsx", ".js", ".jsx", ".json"] // File extensions to resolve
+      }
+    }
+  }
+}

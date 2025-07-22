@@ -1,128 +1,18 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { Command } from "commander";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { GenerateRunner } from "./generate-runner.js";
+import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
 
-const baseContractsPath = path.resolve(__dirname, "../../../../contracts");
-
-const contractName = process.argv[2];
-
-if (!contractName) {
-  console.error("Missing contract name. Usage: npm run generate <contract-name>");
-  process.exit(1);
+export function runGenerate(projectName: string) {
+  const contractsRoot = process.cwd();
+  const errorManager = new ErrorManager();
+  const runner = new GenerateRunner(contractsRoot, errorManager, projectName);
+  runner.validateAndGenerate();
 }
 
-const targetPath = path.join(baseContractsPath, contractName);
-
-if (fs.existsSync(targetPath)) {
-  console.error(`Contract "${contractName}" already exists`);
-  process.exit(1);
-}
-
-fs.mkdirSync(targetPath);
-
-// asconfig.json
-fs.writeFileSync(
-  path.join(targetPath, "asconfig.json"),
-  JSON.stringify({
-    targets: {
-      debug: {
-        outFile: "build/module.wasm",
-        textFile: "build/module.wat",
-        jsFile: "build/module.js",
-        optimizeLevel: 0,
-        shrinkLevel: 0,
-        sourceMap: true,
-        noAssert: true,
-        debug: true,
-      },
-      release: {
-        outFile: "build/module.wasm",
-        textFile: "build/module.wat",
-        jsFile: "build/module.js",
-        sourceMap: true,
-        optimizeLevel: 0,
-        shrinkLevel: 0,
-        noAssert: true,
-        converge: true,
-      },
-    },
-    options: {
-      bindings: "esm",
-      runtime: "stub",
-    },
-  }, null, 2)
-);
-
-// index.ts
-fs.writeFileSync(
-  path.join(targetPath, "contract.ts"),
-  `// @ts-nocheck
-@Contract
-export class Counter {
-  static counter: U256;
-
-  constructor() {
-    Counter.counter = U256Factory.create();
-  }
-
-  @External
-  static increment(): void {
-    const delta: U256 = U256Factory.fromString("1");
-    Counter.counter = Counter.counter.add(delta);
-  }
-
-  @External
-  static decrement(): void {
-    const delta: U256 = U256Factory.fromString("1");
-    Counter.counter = Counter.counter.sub(delta);
-  }
-
-  @View
-  static get(): u64 {
-    return Counter.counter.toString();
-  }
-}
-`
-);
-
-// package.json
-fs.writeFileSync(
-  path.join(targetPath, "package.json"),
-  JSON.stringify({
-    name: contractName,
-    version: "1.0.0",
-    description: "",
-    main: "index.js",
-    scripts: {
-      compile: "cd .dist && npm run compile",
-      check: "cd .dist && npm run check",
-      deploy: "cd .dist && npm run deploy",
-    },
-    author: "",
-    license: "ISC",
-    type: "module",
-    exports: {
-      ".": {
-        import: "./build/release.js",
-        types: "./build/release.d.ts",
-      },
-    },
-    devDependencies: {
-      assemblyscript: "^0.27.35",
-    },
-  }, null, 2)
-);
-
-// tsconfig.json
-fs.writeFileSync(
-  path.join(targetPath, "tsconfig.json"),
-  JSON.stringify({
-    extends: "assemblyscript/std/assembly.json",
-    include: ["contract.ts"],
-  }, null, 2)
-);
-
-console.log(`Contract "${contractName}" created successfully at ${targetPath}`);
+export const generateCommand = new Command("generate")
+  .description("Generate a new Stylus project")
+  .argument("<project-name>", "Name of the project to generate")
+  .action((projectName: string) => {
+    runGenerate(projectName);
+  });

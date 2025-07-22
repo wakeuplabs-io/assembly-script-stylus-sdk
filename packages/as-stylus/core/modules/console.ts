@@ -3,23 +3,8 @@ import { malloc } from "./memory";
 @external("console", "log_i32")
 declare function log_i32(val: i32): void;
 
-@external("console", "log_i64")
-declare function log_i64(val: i64): void;
-
 @external("console", "log_txt")
 declare function log_txt(ptr: usize, len: usize): void;
-
-export function debugLogI32(val: i32): void {
-  log_i32(val);
-}
-
-export function debugLogUSize(val: usize): void {
-  log_i32(<i32>val);
-}
-
-export function debugLogI64(val: i64): void {
-  log_i64(val);
-}
 
 export function debugLogAddress(ptr: usize): void {
   const addrOffset = ptr + 12;
@@ -55,10 +40,6 @@ export function debugLogAddressHex(ptr: usize): void {
   }
 
   log_txt(strPtr, strLen);
-}
-
-function hexChar(n: u8): u8 {
-  return n < 10 ? 0x30 + n : 0x61 + (n - 10);
 }
 
 export function debugLogU256Hex(ptr: usize): void {
@@ -111,8 +92,16 @@ export function debugLogTxt(ptr: usize, len: i32): void {
   log_txt(ptr, len);
 }
 
+export function debugLogI32(val: i32): void {
+  log_i32(val);
+}
 
-
+/*──────────────────────────*
+ *  Helpers                  *
+ *──────────────────────────*/
+function hexChar(n: u8): u8 {
+  return n < 10 ? 0x30 + n : 0x61 + (n - 10);
+}
 
 function isZero(ptr: usize): bool {
   for (let i = 0; i < 32; i++) {

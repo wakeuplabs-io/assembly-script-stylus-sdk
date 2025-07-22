@@ -1,13 +1,17 @@
 import { msg_sender } from "../modules/hostio";
 import { malloc } from "../modules/memory";
-import { address } from "./address";
 
 export class Msg {
-  private constructor() { }
+  private constructor() {}
 
-  public static sender(): address {
-    const msgSenderPtr = malloc(20);
-    msg_sender(msgSenderPtr);
-    return msgSenderPtr;
+  public static sender(): usize {
+    const ptr = malloc(32);
+    for (let i = 0; i < 12; i++) {
+      store<u8>(ptr + i, 0);
+    }
+
+    msg_sender(ptr + 12);
+
+    return ptr;
   }
 }

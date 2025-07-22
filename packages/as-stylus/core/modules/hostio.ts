@@ -1,5 +1,6 @@
 @external("vm_hooks", "native_keccak256")
 declare function _native_keccak256(bytes: usize, len: usize, output: usize): void;
+
 @external("vm_hooks", "msg_reentrant")
 declare function _msg_reentrant(): i32;
 
@@ -46,6 +47,12 @@ declare function _account_balance(address: usize, dest: usize): void;
 @external("vm_hooks", "read_return_data")
 declare function _read_return_data(dest: usize, offset: usize, size: usize): usize;
 
+@external("vm_hooks", "exit_early")
+declare function _exit_early(status: i32): void;
+
+@external("vm_hooks", "account_codehash")
+declare function _account_codehash(address: usize, dest: usize): void;
+
 @external("env", "abort")
 export declare function abort(
   msg: usize,
@@ -53,6 +60,7 @@ export declare function abort(
   line: u32,
   col: u32
 ): void;
+
 
 export function msg_reentrant(): i32 {
   return _msg_reentrant();
@@ -115,4 +123,12 @@ export function call_contract(
 
 export function read_return_data(dest: usize, offset: usize, size: usize): usize {
   return _read_return_data(dest, offset, size);
+}
+
+export function exit_early(status: i32): void {
+  _exit_early(status);
+}
+
+export function account_codehash(address: usize, dest: usize): void {
+  _account_codehash(address, dest);
 }
