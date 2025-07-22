@@ -6,7 +6,7 @@ import { malloc } from "../modules/memory";
 import { hexChar, hexIsZeroPrefix } from "../utils/ascii";
 
 export class Address {
-  static ADDRESS_SIZE: u32 = 32;
+  static ADDRESS_SIZE: u32 = 32; // Ethereum addresses are 20 bytes, not 32
   private static EMPTY_HASH: u8[] = [
     0xc5, 0xd2, 0x46, 0x01, 0x86, 0xf7, 0x23, 0x3c, 0x92, 0x7e, 0x7d, 0xb2, 0xdc, 0xc7, 0x03, 0xc0,
     0xe5, 0x00, 0xb6, 0x53, 0xca, 0x82, 0x27, 0x3b, 0x7b, 0xfa, 0xd8, 0x04, 0x5d, 0x85, 0xa4, 0x70,
@@ -18,26 +18,29 @@ export class Address {
     return ptr;
   }
 
-  static setFromStringHex(dest: usize, str: usize, len: u32): void {
-    let off: u32 = 0;
-    if (hexIsZeroPrefix(str, len)) off = 2;
+  static setFromStringHex(destAddress: usize, hexString: usize, hexLength: u32): void {
+    let prefixOffset: u32 = 0;
+    if (hexIsZeroPrefix(hexString, hexLength)) prefixOffset = 2;
 
-    const nibs: u32 = len - off;
-    const start = Address.ADDRESS_SIZE - ((nibs + 1) >>> 1);
+    const hexDigits: u32 = hexLength - prefixOffset;
 
-    for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) store<u8>(dest + i, 0);
+    for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) store<u8>(destAddress + i, 0);
 
-    let d: u32 = 19;
-    let s: u32 = <u32>(off + nibs - 1);
+    let destByteIndex: i32 = Address.ADDRESS_SIZE - 1;
+    let sourceCharIndex: i32 = <i32>(prefixOffset + hexDigits - 1);
 
-    if (nibs & 1) {
-      store<u8>(dest + d--, hexChar(load<u8>(str + s--)));
+    if (hexDigits & 1) {
+      if (destByteIndex >= 0) {
+        store<u8>(destAddress + destByteIndex--, hexChar(load<u8>(hexString + sourceCharIndex--)));
+      }
     }
-    while (d >= start && s >= <u32>off + 1) {
-      const low = hexChar(load<u8>(str + s));
-      const high = hexChar(load<u8>(str + s - 1));
-      store<u8>(dest + d--, (high << 4) | low);
-      s -= 2;
+
+    // Process pairs of hex digits
+    while (destByteIndex >= 0 && sourceCharIndex >= <i32>prefixOffset + 1) {
+      const lowNibble = hexChar(load<u8>(hexString + sourceCharIndex));
+      const highNibble = hexChar(load<u8>(hexString + sourceCharIndex - 1));
+      store<u8>(destAddress + destByteIndex--, (highNibble << 4) | lowNibble);
+      sourceCharIndex -= 2;
     }
   }
 
@@ -71,19 +74,20 @@ export class Address {
 
   static fromString(strPtr: usize, len: u32): usize {
     const addr = Address.create();
-    this.setFromStringHex(addr, strPtr, len);
+    Address.setFromStringHex(addr, strPtr, len);
     return addr;
   }
 
   static topic(addr: usize): usize {
     const t = malloc(32);
-    for (let i: u32 = 0; i < this.ADDRESS_SIZE; ++i) store<u8>(t + i, load<u8>(addr + i));
+    for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) store<u8>(t + i, load<u8>(addr + i));
+    for (let i: u32 = Address.ADDRESS_SIZE; i < 32; ++i) store<u8>(t + i, 0);
     return t;
   }
 
   static copyNew(src: usize): usize {
-    const dst = this.create();
-    for (let i: u32 = 0; i < this.ADDRESS_SIZE; ++i) {
+    const dst = Address.create();
+    for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
       store<u8>(dst + i, load<u8>(src + i));
     }
     return dst;

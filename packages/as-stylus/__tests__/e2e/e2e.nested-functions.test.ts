@@ -52,7 +52,7 @@ describe("functions", () => {
     });
 
     it("address returned from nested function", async () => {
-      const result = await contract.write(walletClient, "getAddressExternal", []);
+      const result = await contract.read("getAddressExternal", []);
       expect(result).toBe(walletClient.account?.address);
     });
   });
