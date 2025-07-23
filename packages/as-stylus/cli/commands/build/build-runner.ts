@@ -16,7 +16,6 @@ export class BuildRunner {
   constructor(contractsRoot: string, contractPath: string, errorManager: ErrorManager) {
     this.contractPath = contractPath;
     this.projectFinder = new ProjectFinder(contractsRoot, errorManager);
-    fs.rmSync(path.join(contractsRoot, BUILD_PATH), { recursive: true, force: true });
   }
 
   validate(): boolean {

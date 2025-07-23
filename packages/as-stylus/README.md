@@ -113,6 +113,7 @@ The `as-stylus` CLI provides several commands for contract development:
 | **build** | Generate low-level AssemblyScript from your contract | `as-stylus build <contract-path>` |
 | **compile** | Compile AssemblyScript to WASM | `as-stylus compile <contract-path>` |
 | **deploy** | Deploy contract to Stylus network | `as-stylus deploy <contract-path>` |
+| **clean** | Remove build artifacts and temporary files | `as-stylus clean` |
 
 ### Generated Project Scripts
 
@@ -124,6 +125,7 @@ Each generated project includes npm scripts:
 | `npm run compile` | Compile to WASM using AssemblyScript compiler |
 | `npm run check` | Validate with `cargo stylus check` |
 | `npm run deploy` | Deploy using `cargo stylus deploy` |
+| `npm run clean` | Remove build artifacts and temporary files |
 
 ## 🔧 Development Workflow
 

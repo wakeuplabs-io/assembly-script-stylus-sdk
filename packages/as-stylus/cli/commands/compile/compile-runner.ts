@@ -46,8 +46,15 @@ export class CompileRunner {
     });
   }
 
-  private runAssemblyScriptChecker(projectTargetPath: string, contractName: string): void {
-    const command = `cargo stylus check --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm`;
+  private runAssemblyScriptChecker(
+    projectTargetPath: string,
+    contractName: string,
+    endpoint?: string,
+  ): void {
+    let command = `cargo stylus check --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm`;
+    if (endpoint) {
+      command += ` --endpoint ${endpoint}`;
+    }
 
     runCommand(command, {
       cwd: projectTargetPath,
@@ -56,12 +63,12 @@ export class CompileRunner {
     });
   }
 
-  compile(): void {
+  compile(endpoint?: string): void {
     const projectTargetPath = this.projectFinder.getProjectBuildPath();
     const contractName = this.projectFinder.getContractName(this.contractPath);
 
     this.runBuild();
     this.runAssemblyScriptCompiler(projectTargetPath, contractName);
-    this.runAssemblyScriptChecker(projectTargetPath, contractName);
+    this.runAssemblyScriptChecker(projectTargetPath, contractName, endpoint);
   }
 }

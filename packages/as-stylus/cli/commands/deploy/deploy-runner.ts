@@ -19,11 +19,11 @@ export class DeployRunner {
     const projectTargetPath = this.projectFinder.getProjectBuildPath();
     const contractName = this.projectFinder.getContractName(contractPath);
 
-    //TODO: save the wasm file with the name of the contract
     const command = `cargo stylus deploy --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm --private-key ${options.privateKey} --endpoint ${options.endpoint}`;
 
     return runCommand(command, {
       cwd: projectTargetPath,
+      stdio: "pipe",
       successMessage: "Deployment completed successfully",
       errorMessage: "Deployment failed",
     });
