@@ -32,6 +32,7 @@ export function ContractInteraction() {
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [results, setResults] = useState<Record<string, React.ReactNode>>({})
   const [inputValues, setInputValues] = useState<Record<string, Record<string, string>>>({})
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({})
 
   // Usar contexto compartido para obtener el tipo de contrato
   const { activeContract: contractType } = useContractContext()
@@ -52,6 +53,8 @@ export function ContractInteraction() {
     abi: currentAbi as any,
     enabled: isConfirmed && !!contractAddress
   })
+
+  const isAnyLoading = Object.values(loadingStates).some(loading => loading)
 
   const handleWalletConnection = () => {
     if (isConnected) {
@@ -82,6 +85,8 @@ export function ContractInteraction() {
   const handleFunctionCall = async (functionName: string, isWrite = false) => {
     if (!contract) return
 
+    setLoadingStates(prev => ({ ...prev, [functionName]: true }))
+
     try {
       const inputs = inputValues[functionName] || {}
       const args = functions
@@ -98,15 +103,18 @@ export function ContractInteraction() {
           setResults((prev) => ({
             ...prev,
             [functionName]: (
-              <a
-                href={`https://sepolia.arbiscan.io/tx/${result.txHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#bf2968] hover:text-[#e04b8a] underline decoration-dotted flex items-center gap-1"
-              >
-                View transaction on Arbiscan
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <span className="flex items-center gap-2">
+                <span className="text-[#bf2968] font-medium">Transaction completed.</span>
+                <a
+                  href={`https://sepolia.arbiscan.io/tx/${result.txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#bf2968] hover:text-[#e04b8a] underline decoration-dotted flex items-center gap-1"
+                >
+                  View transaction on Arbiscan
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </span>
             ),
           }))
         } else {
@@ -134,6 +142,8 @@ export function ContractInteraction() {
         ...prev,
         [functionName]: `Error: ${error}`,
       }))
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [functionName]: false }))
     }
   }
 
@@ -177,7 +187,6 @@ export function ContractInteraction() {
           </div>
         </div>
 
-        {/* Wallet Connection */}
         <div className="flex justify-center mb-8">
           <Button 
             onClick={handleWalletConnection}
@@ -261,11 +270,11 @@ export function ContractInteraction() {
                       <h4 className="font-medium text-white">{func.name}</h4>
                       <Button
                         onClick={() => handleFunctionCall(func.name)}
-                        disabled={contract.isLoading}
+                        disabled={isAnyLoading}
                         size="sm"
-                        className="bg-stylus-primary hover:bg-stylus-primary-dark text-white"
+                        className="bg-stylus-primary hover:bg-stylus-primary-dark text-white disabled:opacity-50"
                       >
-                        {contract.isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Read"}
+                        {loadingStates[func.name] ? <Loader2 className="w-4 h-4 animate-spin" /> : "Read"}
                       </Button>
                     </div>
 
@@ -295,11 +304,11 @@ export function ContractInteraction() {
                       <h4 className="font-medium text-white">{func.name}</h4>
                       <Button
                         onClick={() => handleFunctionCall(func.name, true)}
-                        disabled={contract.isLoading}
+                        disabled={isAnyLoading}
                         size="sm"
-                        className="bg-stylus-primary hover:bg-stylus-primary-dark text-white"
+                        className="bg-stylus-primary hover:bg-stylus-primary-dark text-white disabled:opacity-50"
                       >
-                        {contract.isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Write"}
+                        {loadingStates[func.name] ? <Loader2 className="w-4 h-4 animate-spin" /> : "Write"}
                       </Button>
                     </div>
 

@@ -2,7 +2,7 @@
   {
     "name": "name",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [],
     "outputs": [
       {
@@ -13,7 +13,7 @@
   {
     "name": "symbol",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [],
     "outputs": [
       {
@@ -24,7 +24,7 @@
   {
     "name": "decimals",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [],
     "outputs": [
       {
@@ -35,7 +35,7 @@
   {
     "name": "totalSupply",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [],
     "outputs": [
       {
@@ -46,7 +46,7 @@
   {
     "name": "balanceOf",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [
       {
         "name": "account",
@@ -62,7 +62,7 @@
   {
     "name": "allowance",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [
       {
         "name": "owner",
@@ -173,7 +173,7 @@
   },
   {
     "type": "function",
-    "name": "deploy",
+    "name": "contract_constructor",
     "stateMutability": "nonpayable",
     "inputs": [
       {

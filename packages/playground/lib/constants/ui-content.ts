@@ -5,8 +5,8 @@ export interface FlowStep {
 
 export const FLOW_STEPS: FlowStep[] = [
   { title: "TypeScript", desc: "Write contracts" },
-  { title: "Compile", desc: "as-sdk build" },
-  { title: "Generate", desc: "WASM + ABI" },
+  { title: "Compile", desc: "AssemblyScript" },
+  { title: "Generate", desc: "WASM" },
   { title: "Deploy", desc: "To Arbitrum" },
   { title: "Interact", desc: "Call functions" },
 ]

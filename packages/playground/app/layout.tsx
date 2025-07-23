@@ -34,7 +34,10 @@ export default function RootLayout({
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" async />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" async />
       </head>
-      <body className={`${inter.variable} ${firaCode.variable} ${inter.className} font-sans antialiased`}>
+      <body 
+        className={`${inter.variable} ${firaCode.variable} ${inter.className} font-sans antialiased`}
+        suppressHydrationWarning={true}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

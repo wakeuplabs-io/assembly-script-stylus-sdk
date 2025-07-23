@@ -146,7 +146,7 @@
   {
     "name": "balanceOf",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [
       {
         "name": "owner",
@@ -162,7 +162,7 @@
   {
     "name": "ownerOf",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [
       {
         "name": "tokenId",
@@ -178,7 +178,7 @@
   {
     "name": "name",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [],
     "outputs": [
       {
@@ -189,7 +189,7 @@
   {
     "name": "symbol",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [],
     "outputs": [
       {
@@ -200,7 +200,7 @@
   {
     "name": "getApproved",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [
       {
         "name": "tokenId",
@@ -216,7 +216,7 @@
   {
     "name": "isApprovedForAll",
     "type": "function",
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "inputs": [
       {
         "name": "owner",
@@ -235,7 +235,7 @@
   },
   {
     "type": "function",
-    "name": "deploy",
+    "name": "contract_constructor",
     "stateMutability": "nonpayable",
     "inputs": [
       {
