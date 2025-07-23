@@ -13,7 +13,7 @@ The AssemblyScript Stylus SDK enables smart contract developers to write program
 
 For more information about Stylus, see [Stylus: A Gentle Introduction](https://docs.arbitrum.io/stylus/stylus-gentle-introduction). For deployment, see the [Cargo Stylus CLI Tool](https://docs.arbitrum.io/stylus/reference/cargo-stylus).
 
-## ✨ Features
+## Features
 
 - **TypeScript-like Syntax**: Write contracts using familiar decorators and TypeScript syntax
 - **Type Safety**: Strong typing with compile-time validation  
@@ -24,7 +24,7 @@ For more information about Stylus, see [Stylus: A Gentle Introduction](https://d
 - **ABI Generation**: Automatic generation of Ethereum-compatible ABIs
 - **Interoperability**: Full compatibility with Solidity contracts
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -103,55 +103,18 @@ export PRIVATE_KEY=your_private_key_here
 npm run deploy ./contract.ts
 ```
 
-## 🛠️ CLI Commands
+## CLI Commands
 
 The `as-stylus` CLI provides several commands for contract development:
 
 | Command | Description | Usage |
 |---------|-------------|--------|
 | **generate** | Create a new Stylus project with boilerplate | `as-stylus generate <project-name>` |
-| **build** | Generate low-level AssemblyScript from your contract | `as-stylus build <contract-path>` |
 | **compile** | Compile AssemblyScript to WASM | `as-stylus compile <contract-path>` |
 | **deploy** | Deploy contract to Stylus network | `as-stylus deploy <contract-path>` |
 | **clean** | Remove build artifacts and temporary files | `as-stylus clean` |
 
-### Generated Project Scripts
-
-Each generated project includes npm scripts:
-
-| Script | Description |
-|--------|-------------|
-| `npm run build` | Transform TypeScript to AssemblyScript |
-| `npm run compile` | Compile to WASM using AssemblyScript compiler |
-| `npm run check` | Validate with `cargo stylus check` |
-| `npm run deploy` | Deploy using `cargo stylus deploy` |
-| `npm run clean` | Remove build artifacts and temporary files |
-
-## 🔧 Development Workflow
-
-```mermaid
-flowchart TD
-    A[npx as-stylus generate my-contract]
-    B[Write contract in TypeScript syntax]
-    C[npm run build]
-    D[npm run compile]
-    E[npm run check]
-    F[npm run deploy]
-    
-    A --> B --> C --> D --> E --> F
-    
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-```
-
-1. **Generate**: Create new project with `as-stylus generate`
-2. **Develop**: Write contracts using TypeScript-like syntax with decorators
-3. **Build**: Transform to low-level AssemblyScript with `npm run build`
-4. **Compile**: Generate WASM bytecode with `npm run compile`  
-5. **Validate**: Check deployment readiness with `npm run check`
-6. **Deploy**: Deploy to Stylus network with `npm run deploy`
-
-## ⚙️ Requirements
+## Requirements
 
 - **Node.js** ≥ 18.x
 - **AssemblyScript** ≥ 0.27.x  
@@ -162,20 +125,6 @@ Install cargo stylus:
 cargo install --force cargo-stylus
 rustup target add wasm32-unknown-unknown
 ```
-
-## 🌐 Network Configuration
-
-### Stylus Testnet
-
-| Field | Value |
-|-------|-------|
-| RPC URL | `https://stylus-testnet.arbitrum.io/rpc` |
-| Chain ID | `23011913` |
-| Currency | ETH |
-| Explorer | `https://stylus-testnet-explorer.arbitrum.io/` |
-
-Get testnet ETH from the [Stylus Testnet Faucet](https://faucet.arbitrum.io/).
-
 ## 🏗️ Project Structure
 
 ```
@@ -184,49 +133,23 @@ your-project/
 ├── package.json          # Dependencies and scripts
 ├── tsconfig.json         # TypeScript configuration
 ├── asconfig.json         # AssemblyScript configuration
-└── .dist/                # Generated files (after build)
+└── artifacts             # Generated files (after build)
     ├── index.ts          # Transformed AssemblyScript
     ├── package.json      # Generated package config
+    ├── abi/              # Abi generated (after build)
     └── build/            # Compiled WASM (after compile)
         └── module.wasm   # Final bytecode
 ```
 
-## 🔗 Related Resources
+## Related Resources
 
 - [Stylus Documentation](https://docs.arbitrum.io/stylus)
+- [GitHub Repository](https://github.com/wakeuplabs-io/assembly-script-stylus-sdk)
 - [AssemblyScript Documentation](https://www.assemblyscript.org/)
 - [Cargo Stylus CLI](https://docs.arbitrum.io/stylus/tools/stylus-cli)
 - [Arbitrum Developer Portal](https://docs.arbitrum.io/)
 
-## 🚨 Current Limitations
-## 🏗️ Project Structure
-
-```
-your-project/
-├── contract.ts           # Main contract code
-├── package.json          # Dependencies and scripts
-├── tsconfig.json         # TypeScript configuration
-├── asconfig.json         # AssemblyScript configuration
-└── .dist/                # Generated files (after build)
-    ├── index.ts          # Transformed AssemblyScript
-    ├── package.json      # Generated package config
-    └── build/            # Compiled WASM (after compile)
-        └── module.wasm   # Final bytecode
-```
-
-## 🔗 Related Resources
-
-- [As Stylus GitHub]()
-- [Stylus Documentation](https://docs.arbitrum.io/stylus)
-- [AssemblyScript Documentation](https://www.assemblyscript.org/)
-- [Cargo Stylus CLI](https://docs.arbitrum.io/stylus/tools/stylus-cli)
-- [Arbitrum Developer Portal](https://docs.arbitrum.io/)
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](../../CONTRIBUTING.md) for details.
-
-## 📄 License  
+## License  
 
 This project is licensed under either of:
 
@@ -235,15 +158,8 @@ This project is licensed under either of:
 
 at your option.
 
-## 🙏 Acknowledgments
-
-Special thanks to:
-- The Arbitrum and Offchain Labs team for Stylus
-- The AssemblyScript team for the incredible tooling
-- The broader Ethereum development community
-
 ---
 
-**Ready to build the future of smart contracts with AssemblyScript? 🚀**
+**Ready to build the future of smart contracts with AssemblyScript?**
 
 Start with `npx as-stylus generate my-first-contract` and join the Stylus revolution!
