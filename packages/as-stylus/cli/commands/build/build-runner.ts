@@ -23,17 +23,8 @@ export class BuildRunner {
     return this.projectFinder.validateProjects();
   }
 
-  private getContractName(contractPath: string): string {
-    return contractPath.split("/").pop()!.replace(".ts", "");
-  }
-
-  buildIR(): { ir: IRContract, transformedPath: string, projectTargetPath: string } {
-    const project = this.projectFinder.getCurrentProject();
-
-    const projectName = project.split("/").pop()!;
-
-    const projectTargetPath = path.join(path.dirname(project), projectName, BUILD_PATH);
-    const contractName = this.getContractName(this.contractPath);
+  buildIR(projectTargetPath: string): { ir: IRContract, transformedPath: string, projectTargetPath: string } {
+    const contractName = this.projectFinder.getContractName(this.contractPath);
     const transformedPath = path.join(
       projectTargetPath,
       `${contractName}.transformed.ts`
@@ -43,7 +34,8 @@ export class BuildRunner {
       fs.mkdirSync(projectTargetPath, { recursive: true });
     }
     
-    Logger.getInstance().info(`Processing: ${this.contractPath} -> ${transformedPath}`);
+    const transformedReducedPath = `./${BUILD_PATH}/${contractName}.transformed.ts`;
+    Logger.getInstance().info(`Processing: ${this.contractPath} -> ${transformedReducedPath}`);
     fs.copyFileSync(this.contractPath, transformedPath);
     
     return {
