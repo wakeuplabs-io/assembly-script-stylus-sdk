@@ -49,4 +49,8 @@ packages/ui/cache
 .windsurf
 
 /packages/other-contracts/**
+
+/packages/contracts/**
+/.vscode/settings.json
 .cursor
+

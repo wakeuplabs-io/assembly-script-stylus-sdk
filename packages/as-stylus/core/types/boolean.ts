@@ -9,14 +9,18 @@ export class Boolean {
   }
 
   static copyNew(src: usize): usize {
-    return Boolean.create(Boolean.toValue(src));
+    return Boolean.create(Boolean.fromABI(src));
   }
 
   static copyValue(value: usize): usize {
-    return Boolean.create(Boolean.toValue(value));
+    return Boolean.create(Boolean.fromABI(value));
   }
 
-  static toValue(ptr: usize): boolean {
-    return load<u8>(ptr + 31) == 1;
+  static fromABI(pointer: usize): boolean {
+    return load<u8>(pointer + 31) == 1;
+  }
+
+  static toABI(value: boolean): usize {
+    return Boolean.create(value);
   }
 }

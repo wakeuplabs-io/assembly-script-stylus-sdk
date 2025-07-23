@@ -86,7 +86,7 @@ function handleFallbackExpression(expr: IRExpression): string {
       if (expr.scope === "storage") {
         // TODO: can we use generateLoadCode?
         if (expr.type === "bool") {
-          return `Boolean.toValue(load_${expr.name}())`;
+          return `Boolean.toABI(load_${expr.name}())`;
         }
         return `load_${expr.name}()`;
       }
@@ -118,7 +118,10 @@ function handleFallbackExpression(expr: IRExpression): string {
      */
     case "call": {
       if (expr.returnType === AbiType.Bool) {
-        return `Boolean.toValue(${expr.target}(${expr.args.map((a: IRExpression) => emitExpression(a).valueExpr).join(", ")}))`;
+        return `Boolean.fromABI(${expr.target}(${expr.args.map((a: IRExpression) => emitExpression(a).valueExpr).join(", ")}))`;
+      }
+      if (expr.returnType === AbiType.String) {
+        return `Str.fromABI(${expr.target}(${expr.args.map((a: IRExpression) => emitExpression(a).valueExpr).join(", ")}))`;
       }
       if (expr.target === "super") {
         return `${globalContext.parentName}_constructor(${expr.args.map((a: IRExpression) => emitExpression(a).valueExpr).join(", ")})`;
@@ -218,10 +221,10 @@ function handleFallbackExpression(expr: IRExpression): string {
       const method = expr.valueType === "boolean" ? "getBoolean" : "getU256";
       const baseExpr = `Mapping2.${method}(__SLOT${expr.slot.toString(16).padStart(2,"0")}, ${k1.valueExpr}, ${k2.valueExpr})`;
       
-      // For boolean mappings, wrap with Boolean.toValue() only for statements (assignments, etc.)
+      // For boolean mappings, wrap with Boolean.toABI() only for statements (assignments, etc.)
       // For return values, keep the raw boolean to avoid converting to U256
       if (expr.valueType === "boolean" && savedIsInStatement) {
-        return `Boolean.toValue(${baseExpr})`;
+        return `Boolean.toABI(${baseExpr})`;
       }
       
       return baseExpr;

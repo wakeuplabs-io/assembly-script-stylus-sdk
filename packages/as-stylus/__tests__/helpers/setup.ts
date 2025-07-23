@@ -29,7 +29,7 @@ export async function setupE2EContract(
   // Build and compile the contract
   run("npm run pre:build", ROOT_PATH);
   run("npx as-stylus build contract.ts", contractPath);
-  run("npm run compile --entrypoint contract.entrypoint.ts", contractPath);
+  run("npm run compile", contractPath);
   run("npm run check", contractPath);
 
   const abi = getAbi(abiPath);

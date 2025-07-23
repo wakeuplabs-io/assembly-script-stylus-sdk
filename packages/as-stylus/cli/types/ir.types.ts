@@ -11,6 +11,7 @@ export type IRUnaryExpression = {
   op: string;
   expr: IRExpression;
   type: SupportedType;
+  returnType: SupportedType;
 };
 
 export type Literal = {
@@ -32,6 +33,7 @@ export type Call = {
   returnType: SupportedType;
   originalType?: string;
   scope: "storage" | "memory";
+  context?: "argument" | "assignment" | "return";
 };
 export type Member = {
   kind: "member";
@@ -58,6 +60,7 @@ export type IRMapGet = {
   key: IRExpression;
   keyType: string;
   valueType: string;
+  type: AbiType.Mapping;
 };
 
 export type IRMapSet = {
@@ -67,6 +70,7 @@ export type IRMapSet = {
   value: IRExpression;
   keyType: string;
   valueType: string;
+  type: AbiType.Mapping;
 };
 
 export type IRMapGet2 = {
@@ -77,6 +81,7 @@ export type IRMapGet2 = {
   keyType1: string;
   keyType2: string;
   valueType: string;
+  type: AbiType.Mapping2;
 };
 
 export type IRMapSet2 = {
@@ -88,6 +93,7 @@ export type IRMapSet2 = {
   keyType1: string;
   keyType2: string;
   valueType: string;
+  type: AbiType.Mapping2;
 };
 
 // ───────────────────────
@@ -100,6 +106,7 @@ export type IRCondition = {
   op?: ComparisonOperator;
   left: IRExpression;
   right?: IRExpression;
+  type: AbiType.Bool;
 };
 
 // ───────────────────────
@@ -136,7 +143,7 @@ export type VariableDeclaration = {
   scope: "storage" | "memory";
   type: SupportedType;
 };
-export type ExpressionStatement = { kind: "expr"; expr: IRExpression };
+export type ExpressionStatement = { kind: "expr"; expr: IRExpression; type: SupportedType };
 export type Return = { kind: "return"; expr?: IRExpression; type: SupportedType };
 export type If = { kind: "if"; condition: IRCondition; then: IRStatement[]; else?: IRStatement[] };
 export type For = {

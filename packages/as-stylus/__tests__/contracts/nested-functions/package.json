@@ -1,0 +1,23 @@
+{
+  "name": "nested-functions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "compile": "cd artifacts && npm run compile",
+    "check": "cd artifacts && npm run check",
+    "deploy": "cd artifacts && npm run deploy"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "build/release.js",
+      "types": "build/release.d.ts"
+    }
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.27.35"
+  }
+}

@@ -1,5 +1,6 @@
 import { BinaryExpression, Expression, SyntaxKind } from "ts-morph";
 
+import { AbiType } from "@/cli/types/abi.types.js";
 import { ComparisonOperator, IRCondition, IRExpression, IRExpressionBinary } from "@/cli/types/ir.types.js";
 
 import {  ConditionSyntaxValidator } from "./syntax-validator.js";
@@ -29,6 +30,7 @@ export class ConditionExpressionIRBuilder extends IRBuilder<IRExpressionBinary |
 
       return {
         kind: "condition",
+        type: AbiType.Bool,
         op: binaryExpression.getOperatorToken().getText() as ComparisonOperator,
         left,
         right,
@@ -37,9 +39,9 @@ export class ConditionExpressionIRBuilder extends IRBuilder<IRExpressionBinary |
 
     const isLiteral = this.expression.getKind() === SyntaxKind.TrueKeyword || this.expression.getKind() === SyntaxKind.FalseKeyword;
     if (isLiteral) {
-      return { kind: "condition", left: new LiteralIRBuilder(this.expression).validateAndBuildIR() } as IRCondition;
+      return { kind: "condition", left: new LiteralIRBuilder(this.expression).validateAndBuildIR(), type: AbiType.Bool } satisfies IRCondition;
     }
 
-    return { kind: "condition", left: new ExpressionIRBuilder(this.expression).validateAndBuildIR() } as IRCondition;
+    return { kind: "condition", left: new ExpressionIRBuilder(this.expression).validateAndBuildIR(), type: AbiType.Bool } satisfies IRCondition;
   }
 }

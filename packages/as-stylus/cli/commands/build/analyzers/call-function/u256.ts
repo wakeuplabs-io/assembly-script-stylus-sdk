@@ -35,6 +35,7 @@ export function buildU256IR(target: string, call: CallExpression, symbolTable: S
       left: { kind: "var", name: varName, type: AbiType.Uint256, scope },
       right: args[0],
       op: operationConvertor[operation as U256ComparisonOperation] as ComparisonOperator,
+      type: AbiType.Bool,
     } satisfies IRCondition;
   }
 

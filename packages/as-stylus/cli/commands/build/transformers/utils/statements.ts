@@ -113,11 +113,17 @@ function emitStatement(s: IRStatement, indent: string): string {
       }
     
       const exprResult = emitExpression(s.expr);
-      const type = (s.expr as { type: SupportedType }).type;
+      let type = (s.expr as { type: SupportedType }).type;
+
+      if (s.expr.kind === "call") {
+        type = s.expr.returnType;
+      }
     
-      const baseExpr = ["Str", "string"].includes(type)
-        ? `Str.toABI(${exprResult.valueExpr})`
-        : exprResult.valueExpr;
+      let baseExpr = exprResult.valueExpr;
+      if (type === AbiType.String) {
+        baseExpr = `Str.toABI(${exprResult.valueExpr})`;
+      }
+
     
       // For boolean mappings, don't wrap with Boolean.create() since they already return proper format
       const isBooleanMapping = baseExpr.includes("Mapping2.getBoolean") || 

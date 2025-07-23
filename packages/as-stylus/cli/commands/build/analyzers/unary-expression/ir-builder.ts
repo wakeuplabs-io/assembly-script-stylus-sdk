@@ -59,6 +59,7 @@ export class UnaryExpressionIRBuilder extends IRBuilder<IRExpression> {
       op,
       expr,
       type,
+      returnType: AbiType.Bool,
     };
   }
 } 
