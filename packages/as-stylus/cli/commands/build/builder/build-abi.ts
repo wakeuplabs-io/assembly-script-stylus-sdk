@@ -34,7 +34,6 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
         ...(converted.components && { components: converted.components })
       };
     });
-
     abi.push({
       name: method.name,
       type: "function",
@@ -62,7 +61,6 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
     });
   }
 
-  // Add custom errors to ABI
   const errorABI = generateErrorABI(contract);
   abi.push(...errorABI);
 

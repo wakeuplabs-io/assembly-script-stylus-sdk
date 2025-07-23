@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
+  
+  :root {
+    --background: 0 0% 6%;
+    --foreground: 0 0% 98%;
+    --card: 216 22% 9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 216 22% 9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 330 70% 40%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 240 5% 64%;
+    --accent: 0 0% 16%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 62%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 214 97% 64%;
+    --radius: 0.5rem;
+
+    /* Stylus Primary Colors (ahora principal) */
+    --stylus-primary: #ac1c5e;
+    --stylus-primary-dark: #972054;
+    --stylus-primary-darker: #8e1e4f;
+    --stylus-primary-darkest: #751941;
+    --stylus-primary-light: #bf2968;
+    --stylus-primary-lighter: #c73573;
+    --stylus-primary-lightest: #dc5187;
+
+    /* Arbitrum Secondary Colors (ahora secundario) */
+    --arbitrum-secondary: #12aaff;
+    --arbitrum-secondary-dark: #0e8fd8;
+    --arbitrum-secondary-darker: #0d84cc;
+    --arbitrum-secondary-darkest: #0a6ba8;
+    --arbitrum-secondary-light: #2db5ff;
+    --arbitrum-secondary-lighter: #3fc0ff;
+    --arbitrum-secondary-lightest: #66d1ff;
+  }
+}
+
+/* Force CSS styles as backup */
+.bg-\[#ac1c5e\] {
+  background-color: #ac1c5e !important;
+}
+
+.hover\:bg-\[#972054\]:hover {
+  background-color: #972054 !important;
+}
+
+.text-\[#bf2968\] {
+  color: #bf2968 !important;
+}
+
+.border-\[#ac1c5e\]\/30 {
+  border-color: rgba(172, 28, 94, 0.3) !important;
+}
+
+.hover\:shadow-\[#ac1c5e\]\/25:hover {
+  box-shadow: 0 10px 15px -3px rgba(172, 28, 94, 0.25), 0 4px 6px -2px rgba(172, 28, 94, 0.25) !important;
+}
+
+/* Stylus Primary Classes */
+.bg-stylus-primary {
+  background-color: var(--stylus-primary) !important;
+}
+
+.hover\:bg-stylus-primary-dark:hover {
+  background-color: var(--stylus-primary-dark) !important;
+}
+
+.text-stylus-primary-light {
+  color: var(--stylus-primary-light) !important;
+}
+
+.text-stylus-primary {
+  color: var(--stylus-primary) !important;
+}
+
+.hover\:text-stylus-primary-light:hover {
+  color: var(--stylus-primary-light) !important;
+}
+
+.hover\:text-stylus-primary:hover {
+  color: var(--stylus-primary) !important;
+}
+
+.bg-stylus-primary\/10 {
+  background-color: rgba(172, 28, 94, 0.1) !important;
+}
+
+.border-stylus-primary\/30 {
+  border-color: rgba(172, 28, 94, 0.3) !important;
+}
+
+/* Code block styles */
+.code-block-pre {
+  font-family: var(--font-fira-code), "Fira Code", Consolas, "Courier New", monospace !important;
+  background-color: #0D1117 !important;
+  margin: 0 !important;
+}
+
+@layer utilities {
+  .bg-gradient-radial {
+    background: radial-gradient(var(--tw-gradient-stops));
+  }
+
+  .tw-glow {
+    @apply ring-2 ring-primary/40;
+  }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(17 24 39);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(75 85 99);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(107 114 128);
+}

@@ -35,7 +35,9 @@ export async function setupE2EContract(
   const abi = getAbi(abiPath);
 
   // Deploy the contract
-  const deployLog = stripAnsi(run(`PRIVATE_KEY=${PRIVATE_KEY} npm run deploy`, contractPath));
+  const deployLog = stripAnsi(
+    run(`PRIVATE_KEY=${PRIVATE_KEY} RPC_URL=${RPC_URL} npm run deploy`, contractPath),
+  );
 
   const addressMatch = deployLog.match(CONTRACT_ADDRESS_REGEX);
   if (!addressMatch) {
