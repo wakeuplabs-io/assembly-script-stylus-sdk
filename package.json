@@ -1,7 +1,7 @@
 {
-  "name": "assebly.script-stylus-sdk",
-  "version": "0.0.0",
-  "type": "module",
+  "name": "my-app",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "build:docs": "cd packages/docs-ui && npm run build",
@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "3.766.0",
+    "@rainbow-me/rainbowkit": "^2.2.8",
     "dotenv": "16.4.7",
     "sst": "3.9.37",
     "zod": "3.24.2"

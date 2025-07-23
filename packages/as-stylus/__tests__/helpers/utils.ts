@@ -2,9 +2,7 @@
 //  Utils — build / deploy / call helpers for Stylus e2e tests
 // ---------------------------------------------------------------
 import { readFileSync } from "fs";
-import { encodeFunctionData } from "viem";
 
-import { publicClient } from "./client.js";
 import { DecodedError } from "./types.js";
 
 export {

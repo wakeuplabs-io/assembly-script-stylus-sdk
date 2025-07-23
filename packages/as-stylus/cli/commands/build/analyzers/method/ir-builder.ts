@@ -38,7 +38,7 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
 
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? Visibility.PUBLIC;
     const stateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? StateMutability.NONPAYABLE;
-
+    
     const inputs = this.methodDecl.getParameters().map((param) => {
       const argumentBuilder = new ArgumentIRBuilder(param);
       return argumentBuilder.validateAndBuildIR();

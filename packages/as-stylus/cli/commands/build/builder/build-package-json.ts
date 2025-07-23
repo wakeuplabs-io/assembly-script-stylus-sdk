@@ -11,6 +11,7 @@ export function buildPackageJson(targetPath: string) {
         scripts: {
           compile: "as-stylus compile",
           deploy: "as-stylus deploy",
+          clean: "as-stylus clean",
         },
       },
       null,
