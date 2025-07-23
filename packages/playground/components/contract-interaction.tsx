@@ -1,7 +1,7 @@
 "use client"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -33,8 +33,35 @@ export function ContractInteraction() {
   const [results, setResults] = useState<Record<string, React.ReactNode>>({})
   const [inputValues, setInputValues] = useState<Record<string, Record<string, string>>>({})
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({})
+  const [resultTimeouts, setResultTimeouts] = useState<Record<string, NodeJS.Timeout>>({})
 
-  // Usar contexto compartido para obtener el tipo de contrato
+  useEffect(() => {
+    return () => {
+      Object.values(resultTimeouts).forEach(clearTimeout)
+    }
+  }, [resultTimeouts])
+
+  const scheduleResultClear = (functionName: string) => {
+    if (resultTimeouts[functionName]) {
+      clearTimeout(resultTimeouts[functionName])
+    }
+
+    const timeoutId = setTimeout(() => {
+      setResults(prev => {
+        const newResults = { ...prev }
+        delete newResults[functionName]
+        return newResults
+      })
+      setResultTimeouts(prev => {
+        const newTimeouts = { ...prev }
+        delete newTimeouts[functionName]
+        return newTimeouts
+      })
+    }, 30000)
+
+    setResultTimeouts(prev => ({ ...prev, [functionName]: timeoutId }))
+  }
+
   const { activeContract: contractType } = useContractContext()
 
   const { isConnected, address } = useAccount()
@@ -117,11 +144,13 @@ export function ContractInteraction() {
               </span>
             ),
           }))
+          scheduleResultClear(functionName)
         } else {
           setResults((prev) => ({
             ...prev,
             [functionName]: `Error: ${result.error?.name || "Unknown error"}`,
           }))
+          scheduleResultClear(functionName)
         }
       } else {
         const result = await contract.read(functionName, args)
@@ -130,11 +159,13 @@ export function ContractInteraction() {
             ...prev,
             [functionName]: String(result.data),
           }))
+          scheduleResultClear(functionName)
         } else {
           setResults((prev) => ({
             ...prev,
             [functionName]: `Error: ${result.error?.name || "Unknown error"}`,
           }))
+          scheduleResultClear(functionName)
         }
       }
     } catch (error) {
@@ -179,7 +210,6 @@ export function ContractInteraction() {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Interact with your contract</h2>
         <p className="text-gray-400 text-center mb-8">Connect to your deployed contract and test its functions</p>
 
-        {/* Indicador del contrato actual */}
         <div className="flex justify-center mb-12">
           <div className="inline-flex items-center px-6 py-3 bg-gray-800 border border-gray-700 rounded-full">
             <span className="text-gray-400 mr-2">Testing:</span>

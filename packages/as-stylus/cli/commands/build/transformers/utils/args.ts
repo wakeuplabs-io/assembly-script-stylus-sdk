@@ -14,7 +14,7 @@ export function generateArgsLoadBlock(
 
     switch (input.type) {
       case AbiType.Bool:
-        argLines.push(`const ${argName} = Boolean.toABI(position + ${offset});`);
+        argLines.push(`const ${argName} = Boolean.fromABI(position + ${offset});`);
         offset += 32;
         type = AssemblyScriptType.Bool;
         break;

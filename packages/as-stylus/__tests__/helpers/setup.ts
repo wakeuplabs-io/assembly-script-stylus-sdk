@@ -1,7 +1,7 @@
 import { Address, WalletClient } from "viem";
 
 import { contractService, ContractService } from "./client.js";
-import { PRIVATE_KEY, ROOT_PATH, RPC_URL } from "./constants.js";
+import { PRIVATE_KEY, RPC_URL, PROJECT_ROOT } from "./constants.js";
 import { getAbi, run, stripAnsi } from "./utils.js";
 
 export type ContractArgs = (string | boolean | Address | bigint)[];
@@ -27,7 +27,7 @@ export async function setupE2EContract(
   const { deployArgs, walletClient, constructorName = "contract_constructor" } = options;
 
   // Build and compile the contract
-  run("npm run pre:build", ROOT_PATH);
+  run("npm run pre:build", PROJECT_ROOT);
   run("npx as-stylus build contract.ts", contractPath);
   run("npm run compile", contractPath);
   run("npm run check", contractPath);
@@ -49,7 +49,6 @@ export async function setupE2EContract(
 
   const contract = contractService(contractAddr as Address, abi, false);
 
-  // Initialize the contract with deploy method if args provided and wallet available
   if (deployArgs !== undefined && walletClient) {
     await contract.write(walletClient, constructorName, deployArgs);
   }
