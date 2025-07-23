@@ -34,7 +34,7 @@ export function Playground() {
         <div className="flex justify-center mb-12">
           <div className="inline-flex items-center px-6 py-3 bg-gray-800 border border-gray-700 rounded-full">
             <span className="text-gray-400 mr-2">Working with:</span>
-            <span className="text-[#ac1c5e] font-medium">{activeContract} Contract</span>
+            <span className="text-stylus-primary-light font-medium">{activeContract} Contract</span>
           </div>
         </div>
 

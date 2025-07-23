@@ -85,7 +85,7 @@ export function ContractSelector() {
         <div className="mt-12 inline-flex items-center px-6 py-3 bg-gray-800/50 border border-gray-700 rounded-full">
           <div className="w-2 h-2 bg-[#ac1c5e] rounded-full animate-pulse mr-3"></div>
           <span className="text-gray-400">
-            Currently exploring: <span className="text-[#ac1c5e] font-medium">{activeContract}</span>
+            Currently exploring: <span className="text-stylus-primary-light font-medium">{activeContract}</span>
           </span>
         </div>
       </div>
