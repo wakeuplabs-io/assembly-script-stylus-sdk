@@ -1,7 +1,7 @@
 "use client"
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -31,10 +31,37 @@ export function ContractInteraction() {
   const [contractAddress, setContractAddress] = useState("")
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [results, setResults] = useState<Record<string, React.ReactNode>>({})
-  const [inputValues, setInputValues] = useState<Record<string, Record<string, string>>>({})
+  const [inputValues, setInputValues] = useState<Record<string, Record<string, string | boolean>>>({})
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({})
+  const [resultTimeouts, setResultTimeouts] = useState<Record<string, NodeJS.Timeout>>({})
 
-  // Usar contexto compartido para obtener el tipo de contrato
+  useEffect(() => {
+    return () => {
+      Object.values(resultTimeouts).forEach(clearTimeout)
+    }
+  }, [resultTimeouts])
+
+  const scheduleResultClear = (functionName: string) => {
+    if (resultTimeouts[functionName]) {
+      clearTimeout(resultTimeouts[functionName])
+    }
+
+    const timeoutId = setTimeout(() => {
+      setResults(prev => {
+        const newResults = { ...prev }
+        delete newResults[functionName]
+        return newResults
+      })
+      setResultTimeouts(prev => {
+        const newTimeouts = { ...prev }
+        delete newTimeouts[functionName]
+        return newTimeouts
+      })
+    }, 30000)
+
+    setResultTimeouts(prev => ({ ...prev, [functionName]: timeoutId }))
+  }
+
   const { activeContract: contractType } = useContractContext()
 
   const { isConnected, address } = useAccount()
@@ -89,9 +116,54 @@ export function ContractInteraction() {
 
     try {
       const inputs = inputValues[functionName] || {}
-      const args = functions
-        .find((fn) => fn.name === functionName)
-        ?.inputs.map((input) => inputs[input.name] || "") || []
+      const functionDef = functions.find((fn) => fn.name === functionName)
+      
+      if (!functionDef) {
+        throw new Error(`Function ${functionName} not found`)
+      }
+
+      const args = functionDef.inputs.map((input) => {
+        const value = inputs[input.name]
+        
+        // Convertir valores según el tipo
+        switch (input.type) {
+          case "bool":
+            // Si es boolean, usarlo directamente; si es string, convertir
+            if (typeof value === "boolean") {
+              return value
+            } else if (typeof value === "string") {
+              return value === "true"
+            }
+            return false // valor por defecto
+            
+          case "uint256":
+          case "uint":
+            // Convertir string a bigint para números
+            if (typeof value === "string" && value) {
+              return BigInt(value)
+            }
+            return BigInt(0)
+            
+          case "int256":
+          case "int":
+            // Convertir string a bigint para números
+            if (typeof value === "string" && value) {
+              return BigInt(value)
+            }
+            return BigInt(0)
+            
+          case "address":
+            // Asegurar que sea una dirección válida
+            if (typeof value === "string" && value.startsWith("0x")) {
+              return value as Address
+            }
+            return "0x0000000000000000000000000000000000000000" as Address
+            
+          default:
+            // Para strings y otros tipos, usar el valor tal como está
+            return value || ""
+        }
+      })
 
       if (isWrite) {
         if (!isConnected) {
@@ -117,11 +189,13 @@ export function ContractInteraction() {
               </span>
             ),
           }))
+          scheduleResultClear(functionName)
         } else {
           setResults((prev) => ({
             ...prev,
             [functionName]: `Error: ${result.error?.name || "Unknown error"}`,
           }))
+          scheduleResultClear(functionName)
         }
       } else {
         const result = await contract.read(functionName, args)
@@ -130,11 +204,13 @@ export function ContractInteraction() {
             ...prev,
             [functionName]: String(result.data),
           }))
+          scheduleResultClear(functionName)
         } else {
           setResults((prev) => ({
             ...prev,
             [functionName]: `Error: ${result.error?.name || "Unknown error"}`,
           }))
+          scheduleResultClear(functionName)
         }
       }
     } catch (error) {
@@ -147,7 +223,17 @@ export function ContractInteraction() {
     }
   }
 
-  const handleInputChange = (functionName: string, inputName: string, value: string) => {
+  const handleInputChange = (functionName: string, inputName: string, value: string | boolean) => {
+    setInputValues((prev) => ({
+      ...prev,
+      [functionName]: {
+        ...prev[functionName],
+        [inputName]: value,
+      },
+    }))
+  }
+
+  const handleBooleanChange = (functionName: string, inputName: string, value: boolean) => {
     setInputValues((prev) => ({
       ...prev,
       [functionName]: {
@@ -163,12 +249,42 @@ export function ContractInteraction() {
         <Label className="text-sm text-gray-300">
           {input.name} ({input.type})
         </Label>
-        <Input
-          placeholder={`Enter ${input.name}`}
-          value={inputValues[func.name]?.[input.name] || ""}
-          onChange={(e) => handleInputChange(func.name, input.name, e.target.value)}
-          className="bg-gray-800 border-gray-600 text-white"
-        />
+        {input.type === "bool" ? (
+          <div className="relative">
+            <div className="flex items-center justify-between p-3 bg-gray-800 border border-gray-600 rounded-md hover:border-gray-500 transition-colors">
+              <span className="text-sm text-gray-300">
+                {inputValues[func.name]?.[input.name] === true ? "True" : "False"}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const currentValue = inputValues[func.name]?.[input.name] === true;
+                  handleBooleanChange(func.name, input.name, !currentValue);
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-stylus-primary focus:ring-offset-2 focus:ring-offset-gray-800 ${
+                  inputValues[func.name]?.[input.name] === true 
+                    ? "bg-stylus-primary" 
+                    : "bg-gray-600"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    inputValues[func.name]?.[input.name] === true 
+                      ? "translate-x-6" 
+                      : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Input
+            placeholder={`Enter ${input.name}`}
+            value={String(inputValues[func.name]?.[input.name] || "")}
+            onChange={(e) => handleInputChange(func.name, input.name, e.target.value)}
+            className="bg-gray-800 border-gray-600 text-white"
+          />
+        )}
       </div>
     ))
   }
@@ -179,7 +295,6 @@ export function ContractInteraction() {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Interact with your contract</h2>
         <p className="text-gray-400 text-center mb-8">Connect to your deployed contract and test its functions</p>
 
-        {/* Indicador del contrato actual */}
         <div className="flex justify-center mb-12">
           <div className="inline-flex items-center px-6 py-3 bg-gray-800 border border-gray-700 rounded-full">
             <span className="text-gray-400 mr-2">Testing:</span>

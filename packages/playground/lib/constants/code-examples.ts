@@ -128,46 +128,39 @@ export class ERC20Full {
 }`
 
 export const ERC721_CONTRACT_CODE = `// ERC-721 NFT Contract
+/* eslint-disable no-global-assign */
 // @ts-nocheck
-
 @Error
 class ERC721InvalidOwner {
   owner: Address;
 }
-
 @Error
 class ERC721NonexistentToken {
   tokenId: U256;
 }
-
 @Error
 class ERC721IncorrectOwner {
   sender: Address;
   tokenId: U256;
   owner: Address;
 }
-
 @Error
 class ERC721InvalidSender {
   sender: Address;
 }
-
 @Error
 class ERC721InvalidReceiver {
   receiver: Address;
 }
-
 @Error
 class ERC721InsufficientApproval {
   sender: Address;
   tokenId: U256;
 }
-
 @Error
 class ERC721InvalidApprover {
   approver: Address;
 }
-
 @Error
 class ERC721InvalidOperator {
   operator: Address;
@@ -196,11 +189,14 @@ export class ApprovalForAll {
 
 @Contract
 export class ERC721 {
-  // Storage mappings
   static owners: Mapping<U256, Address> = new Mapping<U256, Address>();
   static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
   static tokenApprovals: Mapping<U256, Address> = new Mapping<U256, Address>();
-  static operatorApprovals: Mapping2<Address, Address, boolean> = new Mapping2<Address, Address, boolean>();
+  static operatorApprovals: Mapping2<Address, Address, boolean> = new Mapping2<
+    Address,
+    Address,
+    boolean
+  >();
   static name: Str;
   static symbol: Str;
 
@@ -211,16 +207,17 @@ export class ERC721 {
     symbol = symbolStr;
   }
 
-  // ===== EXTERNAL FUNCTIONS =====
 
   @External
   static approve(to: Address, tokenId: U256): void {
     const authorizer = msg.sender;
+
     const owner = owners.get(tokenId);
     const isOwnerZero = owner.isZero();
     if (isOwnerZero) {
       ERC721NonexistentToken.revert(tokenId);
     }
+
     const isOwnerAuth = owner.equals(authorizer);
     const isApprovedForAll = operatorApprovals.get(owner, authorizer);
     const isAuthorized = isOwnerAuth || isApprovedForAll;
@@ -246,21 +243,23 @@ export class ERC721 {
   static transferFrom(from: Address, to: Address, tokenId: U256): void {
     const zeroAddress = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     const one = U256Factory.fromString("1");
-    
+
+    // transferFrom validations
     const isToZero = to.isZero();
     if (isToZero) {
       ERC721InvalidReceiver.revert(to);
     }
-    
+
     const owner = owners.get(tokenId);
     const authorizer = msg.sender;
+
     const isOwnerZero = owner.isZero();
     const approvedAddress = tokenApprovals.get(tokenId);
     const isApprovedForAll = operatorApprovals.get(owner, authorizer);
     const isAuthOwner = authorizer.equals(owner);
     const isAuthApproved = authorizer.equals(approvedAddress);
     const isAuthorized = isAuthOwner || isAuthApproved || isApprovedForAll;
-    
+
     if (!isAuthorized) {
       if (isOwnerZero) {
         ERC721NonexistentToken.revert(tokenId);
@@ -268,24 +267,24 @@ export class ERC721 {
         ERC721InsufficientApproval.revert(authorizer, tokenId);
       }
     }
-    
+
     const isFromOwner = owner.equals(from);
     if (!isFromOwner) {
       ERC721IncorrectOwner.revert(authorizer, tokenId, owner);
     }
-    
+
     const isFromZero = owner.isZero();
     if (!isFromZero) {
       tokenApprovals.set(tokenId, zeroAddress);
       const fromBalance = balances.get(owner);
       balances.set(owner, fromBalance.sub(one));
     }
-    
+
     if (!isToZero) {
       const toBalance = balances.get(to);
       balances.set(to, toBalance.add(one));
     }
-    
+
     owners.set(tokenId, to);
     Transfer.emit(owner, to, tokenId);
   }
@@ -294,23 +293,24 @@ export class ERC721 {
   static mint(to: Address, tokenId: U256): void {
     const zeroAddress = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     const one = U256Factory.fromString("1");
-    
+
     const isToZero = to.isZero();
     if (isToZero) {
       ERC721InvalidReceiver.revert(zeroAddress);
     }
-    
+
     const from = owners.get(tokenId);
+
     const isFromZero = from.isZero();
     if (!isFromZero) {
       ERC721InvalidSender.revert(zeroAddress);
     }
-    
+
     if (!isToZero) {
       const toBalance = balances.get(to);
       balances.set(to, toBalance.add(one));
     }
-    
+
     owners.set(tokenId, to);
     Transfer.emit(from, to, tokenId);
   }
@@ -319,24 +319,23 @@ export class ERC721 {
   static burn(tokenId: U256): void {
     const zeroAddress = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     const one = U256Factory.fromString("1");
-    
+
     const from = owners.get(tokenId);
+
     const isFromZero = from.isZero();
     if (!isFromZero) {
       tokenApprovals.set(tokenId, zeroAddress);
       const fromBalance = balances.get(from);
       balances.set(from, fromBalance.sub(one));
     }
-    
+
     owners.set(tokenId, zeroAddress);
     Transfer.emit(from, zeroAddress, tokenId);
-    
+
     if (isFromZero) {
       ERC721NonexistentToken.revert(tokenId);
     }
   }
-
-  // ===== VIEW FUNCTIONS =====
 
   @View
   static balanceOf(owner: Address): U256 {
@@ -850,6 +849,7 @@ export function burn(arg0: usize): void {
 
 export const ERC721_ENTRYPOINT_CODE = `// user_entrypoint.ts - Auto-generated
 /* eslint-disable */
+
 import "./assembly/stylus/stylus";
 import { __keep_imports } from "as-stylus/core/modules/keep-imports";
 import { Boolean } from "as-stylus/core/types/boolean";
@@ -900,7 +900,7 @@ export function user_entrypoint(args_len: usize): i32 {
   }
   if (selector == 0xa22cb465) {
     const arg0 = position + 4;
-    const arg1 = Boolean.toValue(position + 36);
+    const arg1 = Boolean.fromABI(position + 36);
     setApprovalForAll(arg0, arg1); return 0;
   }
   if (selector == 0x23b872dd) {
@@ -908,25 +908,6 @@ export function user_entrypoint(args_len: usize): i32 {
     const arg1 = position + 36;
     const arg2 = position + 68;
     transferFrom(arg0, arg1, arg2); return 0;
-  }
-  if (selector == 0x42842e0e) {
-    const arg0 = position + 4;
-    const arg1 = position + 36;
-    const arg2 = position + 68;
-    safeTransferFrom(arg0, arg1, arg2); return 0;
-  }
-  if (selector == 0xec2bac21) {
-    const arg0 = position + 4;
-    const arg1 = position + 36;
-    const arg2 = position + 68;
-    const arg3 = position + 100;
-    safeTransferFromData(arg0, arg1, arg2, arg3); return 0;
-  }
-  if (selector == 0x8832e6e3) {
-    const arg0 = position + 4;
-    const arg1 = position + 36;
-    const arg2 = Str.fromDynamicArg(position + 4, position + 68);
-    safeMint(arg0, arg1, arg2); return 0;
   }
   if (selector == 0x40c10f19) {
     const arg0 = position + 4;
@@ -1291,7 +1272,7 @@ export function approve(arg0: usize, arg1: usize): void {
     abort_with_data(__errorData_2, 36);
   }
   const isOwnerAuth = Address.equals(owner, authorizer);
-  const isApprovedForAll = Boolean.toValue(Mapping2.getBoolean(__SLOT04, owner, authorizer));
+  const isApprovedForAll = Boolean.fromABI(Mapping2.getBoolean(__SLOT04, owner, authorizer));
   const isAuthorized = isOwnerAuth || isApprovedForAll;
   if (!isAuthorized) {
     // Revert with custom error ERC721InvalidApprover
@@ -1395,7 +1376,7 @@ export function transferFrom(arg0: usize, arg1: usize, arg2: usize): void {
   const authorizer = Msg.sender();
   const isOwnerZero = Address.isZero(owner);
   const approvedAddress = Mapping.getAddress(__SLOT03, tokenId);
-  const isApprovedForAll = Boolean.toValue(Mapping2.getBoolean(__SLOT04, owner, authorizer));
+  const isApprovedForAll = Boolean.fromABI(Mapping2.getBoolean(__SLOT04, owner, authorizer));
   const isAuthOwner = Address.equals(authorizer, owner);
   const isAuthApproved = Address.equals(authorizer, approvedAddress);
   const isAuthorized = isAuthOwner || isAuthApproved || isApprovedForAll;
@@ -1436,23 +1417,9 @@ export function transferFrom(arg0: usize, arg1: usize, arg2: usize): void {
   const __data_20: usize = 0; // no data
   emitTopics(__topics_19, 4, __data_20, 0);
 }
-export function safeTransferFrom(arg0: usize, arg1: usize, arg2: usize): void {
-  const _from = arg0;
-  const _to = arg1;
-  const _tokenId = arg2;
-
-}
-export function safeTransferFromData(arg0: usize, arg1: usize, arg2: usize, arg3: usize): void {
-  const _from = arg0;
-  const _to = arg1;
-  const _tokenId = arg2;
-  const _data = arg3;
-
-}
-export function safeMint(arg0: usize, arg1: usize, arg2: usize): void {
+export function mint(arg0: usize, arg1: usize): void {
   const to = arg0;
   const tokenId = arg1;
-  const _data = arg2;
   const __hexPtr_21: usize = malloc(42);
   store<u8>(__hexPtr_21 + 0, 48);
   store<u8>(__hexPtr_21 + 1, 120);
@@ -1515,9 +1482,9 @@ export function safeMint(arg0: usize, arg1: usize, arg2: usize): void {
   const from = Mapping.getAddress(__SLOT01, tokenId);
   const isFromZero = Address.isZero(from);
   if (!isFromZero) {
-    Mapping.setAddress(__SLOT03, tokenId, zeroAddress);
-    const fromBalance = Mapping.getU256(__SLOT02, from);
-    Mapping.setU256(__SLOT02, from, U256.sub(fromBalance, one));
+    // Revert with custom error ERC721InvalidSender
+    const __errorData_28: usize = __create_error_data_ERC721InvalidSender(zeroAddress);
+    abort_with_data(__errorData_28, 36);
   }
   if (!isToZero) {
     const toBalance = Mapping.getU256(__SLOT02, to);
@@ -1525,22 +1492,16 @@ export function safeMint(arg0: usize, arg1: usize, arg2: usize): void {
   }
   Mapping.setAddress(__SLOT01, tokenId, to);
   // topic0 for Transfer
-  const __topics_28: usize = malloc(128);
-  __write_topic0_Transfer(__topics_28);
-  addTopic(__topics_28 + 32, from, 32);
-  addTopic(__topics_28 + 64, to, 32);
-  addTopic(__topics_28 + 96, tokenId, 32);
-  const __data_29: usize = 0; // no data
-  emitTopics(__topics_28, 4, __data_29, 0);
-  if (!isFromZero) {
-    // Revert with custom error ERC721InvalidSender
-    const __errorData_30: usize = __create_error_data_ERC721InvalidSender(zeroAddress);
-    abort_with_data(__errorData_30, 36);
-  }
+  const __topics_29: usize = malloc(128);
+  __write_topic0_Transfer(__topics_29);
+  addTopic(__topics_29 + 32, from, 32);
+  addTopic(__topics_29 + 64, to, 32);
+  addTopic(__topics_29 + 96, tokenId, 32);
+  const __data_30: usize = 0; // no data
+  emitTopics(__topics_29, 4, __data_30, 0);
 }
-export function mint(arg0: usize, arg1: usize): void {
-  const to = arg0;
-  const tokenId = arg1;
+export function burn(arg0: usize): void {
+  const tokenId = arg0;
   const __hexPtr_31: usize = malloc(42);
   store<u8>(__hexPtr_31 + 0, 48);
   store<u8>(__hexPtr_31 + 1, 120);
@@ -1594,88 +1555,6 @@ export function mint(arg0: usize, arg1: usize): void {
   const __u256_34: usize = U256.create();
   U256.setFromString(__u256_34, __str_35, __len_36);
   const one = __u256_34;
-  const isToZero = Address.isZero(to);
-  if (isToZero) {
-    // Revert with custom error ERC721InvalidReceiver
-    const __errorData_37: usize = __create_error_data_ERC721InvalidReceiver(zeroAddress);
-    abort_with_data(__errorData_37, 36);
-  }
-  const from = Mapping.getAddress(__SLOT01, tokenId);
-  const isFromZero = Address.isZero(from);
-  if (!isFromZero) {
-    // Revert with custom error ERC721InvalidSender
-    const __errorData_38: usize = __create_error_data_ERC721InvalidSender(zeroAddress);
-    abort_with_data(__errorData_38, 36);
-  }
-  if (!isToZero) {
-    const toBalance = Mapping.getU256(__SLOT02, to);
-    Mapping.setU256(__SLOT02, to, U256.add(toBalance, one));
-  }
-  Mapping.setAddress(__SLOT01, tokenId, to);
-  // topic0 for Transfer
-  const __topics_39: usize = malloc(128);
-  __write_topic0_Transfer(__topics_39);
-  addTopic(__topics_39 + 32, from, 32);
-  addTopic(__topics_39 + 64, to, 32);
-  addTopic(__topics_39 + 96, tokenId, 32);
-  const __data_40: usize = 0; // no data
-  emitTopics(__topics_39, 4, __data_40, 0);
-}
-export function burn(arg0: usize): void {
-  const tokenId = arg0;
-  const __hexPtr_41: usize = malloc(42);
-  store<u8>(__hexPtr_41 + 0, 48);
-  store<u8>(__hexPtr_41 + 1, 120);
-  store<u8>(__hexPtr_41 + 2, 48);
-  store<u8>(__hexPtr_41 + 3, 48);
-  store<u8>(__hexPtr_41 + 4, 48);
-  store<u8>(__hexPtr_41 + 5, 48);
-  store<u8>(__hexPtr_41 + 6, 48);
-  store<u8>(__hexPtr_41 + 7, 48);
-  store<u8>(__hexPtr_41 + 8, 48);
-  store<u8>(__hexPtr_41 + 9, 48);
-  store<u8>(__hexPtr_41 + 10, 48);
-  store<u8>(__hexPtr_41 + 11, 48);
-  store<u8>(__hexPtr_41 + 12, 48);
-  store<u8>(__hexPtr_41 + 13, 48);
-  store<u8>(__hexPtr_41 + 14, 48);
-  store<u8>(__hexPtr_41 + 15, 48);
-  store<u8>(__hexPtr_41 + 16, 48);
-  store<u8>(__hexPtr_41 + 17, 48);
-  store<u8>(__hexPtr_41 + 18, 48);
-  store<u8>(__hexPtr_41 + 19, 48);
-  store<u8>(__hexPtr_41 + 20, 48);
-  store<u8>(__hexPtr_41 + 21, 48);
-  store<u8>(__hexPtr_41 + 22, 48);
-  store<u8>(__hexPtr_41 + 23, 48);
-  store<u8>(__hexPtr_41 + 24, 48);
-  store<u8>(__hexPtr_41 + 25, 48);
-  store<u8>(__hexPtr_41 + 26, 48);
-  store<u8>(__hexPtr_41 + 27, 48);
-  store<u8>(__hexPtr_41 + 28, 48);
-  store<u8>(__hexPtr_41 + 29, 48);
-  store<u8>(__hexPtr_41 + 30, 48);
-  store<u8>(__hexPtr_41 + 31, 48);
-  store<u8>(__hexPtr_41 + 32, 48);
-  store<u8>(__hexPtr_41 + 33, 48);
-  store<u8>(__hexPtr_41 + 34, 48);
-  store<u8>(__hexPtr_41 + 35, 48);
-  store<u8>(__hexPtr_41 + 36, 48);
-  store<u8>(__hexPtr_41 + 37, 48);
-  store<u8>(__hexPtr_41 + 38, 48);
-  store<u8>(__hexPtr_41 + 39, 48);
-  store<u8>(__hexPtr_41 + 40, 48);
-  store<u8>(__hexPtr_41 + 41, 48);
-  const __hexLen_42: u32 = 42;
-  const __addrPtr_43: usize = Address.create();
-  Address.setFromStringHex(__addrPtr_43, __hexPtr_41, __hexLen_42);
-  const zeroAddress = __addrPtr_43;
-  const __str_45: usize = malloc(1);
-  store<u8>(__str_45 + 0, 49);
-  const __len_46: u32 = 1;
-  const __u256_44: usize = U256.create();
-  U256.setFromString(__u256_44, __str_45, __len_46);
-  const one = __u256_44;
   const from = Mapping.getAddress(__SLOT01, tokenId);
   const isFromZero = Address.isZero(from);
   if (!isFromZero) {
@@ -1685,17 +1564,17 @@ export function burn(arg0: usize): void {
   }
   Mapping.setAddress(__SLOT01, tokenId, zeroAddress);
   // topic0 for Transfer
-  const __topics_47: usize = malloc(128);
-  __write_topic0_Transfer(__topics_47);
-  addTopic(__topics_47 + 32, from, 32);
-  addTopic(__topics_47 + 64, zeroAddress, 32);
-  addTopic(__topics_47 + 96, tokenId, 32);
-  const __data_48: usize = 0; // no data
-  emitTopics(__topics_47, 4, __data_48, 0);
+  const __topics_37: usize = malloc(128);
+  __write_topic0_Transfer(__topics_37);
+  addTopic(__topics_37 + 32, from, 32);
+  addTopic(__topics_37 + 64, zeroAddress, 32);
+  addTopic(__topics_37 + 96, tokenId, 32);
+  const __data_38: usize = 0; // no data
+  emitTopics(__topics_37, 4, __data_38, 0);
   if (isFromZero) {
     // Revert with custom error ERC721NonexistentToken
-    const __errorData_49: usize = __create_error_data_ERC721NonexistentToken(tokenId);
-    abort_with_data(__errorData_49, 36);
+    const __errorData_39: usize = __create_error_data_ERC721NonexistentToken(tokenId);
+    abort_with_data(__errorData_39, 36);
   }
 }
 export function balanceOf(arg0: usize): usize {
@@ -1703,8 +1582,8 @@ export function balanceOf(arg0: usize): usize {
   const isOwnerZero = Address.isZero(owner);
   if (isOwnerZero) {
     // Revert with custom error ERC721InvalidOwner
-    const __errorData_50: usize = __create_error_data_ERC721InvalidOwner(owner);
-    abort_with_data(__errorData_50, 36);
+    const __errorData_40: usize = __create_error_data_ERC721InvalidOwner(owner);
+    abort_with_data(__errorData_40, 36);
   }
   return Mapping.getU256(__SLOT02, owner);
 }
@@ -1714,8 +1593,8 @@ export function ownerOf(arg0: usize): usize {
   const isZero = Address.isZero(owner);
   if (isZero) {
     // Revert with custom error ERC721NonexistentToken
-    const __errorData_51: usize = __create_error_data_ERC721NonexistentToken(tokenId);
-    abort_with_data(__errorData_51, 36);
+    const __errorData_41: usize = __create_error_data_ERC721NonexistentToken(tokenId);
+    abort_with_data(__errorData_41, 36);
   }
   return owner;
 }
@@ -1731,8 +1610,8 @@ export function getApproved(arg0: usize): usize {
   const isZero = Address.isZero(owner);
   if (isZero) {
     // Revert with custom error ERC721NonexistentToken
-    const __errorData_52: usize = __create_error_data_ERC721NonexistentToken(tokenId);
-    abort_with_data(__errorData_52, 36);
+    const __errorData_42: usize = __create_error_data_ERC721NonexistentToken(tokenId);
+    abort_with_data(__errorData_42, 36);
   }
   return Mapping.getAddress(__SLOT03, tokenId);
 }
