@@ -55,27 +55,58 @@ cd my-contract
 ### Build and deploy
 
 ```bash
-npm run build    # Generate Stylus entrypoint
-npm run compile  # Compile to WASM
-npm run check    # Validate with cargo stylus
-npm run deploy   # Deploy to Arbitrum
+as-stylus compile <contract-file>    # build artifacts, Compile to WASM and check Validate with cargo stylus
+npm run deploy  <contract-file>      # Deploy to Arbitrum
 ```
 
 ## Developer Workflow
 
 ```mermaid
-flowchart TD
-    subgraph as-stylus CLI
-        A[as-stylus generate my-contract]
-        B[Creates contract folder with boilerplate]
-        C[Run as-stylus compile contract.ts inside the project]
-        D[Generates artifacts/ with wrapped entrypoint]
-        E[as-stylus compile → asc to WASM]
-        F[as-stylus check → cargo stylus check]
-        G[as-stylus deploy → cargo stylus deploy]
-    end
+sequenceDiagram
+    participant Dev as Developer
+    participant CLI as as-stylus CLI
+    participant TS as TypeScript Files
+    participant ASC as AssemblyScript Compiler
+    participant Artifacts as Artifacts/Entrypoint
+    participant Tests as Testing Framework
+    participant Arbitrum as Arbitrum Network
 
-    A --> B --> C --> D --> E --> F --> G
+    Dev->>CLI: as-stylus generate my-contract
+    CLI->>CLI: Create project structure
+    CLI->>TS: Generate contract.ts template
+    CLI->>CLI: Setup package.json & tsconfig
+    CLI-->>Dev: Project scaffolded with boilerplate
+
+    Dev->>TS: Write contract logic
+    TS-->>Dev: TypeScript contract code
+
+    Dev->>CLI: as-stylus compile ./contract.ts  --endpoint <RPC_URL>
+    CLI->>TS: Read contract.ts
+    CLI->>Artifacts: Generate Stylus entrypoint wrapper
+    CLI->>Artifacts: Create artifacts/ directory
+    CLI-->>Dev: Stylus entrypoint generated
+
+    CLI->>ASC: Transpile TypeScript to AssemblyScript
+    ASC->>ASC: Type checking & validation
+    ASC->>ASC: Generate WASM bytecode
+    ASC-->>CLI: WASM file created
+    CLI-->>Dev: Compilation to WASM complete
+
+    CLI->>Stylus: cargo stylus check ./artifacts/build/contract.wasm  --endpoint <RPC_URL>
+    Stylus->>Stylus: Validate WASM bytecode
+    Stylus->>Stylus: Check Stylus host function compatibility
+    Stylus->>Stylus: Verify contract size limits
+    Stylus-->>CLI: Validation results
+    CLI-->>Dev: Contract validated for Stylus
+
+    Dev->>CLI: npm run deploy ./contract.ts --private-key <PRIVATE_KEY> --endpoint <RPC_URL>
+    CLI->>Stylus: cargo stylus deploy --private-key
+    Stylus->>Arbitrum: Submit contract deployment transaction
+    Arbitrum->>Arbitrum: Store contract bytecode on-chain
+    Arbitrum->>Arbitrum: Assign contract address
+    Arbitrum-->>Stylus: Deployment receipt with address
+    Stylus-->>CLI: Contract deployed successfully
+    CLI-->>Dev: Contract live at address: 0x...
 ```
 
 ## Project Structure
