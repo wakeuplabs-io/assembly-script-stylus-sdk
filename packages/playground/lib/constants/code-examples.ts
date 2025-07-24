@@ -128,46 +128,39 @@ export class ERC20Full {
 }`
 
 export const ERC721_CONTRACT_CODE = `// ERC-721 NFT Contract
+/* eslint-disable no-global-assign */
 // @ts-nocheck
-
 @Error
 class ERC721InvalidOwner {
   owner: Address;
 }
-
 @Error
 class ERC721NonexistentToken {
   tokenId: U256;
 }
-
 @Error
 class ERC721IncorrectOwner {
   sender: Address;
   tokenId: U256;
   owner: Address;
 }
-
 @Error
 class ERC721InvalidSender {
   sender: Address;
 }
-
 @Error
 class ERC721InvalidReceiver {
   receiver: Address;
 }
-
 @Error
 class ERC721InsufficientApproval {
   sender: Address;
   tokenId: U256;
 }
-
 @Error
 class ERC721InvalidApprover {
   approver: Address;
 }
-
 @Error
 class ERC721InvalidOperator {
   operator: Address;
@@ -196,11 +189,14 @@ export class ApprovalForAll {
 
 @Contract
 export class ERC721 {
-  // Storage mappings
   static owners: Mapping<U256, Address> = new Mapping<U256, Address>();
   static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
   static tokenApprovals: Mapping<U256, Address> = new Mapping<U256, Address>();
-  static operatorApprovals: Mapping2<Address, Address, boolean> = new Mapping2<Address, Address, boolean>();
+  static operatorApprovals: Mapping2<Address, Address, boolean> = new Mapping2<
+    Address,
+    Address,
+    boolean
+  >();
   static name: Str;
   static symbol: Str;
 
@@ -211,16 +207,17 @@ export class ERC721 {
     symbol = symbolStr;
   }
 
-  // ===== EXTERNAL FUNCTIONS =====
 
   @External
   static approve(to: Address, tokenId: U256): void {
     const authorizer = msg.sender;
+
     const owner = owners.get(tokenId);
     const isOwnerZero = owner.isZero();
     if (isOwnerZero) {
       ERC721NonexistentToken.revert(tokenId);
     }
+
     const isOwnerAuth = owner.equals(authorizer);
     const isApprovedForAll = operatorApprovals.get(owner, authorizer);
     const isAuthorized = isOwnerAuth || isApprovedForAll;
@@ -246,21 +243,23 @@ export class ERC721 {
   static transferFrom(from: Address, to: Address, tokenId: U256): void {
     const zeroAddress = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     const one = U256Factory.fromString("1");
-    
+
+    // transferFrom validations
     const isToZero = to.isZero();
     if (isToZero) {
       ERC721InvalidReceiver.revert(to);
     }
-    
+
     const owner = owners.get(tokenId);
     const authorizer = msg.sender;
+
     const isOwnerZero = owner.isZero();
     const approvedAddress = tokenApprovals.get(tokenId);
     const isApprovedForAll = operatorApprovals.get(owner, authorizer);
     const isAuthOwner = authorizer.equals(owner);
     const isAuthApproved = authorizer.equals(approvedAddress);
     const isAuthorized = isAuthOwner || isAuthApproved || isApprovedForAll;
-    
+
     if (!isAuthorized) {
       if (isOwnerZero) {
         ERC721NonexistentToken.revert(tokenId);
@@ -268,24 +267,24 @@ export class ERC721 {
         ERC721InsufficientApproval.revert(authorizer, tokenId);
       }
     }
-    
+
     const isFromOwner = owner.equals(from);
     if (!isFromOwner) {
       ERC721IncorrectOwner.revert(authorizer, tokenId, owner);
     }
-    
+
     const isFromZero = owner.isZero();
     if (!isFromZero) {
       tokenApprovals.set(tokenId, zeroAddress);
       const fromBalance = balances.get(owner);
       balances.set(owner, fromBalance.sub(one));
     }
-    
+
     if (!isToZero) {
       const toBalance = balances.get(to);
       balances.set(to, toBalance.add(one));
     }
-    
+
     owners.set(tokenId, to);
     Transfer.emit(owner, to, tokenId);
   }
@@ -294,23 +293,24 @@ export class ERC721 {
   static mint(to: Address, tokenId: U256): void {
     const zeroAddress = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     const one = U256Factory.fromString("1");
-    
+
     const isToZero = to.isZero();
     if (isToZero) {
       ERC721InvalidReceiver.revert(zeroAddress);
     }
-    
+
     const from = owners.get(tokenId);
+
     const isFromZero = from.isZero();
     if (!isFromZero) {
       ERC721InvalidSender.revert(zeroAddress);
     }
-    
+
     if (!isToZero) {
       const toBalance = balances.get(to);
       balances.set(to, toBalance.add(one));
     }
-    
+
     owners.set(tokenId, to);
     Transfer.emit(from, to, tokenId);
   }
@@ -319,24 +319,23 @@ export class ERC721 {
   static burn(tokenId: U256): void {
     const zeroAddress = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     const one = U256Factory.fromString("1");
-    
+
     const from = owners.get(tokenId);
+
     const isFromZero = from.isZero();
     if (!isFromZero) {
       tokenApprovals.set(tokenId, zeroAddress);
       const fromBalance = balances.get(from);
       balances.set(from, fromBalance.sub(one));
     }
-    
+
     owners.set(tokenId, zeroAddress);
     Transfer.emit(from, zeroAddress, tokenId);
-    
+
     if (isFromZero) {
       ERC721NonexistentToken.revert(tokenId);
     }
   }
-
-  // ===== VIEW FUNCTIONS =====
 
   @View
   static balanceOf(owner: Address): U256 {

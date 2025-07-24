@@ -43,7 +43,7 @@ const getUserBAddress = (): Address => userBWallet.account?.address as Address;
 
 beforeAll(async () => {
   try {
-    fundUser(getUserBAddress());
+    // fundUser(getUserBAddress());
     contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
       deployArgs: [NAME_STR, SYMBOL_STR],
       walletClient: ownerWallet,

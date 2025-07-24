@@ -30,7 +30,6 @@ export function Playground() {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Up and running in under 60s</h2>
         <p className="text-gray-400 text-center mb-8">Three commands to deploy your first Stylus contract</p>
 
-        {/* Indicador del contrato actual */}
         <div className="flex justify-center mb-12">
           <div className="inline-flex items-center px-6 py-3 bg-gray-800 border border-gray-700 rounded-full">
             <span className="text-gray-400 mr-2">Working with:</span>
