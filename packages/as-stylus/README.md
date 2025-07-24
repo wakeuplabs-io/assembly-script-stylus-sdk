@@ -13,7 +13,7 @@ The AssemblyScript Stylus SDK enables smart contract developers to write program
 
 For more information about Stylus, see [Stylus: A Gentle Introduction](https://docs.arbitrum.io/stylus/stylus-gentle-introduction). For deployment, see the [Cargo Stylus CLI Tool](https://docs.arbitrum.io/stylus/reference/cargo-stylus).
 
-## ✨ Features
+## Features
 
 - **TypeScript-like Syntax**: Write contracts using familiar decorators and TypeScript syntax
 - **Type Safety**: Strong typing with compile-time validation  
@@ -24,7 +24,7 @@ For more information about Stylus, see [Stylus: A Gentle Introduction](https://d
 - **ABI Generation**: Automatic generation of Ethereum-compatible ABIs
 - **Interoperability**: Full compatibility with Solidity contracts
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -103,7 +103,7 @@ export PRIVATE_KEY=your_private_key_here
 npm run deploy ./contract.ts
 ```
 
-## 🛠️ CLI Commands
+## CLI Commands
 
 The `as-stylus` CLI provides several commands for contract development:
 
@@ -112,8 +112,9 @@ The `as-stylus` CLI provides several commands for contract development:
 | **generate** | Create a new Stylus project with boilerplate | `as-stylus generate <project-name>` |
 | **compile** | Compile AssemblyScript to WASM | `as-stylus compile <contract-path>` |
 | **deploy** | Deploy contract to Stylus network | `as-stylus deploy <contract-path>` |
+| **clean** | Remove build artifacts and temporary files | `as-stylus clean` |
 
-## ⚙️ Requirements
+## Requirements
 
 - **Node.js** ≥ 18.x
 - **AssemblyScript** ≥ 0.27.x  

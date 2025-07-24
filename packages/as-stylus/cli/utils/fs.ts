@@ -44,3 +44,13 @@ export function copyFile(srcPath: string, destPath: string): void {
   ensureDir(dirPath);
   fs.copyFileSync(srcPath, destPath);
 }
+
+/**
+ * Reads a file and returns its content
+ * @param filePath Path to the file to read
+ * @param encoding Encoding to use (default: utf8)
+ * @returns The content of the file
+ */
+export function readFile(filePath: string, encoding: BufferEncoding = "utf8"): string {
+  return fs.readFileSync(filePath, encoding);
+}
