@@ -29,7 +29,7 @@ export class Mapping2 {
     mapLoadHash(slot1, k2, ADDRESS_LEN, temp);
 
     // Extract the boolean value and create a clean boolean result
-    const boolValue = Boolean.toValue(temp);
+    const boolValue = Boolean.fromABI(temp);
     return Boolean.create(boolValue);
   }
 }

@@ -15,7 +15,7 @@ const firaCode = Fira_Code({
 })
 
 export const metadata: Metadata = {
-  title: "as-sdk - Write Stylus contracts in TypeScript",
+  title: "As-Stylus Playground",
   description: "ERC-20, ERC-721 and custom logic. No Solidity. No Rust.",
   icons: {
     icon: '/favicon.svg',
