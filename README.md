@@ -109,11 +109,10 @@ assembly-script-stylus-sdk/
 
 ## Resources
 
-- [Arbitrum Stylus Documentation](https://docs.arbitrum.io/stylus)
-- [AssemblyScript Documentation](https://www.assemblyscript.org/)
-- [cargo stylus CLI](https://docs.arbitrum.io/stylus/tools/stylus-cli)
-- [Arbitrum Developer Portal](https://developer.arbitrum.io/)
+- [Assembly Script Stylus Documentation](https://as-stylus.wakeuplabs.io/)
+- [NPM Package](https://www.npmjs.com/package/as-stylus)
+- [Live Playground](https://as-stylus-playground.wakeuplabs.link/)
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE(./LISENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
