@@ -62,7 +62,12 @@ export class EventEmitHandler implements ExpressionHandler {
     if (nonIndexed.length) {
       setup.push(`const ${dataTemp}: usize = malloc(${nonIndexed.length * 32});`);
       nonIndexed.forEach((ptr, idx) => {
-        setup.push(`U256.copy(${dataTemp} + ${idx * 32}, ${ptr});`);
+        const field = meta.fields.filter(f => !f.indexed)[idx];
+        if (field.type === AbiType.Bool) {
+          setup.push(`U256.copy(${dataTemp} + ${idx * 32}, Boolean.toABI(${ptr}));`);
+        } else {
+          setup.push(`U256.copy(${dataTemp} + ${idx * 32}, ${ptr});`);
+        }
       });
     } else {
       setup.push(`const ${dataTemp}: usize = 0; // no data`);

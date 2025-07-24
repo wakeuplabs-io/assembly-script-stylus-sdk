@@ -16,6 +16,7 @@ export function buildPackageJson(targetPath: string, projectName: string) {
           compile: `cd ${BUILD_PATH} && npm run compile`,
           check: `cd ${BUILD_PATH} && npm run check`,
           deploy: `cd ${BUILD_PATH} && npm run deploy`,
+          clean: "as-stylus clean",
         },
         author: "",
         license: "ISC",

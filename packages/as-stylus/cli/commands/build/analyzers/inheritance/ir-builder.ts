@@ -2,6 +2,8 @@ import path from "path";
 import { ClassDeclaration, SourceFile, HeritageClause, SyntaxKind } from "ts-morph";
 
 import { IRContract } from "@/cli/types/ir.types.js";
+import { BUILD_PATH } from "@/cli/utils/constants.js";
+import { getCurrentWorkingDirectory } from "@/cli/utils/fs.js";
 
 import { BuildRunner } from "../../build-runner.js";
 import { ERROR_CODES } from "../../errors/codes.js";
@@ -52,7 +54,9 @@ export class InheritanceIRBuilder extends IRBuilder<IRContract | undefined> {
       return undefined;
     }
 
-    const runner = new BuildRunner(path.resolve(process.cwd()), parentPath, this.errorManager);
-    return runner.buildIR()?.ir;
+    const cwd = getCurrentWorkingDirectory();
+    const projectTargetPath = path.resolve(cwd, BUILD_PATH);
+    const runner = new BuildRunner(cwd, parentPath, this.errorManager);
+    return runner.buildIR(projectTargetPath)?.ir;
   }
 }

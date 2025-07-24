@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import { ErrorManager } from "../commands/build/analyzers/shared/error-manager.js";
+import { BUILD_PATH } from "../utils/constants.js";
 
 export class ProjectFinder {
   private readonly contractsRoot: string;
@@ -14,6 +15,16 @@ export class ProjectFinder {
 
   getCurrentProject(): string {
     return path.resolve(process.cwd());
+  }
+
+  getProjectBuildPath(): string {
+    const project = this.getCurrentProject();
+    const projectName = project.split("/").pop()!;
+    return path.join(path.dirname(project), projectName, BUILD_PATH);
+  }
+
+  getContractName(contractPath: string): string {
+    return contractPath.split("/").pop()!.replace(".ts", "");
   }
 
   getAllProjects(): string[] {

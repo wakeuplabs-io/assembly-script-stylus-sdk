@@ -3,6 +3,7 @@ import path from "path";
 
 import { Logger } from "@/cli/services/logger.js";
 import { IRContract } from "@/cli/types/ir.types.js";
+import { BUILD_PATH } from "@/cli/utils/constants.js";
 
 import { buildAbi } from "./build-abi.js";
 import { buildAbort } from "./build-abort.js";
@@ -68,6 +69,6 @@ export class ProjectBuilder {
     buildRustToolchain(contractBasePath);
     buildAbi(contractBasePath, this.contract);
 
-    Logger.getInstance().info(`Build artifacts generated at ${contractBasePath}`);
+    Logger.getInstance().info(`Build artifacts generated at ./${BUILD_PATH}`);
   }
 } 

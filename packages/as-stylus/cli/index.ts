@@ -6,6 +6,9 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import { buildCommand } from "./commands/build/build.js";
+import { cleanCommand } from "./commands/clean/clean.js";
+import { compileCommand } from "./commands/compile/compile.js";
+import { deployCommand } from "./commands/deploy/deploy.js";
 import { generateCommand } from "./commands/generate/generate.js";
 import { lintCommand } from "./commands/lint/lint.js";
 
@@ -22,7 +25,10 @@ program
 
 program.addCommand(generateCommand);
 program.addCommand(buildCommand);
+program.addCommand(cleanCommand);
 program.addCommand(lintCommand);
+program.addCommand(compileCommand);
+program.addCommand(deployCommand);
 
 program.parse();
 
