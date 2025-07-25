@@ -73,7 +73,7 @@ const config: Config = {
           items: [
             {
               label: 'Getting Started',
-              to: '/getting-started',
+              to: '/Getting%20Started/quick-start',
             },
             {
               label: 'Decorators',

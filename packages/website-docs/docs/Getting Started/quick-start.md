@@ -104,7 +104,7 @@ This command will remove all the artifact folder.
 
 Ready to dive deeper? Check out the [Project Breakdown](project-breakdown) to understand the SDK's architecture and components, or explore our comprehensive guides:
 
-- [Decorators](decorators/contract) - Define contract structure and behavior
-- [Data Types](types/u256) - Master blockchain-optimized types
-- [ERC20 Example](examples/erc20) - Token contract implementation
+- [Decorators](/decorators/contract) - Define contract structure and behavior
+- [Data Types](/types/u256) - Master blockchain-optimized types
+- [ERC20 Example](/examples/erc20) - Token contract implementation
 <!-- - [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/) - Test concepts in your browser --> 
