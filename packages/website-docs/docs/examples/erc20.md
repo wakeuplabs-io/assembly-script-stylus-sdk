@@ -2,6 +2,8 @@
 
 A complete example of an ERC20 implementation using the AssemblyScript Stylus SDK.
 
+> **Complete Contract**: You can view the full ERC20 contract implementation [**here**](https://github.com/wakeuplabs-io/assembly-script-stylus-sdk/blob/main/packages/as-stylus/__tests__/contracts/erc20-full/contract.ts).
+
 ## Contract Structure
 
 ### Events
