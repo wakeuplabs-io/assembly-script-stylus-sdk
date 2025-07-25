@@ -1,12 +1,11 @@
 # AssemblyScript Stylus SDK
 
-:::caution ALPHA VERSION
-
-This SDK is **not intended for use at this stage**.  
-It is in early alpha development, unstable, and subject to major breaking changes.  
-**Do not use this SDK in any production, staging, or testnet environments.**  
-We strongly advise against integrating or deploying this code until a stable release is announced.
-:::
+> ⚠️ **ALPHA VERSION NOTICE**
+>
+> This SDK is **not intended for use** at this stage.
+> It is in **early alpha development**, unstable, and subject to **major breaking changes**.
+> **Do not use** this SDK in any production, staging, or testnet environments.
+> We **strongly advise against integrating or deploying** this code until a stable release is announced.
 
 **Smart contracts on Arbitrum using AssemblyScript**
 
