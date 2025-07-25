@@ -1,16 +1,16 @@
-# Mapping2 - Nested Key-Value Storage
+# MappingNested - Nested Key-Value Storage
 
-The `Mapping2` type provides nested key-value storage functionality with two-level keys in AssemblyScript Stylus smart contracts. It's used for complex data relationships that require two keys to access a value.
+The `MappingNested` type provides nested key-value storage functionality with two-level keys in AssemblyScript Stylus smart contracts. It's used for complex data relationships that require two keys to access a value.
 
 ## Syntax
 
 ```typescript
-Mapping2<KeyType1, KeyType2, ValueType>
+MappingNested<KeyType1, KeyType2, ValueType>
 ```
 
 ## Overview
 
-Mapping2 provides:
+MappingNested provides:
 - Two-level nested key-value storage
 - Complex data relationships
 - Efficient access to nested structures
@@ -25,13 +25,13 @@ Mapping2 provides:
 @Contract
 export class NestedStorage {
   // User allowances: owner -> spender -> amount
-  static allowances: Mapping2<Address, Address, U256>;
+  static allowances: MappingNested<Address, Address, U256>;
   
   // User settings: user -> setting -> value
-  static userSettings: Mapping2<Address, String, Boolean>;
+  static userSettings: MappingNested<Address, String, Boolean>;
   
   // Game scores: player -> level -> score
-  static gameScores: Mapping2<Address, U256, U256>;
+  static gameScores: MappingNested<Address, U256, U256>;
 }
 ```
 
@@ -40,7 +40,7 @@ export class NestedStorage {
 ```typescript
 @Contract
 export class AllowanceManager {
-  static allowances: Mapping2<Address, Address, U256>;
+  static allowances: MappingNested<Address, Address, U256>;
 
   @External
   static approve(owner: Address, spender: Address, amount: U256): void {
@@ -69,9 +69,9 @@ export class AllowanceManager {
 
 ```typescript
 @Contract
-export class SimpleMapping2 {
-  static data: Mapping2<Address, String, U256>;
-  static flags: Mapping2<String, U256, Boolean>;
+export class SimpleMappingNested {
+  static data: MappingNested<Address, String, U256>;
+  static flags: MappingNested<String, U256, Boolean>;
 
   @External
   static setValue(user: Address, key: String, value: U256): void {
@@ -101,22 +101,22 @@ export class SimpleMapping2 {
 @Contract
 export class KeyCombinations {
   // Address + Address keys
-  static addressPairs: Mapping2<Address, Address, U256>;
+  static addressPairs: MappingNested<Address, Address, U256>;
   
   // Address + String keys  
-  static userSettings: Mapping2<Address, String, Boolean>;
+  static userSettings: MappingNested<Address, String, Boolean>;
   
   // String + String keys
-  static stringMatrix: Mapping2<String, String, U256>;
+  static stringMatrix: MappingNested<String, String, U256>;
   
   // U256 + Address keys
-  static indexedUsers: Mapping2<U256, Address, String>;
+  static indexedUsers: MappingNested<U256, Address, String>;
 }
 ```
 
 ## Comparison with Mapping
 
-| Feature | Mapping | Mapping2 |
+| Feature | Mapping | MappingNested |
 |---------|---------|----------|
 | **Keys** | Single key | Two keys |
 | **Access** | `mapping.get(key)` | `mapping2.get(key1, key2)` |
