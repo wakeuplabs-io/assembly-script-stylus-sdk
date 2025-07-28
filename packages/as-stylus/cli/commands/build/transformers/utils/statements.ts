@@ -126,7 +126,7 @@ function emitStatement(s: IRStatement, indent: string): string {
 
     
       // For boolean mappings, don't wrap with Boolean.create() since they already return proper format
-      const isBooleanMapping = baseExpr.includes("Mapping2.getBoolean") || 
+      const isBooleanMapping = baseExpr.includes("MappingNested.getBoolean") || 
                                baseExpr.includes("Mapping.getBoolean");
       
       let returnExpr: string;

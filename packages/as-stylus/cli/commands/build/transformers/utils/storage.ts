@@ -63,8 +63,8 @@ export function generateImports(contract: IRContract): string {
     lines.push('import { Mapping } from "as-stylus/core/types/mapping";');
   }
 
-  if (types.has(AbiType.Mapping2)) {
-    lines.push('import { Mapping2 } from "as-stylus/core/types/mapping2";');
+  if (types.has(AbiType.MappingNested)) {
+    lines.push('import { MappingNested } from "as-stylus/core/types/mapping2";');
   }
 
   if (types.has(AbiType.Bool)) {
