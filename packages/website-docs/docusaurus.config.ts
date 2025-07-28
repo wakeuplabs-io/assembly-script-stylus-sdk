@@ -44,6 +44,11 @@ const config: Config = {
   ],
 
   themeConfig: {
+    colorMode: {
+      defaultMode: 'dark',
+      disableSwitch: false,
+      respectPrefersColorScheme: false,
+    },
     navbar: {
       title: 'AS-Stylus SDK',
       items: [
@@ -68,7 +73,7 @@ const config: Config = {
           items: [
             {
               label: 'Getting Started',
-              to: '/getting-started',
+              to: '/Getting%20Started/quick-start',
             },
             {
               label: 'Decorators',

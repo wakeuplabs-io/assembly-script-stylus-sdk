@@ -12,46 +12,37 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
  */
 const sidebars: SidebarsConfig = {
   docsSidebar: [
-    'getting-started',
     {
-      type: 'category',
-      label: 'Decorators',
+      type: "category",
+      label: "Getting Started",
+      items: ["Getting Started/quick-start", "Getting Started/project-breakdown"],
+    },
+    {
+      type: "category",
+      label: "Decorators",
       items: [
-        'decorators/contract',
-        'decorators/external',
-        'decorators/view',
-        'decorators/event',
-        'decorators/error',
-        'decorators/visibility',
+        "decorators/contract",
+        "decorators/external",
+        "decorators/view",
+        "decorators/event",
+        "decorators/error",
+        "decorators/visibility",
       ],
     },
     {
-      type: 'category',
-      label: 'Data Types',
-      items: [
-        'types/u256',
-        'types/i256',
-        'types/address',
-        'types/string',
-        'types/boolean',
-      ],
+      type: "category",
+      label: "Data Types",
+      items: ["types/u256", "types/i256", "types/address", "types/string", "types/boolean"],
     },
     {
-      type: 'category',
-      label: 'Data Structures',
-      items: [
-        'structures/mapping',
-        'structures/mapping2',
-        'structures/struct',
-      ],
+      type: "category",
+      label: "Data Structures",
+      items: ["structures/mapping", "structures/mapping2", "structures/struct"],
     },
     {
-      type: 'category',
-      label: 'Examples',
-      items: [
-        'examples/erc20',
-        'examples/erc721',
-      ],
+      type: "category",
+      label: "Examples",
+      items: ["examples/erc20", "examples/erc721"],
     },
   ],
 };

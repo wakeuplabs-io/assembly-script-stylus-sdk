@@ -1,5 +1,12 @@
 # AssemblyScript Stylus SDK
 
+> ⚠️ **ALPHA VERSION NOTICE**
+>
+> This SDK is **not intended for use** at this stage.
+> It is in **early alpha development**, unstable, and subject to **major breaking changes**.
+> **Do not use** this SDK in any production, staging, or testnet environments.
+> We **strongly advise against integrating or deploying** this code until a stable release is announced.
+
 **Smart contracts on Arbitrum using AssemblyScript**
 
 [![npm version](https://badge.fury.io/js/as-stylus.svg)](https://badge.fury.io/js/as-stylus)
