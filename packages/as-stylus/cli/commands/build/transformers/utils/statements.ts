@@ -313,6 +313,7 @@ function emitStatement(s: IRStatement, indent: string): string {
         kind: "call",
         target: `${s.error}.revert`,
         args: s.args,
+        type: AbiType.Function,
         returnType: AbiType.Void,
         scope: "memory"
       };

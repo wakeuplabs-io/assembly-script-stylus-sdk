@@ -39,5 +39,5 @@ export function buildI256IR(target: string, call: CallExpression, symbolTable: S
     } satisfies IRCondition;
   }
 
-  return { kind: "call", target, args, returnType: AbiType.Int256, scope };
+  return { kind: "call", target, args, type: AbiType.Function, returnType: AbiType.Int256, scope };
 } 

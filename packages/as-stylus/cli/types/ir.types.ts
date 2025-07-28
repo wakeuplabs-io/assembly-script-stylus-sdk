@@ -2,10 +2,6 @@ import { AbiType, AbiInput, AbiOutput, StateMutability, Visibility } from "./abi
 import { SupportedType } from "../commands/build/analyzers/shared/supported-types.js";
 import { SymbolTableStack } from "../commands/build/analyzers/shared/symbol-table.js";
 
-// Statements// ───────────────────────
-// Base IR node types
-// ───────────────────────
-
 export type IRUnaryExpression = {
   kind: "unary";
   op: string;
@@ -30,6 +26,7 @@ export type Call = {
   kind: "call";
   target: string;
   args: IRExpression[];
+  type: SupportedType;
   returnType: SupportedType;
   originalType?: string;
   scope: "storage" | "memory";
@@ -49,10 +46,6 @@ export type IRExpressionBinary = {
   right: IRExpression;
   type: SupportedType;
 };
-
-// ───────────────────────
-// Mapping IR extensions
-// ───────────────────────
 
 export type IRMapGet = {
   kind: "map_get";
@@ -96,10 +89,6 @@ export type IRMapSet2 = {
   type: AbiType.Mapping2;
 };
 
-// ───────────────────────
-// Conditions
-// ───────────────────────
-
 export type ComparisonOperator = "==" | "!=" | "<" | "<=" | ">" | ">=";
 export type IRCondition = {
   kind: "condition";
@@ -108,10 +97,6 @@ export type IRCondition = {
   right?: IRExpression;
   type: AbiType.Bool;
 };
-
-// ───────────────────────
-// Expressions
-// ───────────────────────
 
 export type IRExpression =
   | IRUnaryExpression
@@ -244,10 +229,6 @@ export interface IREvent {
   fields: IREventField[];
 }
 
-// ───────────────────────
-// Struct structure
-// ───────────────────────
-
 export interface IRStructField {
   name: string;
   type: string;
@@ -263,10 +244,6 @@ export interface IRStruct {
   dynamic: boolean;
   alignment: number;
 }
-
-// ───────────────────────
-// Custom error structure
-// ───────────────────────
 
 export interface IRErrorField {
   name: string;

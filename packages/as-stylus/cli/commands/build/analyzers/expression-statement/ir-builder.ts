@@ -1,4 +1,4 @@
-import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, PropertyAccessExpression, CallExpression } from "ts-morph";
+import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, PropertyAccessExpression, CallExpression, Expression } from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRStatement } from "@/cli/types/ir.types.js";
@@ -32,7 +32,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
       if (exprText.endsWith('.revert')) {
         const errorName = exprText.slice(0, -'.revert'.length);
         const args = callExpr.getArguments().map(arg => {
-          const builder = new ExpressionIRBuilder(arg as any);
+          const builder = new ExpressionIRBuilder(arg as Expression);
           return builder.validateAndBuildIR();
         });
         
@@ -90,6 +90,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
                 kind: "call",
                 target: targets[fieldType as keyof typeof targets],
                 args: [valueExpr],
+                type: AbiType.Function,
                 returnType: fieldType as AbiType,
                 scope: "memory"
               };
@@ -102,6 +103,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
                 kind: "call",
                 target: `${structInfo.structName}_set_${fieldName}`,
                 args: [objectExpr, finalValueExpr],
+                type: AbiType.Function,
                 returnType: AbiType.Void,
                 scope: struct?.scope || "memory"
               }
@@ -120,6 +122,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
                   { kind: "literal", value: fieldName, type: AbiType.String },
                   valueExpr
                 ],
+                type: AbiType.Function,
                 returnType: AbiType.Void,
                 scope: "memory"
               }
@@ -134,7 +137,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
     return {
       kind: "expr",
       expr: expression,
-      type: (expression as any).type,
+      type: expression.type,
     };
   }
 }
