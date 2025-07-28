@@ -20,7 +20,7 @@ This monorepo contains three main components:
 - Learn the SDK through interactive examples
 -->
 
-### SDK Core
+### [SDK Core](./packages/as-stylus/)
 The main SDK package that provides:
 - AssemblyScript bindings for Stylus host functions
 - Type-safe storage and memory management
@@ -155,8 +155,6 @@ assembly-script-stylus-sdk/
 ## Resources
 
 - [Assembly Script Stylus Documentation](https://as-stylus.wakeuplabs.io/)
-- [NPM Package](https://www.npmjs.com/package/as-stylus)
-- [Live Playground](https://as-stylus-playground.wakeuplabs.link/)
 
 ## License
 
