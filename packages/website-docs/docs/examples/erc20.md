@@ -32,7 +32,7 @@ State variables that persist on the blockchain:
 @Contract
 export class ERC20Full {
   static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
-  static allowances: Mapping2<Address, Address, U256> = new Mapping2<Address, Address, U256>();
+  static allowances: MappingNested<Address, Address, U256> = new MappingNested<Address, Address, U256>();
   static totalSupply: U256;
   static name: Str;
   static symbol: Str;

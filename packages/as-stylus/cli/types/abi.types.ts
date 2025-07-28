@@ -31,7 +31,7 @@ export enum AbiType {
   Void = "void",
   Any = "any",
   Mapping = "mapping",
-  Mapping2 = "mapping2",
+  MappingNested = "mapping2",
   Function = "function",
   Unknown = "unknown",
 }

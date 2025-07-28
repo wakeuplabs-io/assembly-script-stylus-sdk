@@ -62,7 +62,7 @@ export class ERC721 {
   static owners: Mapping<U256, Address> = new Mapping<U256, Address>();
   static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
   static tokenApprovals: Mapping<U256, Address> = new Mapping<U256, Address>();
-  static operatorApprovals: Mapping2<Address, Address, boolean> = new Mapping2<
+  static operatorApprovals: MappingNested<Address, Address, boolean> = new MappingNested<
     Address,
     Address,
     boolean

@@ -4,7 +4,7 @@
 @Contract
 export class Token {
   static balances: Mapping<Address, U256>;
-  static allowance: Mapping2<Address, Address, U256>;
+  static allowance: MappingNested<Address, Address, U256>;
 
   static setBalance(user: Address, amount: U256): void {
     balances.set(user, amount);

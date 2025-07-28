@@ -76,7 +76,7 @@ const structures: NavigationItem[] = [
     link: '/structures/mapping'
   },
   {
-    title: 'Mapping2',
+    title: 'MappingNested',
     description: 'Nested key-value storage',
     link: '/structures/mapping2'
   },
