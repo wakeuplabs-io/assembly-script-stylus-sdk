@@ -92,3 +92,11 @@ export async function expectWriteRevert(
     args: result.error.args,
   };
 }
+
+export function parseDeploymentOutput(deploymentOutput: string) {
+  const match = deploymentOutput.match(/Contract deployed at address: (0x[a-fA-F0-9]{40})/);
+  if (!match) {
+    throw new Error(`Could not extract contract address from deployment log: ${deploymentOutput}`);
+  }
+  return match[1];
+}

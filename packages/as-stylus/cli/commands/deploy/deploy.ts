@@ -78,7 +78,7 @@ export function runDeploy(
     options.constructorArgs,
   );
 
-  return deploymentOutput;
+  return deploymentInfo;
 }
 
 export const deployCommand = new Command("deploy")

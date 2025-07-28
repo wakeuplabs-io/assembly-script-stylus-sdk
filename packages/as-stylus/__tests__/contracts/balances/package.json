@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "compile": "cd artifacts && npm run compile --entrypoint ${entrypoint}",
+    "compile": "cd artifacts && npm run compile",
     "check": "cd artifacts && npm run check",
     "deploy": "cd artifacts && npm run deploy"
   },

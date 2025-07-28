@@ -5,12 +5,7 @@ import { config } from "dotenv";
 import { Hex, WalletClient } from "viem";
 
 import { contractService, getWalletClient } from "../helpers/client.js";
-import {
-  CONTRACT_PATHS,
-  CONTRACT_ADDRESS_REGEX,
-  DEPLOY_TIMEOUT,
-  PRIVATE_KEY,
-} from "../helpers/constants.js";
+import { CONTRACT_PATHS, DEPLOY_TIMEOUT, PRIVATE_KEY } from "../helpers/constants.js";
 import { setupE2EContract } from "../helpers/setup.js";
 import { handleDeploymentError } from "../helpers/utils.js";
 
@@ -32,7 +27,7 @@ const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.STORAGE;
  */
 beforeAll(async () => {
   try {
-    contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
+    contract = await setupE2EContract(contractPath, abiPath, {
       deployArgs: [INIT_VALUE],
       walletClient,
     });
