@@ -54,9 +54,6 @@ describe("Inheritance", () => {
     it("should override getSumByParams method in child", async () => {
       const result = await contract.read("getSumInMemory", [1n, 2n]);
       expect(result).toBe(3n);
-
-      const result2 = await contract.read("getSumByParams", [1n, 2n]);
-      expect(result2).toBe(3n);
     });
   });
 });

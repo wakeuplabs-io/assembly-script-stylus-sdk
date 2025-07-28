@@ -28,7 +28,7 @@ export function generateDeployFunction(contract: IRContract): string {
           lines.push(`  const empty${variable.name} = Str.create();`);
           lines.push(`  store_${variable.name}(empty${variable.name});`);
         } else {
-          lines.push(`  const default${variable.name} = ${getInitializer(variable.type, defaultValue)};`);
+          lines.push(`  const default${variable.name} = ${getInitializer(variable.name, variable.type, defaultValue)};`);
           lines.push(`  store_${variable.name}(default${variable.name});`);
         }
         break;
@@ -66,7 +66,7 @@ function getDefaultValueForType(type: AbiType | string): string {
   }
 }
 
-function getInitializer(type: AbiType | string, defaultValue: string): string {
+function getInitializer(name: string, type: AbiType | string, defaultValue: string): string {
   switch (type) {
     case AbiType.Uint256:
       return `U256.create()`;
@@ -77,11 +77,8 @@ function getInitializer(type: AbiType | string, defaultValue: string): string {
     case AbiType.String:
       return `Str.create()`;
     case AbiType.Struct:
-      return `${type}_alloc()`;
+      return `${name}_alloc()`;
     default:
-      if (typeof type === "string" && (type.endsWith("Test") || type.includes("Struct"))) {
-        return `${type}_alloc()`;
-      }
       return defaultValue;
   }
 }

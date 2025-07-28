@@ -75,4 +75,8 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/nested-functions"),
     abi: path.join(ROOT_PATH, "/nested-functions/artifacts/abi/contract-abi.json"),
   },
+  FUNCTION_CALLED_IN_ARGS: {
+    contract: path.join(ROOT_PATH, "/functions-called-in-args"),
+    abi: path.join(ROOT_PATH, "/functions-called-in-args/artifacts/abi/contract-abi.json"),
+  },
 } as const;
