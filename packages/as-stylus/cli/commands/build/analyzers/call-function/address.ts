@@ -25,6 +25,6 @@ export function buildAddressIR(target: string, call: CallExpression, symbolTable
   const targetSymbol = symbolTable.lookup(varName);
   const scope = targetSymbol?.scope ?? "memory";
 
-  return { kind: "call", target, args, returnType: returnType[operation], scope };
+  return { kind: "call", target, args, type: AbiType.Function, returnType: returnType[operation], scope };
 }
 

@@ -135,7 +135,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       return buildAddressIR(target, this.call, this.symbolTable);
     }
 
-    return { kind: "call", target, args, returnType: this.getReturnType(target), scope };
+    return { kind: "call", target, args, type: AbiType.Function, returnType: this.getReturnType(target), scope };
   }
 
   private lookupSlot(fqName: string): number | undefined {

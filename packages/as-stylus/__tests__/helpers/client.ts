@@ -1,6 +1,3 @@
-// ---------------------------------------------------------------
-//  Utils — build / deploy / call helpers for Stylus e2e tests
-// ---------------------------------------------------------------
 import { config } from "dotenv";
 import {
   createWalletClient,

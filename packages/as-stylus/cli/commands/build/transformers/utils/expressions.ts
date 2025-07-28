@@ -36,6 +36,13 @@ export function emitExpression(expr: IRExpression, isInStatement: boolean = fals
   if (expr.kind === "binary" && expr.op === "=" && expr.left.kind === "var" && expr.left.scope === "storage") {
     const property = expr.left.name;
     const rightResult = emitExpression(expr.right);
+
+    if (expr.right.type === AbiType.Bool) {
+      return {
+        setupLines: rightResult.setupLines,
+        valueExpr: `store_${property}(Boolean.toABI(${rightResult.valueExpr}))`
+      };
+    }
     return {
       setupLines: rightResult.setupLines,
       valueExpr: `store_${property}(${rightResult.valueExpr})`
@@ -86,7 +93,7 @@ function handleFallbackExpression(expr: IRExpression): string {
       if (expr.scope === "storage") {
         // TODO: can we use generateLoadCode?
         if (expr.type === "bool") {
-          return `Boolean.toABI(load_${expr.name}())`;
+          return `Boolean.fromABI(load_${expr.name}())`;
         }
         return `load_${expr.name}()`;
       }
