@@ -7,12 +7,7 @@ import { Address, Hex, WalletClient } from "viem";
 config();
 
 import { contractService, getWalletClient } from "../helpers/client.js";
-import {
-  CONTRACT_PATHS,
-  CONTRACT_ADDRESS_REGEX,
-  DEPLOY_TIMEOUT,
-  PRIVATE_KEY,
-} from "../helpers/constants.js";
+import { CONTRACT_PATHS, DEPLOY_TIMEOUT, PRIVATE_KEY } from "../helpers/constants.js";
 import { setupE2EContract } from "../helpers/setup.js";
 import { StructInfo } from "../helpers/types.js";
 import { handleDeploymentError } from "../helpers/utils.js";
@@ -34,7 +29,7 @@ const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.STRUCT;
  */
 beforeAll(async () => {
   try {
-    contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
+    contract = await setupE2EContract(contractPath, abiPath, {
       walletClient,
     });
   } catch (error: unknown) {

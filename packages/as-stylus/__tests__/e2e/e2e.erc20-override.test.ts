@@ -7,7 +7,6 @@ import { Address, Hex, WalletClient } from "viem";
 import { contractService, getWalletClient } from "../helpers/client.js";
 import {
   CONTRACT_PATHS,
-  CONTRACT_ADDRESS_REGEX,
   DEPLOY_TIMEOUT,
   PRIVATE_KEY,
   USER_B_PRIVATE_KEY,
@@ -38,7 +37,7 @@ const getUserBAddress = () => userBWallet.account?.address as Address;
 beforeAll(async () => {
   try {
     fundUser(getUserBAddress());
-    contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
+    contract = await setupE2EContract(contractPath, abiPath, {
       deployArgs: [INIT_SUPPLY],
       walletClient: ownerWallet,
     });
