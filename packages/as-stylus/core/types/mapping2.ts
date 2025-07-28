@@ -4,7 +4,7 @@ import { mapLoadHash, mapStoreHash, createMappingKey } from "../modules/storage"
 
 const ADDRESS_LEN: u32 = 32;
 
-export class Mapping2 {
+export class MappingNested {
   static setU256(slot: u64, k1: usize, k2: usize, val: usize): void {
     const slot1 = createMappingKey(slot, k1, ADDRESS_LEN);
     mapStoreHash(slot1, k2, ADDRESS_LEN, val);

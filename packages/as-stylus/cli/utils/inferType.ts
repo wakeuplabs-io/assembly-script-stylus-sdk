@@ -45,8 +45,8 @@ export function inferType(target: string): AbiType {
     return AbiType.Struct;
   }
 
-  if (/^Mapping2(<|$)/.test(target)) {
-    return AbiType.Mapping2;
+  if (/^MappingNested(<|$)/.test(target)) {
+    return AbiType.MappingNested;
   }
 
   if (/^Mapping(<|$)/.test(target)) {

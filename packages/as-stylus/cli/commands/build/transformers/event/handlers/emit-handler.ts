@@ -1,4 +1,4 @@
-import { AbiType } from "@/cli/types/abi.types.js";
+import { AbiType, AssemblyScriptType } from "@/cli/types/abi.types.js";
 import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
 import { IREvent } from "@/cli/types/ir.types.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
@@ -63,7 +63,7 @@ export class EventEmitHandler implements ExpressionHandler {
       setup.push(`const ${dataTemp}: usize = malloc(${nonIndexed.length * 32});`);
       nonIndexed.forEach((ptr, idx) => {
         const field = meta.fields.filter(f => !f.indexed)[idx];
-        if (field.type === AbiType.Bool) {
+        if (field.type === AssemblyScriptType.Bool) {
           setup.push(`U256.copy(${dataTemp} + ${idx * 32}, Boolean.toABI(${ptr}));`);
         } else {
           setup.push(`U256.copy(${dataTemp} + ${idx * 32}, ${ptr});`);

@@ -74,7 +74,7 @@ export type IRMapGet2 = {
   keyType1: string;
   keyType2: string;
   valueType: string;
-  type: AbiType.Mapping2;
+  type: AbiType.MappingNested;
 };
 
 export type IRMapSet2 = {
@@ -86,7 +86,7 @@ export type IRMapSet2 = {
   keyType1: string;
   keyType2: string;
   valueType: string;
-  type: AbiType.Mapping2;
+  type: AbiType.MappingNested;
 };
 
 export type ComparisonOperator = "==" | "!=" | "<" | "<=" | ">" | ">=";
@@ -182,9 +182,9 @@ export type IRMappingVar = {
   valueType: string;
   kind: "mapping";
 };
-export type IRMapping2Var = {
+export type IRMappingNestedVar = {
   name: string;
-  type: AbiType.Mapping2;
+  type: AbiType.MappingNested;
   slot: number;
   keyType1: string;
   keyType2: string;
@@ -192,7 +192,7 @@ export type IRMapping2Var = {
   kind: "mapping2";
 };
 
-export type IRVariable = IRSimpleVar | IRMappingVar | IRMapping2Var;
+export type IRVariable = IRSimpleVar | IRMappingVar | IRMappingNestedVar;
 
 // ───────────────────────
 // Contract structure

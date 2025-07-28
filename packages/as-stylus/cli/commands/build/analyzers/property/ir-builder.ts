@@ -13,7 +13,7 @@ import { IRBuilder } from "../shared/ir-builder.js";
  * Extracts generic types from mapping declarations
  * Examples:
  *   "Mapping<U256, Address>" → { keyType: "U256", valueType: "Address" }
- *   "Mapping2<Address, Address, boolean>" → { keyType1: "Address", keyType2: "Address", valueType: "boolean" }
+ *   "MappingNested<Address, Address, boolean>" → { keyType1: "Address", keyType2: "Address", valueType: "boolean" }
  */
 function extractMappingTypes(typeText: string): {
   keyType?: string;
@@ -22,7 +22,7 @@ function extractMappingTypes(typeText: string): {
   keyType2?: string;
 } {
   const cleanType = typeText.replace(/\s/g, "");
-  const genericMatch = cleanType.match(/^Mapping2?<(.+)>$/);
+  const genericMatch = cleanType.match(/^MappingNested?<(.+)>$/);
   
   if (!genericMatch) {
     return {};
@@ -31,7 +31,7 @@ function extractMappingTypes(typeText: string): {
   const genericContent = genericMatch[1];
   const types = genericContent.split(',');
   
-  if (cleanType.startsWith('Mapping2<') && types.length === 3) {
+  if (cleanType.startsWith('MappingNested<') && types.length === 3) {
     return {
       keyType1: types[0],
       keyType2: types[1], 
@@ -70,10 +70,10 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     const fullTypeText = this.property.getType().getText();
     const mappingTypes = extractMappingTypes(fullTypeText);
     
-    if (type === AbiType.Mapping2) {
+    if (type === AbiType.MappingNested) {
       const variable: IRVariable = {
         name,
-        type: AbiType.Mapping2,
+        type: AbiType.MappingNested,
         slot: this.slot,
         keyType1: mappingTypes.keyType1 || "Address",
         keyType2: mappingTypes.keyType2 || "Address", 
