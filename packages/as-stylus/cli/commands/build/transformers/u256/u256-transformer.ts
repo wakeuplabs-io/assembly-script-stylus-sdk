@@ -46,7 +46,7 @@ export class U256Transformer extends BaseTypeTransformer {
       }
 
       // Arithmetic operations
-      if (target.endsWith(".add") || target.endsWith(".sub")) {
+      if (target.endsWith(".add") || target.endsWith(".sub") || target.endsWith(".mul") || target.endsWith(".div") || target.endsWith(".mod") || target.endsWith(".pow")) {
         return true;
       }
 

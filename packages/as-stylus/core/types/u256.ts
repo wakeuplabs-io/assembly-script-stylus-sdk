@@ -189,6 +189,123 @@ export class U256 {
     return this.equals(a, b);
   }
 
+  static mul(dest: usize, src: usize): usize {
+    // Simple multiplication implementation
+    // For now, we'll use a basic approach
+    const result = this.create();
+    const temp = this.create();
+
+    // Copy dest to result
+    this.copy(result, dest);
+
+    // For each bit in src, shift and add
+    for (let i = 0; i < 256; ++i) {
+      const byteIndex = i >> 3;
+      const bitIndex = i & 7;
+      const bit = <u8>((load<u8>(src + byteIndex) >> (<u8>bitIndex)) & 1);
+
+      if (bit) {
+        this.add(temp, result);
+        this.copy(result, temp);
+      }
+
+      // Shift left by 1
+      let carry: u16 = 0;
+      for (let j = 31; j >= 0; --j) {
+        const shifted = (load<u8>(result + j) << 1) | carry;
+        store<u8>(result + j, <u8>shifted);
+        carry = shifted >> 8;
+      }
+    }
+
+    this.copy(dest, result);
+    return dest;
+  }
+
+  static div(dest: usize, src: usize): usize {
+    // Check for division by zero
+    if (this.equals(src, this.create())) {
+      panicArithmeticOverflow();
+    }
+
+    const result = this.create();
+    const remainder = this.create();
+    const divisor = this.create();
+    this.copy(divisor, src);
+
+    // Long division algorithm
+    for (let i = 0; i < 256; ++i) {
+      // Shift remainder left
+      let carry: u16 = 0;
+      for (let j = 31; j >= 0; --j) {
+        const shifted = (load<u8>(remainder + j) << 1) | carry;
+        store<u8>(remainder + j, <u8>shifted);
+        carry = shifted >> 8;
+      }
+
+      // Get bit from dividend
+      const byteIndex = i >> 3;
+      const bitIndex = i & 7;
+      const bit = <u8>((load<u8>(dest + byteIndex) >> (<u8>bitIndex)) & 1);
+      if (bit) {
+        store<u8>(remainder + 31, load<u8>(remainder + 31) | 1);
+      }
+
+      // Compare remainder with divisor
+      if (!this.lessThan(remainder, divisor)) {
+        this.sub(remainder, divisor);
+        // Set bit in result
+        const resultByteIndex = i >> 3;
+        const resultBitIndex = i & 7;
+        store<u8>(
+          result + resultByteIndex,
+          load<u8>(result + resultByteIndex) | (<u8>(1 << (<u8>resultBitIndex))),
+        );
+      }
+    }
+
+    this.copy(dest, result);
+    return dest;
+  }
+
+  static mod(dest: usize, src: usize): usize {
+    // Check for modulo by zero
+    if (this.equals(src, this.create())) {
+      panicArithmeticOverflow();
+    }
+
+    const quotient = this.create();
+    this.copy(quotient, dest);
+    this.div(quotient, src);
+    this.mul(quotient, src);
+    this.sub(dest, quotient);
+    return dest;
+  }
+
+  static pow(dest: usize, exponent: usize): usize {
+    const result = this.create();
+    store<u8>(result + 31, 1); // result = 1
+
+    const base = this.create();
+    this.copy(base, dest);
+
+    // Binary exponentiation
+    for (let i = 0; i < 256; ++i) {
+      const byteIndex = i >> 3;
+      const bitIndex = i & 7;
+      const bit = <u8>((load<u8>(exponent + byteIndex) >> (<u8>bitIndex)) & 1);
+
+      if (bit) {
+        this.mul(result, base);
+      }
+
+      this.mul(base, base);
+    }
+
+    this.copy(dest, result);
+    return dest;
+  }
+
   /*──────────────────────────*
    *  Internal helpers         *
    *──────────────────────────*/

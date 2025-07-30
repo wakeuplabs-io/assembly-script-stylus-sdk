@@ -111,7 +111,6 @@ function emitStatement(s: IRStatement, indent: string): string {
         code = `${indent}return;`;
         break;
       }
-    
       const exprResult = emitExpression(s.expr);
       let type = (s.expr as { type: SupportedType }).type;
 
@@ -123,7 +122,6 @@ function emitStatement(s: IRStatement, indent: string): string {
       if (type === AbiType.String) {
         baseExpr = `Str.toABI(${exprResult.valueExpr})`;
       }
-
     
       // For boolean mappings, don't wrap with Boolean.create() since they already return proper format
       const isBooleanMapping = baseExpr.includes("MappingNested.getBoolean") || 
