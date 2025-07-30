@@ -54,11 +54,6 @@ export abstract class BaseTypeTransformer implements TypeTransformer {
   abstract generateLoadCode(property: string): string;
 
   /**
-   * Generates code to store a value of this type to storage
-   */
-  abstract generateStoreCode(property: string, valueExpr: string): string;
-
-  /**
    * Determines if this transformer can handle the given expression
    */
   abstract matchesType(expr: any): boolean;

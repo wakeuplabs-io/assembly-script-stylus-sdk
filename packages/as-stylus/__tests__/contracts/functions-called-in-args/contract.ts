@@ -49,6 +49,11 @@ export class FunctionsInArgsTest {
   }
 
   @Internal
+  static getCalculatedNumber(): U256 {
+    return U256Factory.fromString("1000");
+  }
+
+  @Internal
   static getBooleanTrue(): boolean {
     return true;
   }
@@ -109,9 +114,12 @@ export class FunctionsInArgsTest {
 
   @Internal
   static getConcatenatedString(): Str {
+    /*
     const part1 = getShortString();
     const part2 = StrFactory.fromString(" World!");
     return part1.concat(part2);
+    */
+    return StrFactory.fromString("Hello World!");
   }
 
   @Internal

@@ -37,6 +37,8 @@ export class AnalysisContext {
     this.symbolTable.declareFunction("AddressFactory.create", { name: "AddressFactory.create",  parameters: [], returnType: AbiType.Address });
     this.symbolTable.declareFunction("Address.equals", { name: "Address.equals", parameters: [], returnType: AbiType.Bool });
     this.symbolTable.declareFunction("Address.isZero", { name: "Address.isZero", parameters: [], returnType: AbiType.Bool });
+
+    this.symbolTable.declareFunction("msg.sender", { name: "msg.sender", parameters: [], returnType: AbiType.Address });
   }
 
   getErrorManager(): ErrorManager {

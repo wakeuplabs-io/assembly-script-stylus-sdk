@@ -326,7 +326,6 @@ interface TypeTransformer {
   matchesType(expr): boolean;
   emit(expr, context, emitExprFn): EmitResult;
   generateLoadCode(property): string;
-  generateStoreCode(property, value): string;
 }
 ```
 

@@ -59,10 +59,6 @@ export class MsgTransformer extends BaseTypeTransformer {
   generateLoadCode(property: string): string {
     return `/* Load no aplicable para msg.${property} */`;
   }
-
-  generateStoreCode(property: string, _valueExpr: string): string {
-    return `/* Store no aplicable para msg.${property} */`;
-  }
 }
 
 export const msgTransformer = new MsgTransformer();

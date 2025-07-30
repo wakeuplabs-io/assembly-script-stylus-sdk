@@ -36,5 +36,4 @@ export interface TypeTransformer {
     emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
   ) => EmitResult;
   generateLoadCode: (property: string) => string;
-  generateStoreCode: (property: string, valueExpr: string) => string;
 }

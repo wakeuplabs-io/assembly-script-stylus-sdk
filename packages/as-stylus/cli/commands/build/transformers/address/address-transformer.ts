@@ -49,9 +49,6 @@ export class AddressTransformer extends BaseTypeTransformer {
   }
 
   generateLoadCode(prop: string): string  { return `load_${prop}()`; }
-  generateStoreCode(prop: string, val: string): string {
-    return `store_${prop}(${val});`;
-  }
 }
 
 export const AddressTransformerInstance = new AddressTransformer();

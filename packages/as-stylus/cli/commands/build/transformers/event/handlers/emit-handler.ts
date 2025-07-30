@@ -52,7 +52,11 @@ export class EventEmitHandler implements ExpressionHandler {
     
       if (field.indexed) {
         const size = getReturnSize(field.type as AbiType);
-        setup.push(`addTopic(${topicsTemp} + ${topicOffset}, ${argExpr.valueExpr}, ${size});`);
+        if (field.type === AssemblyScriptType.Bool) {
+          setup.push(`addTopic(${topicsTemp} + ${topicOffset}, Boolean.toABI(${argExpr.valueExpr}), ${size});`);
+        } else {
+          setup.push(`addTopic(${topicsTemp} + ${topicOffset}, ${argExpr.valueExpr}, ${size});`);
+        }
         topicOffset += 32;
       } else {
         nonIndexed.push(argExpr.valueExpr);

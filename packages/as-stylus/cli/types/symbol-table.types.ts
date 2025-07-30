@@ -8,6 +8,7 @@ export type SymbolInfo =
 export interface VariableSymbol {
   name: string;
   type: AbiType;
+  dynamicType?: string;
   scope: "storage" | "memory";
 }
 
@@ -15,6 +16,7 @@ export interface FunctionSymbol {
   name: string;
   type: AbiType.Function;
   returnType: AbiType;
+  dynamicType?: string;
   parameters: { name: string; type: AbiType }[];
   scope?: undefined;
 }

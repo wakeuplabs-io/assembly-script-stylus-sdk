@@ -33,10 +33,6 @@ export class EventTransformer extends BaseTypeTransformer {
   generateLoadCode(_property: string): string {
     return `/* Events do not support load operations */`;
   }
-  
-  generateStoreCode(_property: string, _valueExpr: string): string {
-    return `/* Events do not support store operations */`;
-  }
 }
 
 export function generateEventSignature(event: IREvent): string {

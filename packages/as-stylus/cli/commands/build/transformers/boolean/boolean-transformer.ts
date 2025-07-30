@@ -54,13 +54,6 @@ export class BooleanTransformer extends BaseTypeTransformer {
   generateLoadCode(property: string): string {
     return `load_bool(${property})`;
   }
-
-  /**
-   * Generates code to store a boolean value to storage
-   */
-  generateStoreCode(property: string, valueExpr: string): string {
-    return `store_bool(${property}, ${valueExpr});`;
-  }
 }
 
 // Export concrete instance and register it

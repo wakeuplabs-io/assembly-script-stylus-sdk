@@ -86,13 +86,6 @@ export class U256Transformer extends BaseTypeTransformer {
   generateLoadCode(property: string): string {
     return `load_${property}()`;
   }
-
-  /**
-   * Generates code to store a U256 value to storage
-   */
-  generateStoreCode(property: string, valueExpr: string): string {
-    return `store_${property}(${valueExpr});`;
-  }
 }
 
 // Export concrete instance and register it

@@ -46,9 +46,6 @@ export class StrTransformer extends BaseTypeTransformer {
     return `load_${prop}()`;
   }
 
-  generateStoreCode(prop: string, val: string): string {
-    return `store_${prop}(${val});`;
-  }
 }
 
 export const StrTransformerInstance = new StrTransformer();

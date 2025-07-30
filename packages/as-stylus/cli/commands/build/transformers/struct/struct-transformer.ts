@@ -75,7 +75,7 @@ export class StructTransformer extends BaseTypeTransformer {
           
           return {
             setupLines: [...objectArg.setupLines],
-            valueExpr: `${structName}_get_${fieldName}(${objectArg.valueExpr})`,
+            valueExpr: `${structName}_get_${fieldName}()`,
             valueType: "usize"
           };
         }
@@ -116,10 +116,6 @@ export class StructTransformer extends BaseTypeTransformer {
 
   generateLoadCode(prop: string): string {
     return `load_${prop}()`;
-  }
-
-  generateStoreCode(prop: string, val: string): string {
-    return `store_${prop}(${val});`;
   }
 }
 

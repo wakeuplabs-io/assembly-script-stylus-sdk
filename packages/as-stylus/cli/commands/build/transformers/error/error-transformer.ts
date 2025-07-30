@@ -33,10 +33,6 @@ export class ErrorTransformer extends BaseTypeTransformer {
   generateLoadCode(_property: string): string {
     return `/* Errors do not support load operations */`;
   }
-  
-  generateStoreCode(_property: string, _valueExpr: string): string {
-    return `/* Errors do not support store operations */`;
-  }
 }
 
 export function generateErrorSignature(error: IRErrorDecl): string {

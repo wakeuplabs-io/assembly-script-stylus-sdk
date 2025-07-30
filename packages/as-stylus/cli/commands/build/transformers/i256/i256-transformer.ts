@@ -91,13 +91,6 @@ export class I256Transformer extends BaseTypeTransformer {
   generateLoadCode(property: string): string {
     return `load_${property}()`;
   }
-
-  /**
-   * Generates storage store code for I256 properties
-   */
-  generateStoreCode(property: string, value: string): string {
-    return `store_${property}(${value});`;
-  }
 }
 
 // Register the transformer

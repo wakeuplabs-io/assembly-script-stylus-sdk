@@ -28,7 +28,8 @@ export function generateDeployFunction(contract: IRContract): string {
           lines.push(`  const empty${variable.name} = Str.create();`);
           lines.push(`  store_${variable.name}(empty${variable.name});`);
         } else {
-          lines.push(`  const default${variable.name} = ${getInitializer(variable.name, variable.type, defaultValue)};`);
+          const symbol = contract.symbolTable.lookup(variable.name);
+          lines.push(`  const default${variable.name} = ${getInitializer(variable.type as AbiType, defaultValue, symbol?.dynamicType)};`);
           lines.push(`  store_${variable.name}(default${variable.name});`);
         }
         break;
@@ -66,7 +67,7 @@ function getDefaultValueForType(type: AbiType | string): string {
   }
 }
 
-function getInitializer(name: string, type: AbiType | string, defaultValue: string): string {
+function getInitializer(type: AbiType, defaultValue: string, dynamicType?: string): string {
   switch (type) {
     case AbiType.Uint256:
       return `U256.create()`;
@@ -77,7 +78,7 @@ function getInitializer(name: string, type: AbiType | string, defaultValue: stri
     case AbiType.String:
       return `Str.create()`;
     case AbiType.Struct:
-      return `${name}_alloc()`;
+      return `${dynamicType}_alloc()`;
     default:
       return defaultValue;
   }

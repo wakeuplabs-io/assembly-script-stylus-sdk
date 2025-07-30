@@ -18,6 +18,35 @@ export function initExpressionContext(name: string, parentName?: string): void {
 }
 
 /**
+ * Handles boolean storage assignments with proper ABI conversion
+ * @param property - The storage property name
+ * @param expr - The binary expression containing the assignment
+ * @param rightResult - The emitted result from the right-hand side expression
+ * @returns EmitResult with setup lines and storage assignment expression
+ */
+  function handleBooleanStorageAssignment(property: string, expr: { kind: "binary"; right: IRExpression }, rightResult: EmitResult): EmitResult {
+    let result = rightResult.valueExpr;
+
+    if (expr.right.kind === "literal") {
+      result = `Boolean.toABI(${rightResult.valueExpr})`;
+
+      return {
+        setupLines: rightResult.setupLines,
+        valueExpr: `store_${property}(${result})`
+      };
+    }
+
+    if (rightResult.valueExpr.includes("Boolean.fromABI(")) {
+      result = rightResult.valueExpr.replace("Boolean.fromABI(", "").replace(/\)$/, "");
+    }
+
+    return {
+    setupLines: rightResult.setupLines,
+    valueExpr: `store_${property}(${result})`
+  };
+}
+
+/**
  * Main function to emit code from an expression.
  * Returns an EmitResult object with setup lines and value expression.
  *
@@ -31,18 +60,16 @@ function emitExpressionWrapper(expr: IRExpression, ctx: EmitContext): EmitResult
 
 export function emitExpression(expr: IRExpression, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
-  
+
   // Special handling for storage assignments to preserve setupLines
   if (expr.kind === "binary" && expr.op === "=" && expr.left.kind === "var" && expr.left.scope === "storage") {
     const property = expr.left.name;
     const rightResult = emitExpression(expr.right);
 
-    if (expr.right.type === AbiType.Bool) {
-      return {
-        setupLines: rightResult.setupLines,
-        valueExpr: `store_${property}(Boolean.toABI(${rightResult.valueExpr}))`
-      };
+    if (expr.left.type === AbiType.Bool) {
+      return handleBooleanStorageAssignment(property, expr, rightResult);
     }
+
     return {
       setupLines: rightResult.setupLines,
       valueExpr: `store_${property}(${rightResult.valueExpr})`
@@ -91,10 +118,6 @@ function handleFallbackExpression(expr: IRExpression): string {
      */
     case "var": {
       if (expr.scope === "storage") {
-        // TODO: can we use generateLoadCode?
-        if (expr.type === "bool") {
-          return `Boolean.fromABI(load_${expr.name}())`;
-        }
         return `load_${expr.name}()`;
       }
       return expr.name;
