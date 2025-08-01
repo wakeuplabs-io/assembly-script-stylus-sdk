@@ -146,7 +146,7 @@ export function ${structName}_copy(dst: usize, src: usize): void {
     if (field.type === AbiType.String || field.type === "Str") {
       // Special handling for strings - read directly from storage
       helpers.push(`
-export function ${structName}_get_${field.name}(ptr: usize): usize {
+export function ${structName}_get_${field.name}(): usize {
   return Struct.getString(__SLOT${slotNumber});
 }`);
     } else if (field.type === AbiType.Bool) {
@@ -212,7 +212,6 @@ export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
  */
 export function registerStructTransformer(contract: IRContract): string[] {
   const parts: string[] = [];
-  
   if (contract.structs && contract.structs.length > 0) {
     contract.structs.forEach(struct => {
       const structVariable = contract.storage.find(v => {

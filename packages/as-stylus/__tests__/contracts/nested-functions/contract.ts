@@ -1,12 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
-@Struct
-export class Person {
-  name: Str;
-  lastName: Str;
-}
-
 @Contract
 export class NestedFunctions {
   // Boolean methods

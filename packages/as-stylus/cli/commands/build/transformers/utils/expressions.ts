@@ -12,17 +12,13 @@ export const globalContext: EmitContext = {
   ptrCounter: 0,
 };
 
-export function initExpressionContext(name: string, parentName?: string): void {
-  globalContext.contractName = name;
-  globalContext.parentName = parentName || "";
-}
-
 /**
  * Handles boolean storage assignments with proper ABI conversion
  * @param property - The storage property name
  * @param expr - The binary expression containing the assignment
  * @param rightResult - The emitted result from the right-hand side expression
  * @returns EmitResult with setup lines and storage assignment expression
+ * @deprecated
  */
   function handleBooleanStorageAssignment(property: string, expr: { kind: "binary"; right: IRExpression }, rightResult: EmitResult): EmitResult {
     let result = rightResult.valueExpr;
@@ -34,10 +30,6 @@ export function initExpressionContext(name: string, parentName?: string): void {
         setupLines: rightResult.setupLines,
         valueExpr: `store_${property}(${result})`
       };
-    }
-
-    if (rightResult.valueExpr.includes("Boolean.fromABI(")) {
-      result = rightResult.valueExpr.replace("Boolean.fromABI(", "").replace(/\)$/, "");
     }
 
     return {
@@ -86,15 +78,6 @@ export function emitExpression(expr: IRExpression, isInStatement: boolean = fals
     setupLines: [],
     valueExpr: handleFallbackExpression(expr),
   };
-}
-
-/**
- * Compatibility function for existing code that expects a string.
- * @deprecated Use emitExpression that returns EmitResult
- */
-export function emitExpressionAsString(expr: IRExpression, isInStatement: boolean = false): string {
-  const result = emitExpression(expr, isInStatement);
-  return result.valueExpr;
 }
 
 function handleFallbackExpression(expr: IRExpression): string {
@@ -272,7 +255,10 @@ function handleFallbackExpression(expr: IRExpression): string {
 
     case "unary": {
       const exprResult = emitExpression(expr.expr);
-      return `${expr.op}${exprResult.valueExpr}`;
+      if (expr.type === AbiType.Bool) {
+        return `${expr.op}(${exprResult.valueExpr})`;
+      }
+      return `${exprResult.valueExpr}`;
     }
 
     /**

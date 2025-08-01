@@ -1,10 +1,10 @@
 import { IRContract, IRMethod } from "../../../../types/ir.types.js";
 import { registerErrorTransformer } from "../error/error-transformer.js";
 import { registerEventTransformer } from "../event/event-transformer.js";
+import { ExpressionHandler } from "../expressions/expression-handler.js";
 import { registerStructTransformer } from "../struct/struct-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
-import { initExpressionContext } from "../utils/expressions.js";
 import { emitStatements } from "../utils/statements.js";
 import { generateImports, generateStorageHelpers } from "../utils/storage.js";
 
@@ -38,14 +38,14 @@ function generateMethodSignature(method: IRMethod): ArgumentSignature {
  * @param method Method to generate code for
  * @returns Generated method code
  */
-function generateMethod(method: IRMethod): string {
+function generateMethod(method: IRMethod, expressionHandler: ExpressionHandler): string {
   let returnType = "void";
   if (method.outputs && method.outputs.length > 0 && method.outputs[0].type !== "void") {
     returnType = "usize";
   }
 
   const { argsSignature, aliasLines } = generateMethodSignature(method);
-  const body = emitStatements(method.ir);
+  const body = emitStatements(method.ir, expressionHandler);
 
   const methodLines = [
     `export function ${method.name}(${argsSignature}): ${returnType} {`,
@@ -63,7 +63,8 @@ function generateMethod(method: IRMethod): string {
  * @returns Generated AssemblyScript code
  */
 export function emitContract(contract: IRContract): string {
-  initExpressionContext(contract.name, contract.parent?.name);
+  // Initialize context-aware expression handler with contract information
+  const expressionHandler = new ExpressionHandler(contract.name, contract.parent?.name);
   const parts: string[] = [];
 
   // Add imports
@@ -85,12 +86,12 @@ export function emitContract(contract: IRContract): string {
   
   // Add constructor
   if (contract.constructor) {
-    parts.push(generateDeployFunction(contract));
+    parts.push(generateDeployFunction(contract, expressionHandler));
     parts.push("");
   }
 
   // Add methods
-  const methodParts = contract.methods.map(method => generateMethod(method));
+  const methodParts = contract.methods.map(method => generateMethod(method, expressionHandler));
 
   parts.push(...methodParts);
 

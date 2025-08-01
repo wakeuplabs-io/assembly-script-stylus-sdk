@@ -3,8 +3,9 @@ import { IRContract } from "@/cli/types/ir.types.js";
 
 import { generateArgsLoadBlock } from "./args.js";
 import { emitStatements } from "./statements.js";
+import { ExpressionHandler } from "../expressions/expression-handler.js";
 
-export function generateDeployFunction(contract: IRContract): string {
+export function generateDeployFunction(contract: IRContract, expressionHandler: ExpressionHandler): string {
   const lines: string[] = [];
   
   if (contract.constructor) {
@@ -37,7 +38,7 @@ export function generateDeployFunction(contract: IRContract): string {
   });
 
   if (contract.constructor) {
-    const constructorBody = emitStatements(contract.constructor.ir);
+    const constructorBody = emitStatements(contract.constructor.ir, expressionHandler);
     if (constructorBody.trim()) {
       lines.push(constructorBody);
     }

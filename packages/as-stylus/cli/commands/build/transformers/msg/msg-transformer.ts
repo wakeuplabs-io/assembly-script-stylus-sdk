@@ -1,7 +1,6 @@
 import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
 import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
 
-// Interfaces para tipos de expresiones
 interface Expression {
   kind: string;
   [key: string]: unknown;
@@ -31,12 +30,9 @@ export class MsgTransformer extends BaseTypeTransformer {
 
   protected handleDefault(
     expr: MemberExpression,
-    // Los siguientes parámetros son requeridos por la interfaz pero no los usamos
-    // en este transformador concreto para msg.sender y similares
     _context: EmitContext,
     _emitExprFn: (expr: Expression, ctx: EmitContext) => EmitResult
   ): EmitResult {
-    // Manejamos las diferentes propiedades de msg
     switch (expr.property) {
       case "sender":
         return { 
@@ -51,13 +47,13 @@ export class MsgTransformer extends BaseTypeTransformer {
       default:
         return {
           setupLines: [],
-          valueExpr: `/* Propiedad de msg no soportada: ${expr.property} */`
+          valueExpr: `/* Unsupported msg property: ${expr.property} */`
         };
     }
   }
 
   generateLoadCode(property: string): string {
-    return `/* Load no aplicable para msg.${property} */`;
+    return `/* Unsupported msg property: ${property} */`;
   }
 }
 

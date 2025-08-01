@@ -1,15 +1,16 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression, IRStatement } from "@/cli/types/ir.types.js";
 
-import { emitExpression } from "./expressions.js";
 import { SupportedType } from "../../analyzers/shared/supported-types.js";
-
+import { ExpressionHandler } from "../expressions/expression-handler.js";
 /**
  * Emits code for a list of statements with indentation
+ * @param statements List of IR statements to emit
+ * @param expressionHandler Optional context-aware expression handler
  */
-export function emitStatements(statements: IRStatement[]): string {
+export function emitStatements(statements: IRStatement[], expressionHandler: ExpressionHandler): string {
   return statements
-    .map((s) => emitStatement(s, "  "))
+    .map((s) => emitStatement(s, "  ", expressionHandler))
     .filter((s) => s) // Filter empty statements
     .join("\n");
 }
@@ -19,9 +20,14 @@ export function emitStatements(statements: IRStatement[]): string {
  *
  * This function examines an IR statement and generates the corresponding AssemblyScript code.
  * Each statement type has its own code generation logic.
+ * @param s IR statement to emit
+ * @param indent Indentation string
+ * @param expressionHandler Optional context-aware expression handler
  */
-function emitStatement(s: IRStatement, indent: string): string {
+function emitStatement(s: IRStatement, indent: string, expressionHandler: ExpressionHandler): string {
   let code = "";
+  const handler = expressionHandler;
+
   switch (s.kind) {
     /**
      * Case "let": Variable declaration
@@ -34,7 +40,7 @@ function emitStatement(s: IRStatement, indent: string): string {
      * without needing special cases here
      */
     case "let": {
-      const result = emitExpression(s.expr, true);
+      const result = handler.emitExpression(s.expr, true);
       if (result.setupLines && result.setupLines.length > 0) {
         const lines = [...result.setupLines.map((line) => `${indent}${line}`)];
         lines.push(`${indent}let ${s.name} = ${result.valueExpr};`);
@@ -54,7 +60,7 @@ function emitStatement(s: IRStatement, indent: string): string {
      * Similar to let but uses const keyword for immutable variables.
      */
     case "const": {
-      const result = emitExpression(s.expr, true);
+      const result = handler.emitExpression(s.expr, true);
       if (result.setupLines && result.setupLines.length > 0) {
         const lines = [...result.setupLines.map((line) => `${indent}${line}`)];
         lines.push(`${indent}const ${s.name} = ${result.valueExpr};`);
@@ -76,7 +82,7 @@ function emitStatement(s: IRStatement, indent: string): string {
      * generates code that stores the results in storage.
      */
     case "expr": {
-      const exprResult = emitExpression(s.expr, true);
+      const exprResult = handler.emitExpression(s.expr, true);
 
       if (exprResult.statementLines?.length) {
         return exprResult.statementLines.map((l) => indent + l).join("\n");
@@ -112,7 +118,7 @@ function emitStatement(s: IRStatement, indent: string): string {
         break;
       }
     
-      const exprResult = emitExpression(s.expr);
+      const exprResult = handler.emitExpression(s.expr);
       let type = (s.expr as { type: SupportedType }).type;
 
       if (s.expr.kind === "call") {
@@ -134,7 +140,7 @@ function emitStatement(s: IRStatement, indent: string): string {
       if (isBooleanMapping) {
         // Mapping booleans already return correct 32-byte format
         returnExpr = baseExpr;
-      } else if (type === AbiType.Bool && !baseExpr.includes("_storage")) {
+      } else if (type === AbiType.Bool && !baseExpr.includes("_storage") && !baseExpr.includes("load")) {
         // Regular boolean literals get wrapped with Boolean.create()
         returnExpr = `Boolean.create(${baseExpr})`;
       } else {
@@ -175,7 +181,7 @@ function emitStatement(s: IRStatement, indent: string): string {
      * 'then' block and the optional 'else' block.
      */
     case "if": {
-      const condResult = emitExpression(s.condition);
+      const condResult = handler.emitExpression(s.condition);
 
       let lines: string[] = [];
       if (condResult.setupLines.length > 0) {
@@ -184,7 +190,7 @@ function emitStatement(s: IRStatement, indent: string): string {
 
       lines.push(`${indent}if (${condResult.valueExpr}) {`);
       lines.push(
-        emitStatements(s.then)
+        emitStatements(s.then, expressionHandler)
           .split("\n")
           .map((line) => `${indent}${line}`)
           .join("\n"),
@@ -194,7 +200,7 @@ function emitStatement(s: IRStatement, indent: string): string {
       if (s.else && s.else.length > 0) {
         lines[lines.length - 1] += " else {"; // Añadir el 'else' a la línea del cierre de '}'
         lines.push(
-          emitStatements(s.else)
+          emitStatements(s.else, expressionHandler)
             .split("\n")
             .map((line) => `${indent}${line}`)
             .join("\n"),
@@ -226,7 +232,7 @@ function emitStatement(s: IRStatement, indent: string): string {
      */
     case "block": {
       code = `${indent}{\n`;
-      code += emitStatements(s.body)
+      code += emitStatements(s.body, expressionHandler)
         .split("\n")
         .map((line) => `${indent}${line}`)
         .join("\n");
@@ -272,7 +278,7 @@ function emitStatement(s: IRStatement, indent: string): string {
      * Otherwise, it emits a regular assignment statement.
      */
     case "assign": {
-      const exprResult = emitExpression(s.expr);
+      const exprResult = handler.emitExpression(s.expr);
       let lines: string[] = [];
 
       if (exprResult.setupLines.length > 0) {
@@ -318,7 +324,7 @@ function emitStatement(s: IRStatement, indent: string): string {
         scope: "memory"
       };
       
-      const result = emitExpression(revertExpression, true);
+      const result = handler.emitExpression(revertExpression, true);
       
       if (result.setupLines && result.setupLines.length > 0) {
         return result.setupLines.map((line) => `${indent}${line}`).join("\n");
@@ -356,7 +362,7 @@ function emitStatement(s: IRStatement, indent: string): string {
        let initCode = "";
        if (s.init) {
          if (s.init.kind === "let") {
-           const initResult = emitExpression(s.init.expr, true);
+           const initResult = handler.emitExpression(s.init.expr, true);
            if (initResult.setupLines && initResult.setupLines.length > 0) {
              // Add setup lines before the for loop
              lines.push(...initResult.setupLines.map(line => `${indent}${line}`));
@@ -366,7 +372,7 @@ function emitStatement(s: IRStatement, indent: string): string {
            }
          } else {
            // For non-let initialization, emit as statement and extract the code
-           const initStatement = emitStatement(s.init, "");
+           const initStatement = emitStatement(s.init, "", expressionHandler);
            initCode = initStatement.trim();
          }
        }
@@ -374,7 +380,7 @@ function emitStatement(s: IRStatement, indent: string): string {
       // Handle condition (supports U256/I256 comparisons)
       let conditionCode = "";
       if (s.condition) {
-        const condResult = emitExpression(s.condition);
+        const condResult = handler.emitExpression(s.condition);
         if (condResult.setupLines && condResult.setupLines.length > 0) {
           lines.push(...condResult.setupLines.map(line => `${indent}${line}`));
         }
@@ -384,7 +390,7 @@ function emitStatement(s: IRStatement, indent: string): string {
       // Handle update expression  
       let updateCode = "";
       if (s.update) {
-        const updateResult = emitExpression(s.update);
+        const updateResult = handler.emitExpression(s.update);
         updateCode = updateResult.valueExpr;
       }
       
@@ -392,7 +398,7 @@ function emitStatement(s: IRStatement, indent: string): string {
       lines.push(`${indent}for (${initCode}; ${conditionCode}; ${updateCode}) {`);
       
       // Generate body with proper indentation
-      const bodyCode = emitStatements(s.body);
+      const bodyCode = emitStatements(s.body, expressionHandler);
       if (bodyCode.trim()) {
         lines.push(bodyCode.split("\n").map(line => `${indent}${line}`).join("\n"));
       }
@@ -425,7 +431,7 @@ function emitStatement(s: IRStatement, indent: string): string {
        const lines: string[] = [];
       
       // Handle condition (supports U256/I256 comparisons)
-      const condResult = emitExpression(s.condition);
+      const condResult = handler.emitExpression(s.condition);
       if (condResult.setupLines && condResult.setupLines.length > 0) {
         lines.push(...condResult.setupLines.map(line => `${indent}${line}`));
       }
@@ -433,7 +439,7 @@ function emitStatement(s: IRStatement, indent: string): string {
       lines.push(`${indent}while (${condResult.valueExpr}) {`);
       
       // Generate body with proper indentation
-      const bodyCode = emitStatements(s.body);
+      const bodyCode = emitStatements(s.body, expressionHandler);
       if (bodyCode.trim()) {
         lines.push(bodyCode.split("\n").map(line => `${indent}${line}`).join("\n"));
       }
@@ -462,18 +468,18 @@ function emitStatement(s: IRStatement, indent: string): string {
      *
      * Generates code for a do-while loop with proper U256/I256 condition support.
      */
-         case "do_while": {
+      case "do_while": {
        const lines: string[] = [];
       
       lines.push(`${indent}do {`);
       
       // Generate body with proper indentation
-      const bodyCode = emitStatements(s.body);
+      const bodyCode = emitStatements(s.body, expressionHandler);
       if (bodyCode.trim()) {
         lines.push(bodyCode.split("\n").map(line => `${indent}${line}`).join("\n"));
       }
       
-      lines.push(`${indent}} while (${emitExpression(s.condition).valueExpr});`);
+      lines.push(`${indent}} while (${handler.emitExpression(s.condition).valueExpr});`);
       
       return lines.join("\n");
     }

@@ -8,6 +8,10 @@ export class Boolean {
     return ptr;
   }
 
+  static not(value: boolean): boolean {
+    return !value;
+  }
+
   static copyNew(src: usize): usize {
     return Boolean.create(Boolean.fromABI(src));
   }

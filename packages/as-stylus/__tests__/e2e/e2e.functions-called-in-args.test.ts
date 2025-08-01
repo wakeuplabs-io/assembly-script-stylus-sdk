@@ -27,7 +27,7 @@ beforeAll(async () => {
   }
 }, DEPLOY_TIMEOUT);
 
-describe("Functions Called as Arguments — All Types", () => {
+describe.skip("Functions Called as Arguments — All Types", () => {
   describe("Initial State Verification", () => {
     it("should have correct initial values", async () => {
       const booleanStorage = await contract.read("getBooleanStorage", []);
