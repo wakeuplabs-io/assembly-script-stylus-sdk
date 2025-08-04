@@ -41,7 +41,11 @@ export class I256Transformer extends BaseTypeTransformer {
       const target = expr.target || "";
 
       // Factory methods
-      if (target === "I256Factory.create" || target === "I256Factory.fromString" || target === "I256Factory.fromU256") {
+      if (
+        target === "I256Factory.create" ||
+        target === "I256Factory.fromString" ||
+        target === "I256Factory.fromU256"
+      ) {
         return true;
       }
 
@@ -49,22 +53,40 @@ export class I256Transformer extends BaseTypeTransformer {
         return true;
       }
 
-      // Arithmetic operations
-      if (target.endsWith(".add") || target.endsWith(".sub")) {
+      // Check returnType first - this is the most reliable indicator
+      if (expr.returnType === "int256") {
         return true;
       }
 
-      // Comparison methods
-      if (target.endsWith(".lessThan") || target.endsWith(".greaterThan") ||
-          target.endsWith(".lessThanOrEqual") || target.endsWith(".greaterThanOrEqual") ||
-          target.endsWith(".equal") || target.endsWith(".notEqual")) {
-        return true;
+      // For boolean return types, only match I256-specific methods
+      if (expr.returnType === "bool") {
+        if (target.endsWith(".isNegative")) {
+          // isNegative is only available on I256 variables
+          return true;
+        }
+
+        // Comparison methods - only for I256 variables
+        if (
+          target.endsWith(".lessThan") ||
+          target.endsWith(".greaterThan") ||
+          target.endsWith(".lessThanOrEqual") ||
+          target.endsWith(".greaterThanOrEqual") ||
+          target.endsWith(".equal") ||
+          target.endsWith(".notEqual")
+        ) {
+          return true;
+        }
       }
 
-      // Property and conversion methods
-      if (target.endsWith(".isNegative") || target.endsWith(".negate") ||
-          target.endsWith(".abs") || target.endsWith(".toString")) {
-        return true;
+      // For string return types, only match I256-specific methods
+      if (expr.returnType === "string") {
+        if (target.endsWith(".toString")) {
+          // toString could be on any type, so we need to be more specific
+          // For now, only match if it's explicitly an I256 method
+          if (target.startsWith("I256.")) {
+            return true;
+          }
+        }
       }
     }
     return false;
@@ -101,4 +123,4 @@ export class I256Transformer extends BaseTypeTransformer {
 }
 
 // Register the transformer
-registerTransformer(new I256Transformer()); 
+registerTransformer(new I256Transformer());

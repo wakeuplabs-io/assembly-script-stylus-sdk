@@ -45,21 +45,33 @@ export class U256Transformer extends BaseTypeTransformer {
         return true;
       }
 
-      // Arithmetic operations
-      if (target.endsWith(".add") || target.endsWith(".sub") || target.endsWith(".mul") || target.endsWith(".div") || target.endsWith(".mod") || target.endsWith(".pow")) {
+      // Check returnType first - this is the most reliable indicator
+      if (expr.returnType === "uint256") {
+        console.log("detected U256 by returnType", target);
         return true;
       }
 
-      // Comparison methods
+      // Comparison methods - check returnType
       if (target.endsWith(".lessThan") || target.endsWith(".greaterThan") ||
           target.endsWith(".lessThanOrEqual") || target.endsWith(".greaterThanOrEqual") ||
           target.endsWith(".equal") || target.endsWith(".notEqual")) {
-        return true;
+        if (expr.returnType === "bool") {
+          // For comparison methods, check if the target is a U256 variable
+          // This is a bit more complex since comparisons return bool
+          if (target.startsWith("U256.")) {
+            return true;
+          }
+        }
       }
 
-      // Conversion methods
+      // Conversion methods - check returnType
       if (target.endsWith(".toString")) {
-        return true;
+        if (expr.returnType === "string") {
+          // For toString, check if the target is a U256 variable
+          if (target.startsWith("U256.")) {
+            return true;
+          }
+        }
       }
     }
     return false;
@@ -75,7 +87,7 @@ export class U256Transformer extends BaseTypeTransformer {
   ): EmitResult {
     return {
       setupLines: [],
-      valueExpr: `/* Error: Unsupported U256 expression: ${expr.kind} */`,
+      valueExpr: `/* Error: Unsupported U256 expression: ${expr.kind} ${expr.target} */`,
       valueType: "U256",
     };
   }

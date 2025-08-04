@@ -90,6 +90,7 @@ export function generateImports(contract: IRContract): string {
   lines.push('import { Struct } from "as-stylus/core/types/struct";');
   lines.push('import { Msg } from "as-stylus/core/types/msg";');
   lines.push('import { malloc } from "as-stylus/core/modules/memory";');
+  lines.push('import { DebugU256 } from "as-stylus/core/modules/debug";');
 
   lines.push('');
   return lines.join("\n");

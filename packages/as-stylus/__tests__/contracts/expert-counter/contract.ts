@@ -53,7 +53,7 @@ export class ExpertCounter {
   static bulkIncrement(times: U256): void {
     let iterator = U256Factory.create();
     let actualTimes = times;
-    if (times.lessThan(maxIterations)) {
+    if (times.greaterThan(maxIterations)) {
       actualTimes = maxIterations;
     }
 
@@ -132,47 +132,79 @@ export class ExpertCounter {
 
 
   @External
+  static simpleMultiply(a: U256, b: U256): void {
+    unsignedCounter = a.mul(b);
+  }
+
+
+  @External
   static factorial(n: U256): void {
+    const zero = U256Factory.create();
     const one = U256Factory.fromString("1");
+
+    // Casos especiales: 0! = 1, 1! = 1
+    if (n.lessThanOrEqual(one)) {
+      unsignedCounter = one;
+      return;
+    }
+
     let i = U256Factory.fromString("2");
-    let acc = U256Factory.fromString("1");
+    let acc = one;
 
     while (i.lessThanOrEqual(n)) {
+      DebugU256.hex(n);
+      DebugU256.hex(i);
+      DebugU256.hex(acc);
       acc = acc.mul(i);
       i = i.add(one);
     }
+    DebugU256.hex(n);
+    DebugU256.hex(n);
+    DebugU256.hex(n);
+    DebugU256.hex(n);
+
     unsignedCounter = acc;
   }
 
   @External
   static pow(base: U256, exp: U256): void {
-    const zero = U256Factory.fromString("0");
+    const zero = U256Factory.create();
     const one = U256Factory.fromString("1");
-    const two = U256Factory.fromString("2");
-    let result: U256 = U256Factory.fromString("1");
-    let b: U256 = base;
-    let e: U256 = exp;
-    while (e.greaterThan(zero)) {
-      const modPow2 = e.mod(two);
-      if (modPow2.equals(one)) {
-        result = result.mul(b);
-      }
-      b = b.mul(b);
-      e = e.div(two);
+
+    // Casos especiales
+    if (exp.equal(zero)) {
+      unsignedCounter = one; // cualquier número^0 = 1
+      return;
     }
+    
+    if (exp.equal(one)) {
+      unsignedCounter = base; // cualquier número^1 = base
+      return;
+    }
+
+    let result = one;
+    let iterator = U256Factory.create();
+    
+    while (iterator.lessThan(exp)) {
+      result = result.mul(base);
+      iterator = iterator.add(one);
+    }
+    
     unsignedCounter = result;
   }
 
   @External
   static gcd(a: U256, b: U256): void {
-    const zero = U256Factory.fromString("0");
+    const zero = U256Factory.create();
     let x = a;
     let y = b;
-    do {
+    
+    while (!y.equal(zero)) {
       const tmp = y;
       y = x.mod(y);
       x = tmp;
-    } while (!y.equals(zero));
+    }
+    
     unsignedCounter = x;
   }
 
@@ -263,12 +295,27 @@ export class ExpertCounter {
 
   @View
   static getUnsigned(): U256 {
-    return unsignedCounter.toString();
+    return unsignedCounter;
   }
 
   @View
   static getSigned(): I256 {
-    return signedCounter.toString();
+    return signedCounter;
+  }
+
+  @View
+  static getStepSize(): U256 {
+    return stepSize;
+  }
+
+  @View
+  static getNegativeStepSize(): I256 {
+    return negativeStepSize;
+  }
+
+  @View
+  static getMaxIterations(): U256 {
+    return maxIterations;
   }
 
   @View

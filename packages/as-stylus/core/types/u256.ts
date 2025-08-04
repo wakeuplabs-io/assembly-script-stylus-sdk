@@ -171,6 +171,10 @@ export class U256 {
     return true;
   }
 
+  static lessThanOrEqual(a: usize, b: usize): bool {
+    return this.lessThan(a, b) || this.equals(a, b);
+  }
+
   static lessThanSigned(a: usize, b: usize): bool {
     const signA: u8 = load<u8>(a) >> 7;
     const signB: u8 = load<u8>(b) >> 7;
@@ -189,38 +193,44 @@ export class U256 {
     return this.equals(a, b);
   }
 
+
   static mul(dest: usize, src: usize): usize {
-    // Simple multiplication implementation
-    // For now, we'll use a basic approach
+    const BYTES = 32;
     const result = this.create();
-    const temp = this.create();
-
-    // Copy dest to result
-    this.copy(result, dest);
-
-    // For each bit in src, shift and add
-    for (let i = 0; i < 256; ++i) {
-      const byteIndex = i >> 3;
-      const bitIndex = i & 7;
-      const bit = <u8>((load<u8>(src + byteIndex) >> (<u8>bitIndex)) & 1);
-
-      if (bit) {
-        this.add(temp, result);
-        this.copy(result, temp);
+    let overflow = false;                     
+  
+    for (let s = 0; s < BYTES; ++s) {
+      const sb = load<u8>(src + (BYTES - 1 - s));
+      if (!sb) continue;
+  
+      let carry: u32 = 0;
+  
+      for (let d = 0; d < BYTES; ++d) {
+        const db  = load<u8>(dest + (BYTES - 1 - d));
+        const idx = BYTES - 1 - (s + d);
+  
+        if (idx < 0) { overflow = true; break; }
+  
+        const sum = (<u32>load<u8>(result + idx)) + <u32>db * sb + carry;
+        store<u8>(result + idx, <u8>sum);
+        carry = sum >> 8;
       }
-
-      // Shift left by 1
-      let carry: u16 = 0;
-      for (let j = 31; j >= 0; --j) {
-        const shifted = (load<u8>(result + j) << 1) | carry;
-        store<u8>(result + j, <u8>shifted);
-        carry = shifted >> 8;
+  
+      for (let c = BYTES - 1 - (s + BYTES); carry && c >= 0; --c) {
+        const sum = <u32>load<u8>(result + c) + carry;
+        store<u8>(result + c, <u8>sum);
+        carry = sum >> 8;
       }
+      if (carry) overflow = true;            
     }
-
+  
+    if (overflow) panicArithmeticOverflow(); 
+  
     this.copy(dest, result);
     return dest;
   }
+  
+
 
   static div(dest: usize, src: usize): usize {
     // Check for division by zero
