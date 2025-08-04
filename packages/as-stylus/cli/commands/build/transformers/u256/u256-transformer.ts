@@ -58,15 +58,26 @@ export class U256Transformer extends BaseTypeTransformer {
     // Instance methods on variables - use returnType to determine if it's U256
     if (target.includes(".")) {
       const methodName = target.split(".").pop();
-      
+
       // Use the IR's returnType to determine if this is a U256 operation
       if (expr.returnType === "uint256") {
         const u256Methods = [
-          "mul", "add", "sub", "div", "mod", "pow",
-          "lessThan", "greaterThan", "lessThanOrEqual", "greaterThanOrEqual",
-          "equal", "notEqual", "copy", "toString"
+          "mul",
+          "add",
+          "sub",
+          "div",
+          "mod",
+          "pow",
+          "lessThan",
+          "greaterThan",
+          "lessThanOrEqual",
+          "greaterThanOrEqual",
+          "equal",
+          "notEqual",
+          "copy",
+          "toString",
         ];
-        
+
         return methodName ? u256Methods.includes(methodName) : false;
       }
     }
