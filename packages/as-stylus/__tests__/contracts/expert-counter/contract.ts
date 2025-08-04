@@ -1,6 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-
 @Contract
 export class ExpertCounter {
   static unsignedCounter: U256;
@@ -142,15 +141,13 @@ export class ExpertCounter {
     const zero = U256Factory.create();
     const one = U256Factory.fromString("1");
 
-    // Casos especiales: 0! = 1, 1! = 1
     if (n.lessThanOrEqual(one)) {
       unsignedCounter = one;
       return;
     }
 
     let i = U256Factory.fromString("2");
-    let acc = one;
-
+    let acc: U256 = one.copy();  
     while (i.lessThanOrEqual(n)) {
       DebugU256.hex(n);
       DebugU256.hex(i);

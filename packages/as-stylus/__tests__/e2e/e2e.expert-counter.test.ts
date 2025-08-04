@@ -182,6 +182,13 @@ describe("Expert Counter", () => {
         const result = (await contract.read("getUnsigned", [])) as bigint;
         expect(result).toBe(20n);
       });
+
+      it("should correctly calculate 230 * 540 = 124200", async () => {
+        await contract.write(ownerWallet, "simpleMultiply", [230n, 540n]);
+
+        const result = (await contract.read("getUnsigned", [])) as bigint;
+        expect(result).toBe(124200n);
+      });
     });
 
     describe("factorial()", () => {

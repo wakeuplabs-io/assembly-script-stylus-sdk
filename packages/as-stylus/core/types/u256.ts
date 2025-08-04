@@ -197,7 +197,7 @@ export class U256 {
   static mul(dest: usize, src: usize): usize {
     const BYTES = 32;
     const result = this.create();
-    let overflow = false;                     
+    let overflow = false;
   
     for (let s = 0; s < BYTES; ++s) {
       const sb = load<u8>(src + (BYTES - 1 - s));
@@ -208,10 +208,15 @@ export class U256 {
       for (let d = 0; d < BYTES; ++d) {
         const db  = load<u8>(dest + (BYTES - 1 - d));
         const idx = BYTES - 1 - (s + d);
+        const prod = <u32>db * sb + carry;
   
-        if (idx < 0) { overflow = true; break; }
+        if (idx < 0) {
+          if (prod) overflow = true;
+          carry = prod >> 8;
+          continue;
+        }
   
-        const sum = (<u32>load<u8>(result + idx)) + <u32>db * sb + carry;
+        const sum = (<u32>load<u8>(result + idx)) + prod;
         store<u8>(result + idx, <u8>sum);
         carry = sum >> 8;
       }
@@ -221,14 +226,15 @@ export class U256 {
         store<u8>(result + c, <u8>sum);
         carry = sum >> 8;
       }
-      if (carry) overflow = true;            
+      if (carry) overflow = true;
     }
   
-    if (overflow) panicArithmeticOverflow(); 
+    if (overflow) panicArithmeticOverflow();
   
     this.copy(dest, result);
     return dest;
   }
+  
   
 
 

@@ -10,11 +10,7 @@ export class I256FromU256Handler implements ExpressionHandler {
    * Determines if this handler can process the given expression
    */
   canHandle(expr: any): boolean {
-    return (
-      expr.kind === "call" &&
-      expr.target === "I256Factory.fromU256" &&
-      expr.args.length === 1
-    );
+    return expr.kind === "call" && expr.target === "I256Factory.fromU256" && expr.args.length === 1;
   }
 
   /**
@@ -33,4 +29,4 @@ export class I256FromU256Handler implements ExpressionHandler {
       valueType: "I256",
     };
   }
-} 
+}
