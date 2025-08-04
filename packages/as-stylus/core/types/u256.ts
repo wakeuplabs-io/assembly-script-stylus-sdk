@@ -100,12 +100,14 @@ export class U256 {
    *  Checked arithmetic       *
    *──────────────────────────*/
 
-  /** Addition with overflow checking (Solidity 0.8.x behavior) */
-  static addChecked(dest: usize, src: usize): usize {
+  /** Addition with overflow checking (Solidity 0.8.x behavior) - returns new U256 */
+  static addChecked(a: usize, b: usize): usize {
+    const result = this.create();
     let carry: u16 = 0;
+    
     for (let i: i32 = 31; i >= 0; --i) {
-      const sum: u16 = load<u8>(dest + i) + load<u8>(src + i) + carry;
-      store<u8>(dest + i, <u8>sum);
+      const sum: u16 = load<u8>(a + i) + load<u8>(b + i) + carry;
+      store<u8>(result + i, <u8>sum);
       carry = sum > 0xff ? 1 : 0;
     }
 
@@ -114,29 +116,30 @@ export class U256 {
       panicArithmeticOverflow();
     }
 
-    return dest;
+    return result;
   }
 
-  /** Subtraction with underflow checking (Solidity 0.8.x behavior) */
-  static subChecked(dest: usize, src: usize): usize {
-    // Check if dest < src (would cause underflow)
-    if (this.lessThan(dest, src)) {
+  /** Subtraction with underflow checking (Solidity 0.8.x behavior) - returns new U256 */
+  static subChecked(a: usize, b: usize): usize {
+    // Check if a < b (would cause underflow)
+    if (this.lessThan(a, b)) {
       panicArithmeticOverflow();
     }
 
+    const result = this.create();
     let borrow: u8 = 0;
     for (let i: i32 = 31; i >= 0; --i) {
-      const d: u16 = load<u8>(dest + i);
-      const s: u16 = load<u8>(src + i) + borrow;
+      const d: u16 = load<u8>(a + i);
+      const s: u16 = load<u8>(b + i) + borrow;
       if (d < s) {
-        store<u8>(dest + i, <u8>(d + 256 - s));
+        store<u8>(result + i, <u8>(d + 256 - s));
         borrow = 1;
       } else {
-        store<u8>(dest + i, <u8>(d - s));
+        store<u8>(result + i, <u8>(d - s));
         borrow = 0;
       }
     }
-    return dest;
+    return result;
   }
 
   /*──────────────────────────*
@@ -194,19 +197,19 @@ export class U256 {
   }
 
 
-  static mul(dest: usize, src: usize): usize {
+  static mul(a: usize, b: usize): usize {
     const BYTES = 32;
     const result = this.create();
     let overflow = false;
   
     for (let s = 0; s < BYTES; ++s) {
-      const sb = load<u8>(src + (BYTES - 1 - s));
+      const sb = load<u8>(b + (BYTES - 1 - s));
       if (!sb) continue;
   
       let carry: u32 = 0;
   
       for (let d = 0; d < BYTES; ++d) {
-        const db  = load<u8>(dest + (BYTES - 1 - d));
+        const db  = load<u8>(a + (BYTES - 1 - d));
         const idx = BYTES - 1 - (s + d);
         const prod = <u32>db * sb + carry;
   
@@ -231,23 +234,31 @@ export class U256 {
   
     if (overflow) panicArithmeticOverflow();
   
-    this.copy(dest, result);
-    return dest;
+    return result;
   }
   
   
 
 
-  static div(dest: usize, src: usize): usize {
+  /** Multiplication returning a new U256 instance */
+  static mulNew(a: usize, b: usize): usize {
+    const result = this.create();
+    this.copy(result, a);
+    this.mul(result, b);
+    return result;
+  }
+
+  static div(dividend: usize, divisor: usize): usize {
     // Check for division by zero
-    if (this.equals(src, this.create())) {
+    const zero = this.create();
+    if (this.equals(divisor, zero)) {
       panicArithmeticOverflow();
     }
 
     const result = this.create();
     const remainder = this.create();
-    const divisor = this.create();
-    this.copy(divisor, src);
+    const divisorCopy = this.create();
+    this.copy(divisorCopy, divisor);
 
     // Long division algorithm
     for (let i = 0; i < 256; ++i) {
@@ -262,14 +273,14 @@ export class U256 {
       // Get bit from dividend
       const byteIndex = i >> 3;
       const bitIndex = i & 7;
-      const bit = <u8>((load<u8>(dest + byteIndex) >> (<u8>bitIndex)) & 1);
+      const bit = <u8>((load<u8>(dividend + byteIndex) >> (<u8>bitIndex)) & 1);
       if (bit) {
         store<u8>(remainder + 31, load<u8>(remainder + 31) | 1);
       }
 
       // Compare remainder with divisor
-      if (!this.lessThan(remainder, divisor)) {
-        this.sub(remainder, divisor);
+      if (!this.lessThan(remainder, divisorCopy)) {
+        this.sub(remainder, divisorCopy);
         // Set bit in result
         const resultByteIndex = i >> 3;
         const resultBitIndex = i & 7;
@@ -280,22 +291,32 @@ export class U256 {
       }
     }
 
-    this.copy(dest, result);
-    return dest;
+    return result;
   }
 
-  static mod(dest: usize, src: usize): usize {
+  static mod(dividend: usize, divisor: usize): usize {
     // Check for modulo by zero
-    if (this.equals(src, this.create())) {
+    const zero = this.create();
+    if (this.equals(divisor, zero)) {
       panicArithmeticOverflow();
     }
 
-    const quotient = this.create();
-    this.copy(quotient, dest);
-    this.div(quotient, src);
-    this.mul(quotient, src);
-    this.sub(dest, quotient);
-    return dest;
+    // If dividend < divisor, remainder is dividend
+    if (this.lessThan(dividend, divisor)) {
+      const result = this.create();
+      this.copy(result, dividend);
+      return result;
+    }
+
+    // For small divisors, use repeated subtraction
+    const result = this.create();
+    this.copy(result, dividend);
+    
+    while (!this.lessThan(result, divisor)) {
+      this.sub(result, divisor);
+    }
+    
+    return result;
   }
 
   static pow(dest: usize, exponent: usize): usize {

@@ -55,40 +55,19 @@ export class U256Transformer extends BaseTypeTransformer {
       return true;
     }
 
-    // Instance methods on variables - be more selective to avoid I256 conflicts
+    // Instance methods on variables - use returnType to determine if it's U256
     if (target.includes(".")) {
-      const [varName] = target.split(".");
       const methodName = target.split(".").pop();
-
-      // Only handle if we can confirm this is likely a U256 variable
-      // Check variable name patterns that suggest U256
-      const isLikelyU256Variable =
-        varName.toLowerCase().includes("unsigned") ||
-        (varName.toLowerCase().includes("counter") && !varName.toLowerCase().includes("signed")) ||
-        varName === "acc" || // from factorial
-        varName === "iterator" || // common U256 iterator
-        varName === "result" ||
-        varName === "temp";
-
-      if (isLikelyU256Variable && methodName) {
+      
+      // Use the IR's returnType to determine if this is a U256 operation
+      if (expr.returnType === "uint256") {
         const u256Methods = [
-          "mul",
-          "add",
-          "sub",
-          "div",
-          "mod",
-          "pow",
-          "lessThan",
-          "greaterThan",
-          "lessThanOrEqual",
-          "greaterThanOrEqual",
-          "equal",
-          "notEqual",
-          "copy",
-          "toString",
+          "mul", "add", "sub", "div", "mod", "pow",
+          "lessThan", "greaterThan", "lessThanOrEqual", "greaterThanOrEqual",
+          "equal", "notEqual", "copy", "toString"
         ];
-
-        return u256Methods.includes(methodName);
+        
+        return methodName ? u256Methods.includes(methodName) : false;
       }
     }
 

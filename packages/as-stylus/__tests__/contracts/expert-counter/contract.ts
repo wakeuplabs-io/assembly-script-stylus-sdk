@@ -149,17 +149,9 @@ export class ExpertCounter {
     let i = U256Factory.fromString("2");
     let acc: U256 = one.copy();  
     while (i.lessThanOrEqual(n)) {
-      DebugU256.hex(n);
-      DebugU256.hex(i);
-      DebugU256.hex(acc);
       acc = acc.mul(i);
       i = i.add(one);
     }
-    DebugU256.hex(n);
-    DebugU256.hex(n);
-    DebugU256.hex(n);
-    DebugU256.hex(n);
-
     unsignedCounter = acc;
   }
 
@@ -168,14 +160,13 @@ export class ExpertCounter {
     const zero = U256Factory.create();
     const one = U256Factory.fromString("1");
 
-    // Casos especiales
     if (exp.equal(zero)) {
-      unsignedCounter = one; // cualquier número^0 = 1
+      unsignedCounter = one;
       return;
     }
     
     if (exp.equal(one)) {
-      unsignedCounter = base; // cualquier número^1 = base
+      unsignedCounter = base;
       return;
     }
 
@@ -193,11 +184,11 @@ export class ExpertCounter {
   @External
   static gcd(a: U256, b: U256): void {
     const zero = U256Factory.create();
-    let x = a;
-    let y = b;
+    let x = a.copy();
+    let y = b.copy();
     
     while (!y.equal(zero)) {
-      const tmp = y;
+      const tmp = y.copy();
       y = x.mod(y);
       x = tmp;
     }

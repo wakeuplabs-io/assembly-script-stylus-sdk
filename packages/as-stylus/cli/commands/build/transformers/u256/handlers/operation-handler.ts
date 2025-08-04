@@ -52,7 +52,7 @@ export class U256OperationHandler implements ExpressionHandler {
       };
     }
 
-    // For regular object operations
+    // All operations now return new values instead of modifying in-place
     return {
       setupLines: [...argRes.setupLines],
       valueExpr: `U256.${operation}(${prop}, ${argRes.valueExpr})`,

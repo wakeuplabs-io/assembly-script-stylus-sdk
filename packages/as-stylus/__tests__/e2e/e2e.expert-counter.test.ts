@@ -212,35 +212,42 @@ describe("Expert Counter", () => {
         const result = (await contract.read("getUnsigned", [])) as bigint;
         expect(result).toBe(1n); // 0! = 1
       });
+
+      it("should correctly calculate factorial(5)", async () => {
+        await contract.write(ownerWallet, "factorial", [5n]);
+
+        const result = (await contract.read("getUnsigned", [])) as bigint;
+        expect(result).toBe(120n); // 5! = 120
+      });
     });
 
-    describe.skip("pow()", () => {
+    describe("pow()", () => {
       it("should correctly calculate 2^3", async () => {
         await contract.write(ownerWallet, "pow", [2n, 3n]);
 
         const result = (await contract.read("getUnsigned", [])) as bigint;
-        expect(result).toBe(8n); // 2^3 = 8
+        expect(result).toBe(8n);
       });
 
       it("should correctly calculate 5^2", async () => {
         await contract.write(ownerWallet, "pow", [5n, 2n]);
 
         const result = (await contract.read("getUnsigned", [])) as bigint;
-        expect(result).toBe(25n); // 5^2 = 25
+        expect(result).toBe(25n);
       });
 
       it("should handle powers of 0 and 1", async () => {
         await contract.write(ownerWallet, "pow", [5n, 0n]);
         let result = (await contract.read("getUnsigned", [])) as bigint;
-        expect(result).toBe(1n); // 5^0 = 1
+        expect(result).toBe(1n);
 
         await contract.write(ownerWallet, "pow", [5n, 1n]);
         result = (await contract.read("getUnsigned", [])) as bigint;
-        expect(result).toBe(5n); // 5^1 = 5
+        expect(result).toBe(5n);
       });
     });
 
-    describe.skip("gcd()", () => {
+    describe("gcd()", () => {
       it("should correctly calculate gcd(48, 18)", async () => {
         await contract.write(ownerWallet, "gcd", [48n, 18n]);
 
