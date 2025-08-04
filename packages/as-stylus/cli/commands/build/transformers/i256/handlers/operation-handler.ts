@@ -42,4 +42,4 @@ export class I256OperationHandler implements ExpressionHandler {
       valueType: "I256",
     };
   }
-} 
+}

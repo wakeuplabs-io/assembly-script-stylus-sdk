@@ -264,7 +264,7 @@ describe("Expert Counter", () => {
     });
   });
 
-  describe.skip("I256 Operations", () => {
+  describe("I256 Operations", () => {
     beforeEach(async () => {
       await contract.write(ownerWallet, "reset", []);
     });
@@ -320,71 +320,61 @@ describe("Expert Counter", () => {
     });
   });
 
-  describe.skip("Overflow and Underflow", () => {
+  describe("Overflow and Underflow", () => {
     beforeEach(async () => {
       await contract.write(ownerWallet, "reset", []);
     });
 
     describe("forceU256Overflow()", () => {
       it("should handle U256 overflow correctly", async () => {
-        await contract.write(ownerWallet, "forceU256Overflow", []);
-
-        const result = (await contract.read("getUnsigned", [])) as bigint;
-        // Should handle overflow without errors
-        expect(typeof result).toBe("bigint");
+        const result = await contract.writeRaw(ownerWallet, "forceU256Overflow", []);
+        expect(result.error?.name).toBe("Panic");
+        expect(result.error?.args).toEqual([17n]);
       });
     });
 
     describe("forceU256Underflow()", () => {
       it("should handle U256 underflow correctly", async () => {
-        await contract.write(ownerWallet, "forceU256Underflow", []);
-
-        const result = (await contract.read("getUnsigned", [])) as bigint;
-        // Should handle underflow without errors
-        expect(typeof result).toBe("bigint");
+        const result = await contract.writeRaw(ownerWallet, "forceU256Underflow", []);
+        expect(result.error?.name).toBe("Panic");
+        expect(result.error?.args).toEqual([17n]);
       });
     });
 
     describe("forceI256Overflow()", () => {
       it("should handle I256 overflow correctly", async () => {
-        await contract.write(ownerWallet, "forceI256Overflow", []);
-
-        const result = (await contract.read("getSigned", [])) as bigint;
-        // Should handle overflow without errors
-        expect(typeof result).toBe("bigint");
+        const result = await contract.writeRaw(ownerWallet, "forceI256Overflow", []);
+        expect(result.error?.name).toBe("Panic");
+        expect(result.error?.args).toEqual([17n]);
       });
     });
 
     describe("forceI256Underflow()", () => {
       it("should handle I256 underflow correctly", async () => {
-        await contract.write(ownerWallet, "forceI256Underflow", []);
-
-        const result = (await contract.read("getSigned", [])) as bigint;
-        // Should handle underflow without errors
-        expect(typeof result).toBe("bigint");
+        const result = await contract.writeRaw(ownerWallet, "forceI256Underflow", []);
+        expect(result.error?.name).toBe("Panic");
+        expect(result.error?.args).toEqual([17n]);
       });
     });
 
     describe("testOverflowInLoop()", () => {
       it("should handle overflow in loops correctly", async () => {
-        await contract.write(ownerWallet, "testOverflowInLoop", []);
-
-        const result = (await contract.read("getUnsigned", [])) as bigint;
-        expect(typeof result).toBe("bigint");
+        const result = await contract.writeRaw(ownerWallet, "testOverflowInLoop", []);
+        expect(result.error?.name).toBe("Panic");
+        expect(result.error?.args).toEqual([17n]);
       });
     });
 
     describe("testSignedOverflowInLoop()", () => {
       it("should handle signed overflow in loops correctly", async () => {
-        await contract.write(ownerWallet, "testSignedOverflowInLoop", []);
-
-        const result = (await contract.read("getSigned", [])) as bigint;
-        expect(typeof result).toBe("bigint");
+        const result = await contract.writeRaw(ownerWallet, "testSignedOverflowInLoop", []);
+        expect(result.error?.name).toBe("Panic");
+        expect(result.error?.args).toEqual([17n]);
       });
     });
   });
 
-  describe.skip("Reset Operations", () => {
+  describe("Reset Operations", () => {
     describe("reset()", () => {
       it("should reset both counters to zero", async () => {
         // First set non-zero values
@@ -417,20 +407,18 @@ describe("Expert Counter", () => {
     });
   });
 
-  describe.skip("Unsigned Counter", () => {
+  describe("Unsigned Counter", () => {
     beforeEach(async () => {
       await contract.write(ownerWallet, "reset", []);
     });
 
     it("should count down from an initial value", async () => {
       const startValue = 5n;
-      const initialUnsigned = (await contract.read("getUnsigned", [])) as bigint;
 
       await contract.write(ownerWallet, "countDown", [startValue]);
 
       const finalUnsigned = (await contract.read("getUnsigned", [])) as bigint;
-      // countDown should affect the unsigned counter
-      expect(finalUnsigned).toBe(initialUnsigned + startValue);
+      expect(finalUnsigned).toBe(1n);
     });
   });
 });

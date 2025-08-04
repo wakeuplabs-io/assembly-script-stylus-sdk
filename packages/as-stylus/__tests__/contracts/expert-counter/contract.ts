@@ -95,14 +95,14 @@ export class ExpertCounter {
   @External
   static countDown(start: U256): void {
     let current = start;
-    const _zero = U256Factory.create();
+    const zero = U256Factory.create();
     const one = U256Factory.fromString("1");
 
     unsignedCounter = current;
 
-    while (current.greaterThan(_zero)) {
+    while (current.greaterThan(zero)) {
       current = current.sub(one);
-      if (current.greaterThan(_zero)) {
+      if (current.greaterThan(zero)) {
         unsignedCounter = current;
       }
     }
