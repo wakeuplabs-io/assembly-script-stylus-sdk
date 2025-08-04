@@ -36,7 +36,6 @@ export class I256OperationHandler implements ExpressionHandler {
       };
     }
 
-    // For regular object operations
     return {
       setupLines: [...argRes.setupLines],
       valueExpr: `I256.${op}(${prop}, ${argRes.valueExpr})`,

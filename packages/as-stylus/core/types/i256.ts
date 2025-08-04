@@ -100,40 +100,42 @@ export class I256 {
   /*──────────────────────────*
    *  Public arithmetic        *
    *──────────────────────────*/
-  static add(dest: usize, src: usize): usize {
+  static add(a: usize, b: usize): usize {
     // Check for overflow before performing addition
-    if (this.wouldOverflowOnAdd(dest, src)) {
+    if (this.wouldOverflowOnAdd(a, b)) {
       panicArithmeticOverflow();
     }
 
+    const result = this.create();
     let carry: u16 = 0;
     for (let i: i32 = 31; i >= 0; --i) {
-      const sum: u16 = load<u8>(dest + i) + load<u8>(src + i) + carry;
-      store<u8>(dest + i, <u8>sum);
+      const sum: u16 = load<u8>(a + i) + load<u8>(b + i) + carry;
+      store<u8>(result + i, <u8>sum);
       carry = sum > 0xff ? 1 : 0;
     }
-    return dest;
+    return result;
   }
 
-  static sub(dest: usize, src: usize): usize {
+  static sub(a: usize, b: usize): usize {
     // Check for underflow before performing subtraction
-    if (this.wouldUnderflowOnSub(dest, src)) {
+    if (this.wouldUnderflowOnSub(a, b)) {
       panicArithmeticOverflow();
     }
 
+    const result = this.create();
     let borrow: u8 = 0;
     for (let i: i32 = 31; i >= 0; --i) {
-      const d: u16 = load<u8>(dest + i);
-      const s: u16 = load<u8>(src + i) + borrow;
+      const d: u16 = load<u8>(a + i);
+      const s: u16 = load<u8>(b + i) + borrow;
       if (d < s) {
-        store<u8>(dest + i, <u8>(d + 256 - s));
+        store<u8>(result + i, <u8>(d + 256 - s));
         borrow = 1;
       } else {
-        store<u8>(dest + i, <u8>(d - s));
+        store<u8>(result + i, <u8>(d - s));
         borrow = 0;
       }
     }
-    return dest;
+    return result;
   }
 
   /*──────────────────────────*
@@ -305,12 +307,6 @@ export class I256 {
   //   return ptr;
   // }
 
-  static addNew(a: usize, b: usize): usize {
-    const out = malloc(32);
-    this.copy(out, a);
-    this.add(out, b);
-    return out;
-  }
 
   static copyNew(src: usize): usize {
     const dst = this.create();

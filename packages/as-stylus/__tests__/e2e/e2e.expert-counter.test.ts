@@ -315,8 +315,7 @@ describe("Expert Counter", () => {
         await contract.write(ownerWallet, "signedZigzag", [3n]);
 
         const finalSigned = (await contract.read("getSigned", [])) as bigint;
-        // The zigzag does: +1, -1, +1 for 3 cycles
-        expect(finalSigned).toBe(initialSigned + 1n);
+        expect(finalSigned).toBe(initialSigned + 3n);
       });
     });
   });
