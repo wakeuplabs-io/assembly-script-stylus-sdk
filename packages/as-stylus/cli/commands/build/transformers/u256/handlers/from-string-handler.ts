@@ -24,11 +24,7 @@ export class U256FromStringHandler implements ExpressionHandler {
     );
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: any, ctx: EmitContext, emit: (e: any, c: EmitContext) => EmitResult): EmitResult {
     const [arg] = expr.args;
 
     // emit arg first
@@ -56,7 +52,7 @@ export class U256FromStringHandler implements ExpressionHandler {
       setup.push(`const ${strPtr}: usize = malloc(66);`);
       setup.push(
         `const ${u256Ptr}: usize = U256.create();`,
-        `U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`
+        `U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`,
       );
     }
 

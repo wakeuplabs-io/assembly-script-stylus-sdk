@@ -70,4 +70,94 @@ export class StructContract {
     structTemp.value = tempValue.add(delta);
     return structTemp;
   }
+
+  @View
+  static getProcessedStructTo(): Address {
+    const toAddr = myStruct.to;
+    const contents = myStruct.contents;
+    const valueMemory = myStruct.value;
+    const flag = myStruct.flag;
+    const value2Memory = myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>([
+      toAddr,
+      contents,
+      valueMemory,
+      flag,
+      value2Memory,
+    ]);
+    return structTemp.to;
+  }
+
+  @View
+  static getProcessedStructContents(): Str {
+    const toAddr = myStruct.to;
+    const contents = myStruct.contents;
+    const valueMemory = myStruct.value;
+    const flag = myStruct.flag;
+    const value2Memory = myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>([
+      toAddr,
+      contents,
+      valueMemory,
+      flag,
+      value2Memory,
+    ]);
+    return structTemp.contents;
+  }
+
+  @View
+  static getProcessedStructValue(): U256 {
+    const toAddr = myStruct.to;
+    const contents = myStruct.contents;
+    const valueMemory = myStruct.value;
+    const flag = myStruct.flag;
+    const value2Memory = myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>([
+      toAddr,
+      contents,
+      valueMemory,
+      flag,
+      value2Memory,
+    ]);
+    const tempValue = structTemp.value;
+    const delta: U256 = U256Factory.fromString("1");
+    structTemp.value = tempValue.add(delta);
+    return structTemp.value;
+  }
+
+  @View
+  static getProcessedStructFlag(): boolean {
+    const toAddr = myStruct.to;
+    const contents = myStruct.contents;
+    const valueMemory = myStruct.value;
+    const flag = myStruct.flag;
+    const value2Memory = myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>([
+      toAddr,
+      contents,
+      valueMemory,
+      flag,
+      value2Memory,
+    ]);
+    return structTemp.flag;
+  }
+
+  @View
+  static getProcessedStructValue2(): U256 {
+    const toAddr = myStruct.to;
+    const contents = myStruct.contents;
+    const valueMemory = myStruct.value;
+    const flag = myStruct.flag;
+    const value2Memory = myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>([
+      toAddr,
+      contents,
+      valueMemory,
+      flag,
+      value2Memory,
+    ]);
+    const tempValue = structTemp.value;
+    structTemp.value2 = tempValue;
+    return structTemp.value2;
+  }
 }

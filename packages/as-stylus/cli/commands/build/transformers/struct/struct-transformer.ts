@@ -167,7 +167,7 @@ export function ${structName}_copy(dst: usize, src: usize): void {
   Struct.copy(dst, src, ${struct.size});
 }`);
 
-  // Getters for each field using appropriate Struct methods
+  // Storage getters - for contract storage variables (like myStruct)
   struct.fields.forEach((field) => {
     const slotForField = baseSlot + Math.floor(field.offset / 32);
     const slotNumber = slotForField.toString(16).padStart(2, "0");
@@ -197,6 +197,14 @@ export function ${structName}_get_${field.name}(ptr: usize): usize {
   return Struct.getField(ptr, ${field.offset});
 }`);
     }
+  });
+
+  // Memory getters - for temporary structs in memory
+  struct.fields.forEach((field) => {
+    helpers.push(`
+export function ${structName}_memory_get_${field.name}(ptr: usize): usize {
+  return load<usize>(ptr + ${field.offset});
+}`);
   });
 
   // Storage setters - for contract storage variables (like myStruct)

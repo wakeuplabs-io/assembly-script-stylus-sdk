@@ -49,7 +49,11 @@ export class StructFieldAccessHandler implements ExpressionHandler {
       };
     }
 
-    const fieldAccess = `${structInfo.structName}_get_${field.name}(${objectResult.valueExpr})`;
+    const isStorageAccess = this.isStorageAccess(expr.object);
+    const getterPrefix = isStorageAccess
+      ? `${structInfo.structName}_get_`
+      : `${structInfo.structName}_memory_get_`;
+    const fieldAccess = `${getterPrefix}${field.name}(${objectResult.valueExpr})`;
 
     return {
       setupLines: [...objectResult.setupLines],
@@ -61,6 +65,13 @@ export class StructFieldAccessHandler implements ExpressionHandler {
   private isStructAccess(expr: any): boolean {
     const structInfo = this.getStructInfo(expr.object);
     return structInfo.isStruct;
+  }
+
+  private isStorageAccess(objectExpr: any): boolean {
+    if (objectExpr && (objectExpr as { scope?: string }).scope === "storage") {
+      return true;
+    }
+    return false;
   }
 
   private getStructInfo(objectExpr: any): {
