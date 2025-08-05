@@ -1,9 +1,11 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRExpression } from "@/cli/types/ir.types.js";
+
+import { Handler } from "../../core/interfaces.js";
 import { makeTemp } from "../../utils/temp-factory.js";
 
-export class U256CopyHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
+export class U256CopyHandler extends Handler {
+  canHandle(expr: IRExpression): boolean {
     return (
       expr.kind === "call" && 
       expr.target === "U256.copy" &&
@@ -11,12 +13,8 @@ export class U256CopyHandler implements ExpressionHandler {
     );
   }
 
-  handle(
-    expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
-  ): EmitResult {
-    const srcArg = emitExprFn(expr.args[0], context);
+  handle(expr: Call): EmitResult {
+    const srcArg = this.contractContext.emit(expr.args[0]);
     const dstPtr = makeTemp("u256Copy");
 
     return {

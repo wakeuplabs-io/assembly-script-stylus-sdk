@@ -1,6 +1,7 @@
-import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRExpression } from "@/cli/types/ir.types.js";
 
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { Handler } from "../../core/interfaces.js";
 import { makeTemp } from "../../utils/temp-factory.js";
 
 /**
@@ -14,8 +15,8 @@ import { makeTemp } from "../../utils/temp-factory.js";
  *
  *  Then call `U256.setFromString(ptrU256, ptrStr, len)`.
  */
-export class U256FromStringHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
+export class U256FromStringHandler extends Handler {
+  canHandle(expr: IRExpression): boolean {
     return (
       expr.kind === "call" &&
       expr.target === "U256Factory.fromString" &&
@@ -24,15 +25,11 @@ export class U256FromStringHandler implements ExpressionHandler {
     );
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const [arg] = expr.args;
 
     // emit arg first
-    const argRes = emit(arg, ctx);
+    const argRes = this.contractContext.emit(arg);
 
     const u256Ptr = makeTemp("u256");
     const strPtr = makeTemp("str");

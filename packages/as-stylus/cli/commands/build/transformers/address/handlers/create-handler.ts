@@ -1,19 +1,22 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { Call, IRExpression } from "@/cli/types/ir.types.js";
+
+import { EmitResult } from "../../../../../types/emit.types.js";
+import { ContractContext } from "../../core/contract-context.js";
+import { Handler } from "../../core/interfaces.js";
 
 /**
  * AddressFactory.create()  →  Address.create()
  */
-export class AddressCreateHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
+export class AddressCreateHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+
+  canHandle(expr: IRExpression): boolean {
     return expr.kind === "call" && expr.target === "AddressFactory.create";
   }
 
-  handle(
-    _expr: any,
-    _ctx: EmitContext,
-    _emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(_expr: Call): EmitResult {
     return {
       setupLines: [],
       valueExpr : "Address.create()",

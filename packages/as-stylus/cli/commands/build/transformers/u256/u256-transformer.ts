@@ -1,6 +1,8 @@
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { IRExpression } from "@/cli/types/ir.types.js";
 
-import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+import { BaseTypeTransformer } from "../core/base-transformer.js";
+import { ContractContext } from "../core/contract-context.js";
 import { U256ComparisonHandler } from "./handlers/comparison-handler.js";
 import { U256CopyHandler } from "./handlers/copy-handler.js";
 import { U256CreateHandler } from "./handlers/create-handler.js";
@@ -17,22 +19,22 @@ export class U256Transformer extends BaseTypeTransformer {
   /**
    * Creates and initializes a new U256 transformer with its handlers
    */
-  constructor() {
-    super("U256");
+  constructor(contractContext: ContractContext) {
+    super(contractContext, "U256");
 
     // Register specific handlers for different U256 operations
-    this.registerHandler(new U256CreateHandler());
-    this.registerHandler(new U256CopyHandler());
-    this.registerHandler(new U256FromStringHandler());
-    this.registerHandler(new U256OperationHandler());
-    this.registerHandler(new U256ComparisonHandler());
-    this.registerHandler(new U256ToStringHandler());
+    this.registerHandler(new U256CreateHandler(contractContext));
+    this.registerHandler(new U256CopyHandler(contractContext));
+    this.registerHandler(new U256FromStringHandler(contractContext));
+    this.registerHandler(new U256OperationHandler(contractContext));
+    this.registerHandler(new U256ComparisonHandler(contractContext));
+    this.registerHandler(new U256ToStringHandler(contractContext));
   }
 
   /**
    * Determines if this transformer can handle the given expression
    */
-  matchesType(expr: any): boolean {
+  canHandle(expr: IRExpression): boolean {
     if (expr?.kind === "call") {
       const target = expr.target || "";
 
@@ -68,26 +70,12 @@ export class U256Transformer extends BaseTypeTransformer {
   /**
    * Handles expressions that don't match any registered handler
    */
-  protected handleDefault(
-    expr: any, 
-    _context: EmitContext, 
-    _emitExprFn: (expr: any, ctx: EmitContext) => EmitResult
-  ): EmitResult {
+  protected handleDefault(expr: IRExpression): EmitResult {
     return {
       setupLines: [],
       valueExpr: `/* Error: Unsupported U256 expression: ${expr.kind} */`,
       valueType: "U256",
     };
   }
-
-  /**
-   * Generates code to load a U256 value from storage
-   */
-  generateLoadCode(property: string): string {
-    return `load_${property}()`;
-  }
 }
 
-// Export concrete instance and register it
-export const U256TransformerInstance = new U256Transformer();
-registerTransformer(U256TransformerInstance);

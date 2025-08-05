@@ -1,50 +1,38 @@
 import { AbiType } from "../../../../../types/abi.types.js";
-import { EmitResult, EmitContext } from "../../../../../types/emit.types.js";
+import { EmitResult } from "../../../../../types/emit.types.js";
 import { IRExpression, Call } from "../../../../../types/ir.types.js";
-import { detectExpressionType, typeTransformers } from "../../core/base-transformer.js";
-import { IExpressionTransformer } from "../interfaces/expression-transformer.interface.js";
+import { ContractContext } from "../../core/contract-context.js";
+import { Handler } from "../../core/interfaces.js";
 
 /**
  * Transformer for function call expressions.
  * Handles function calls with proper argument transformation and return type handling.
  */
-export class CallTransformer implements IExpressionTransformer {
+export class CallTransformer extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+  
   canHandle(expr: IRExpression): boolean {
     return expr.kind === "call";
   }
 
-  transform(
-    expr: IRExpression,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
-  ): EmitResult {
-    const call = expr as Call;
-
-    // 
-    const typeName = detectExpressionType(expr);
-    const transformer = typeName ? typeTransformers[typeName] : null;
-    if (transformer && typeof transformer.emit === 'function') {
-      return transformer.emit(expr, context, emitExpression);
-    }
-
-    
-    // Handle super constructor calls
+  handle(call: Call): EmitResult {
+    this.contractContext.emit(call);
     if (call.target === "super") {
-      const argResults = this.transformArguments(call.args, context, emitExpression);
+      const argResults = this.transformArguments(call.args);
       const allSetupLines = this.combineSetupLines(argResults);
       
       return {
         setupLines: allSetupLines,
-        valueExpr: `${context.parentName}_constructor(${argResults.map(r => r.valueExpr).join(", ")})`
+        valueExpr: `${this.contractContext.getParentName()}_constructor(${argResults.map(r => r.valueExpr).join(", ")})`
       };
     }
     
-    // Transform arguments
-    const argResults = this.transformArguments(call.args, context, emitExpression);
+    const argResults = this.transformArguments(call.args);
     const allSetupLines = this.combineSetupLines(argResults);
     const argValues = argResults.map(r => r.valueExpr).join(", ");
     
-    // Handle different return types
     const baseCall = `${call.target}(${argValues})`;
     
     if (call.returnType === AbiType.Bool) {
@@ -67,12 +55,8 @@ export class CallTransformer implements IExpressionTransformer {
     };
   }
 
-  private transformArguments(
-    args: IRExpression[],
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
-  ): EmitResult[] {
-    return args.map(arg => emitExpression(arg, context));
+  private transformArguments(args: IRExpression[]): EmitResult[] {
+    return args.map(arg => this.contractContext.emit(arg));
   }
 
   private combineSetupLines(argResults: EmitResult[]): string[] {

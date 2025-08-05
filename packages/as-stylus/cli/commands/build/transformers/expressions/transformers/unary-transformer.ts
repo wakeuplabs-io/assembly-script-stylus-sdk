@@ -1,24 +1,23 @@
-
-import { EmitResult, EmitContext } from "../../../../../types/emit.types.js";
+import { EmitResult } from "../../../../../types/emit.types.js";
 import { IRExpression, IRUnaryExpression } from "../../../../../types/ir.types.js";
-import { IExpressionTransformer } from "../interfaces/expression-transformer.interface.js";
+import { ContractContext } from "../../core/contract-context.js";
+import { Handler } from "../../core/interfaces.js";
 
 /**
  * Transformer for unary expressions.
  * Handles unary operations like logical NOT, arithmetic negation, etc.
  */
-export class UnaryTransformer implements IExpressionTransformer {
+export class UnaryTransformer extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+
   canHandle(expr: IRExpression): boolean {
     return expr.kind === "unary";
   }
 
-  transform(
-    expr: IRExpression,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
-  ): EmitResult {
-    const unary = expr as IRUnaryExpression;
-    const exprResult = emitExpression(unary.expr, context);
+  handle(unary: IRUnaryExpression): EmitResult {
+    const exprResult = this.contractContext.emit(unary.expr);
     
     // Handle boolean operations with Boolean class
     if (unary.op === "!" || unary.op === "not") {

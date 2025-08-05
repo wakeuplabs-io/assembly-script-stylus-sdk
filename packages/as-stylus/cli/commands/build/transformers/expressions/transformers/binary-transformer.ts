@@ -1,39 +1,34 @@
 import { AbiType } from "../../../../../types/abi.types.js";
-import { EmitResult, EmitContext } from "../../../../../types/emit.types.js";
+import { EmitResult } from "../../../../../types/emit.types.js";
 import { IRExpression, IRExpressionBinary } from "../../../../../types/ir.types.js";
-import { IExpressionTransformer } from "../interfaces/expression-transformer.interface.js";
+import { ContractContext } from "../../core/contract-context.js";
+import { Handler } from "../../core/interfaces.js";
 
 /**
  * Transformer for binary expressions.
  * Handles arithmetic operations, assignments, and other binary operations.
  */
-export class BinaryTransformer implements IExpressionTransformer {
+export class BinaryTransformer extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+
   canHandle(expr: IRExpression): boolean {
     return expr.kind === "binary";
   }
 
-  transform(
-    expr: IRExpression,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
-  ): EmitResult {
-    const binary = expr as IRExpressionBinary;
-    
-    if (binary.op === "=") {
-      return this.handleAssignment(binary, context, emitExpression);
+  handle(expr: IRExpressionBinary): EmitResult {
+    if (expr.op === "=") {
+      return this.handleAssignment(expr);
     }
     
-    return this.handleArithmetic(binary, context, emitExpression);
+    return this.handleArithmetic(expr);
   }
 
-  private handleAssignment(
-    expr: IRExpressionBinary,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
-  ): EmitResult {
+  private handleAssignment(expr: IRExpressionBinary): EmitResult {
     if (expr.left.kind === "var" && expr.left.scope === "storage") {
       const property = expr.left.name;
-      const rightResult = emitExpression(expr.right, context);
+      const rightResult = this.contractContext.emit(expr.right);
       
       if (expr.left.type === AbiType.Bool) {
         return this.handleBooleanStorageAssignment(property, expr, rightResult);
@@ -45,8 +40,8 @@ export class BinaryTransformer implements IExpressionTransformer {
       };
     }
     
-    const leftResult = emitExpression(expr.left, context);
-    const rightResult = emitExpression(expr.right, context);
+    const leftResult = this.contractContext.emit(expr.left);
+    const rightResult = this.contractContext.emit(expr.right);
    
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
@@ -73,11 +68,9 @@ export class BinaryTransformer implements IExpressionTransformer {
 
   private handleArithmetic(
     expr: IRExpressionBinary,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
   ): EmitResult {
-    const leftResult = emitExpression(expr.left, context);
-    const rightResult = emitExpression(expr.right, context);
+    const leftResult = this.contractContext.emit(expr.left);
+    const rightResult = this.contractContext.emit(expr.right);
     
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],

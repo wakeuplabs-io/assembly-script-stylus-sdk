@@ -1,26 +1,29 @@
 // src/emit/transformers/address/handlers/has-code-handler.ts
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler }        from "../../core/interfaces.js";
+import { AbiType } from "@/cli/types/abi.types.js";
+import { Call, IRExpression } from "@/cli/types/ir.types.js";
+
+import { EmitResult } from "../../../../../types/emit.types.js";
+import { ContractContext } from "../../core/contract-context.js";
+import { Handler } from "../../core/interfaces.js";
 
 /**
  * a.hasCode()  ─►  Address.hasCode(a)
  */
-export class AddressHasCodeHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
+export class AddressHasCodeHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+
+  canHandle(expr: IRExpression): boolean {
     return expr.kind === "call" && expr.target.endsWith(".hasCode");
   }
 
-  handle(
-    expr: any,
-    ctx : EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
-    // Reescritura para tomar el receiver explícito
+  handle(expr: Call): EmitResult {
     if (!expr.receiver && expr.target.endsWith(".hasCode")) {
       const chain = expr.target.slice(0, -".hasCode".length);
-      expr.receiver = { kind: "var", name: chain };
+      expr.receiver = { kind: "var", name: chain, type: AbiType.Address, scope: "memory" };
     }
-    const recv = emit(expr.receiver, ctx);
+    const recv = this.contractContext.emit(expr.receiver!);
 
     return {
       setupLines: [...recv.setupLines],

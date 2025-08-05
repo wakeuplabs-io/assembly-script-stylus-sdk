@@ -1,6 +1,9 @@
 // src/emit/transformers/address/handlers/address-from-string.ts
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { Call, IRExpression } from "@/cli/types/ir.types.js";
+
+import { EmitResult } from "../../../../../types/emit.types.js";
+import { ContractContext } from "../../core/contract-context.js";
+import { Handler } from "../../core/interfaces.js";
 import { makeTemp } from "../../utils/temp-factory.js";
 
 /**
@@ -15,8 +18,12 @@ import { makeTemp } from "../../utils/temp-factory.js";
  *
  * The result is a buffer of 20 raw bytes (big-endian) ready to use.
  */
-export class AddressFromStringHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
+export class AddressFromStringHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+
+  canHandle(expr: IRExpression): boolean {
     return (
       expr.kind === "call" &&
       expr.target === "AddressFactory.fromString" &&
@@ -25,13 +32,9 @@ export class AddressFromStringHandler implements ExpressionHandler {
     );
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const arg    = expr.args[0];
-    const argIR  = emit(arg, ctx);
+    const argIR  = this.contractContext.emit(arg);
     const setup  = [...argIR.setupLines];
 
     const hexPtr = makeTemp("hexPtr");

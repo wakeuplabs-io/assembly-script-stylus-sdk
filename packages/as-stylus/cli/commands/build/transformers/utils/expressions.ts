@@ -2,7 +2,6 @@ import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
-import { detectExpressionType, typeTransformers } from "../core/base-transformer.js";
 
 export const globalContext: EmitContext = {
   isInStatement: false,
@@ -38,17 +37,6 @@ export const globalContext: EmitContext = {
   };
 }
 
-/**
- * Main function to emit code from an expression.
- * Returns an EmitResult object with setup lines and value expression.
- *
- * @param expr - The expression to emit
- * @param isInStatement - Whether the expression is inside a statement
- * @returns EmitResult with setup lines and final expression
- */
-function emitExpressionWrapper(expr: IRExpression, ctx: EmitContext): EmitResult {
-  return emitExpression(expr, ctx.isInStatement);
-}
 
 export function emitExpression(expr: IRExpression, isInStatement: boolean = false): EmitResult {
   globalContext.isInStatement = isInStatement;
@@ -66,12 +54,6 @@ export function emitExpression(expr: IRExpression, isInStatement: boolean = fals
       setupLines: rightResult.setupLines,
       valueExpr: `store_${property}(${rightResult.valueExpr})`
     };
-  }
-  
-  const typeName = detectExpressionType(expr);
-  const transformer = typeName ? typeTransformers[typeName] : null;
-  if (transformer && typeof transformer.emit === 'function') {
-    return transformer.emit(expr, globalContext, emitExpressionWrapper);
   }
   
   return {

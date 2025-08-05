@@ -1,23 +1,28 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { AbiType } from "@/cli/types/abi.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+
+import { EmitResult } from "../../../../../types/emit.types.js";
+import { ContractContext } from "../../core/contract-context.js";
+import { Handler } from "../../core/interfaces.js";
 import { makeTemp } from "../../utils/temp-factory.js";
 
 
-export class AddressCopyHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
-    return (
-      expr.kind === "call" && 
-      expr.target === "Address.copy" &&
-      expr.args.length === 1
-    );
+export class AddressCopyHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
   }
 
-  handle(
-    expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
-  ): EmitResult {
-    const srcArg = emitExprFn(expr.args[0], context);
+  canHandle(expr: Call): boolean {
+    const target = expr.target || "";
+
+    if (target !== "Address.copy") return false;
+    if (expr.args.length !== 1 && expr.args[0].type !== AbiType.Address) return false;
+
+    return true;
+  }
+
+  handle(expr: Call): EmitResult {
+    const srcArg = this.contractContext.emit(expr.args[0]);
     const dstPtr = makeTemp("addrCopy");
 
     return {

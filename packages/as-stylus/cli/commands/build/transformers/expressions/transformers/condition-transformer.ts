@@ -1,32 +1,32 @@
-import { EmitResult, EmitContext } from "../../../../../types/emit.types.js";
+import { EmitResult } from "../../../../../types/emit.types.js";
 import { IRExpression, IRCondition } from "../../../../../types/ir.types.js";
-import { RELATIONAL_OPERATORS, RelationalOperator } from "../constants/expression-constants.js";
-import { IExpressionTransformer } from "../interfaces/expression-transformer.interface.js";
+import { ContractContext } from "../../core/contract-context.js";
+import { Handler } from "../../core/interfaces.js";
+
+const RELATIONAL_OPERATORS = ["<", ">", "<=", ">=", "==", "!="] as const;
+type RelationalOperator = typeof RELATIONAL_OPERATORS[number];
 
 /**
  * Transformer for condition expressions.
  * Handles relational operations and comparisons with proper type handling.
  */
-export class ConditionTransformer implements IExpressionTransformer {
+export class ConditionTransformer extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+
   canHandle(expr: IRExpression): boolean {
     return expr.kind === "condition";
   }
 
-  transform(
-    expr: IRExpression,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
-  ): EmitResult {
-    const condition = expr as IRCondition;
-    
-    // Handle relational operators
+  handle(condition: IRCondition): EmitResult {
     if (condition.op && this.isRelationalOperator(condition.op)) {
-      return this.handleRelationalComparison(condition, context, emitExpression);
+      return this.handleRelationalComparison(condition);
     }
     
     // Handle single expression conditions
     if (!condition.right) {
-      const leftResult = emitExpression(condition.left, context);
+      const leftResult = this.contractContext.emit(condition.left);
       return {
         setupLines: leftResult.setupLines,
         valueExpr: leftResult.valueExpr
@@ -34,8 +34,8 @@ export class ConditionTransformer implements IExpressionTransformer {
     }
     
     // Handle other binary conditions
-    const leftResult = emitExpression(condition.left, context);
-    const rightResult = emitExpression(condition.right, context);
+    const leftResult = this.contractContext.emit(condition.left);
+    const rightResult = this.contractContext.emit(condition.right!);
     
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
@@ -45,11 +45,9 @@ export class ConditionTransformer implements IExpressionTransformer {
 
   private handleRelationalComparison(
     condition: IRCondition,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
   ): EmitResult {
-    const leftResult = emitExpression(condition.left, context);
-    const rightResult = emitExpression(condition.right!, context);
+    const leftResult = this.contractContext.emit(condition.left);
+    const rightResult = this.contractContext.emit(condition.right!);
     
     // Detect type class (I256 vs U256)
     const typeClass = this.detectTypeClass(condition.left);

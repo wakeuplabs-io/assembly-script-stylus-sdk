@@ -31,6 +31,11 @@ export type Call = {
   originalType?: string;
   scope: "storage" | "memory";
   context?: "argument" | "assignment" | "return";
+  receiver?: IRExpression; // TODO: REVIEW
+  metadata?: {
+    isStructCreation?: boolean;
+    structType?: string;
+  };
 };
 export type Member = {
   kind: "member";

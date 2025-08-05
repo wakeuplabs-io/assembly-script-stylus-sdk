@@ -1,19 +1,21 @@
 import { AbiType, AssemblyScriptType } from "@/cli/types/abi.types.js";
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
-import { IREvent } from "@/cli/types/ir.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IREvent, IRExpression } from "@/cli/types/ir.types.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
 
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { ContractContext } from "../../core/contract-context.js";
+import { Handler } from "../../core/interfaces.js";
 import { makeTemp } from "../../utils/temp-factory.js";
 
-export class EventEmitHandler implements ExpressionHandler {
+export class EventEmitHandler extends Handler {
   private eventsMap: Map<string, IREvent>;
 
-  constructor(events: IREvent[]) {
+  constructor(contractContext: ContractContext, events: IREvent[]) {
+    super(contractContext);
     this.eventsMap = new Map(events.map(e => [e.name, e]));
   }
 
-  canHandle(expr: any): boolean {
+  canHandle(expr: IRExpression): boolean {
     return (
       expr.kind === "call" &&
       typeof expr.target === "string" &&
@@ -21,11 +23,7 @@ export class EventEmitHandler implements ExpressionHandler {
     );
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const eventName = expr.target.replace(/\.emit$/, "");
     const meta = this.eventsMap.get(eventName);
     if (!meta) {
@@ -47,7 +45,7 @@ export class EventEmitHandler implements ExpressionHandler {
     const nonIndexed: string[] = [];
 
     meta.fields.forEach((field, i) => {
-      const argExpr = emit(expr.args[i], ctx);
+      const argExpr = this.contractContext.emit(expr.args[i]);
       setup.push(...argExpr.setupLines);
     
       if (field.indexed) {

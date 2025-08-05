@@ -1,21 +1,20 @@
 import keccak256 from "keccak256";
 
-import { IRContract, IREvent } from "@/cli/types/ir.types.js";
+import { IRContract, IREvent, IRExpression } from "@/cli/types/ir.types.js";
 
-import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+import { BaseTypeTransformer } from "../core/base-transformer.js";
+import { ContractContext } from "../core/contract-context.js";
 import { EventEmitHandler } from "./handlers/emit-handler.js";
 
 
 export class EventTransformer extends BaseTypeTransformer {
-  private events: IREvent[];
 
-  constructor(events: IREvent[]) {
-    super("Event");
-    this.events = events;
-    this.registerHandler(new EventEmitHandler(events));
+  constructor(contractContext: ContractContext, events: IREvent[]) {
+    super(contractContext, "Event");
+    this.registerHandler(new EventEmitHandler(contractContext, events));
   }
 
-  matchesType(expr: any): boolean {
+  canHandle(expr: IRExpression): boolean {
     return (
       expr.kind === "call" &&
       typeof expr.target === "string" &&
@@ -28,11 +27,7 @@ export class EventTransformer extends BaseTypeTransformer {
       setupLines: [],
       valueExpr: "/* unsupported event emit */",
     };
-  }
-  
-  generateLoadCode(_property: string): string {
-    return `/* Events do not support load operations */`;
-  }
+  }  
 }
 
 export function generateEventSignature(event: IREvent): string {
@@ -46,8 +41,6 @@ export function registerEventTransformer(contract: IRContract): string[] {
 
   if (contract.events && contract.events.length > 0) {
     const events = contract.events;
-    const instance = new EventTransformer(events);
-    registerTransformer(instance);
 
     for (const ev of events) {
       const hash = generateEventSignature(ev);
