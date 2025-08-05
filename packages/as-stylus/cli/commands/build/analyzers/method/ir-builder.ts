@@ -26,19 +26,22 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     return syntaxValidator.validate() && semanticValidator.validate();
   }
 
-
-
   buildIR(): IRMethod {
     this.symbolTable.enterScope();
     const name = this.methodDecl.getName();
     const decorators = this.methodDecl.getDecorators();
 
-    const visDecorators = decorators.filter((d) => Object.values(Visibility).includes(d.getName().toLowerCase() as Visibility));
-    const stateDecorators = decorators.filter((d) => Object.values(StateMutability).includes(d.getName().toLowerCase() as StateMutability));
+    const visDecorators = decorators.filter((d) =>
+      Object.values(Visibility).includes(d.getName().toLowerCase() as Visibility),
+    );
+    const stateDecorators = decorators.filter((d) =>
+      Object.values(StateMutability).includes(d.getName().toLowerCase() as StateMutability),
+    );
 
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? Visibility.PUBLIC;
-    const stateMutability = stateDecorators[0]?.getName()?.toLowerCase() ?? StateMutability.NONPAYABLE;
-    
+    const stateMutability =
+      stateDecorators[0]?.getName()?.toLowerCase() ?? StateMutability.NONPAYABLE;
+
     const inputs = this.methodDecl.getParameters().map((param) => {
       const argumentBuilder = new ArgumentIRBuilder(param);
       return argumentBuilder.validateAndBuildIR();
@@ -51,13 +54,18 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       return statementBuilder.validateAndBuildIR();
     });
 
-    const outputs: AbiOutput[] = returnType === AbiType.Void ? [] : (() => {
-      const convertedType = convertTypeForIR(returnType);
-      return [{ 
-        type: convertedType.type,
-        ...(convertedType.originalType && { originalType: convertedType.originalType })
-      }];
-    })();
+    const outputs: AbiOutput[] =
+      returnType === AbiType.Void
+        ? []
+        : (() => {
+            const convertedType = convertTypeForIR(returnType);
+            return [
+              {
+                type: convertedType.type,
+                ...(convertedType.originalType && { originalType: convertedType.originalType }),
+              },
+            ];
+          })();
 
     this.symbolTable.exitScope();
     return {

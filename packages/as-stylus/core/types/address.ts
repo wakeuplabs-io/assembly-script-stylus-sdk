@@ -52,7 +52,7 @@ export class Address {
     return addr;
   }
 
-  static equals(a: usize, b: usize): boolean {
+  static equals(a: usize, b: usize): bool {
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
       const a_i = load<u8>(a + i);
       const b_i = load<u8>(b + i);
@@ -63,7 +63,7 @@ export class Address {
     return true;
   }
 
-  static isZero(ptr_address: usize): boolean {
+  static isZero(ptr_address: usize): bool {
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
       if (load<u8>(ptr_address + i) != 0) {
         return false;
@@ -93,7 +93,7 @@ export class Address {
     return dst;
   }
 
-  static hasCode(addrPtr: usize): boolean {
+  static hasCode(addrPtr: usize): bool {
     const hashPtr = malloc(32);
     account_codehash(addrPtr, hashPtr);
 

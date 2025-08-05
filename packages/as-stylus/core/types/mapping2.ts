@@ -17,7 +17,7 @@ export class MappingNested {
     return out;
   }
 
-  static setBoolean(slot: u64, k1: usize, k2: usize, val: boolean): void {
+  static setBoolean(slot: u64, k1: usize, k2: usize, val: bool): void {
     const slot1 = createMappingKey(slot, k1, ADDRESS_LEN);
     const boolPtr = Boolean.create(val);
     mapStoreHash(slot1, k2, ADDRESS_LEN, boolPtr);

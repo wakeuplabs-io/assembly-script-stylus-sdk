@@ -14,6 +14,10 @@
 export interface U256 {
   add(other: U256): U256;
   sub(other: U256): U256;
+  mul(other: U256): U256;
+  div(other: U256): U256;
+  mod(other: U256): U256;
+  pow(exponent: U256): U256;
   greaterThan(other: U256): boolean;
   greaterThanOrEqual(other: U256): boolean;
   lessThan(other: U256): boolean;

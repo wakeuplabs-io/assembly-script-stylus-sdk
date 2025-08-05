@@ -17,6 +17,8 @@ const operationConvertor: Record<I256ComparisonOperation, ComparisonOperator> = 
   notEqual: "!=",
 };
 
+const booleanReturnMethods = ["isNegative"];
+
 export function buildI256IR(target: string, call: CallExpression, symbolTable: SymbolTableStack): IRExpression {
   const [varName, operation] = target.split(".");
   const args = call.getArguments().map((arg) => {
@@ -28,6 +30,7 @@ export function buildI256IR(target: string, call: CallExpression, symbolTable: S
   const scope = targetSymbol?.scope ?? "memory";
 
   const isComparisonOperation = Object.keys(operationConvertor).includes(operation);
+  const isBooleanReturnMethod = booleanReturnMethods.includes(operation);
 
   if (isComparisonOperation) {
     return {
@@ -39,5 +42,6 @@ export function buildI256IR(target: string, call: CallExpression, symbolTable: S
     } satisfies IRCondition;
   }
 
-  return { kind: "call", target, args, type: AbiType.Function, returnType: AbiType.Int256, scope };
+  const returnType = isBooleanReturnMethod ? AbiType.Bool : AbiType.Int256;
+  return { kind: "call", target, args, type: AbiType.Function, returnType, scope };
 } 

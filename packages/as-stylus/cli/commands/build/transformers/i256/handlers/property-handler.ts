@@ -12,7 +12,8 @@ export class I256PropertyHandler implements ExpressionHandler {
   canHandle(expr: any): boolean {
     if (expr.kind !== "call") return false;
     const target = expr.target || "";
-    return target.endsWith(".isNegative") && expr.args.length === 0;
+    const canHandle = target.endsWith(".isNegative") && expr.args.length === 0;
+    return canHandle;
   }
 
   /**

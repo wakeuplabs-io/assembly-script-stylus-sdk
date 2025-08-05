@@ -31,37 +31,57 @@ export class U256Transformer extends BaseTypeTransformer {
 
   /**
    * Determines if this transformer can handle the given expression
+   * Simplified approach following the copy-handler pattern
    */
   matchesType(expr: any): boolean {
-    if (expr?.kind === "call") {
-      const target = expr.target || "";
+    if (expr?.kind !== "call") {
+      return false;
+    }
 
-      // Factory methods
-      if (target === "U256Factory.create" || target === "U256Factory.fromString") {
-        return true;
-      }
+    const target = expr.target || "";
 
-      if (target === "U256.copy") {
-        return true;
-      }
+    // Factory methods - always U256
+    if (target === "U256Factory.create" || target === "U256Factory.fromString") {
+      return true;
+    }
 
-      // Arithmetic operations
-      if (target.endsWith(".add") || target.endsWith(".sub")) {
-        return true;
-      }
+    // Check returnType first - most reliable indicator
+    if (expr.returnType === "uint256") {
+      return true;
+    }
 
-      // Comparison methods
-      if (target.endsWith(".lessThan") || target.endsWith(".greaterThan") ||
-          target.endsWith(".lessThanOrEqual") || target.endsWith(".greaterThanOrEqual") ||
-          target.endsWith(".equal") || target.endsWith(".notEqual")) {
-        return true;
-      }
+    // Static U256 methods
+    if (target.startsWith("U256.")) {
+      return true;
+    }
 
-      // Conversion methods
-      if (target.endsWith(".toString")) {
-        return true;
+    // Instance methods on variables - use returnType to determine if it's U256
+    if (target.includes(".")) {
+      const methodName = target.split(".").pop();
+
+      // Use the IR's returnType to determine if this is a U256 operation
+      if (expr.returnType === "uint256") {
+        const u256Methods = [
+          "mul",
+          "add",
+          "sub",
+          "div",
+          "mod",
+          "pow",
+          "lessThan",
+          "greaterThan",
+          "lessThanOrEqual",
+          "greaterThanOrEqual",
+          "equal",
+          "notEqual",
+          "copy",
+          "toString",
+        ];
+
+        return methodName ? u256Methods.includes(methodName) : false;
       }
     }
+
     return false;
   }
 
@@ -69,13 +89,13 @@ export class U256Transformer extends BaseTypeTransformer {
    * Handles expressions that don't match any registered handler
    */
   protected handleDefault(
-    expr: any, 
-    _context: EmitContext, 
-    _emitExprFn: (expr: any, ctx: EmitContext) => EmitResult
+    expr: any,
+    _context: EmitContext,
+    _emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
   ): EmitResult {
     return {
       setupLines: [],
-      valueExpr: `/* Error: Unsupported U256 expression: ${expr.kind} */`,
+      valueExpr: `/* Error: Unsupported U256 expression: ${expr.kind} ${expr.target} */`,
       valueType: "U256",
     };
   }
