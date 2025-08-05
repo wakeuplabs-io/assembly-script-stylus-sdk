@@ -63,7 +63,7 @@ export class StructFactoryCreateHandler implements ExpressionHandler {
       
       const valueResult = emit(valueArg, ctx);
       setup.push(...valueResult.setupLines);
-      setup.push(`${structType}_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
+      setup.push(`${structType}_memory_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
     }
 
     // Check if this struct has dynamic strings and handle ABI encoding
@@ -91,7 +91,7 @@ export class StructFactoryCreateHandler implements ExpressionHandler {
         if (field.type === AbiType.String || field.type === "Str") {
           const valueResult = emit(valueArg, ctx);
           setup.push(...valueResult.setupLines);
-          setup.push(`${structType}_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
+          setup.push(`${structType}_memory_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
         }
       }
     }

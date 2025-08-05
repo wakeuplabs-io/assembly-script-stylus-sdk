@@ -46,7 +46,11 @@ export class U256Transformer extends BaseTypeTransformer {
     }
 
     // Check returnType first - most reliable indicator
+    // But exclude expressions that belong to structs
     if (expr.returnType === "uint256") {
+      if (expr.originalType || target.includes("_get_") || target.includes("_set_")) {
+        return false;
+      }
       return true;
     }
 

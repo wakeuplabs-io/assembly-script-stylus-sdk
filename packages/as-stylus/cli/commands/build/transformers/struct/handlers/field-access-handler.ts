@@ -11,28 +11,23 @@ export class StructFieldAccessHandler implements ExpressionHandler {
   }
 
   canHandle(expr: any): boolean {
-    return (
-      expr.kind === "member" &&
-      expr.object &&
-      expr.property &&
-      this.isStructAccess(expr)
-    );
+    return expr.kind === "member" && expr.object && expr.property && this.isStructAccess(expr);
   }
 
   handle(
     expr: any,
     context: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
+    emit: (e: any, c: EmitContext) => EmitResult,
   ): EmitResult {
     const objectResult = emit(expr.object, context);
-    
+
     const structInfo = this.getStructInfo(expr.object);
-    
+
     if (!structInfo.isStruct || !structInfo.structName) {
       return {
         setupLines: [...objectResult.setupLines],
         valueExpr: `/* Not a struct access: ${expr.property} */`,
-        valueType: "usize"
+        valueType: "usize",
       };
     }
 
@@ -41,25 +36,25 @@ export class StructFieldAccessHandler implements ExpressionHandler {
       return {
         setupLines: [...objectResult.setupLines],
         valueExpr: `/* Unknown struct type: ${structInfo.structName} */`,
-        valueType: "usize"
+        valueType: "usize",
       };
     }
 
-    const field = struct.fields.find(f => f.name === expr.property);
+    const field = struct.fields.find((f) => f.name === expr.property);
     if (!field) {
       return {
         setupLines: [...objectResult.setupLines],
         valueExpr: `/* Unknown field: ${expr.property} */`,
-        valueType: "usize"
+        valueType: "usize",
       };
     }
 
     const fieldAccess = `${structInfo.structName}_get_${field.name}(${objectResult.valueExpr})`;
-    
+
     return {
       setupLines: [...objectResult.setupLines],
       valueExpr: fieldAccess,
-      valueType: field.dynamic ? "usize" : field.type
+      valueType: field.dynamic ? "usize" : field.type,
     };
   }
 
@@ -68,15 +63,31 @@ export class StructFieldAccessHandler implements ExpressionHandler {
     return structInfo.isStruct;
   }
 
-  private getStructInfo(objectExpr: any): { isStruct: boolean; structName?: string; variableName?: string } {
-    // If it's a simple identifier (variable)
+  private getStructInfo(objectExpr: any): {
+    isStruct: boolean;
+    structName?: string;
+    variableName?: string;
+  } {
     if (objectExpr.kind === "var") {
       const variableName = objectExpr.name;
-      return getStructInfoFromVariableName(variableName);
+
+      const storageInfo = getStructInfoFromVariableName(variableName);
+      if (storageInfo.isStruct) {
+        return storageInfo;
+      }
+
+      if (objectExpr.type === "struct") {
+        const structNames = Array.from(this.structs.keys());
+        if (structNames.length > 0) {
+          return {
+            isStruct: true,
+            structName: structNames[0],
+            variableName,
+          };
+        }
+      }
     }
-    
-    // TODO: Handle more complex cases (obj.prop.field, etc.)
-    
+
     return { isStruct: false };
   }
-} 
+}

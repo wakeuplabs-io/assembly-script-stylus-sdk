@@ -37,7 +37,7 @@ beforeAll(async () => {
   }
 }, DEPLOY_TIMEOUT);
 
-describe.skip("Struct Contract Tests", () => {
+describe("Struct Contract Tests", () => {
   describe("Storage Operations", () => {
     it("should deploy successfully", () => {
       expect(contract).toBeTruthy();

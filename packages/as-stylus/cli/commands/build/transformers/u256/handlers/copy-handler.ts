@@ -6,7 +6,10 @@ export class U256CopyHandler implements ExpressionHandler {
   canHandle(expr: any): boolean {
     if (expr.kind !== "call") return false;
     const target = expr.target || "";
-    return target.endsWith(".copy") && expr.args.length === 0;
+    return (
+      (target === "U256.copy" && expr.args.length === 1) ||
+      (target.endsWith(".copy") && expr.args.length === 0)
+    );
   }
 
   handle(
