@@ -130,7 +130,6 @@ function emitStatement(s: IRStatement, indent: string, contractContext: Contract
       if (type === AbiType.String) {
         baseExpr = `Str.toABI(${exprResult.valueExpr})`;
       }
-
     
       // For boolean mappings, don't wrap with Boolean.create() since they already return proper format
       const isBooleanMapping = baseExpr.includes("MappingNested.getBoolean") || 

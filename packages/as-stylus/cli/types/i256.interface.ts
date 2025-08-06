@@ -7,7 +7,7 @@ export interface I256 {
   greaterThanOrEqual(other: I256): boolean;
   lessThan(other: I256): boolean;
   lessThanOrEqual(other: I256): boolean;
-  equal(other: I256): boolean;
+  equals(other: I256): boolean;
   notEqual(other: I256): boolean;
   toString(): string;
   isNegative(): boolean;

@@ -1,5 +1,5 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
-import { IRExpression, IRStruct, Member } from "@/cli/types/ir.types.js";
+import { Call, IRExpression, IRStruct, Member } from "@/cli/types/ir.types.js";
 import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
 
@@ -13,7 +13,7 @@ export class StructFieldAccessHandler extends Handler {
     this.structs = structs;
   }
 
-  canHandle(expr: IRExpression): boolean {
+  canHandle(expr: Call | Member): boolean {
     return (
       expr.kind === "member" &&
       !!expr.object &&
@@ -26,12 +26,12 @@ export class StructFieldAccessHandler extends Handler {
     const objectResult = this.contractContext.emit(expr.object);
     
     const structInfo = this.getStructInfo(expr.object);
-    
+
     if (!structInfo.isStruct || !structInfo.structName) {
       return {
         setupLines: [...objectResult.setupLines],
         valueExpr: `/* Not a struct access: ${expr.property} */`,
-        valueType: "usize"
+        valueType: "usize",
       };
     }
 
@@ -40,25 +40,29 @@ export class StructFieldAccessHandler extends Handler {
       return {
         setupLines: [...objectResult.setupLines],
         valueExpr: `/* Unknown struct type: ${structInfo.structName} */`,
-        valueType: "usize"
+        valueType: "usize",
       };
     }
 
-    const field = struct.fields.find(f => f.name === expr.property);
+    const field = struct.fields.find((f) => f.name === expr.property);
     if (!field) {
       return {
         setupLines: [...objectResult.setupLines],
         valueExpr: `/* Unknown field: ${expr.property} */`,
-        valueType: "usize"
+        valueType: "usize",
       };
     }
 
-    const fieldAccess = `${structInfo.structName}_get_${field.name}(${objectResult.valueExpr})`;
-    
+    const isStorageAccess = this.isStorageAccess(expr.object);
+    const getterPrefix = isStorageAccess
+      ? `${structInfo.structName}_get_`
+      : `${structInfo.structName}_memory_get_`;
+    const fieldAccess = `${getterPrefix}${field.name}(${objectResult.valueExpr})`;
+
     return {
       setupLines: [...objectResult.setupLines],
       valueExpr: fieldAccess,
-      valueType: field.dynamic ? "usize" : field.type
+      valueType: field.dynamic ? "usize" : field.type,
     };
   }
 
@@ -67,15 +71,38 @@ export class StructFieldAccessHandler extends Handler {
     return structInfo.isStruct;
   }
 
-  private getStructInfo(objectExpr: IRExpression): { isStruct: boolean; structName?: string; variableName?: string } {
-    // If it's a simple identifier (variable)
+  private isStorageAccess(objectExpr: IRExpression): boolean {
+    if (objectExpr && (objectExpr as { scope?: string }).scope === "storage") {
+      return true;
+    }
+    return false;
+  }
+
+  private getStructInfo(objectExpr: IRExpression): {
+    isStruct: boolean;
+    structName?: string;
+    variableName?: string;
+  } {
     if (objectExpr.kind === "var") {
       const variableName = objectExpr.name;
-      return getStructInfoFromVariableName(variableName);
+
+      const storageInfo = getStructInfoFromVariableName(variableName);
+      if (storageInfo.isStruct) {
+        return storageInfo;
+      }
+
+      if (objectExpr.type === "struct") {
+        const structNames = Array.from(this.structs.keys());
+        if (structNames.length > 0) {
+          return {
+            isStruct: true,
+            structName: structNames[0],
+            variableName,
+          };
+        }
+      }
     }
-    
-    // TODO: Handle more complex cases (obj.prop.field, etc.)
-    
+
     return { isStruct: false };
   }
-} 
+}

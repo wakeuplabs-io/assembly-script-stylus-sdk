@@ -1,5 +1,5 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
-import { Call, IRStruct } from "@/cli/types/ir.types.js";
+import { Call, IRStruct, Member } from "@/cli/types/ir.types.js";
 import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
 
@@ -11,8 +11,8 @@ export class StructFieldSetHandler extends Handler {
     this.structs = structs;
   }
 
-  canHandle(expr: Call): boolean {
-    if (!expr.target) return false;
+  canHandle(expr: Call | Member): boolean {
+    if (expr.kind !== "call") return false;
     
     const target = expr.target;
     

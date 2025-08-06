@@ -40,40 +40,59 @@ export class I256Transformer extends BaseTypeTransformer {
    * Determines if this transformer can handle the given expression
    */
   canHandle(expr: IRExpression): boolean {
-    if (expr?.kind === "call") {
-      const target = expr.target || "";
+    if (expr.kind !== "call") return false;
+    
+    const target = expr.target || "";
 
-      if (expr.returnType !== AbiType.Int256) {
-        return false;
-      }
+    // Factory methods
+    if (
+      target === "I256Factory.create" ||
+      target === "I256Factory.fromString" ||
+      target === "I256Factory.fromU256"
+    ) {
+      return true;
+    }
 
-      // Factory methods
-      if (target === "I256Factory.create" || target === "I256Factory.fromString" || target === "I256Factory.fromU256") {
+    if (target === "I256.copy") {
+      return true;
+    }
+
+    // Check returnType first - this is the most reliable indicator
+    if (expr.returnType === AbiType.Int256) {
+      return true;
+    }
+
+    // For boolean return types, only match I256-specific methods
+    if (expr.returnType === AbiType.Bool) {
+      if (target.endsWith(".isNegative")) {
+        // isNegative is only available on I256 variables
         return true;
       }
 
-      if (target === "I256.copy") {
-        return true;
-      }
-
-      // Arithmetic operations
-      if (target.endsWith(".add") || target.endsWith(".sub")) {
-        return true;
-      }
-
-      // Comparison methods
-      if (target.endsWith(".lessThan") || target.endsWith(".greaterThan") ||
-          target.endsWith(".lessThanOrEqual") || target.endsWith(".greaterThanOrEqual") ||
-          target.endsWith(".equal") || target.endsWith(".notEqual")) {
-        return true;
-      }
-
-      // Property and conversion methods
-      if (target.endsWith(".isNegative") || target.endsWith(".negate") ||
-          target.endsWith(".abs") || target.endsWith(".toString")) {
+      // Comparison methods - only for I256 variables
+      if (
+        target.endsWith(".lessThan") ||
+        target.endsWith(".greaterThan") ||
+        target.endsWith(".lessThanOrEqual") ||
+        target.endsWith(".greaterThanOrEqual") ||
+        target.endsWith(".equals") ||
+        target.endsWith(".notEqual")
+      ) {
         return true;
       }
     }
+
+    // For string return types, only match I256-specific methods
+    if (expr.returnType === AbiType.String) {
+      if (target.endsWith(".toString")) {
+        // toString could be on any type, so we need to be more specific
+        // For now, only match if it's explicitly an I256 method
+        if (target.startsWith("I256.")) {
+          return true;
+        }
+      }
+    }
+  
     return false;
   }
 

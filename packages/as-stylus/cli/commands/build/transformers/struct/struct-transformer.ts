@@ -7,12 +7,16 @@ import { StructFactoryCreateHandler } from "./handlers/factory-create-handler.js
 import { StructFieldAccessHandler } from "./handlers/field-access-handler.js";
 import { StructFieldSetHandler } from "./handlers/field-set-handler.js";
 import { ContractContext } from "../core/contract-context.js";
+import { StructHelperCallHandler } from "./handlers/helper-call-handler.js";
+import { StructPropertySetHandler } from "./handlers/property-set-handler.js";
 
 export class StructTransformer extends BaseTypeTransformer {
   private structs: Map<string, IRStruct>;
   private fieldAccessHandler: StructFieldAccessHandler;
   private fieldSetHandler: StructFieldSetHandler;
   private factoryCreateHandler: StructFactoryCreateHandler;
+  private helperCallHandler: StructHelperCallHandler;
+  private propertySetHandler: StructPropertySetHandler;
 
   constructor(contractContext: ContractContext, structs: IRStruct[]) {
     super(contractContext, "Struct");
@@ -21,38 +25,59 @@ export class StructTransformer extends BaseTypeTransformer {
     this.fieldAccessHandler = new StructFieldAccessHandler(contractContext, this.structs);
     this.fieldSetHandler = new StructFieldSetHandler(contractContext, this.structs);
     this.factoryCreateHandler = new StructFactoryCreateHandler(contractContext, this.structs);
+    this.helperCallHandler = new StructHelperCallHandler(contractContext, this.structs);
+    this.propertySetHandler = new StructPropertySetHandler(contractContext, this.structs);
     
     // Registrar handlers
     this.registerHandler(this.fieldAccessHandler);
     this.registerHandler(this.fieldSetHandler);
     this.registerHandler(this.factoryCreateHandler);
+    this.registerHandler(this.helperCallHandler);
+    this.registerHandler(this.propertySetHandler);
   }
 
   canHandle(expr: IRExpression): boolean {
-    if (!expr || expr.kind !== "call") return false;
-    
-    const target = expr.target || "";
-    
-    if (target === "StructFactory.create" && expr.metadata?.isStructCreation) {
-      return true;
-    }
-    
-    if (target.includes("_set_")) {
-      const parts = target.split("_set_");
-      if (parts.length === 2) {
-        const structName = parts[0];
-        return this.structs.has(structName);
+    if (!expr) return false;
+
+    if (expr.kind === "call") {
+      const target = expr.target || "";
+
+      if (target === "StructFactory.create" && expr.metadata?.isStructCreation) {
+        return true;
+      }
+
+      if (target.includes("_set_") || target.includes("_get_")) {
+        const parts = target.split(/_(set|get)_/);
+        if (parts.length >= 2) {
+          const structName = parts[0];
+          return this.structs.has(structName);
+        }
+      }
+
+      if (expr.originalType && this.structs.has(expr.originalType)) {
+        return true;
+      }
+
+      if (target === "property_set" && expr.args && expr.args.length === 3) {
+        return true;
       }
     }
-    
-    if (target.includes("_get_")) {
-      const parts = target.split("_get_");
-      if (parts.length === 2) {
-        const structName = parts[0];
-        return this.structs.has(structName);
+
+    if (expr.kind === "member") {
+      if (expr.object && expr.property) {
+        const objectType = expr.object.type;
+        if (objectType === "struct") {
+          return true;
+        }
+
+        for (const struct of this.structs.values()) {
+          if (struct.fields.some((field) => field.name === expr.property)) {
+            return true;
+          }
+        }
       }
     }
-    
+
     return false;
   }
 
@@ -78,7 +103,7 @@ export class StructTransformer extends BaseTypeTransformer {
         }
       }
     }
-    
+
     // Handle specific setters
     if (target.includes("_set_")) {
       const parts = target.split("_set_");
@@ -95,10 +120,10 @@ export class StructTransformer extends BaseTypeTransformer {
             setupLines: [
               ...objectArg.setupLines,
               ...valueArg.setupLines,
-              `${structName}_set_${fieldName}(${objectArg.valueExpr}, ${valueArg.valueExpr});`
+              `${structName}_set_${fieldName}(${objectArg.valueExpr}, ${valueArg.valueExpr});`,
             ],
             valueExpr: "/* void */",
-            valueType: "void"
+            valueType: "void",
           };
         }
       }
@@ -106,8 +131,8 @@ export class StructTransformer extends BaseTypeTransformer {
 
     return {
       setupLines: [],
-      valueExpr: `/* Unsupported Struct expression: ${expr.kind} */`,
-      valueType: "usize"
+      valueExpr: `/* Unsupported Struct expression: ${(expr as { kind?: string }).kind || "unknown"} */`,
+      valueType: "usize",
     };
   }
 
@@ -122,7 +147,7 @@ export class StructTransformer extends BaseTypeTransformer {
 export function generateStructHelpers(struct: IRStruct, baseSlot: number): string[] {
   const helpers: string[] = [];
   const structName = struct.name;
-  
+
   // Allocation helper using Struct.alloc
   helpers.push(`
 export function ${structName}_alloc(): usize {
@@ -135,11 +160,11 @@ export function ${structName}_copy(dst: usize, src: usize): void {
   Struct.copy(dst, src, ${struct.size});
 }`);
 
-  // Getters for each field using appropriate Struct methods
-  struct.fields.forEach(field => {
+  // Storage getters - for contract storage variables (like myStruct)
+  struct.fields.forEach((field) => {
     const slotForField = baseSlot + Math.floor(field.offset / 32);
     const slotNumber = slotForField.toString(16).padStart(2, "0");
-    
+
     if (field.type === AbiType.String || field.type === "Str") {
       // Special handling for strings - read directly from storage
       helpers.push(`
@@ -167,11 +192,19 @@ export function ${structName}_get_${field.name}(ptr: usize): usize {
     }
   });
 
-  // Setters for each field using type-specific Struct methods
-  struct.fields.forEach(field => {
+  // Memory getters - for temporary structs in memory
+  struct.fields.forEach((field) => {
+    helpers.push(`
+export function ${structName}_memory_get_${field.name}(ptr: usize): usize {
+  return load<usize>(ptr + ${field.offset});
+}`);
+  });
+
+  // Storage setters - for contract storage variables (like myStruct)
+  struct.fields.forEach((field) => {
     const slotForField = baseSlot + Math.floor(field.offset / 32);
     const slotNumber = slotForField.toString(16).padStart(2, "0");
-    
+
     if (field.type === AbiType.Address) {
       helpers.push(`
 export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
@@ -201,6 +234,14 @@ export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
     }
   });
 
+  // Memory setters - for temporary structs in memory
+  struct.fields.forEach((field) => {
+    helpers.push(`
+export function ${structName}_memory_set_${field.name}(ptr: usize, v: usize): void {
+  store<usize>(ptr + ${field.offset}, v);
+}`);
+  });
+
   return helpers;
 }
 
@@ -210,47 +251,49 @@ export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
 export function registerStructTransformer(contract: IRContract): string[] {
   const parts: string[] = [];
   if (contract.structs && contract.structs.length > 0) {
-    contract.structs.forEach(struct => {
-      const structVariable = contract.storage.find(v => {
+    contract.structs.forEach((struct) => {
+      const structVariable = contract.storage.find((v) => {
         if (v.kind === "simple") {
           const simpleVar = v as IRSimpleVar;
-          return simpleVar.originalType === struct.name || 
-                 (simpleVar.type === "struct" && simpleVar.originalType === struct.name);
+          return (
+            simpleVar.originalType === struct.name ||
+            (simpleVar.type === "struct" && simpleVar.originalType === struct.name)
+          );
         }
         return false;
       }) as IRSimpleVar | undefined;
-      
+
       if (structVariable) {
         const baseSlot = structVariable.slot;
-        
-        const existingSlots = new Set(contract.storage.map(v => v.slot));
-        
+
+        const existingSlots = new Set(contract.storage.map((v) => v.slot));
+
         const neededSlots = new Set<number>();
-        
+
         const numSlots = Math.ceil(struct.size / 32);
         for (let i = 0; i < numSlots; i++) {
           neededSlots.add(baseSlot + i);
         }
-        
-        struct.fields.forEach(field => {
+
+        struct.fields.forEach((field) => {
           const fieldSlot = baseSlot + Math.floor(field.offset / 32);
           neededSlots.add(fieldSlot);
         });
-        
+
         // Generate slot constants for all needed slots that don't exist
         const slotsToGenerate = Array.from(neededSlots)
-          .filter(slot => !existingSlots.has(slot))
+          .filter((slot) => !existingSlots.has(slot))
           .sort((a, b) => a - b);
-        
-        slotsToGenerate.forEach(slotValue => {
+
+        slotsToGenerate.forEach((slotValue) => {
           const slotNumber = slotValue.toString(16).padStart(2, "0");
           parts.push(`const __SLOT${slotNumber}: u64 = ${slotValue};`);
         });
-        
+
         if (slotsToGenerate.length > 0) {
-          parts.push(''); // Add empty line after slot constants
+          parts.push(""); // Add empty line after slot constants
         }
-        
+
         parts.push(...generateStructHelpers(struct, baseSlot));
       } else {
         // Fallback if storage variable is not found
@@ -258,6 +301,6 @@ export function registerStructTransformer(contract: IRContract): string[] {
       }
     });
   }
-  
+
   return parts;
-} 
+}

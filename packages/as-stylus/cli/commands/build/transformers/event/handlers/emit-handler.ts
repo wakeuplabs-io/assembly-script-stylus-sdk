@@ -62,9 +62,9 @@ export class EventEmitHandler extends Handler {
       nonIndexed.forEach((ptr, idx) => {
         const field = meta.fields.filter(f => !f.indexed)[idx];
         if (field.type === AssemblyScriptType.Bool) {
-          setup.push(`U256.copy(${dataTemp} + ${idx * 32}, Boolean.toABI(${ptr}));`);
+          setup.push(`U256.copyInPlace(${dataTemp} + ${idx * 32}, Boolean.toABI(${ptr}));`);
         } else {
-          setup.push(`U256.copy(${dataTemp} + ${idx * 32}, ${ptr});`);
+          setup.push(`U256.copyInPlace(${dataTemp} + ${idx * 32}, ${ptr});`);
         }
       });
     } else {

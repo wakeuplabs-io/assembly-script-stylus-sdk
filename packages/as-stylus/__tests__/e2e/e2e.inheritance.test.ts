@@ -51,7 +51,8 @@ describe("Inheritance", () => {
   });
 
   describe("Calling parent methods", () => {
-    it("should override getSumByParams method in child", async () => {
+    it("should call internal parent method through external child method", async () => {
+      // getSumInMemory calls the internal getSumByParams method from parent
       const result = await contract.read("getSumInMemory", [1n, 2n]);
       expect(result).toBe(3n);
     });

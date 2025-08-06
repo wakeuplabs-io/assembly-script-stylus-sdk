@@ -13,7 +13,7 @@ export class MsgTransformer extends BaseTypeTransformer {
 
   canHandle(expr: Member): boolean {
     const object = expr.object as Variable;
-    return object.name === "msg";
+    return object?.name === "msg";
   }
 
   protected handleDefault(expr: Member): EmitResult {

@@ -4,7 +4,10 @@ import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 
 
 /**
- * Handler for I256 operation methods (add, sub)
+ * Handler for I256 operation methods (add, sub, mul, div, mod)
+ * 
+ * DEFAULT: Checked arithmetic (panic on overflow/underflow)
+ * EXPLICIT: Unchecked arithmetic (wrapping behavior) with *Unchecked suffix
  */
 export class I256OperationHandler extends Handler {
   /**
@@ -12,7 +15,18 @@ export class I256OperationHandler extends Handler {
    */
   canHandle(expr: Call): boolean {
     const target = expr.target || "";
-    return target.endsWith(".add") || target.endsWith(".sub");
+    return (
+      target.endsWith(".add") ||
+      target.endsWith(".sub") ||
+      target.endsWith(".mul") ||
+      target.endsWith(".div") ||
+      target.endsWith(".mod") ||
+      target.endsWith(".addUnchecked") ||
+      target.endsWith(".subUnchecked") ||
+      target.endsWith(".mulUnchecked") ||
+      target.endsWith(".divUnchecked") ||
+      target.endsWith(".modUnchecked")
+    );
   }
 
   /**
@@ -23,20 +37,31 @@ export class I256OperationHandler extends Handler {
 
     const argRes = this.contractContext.emit(expr.args[0]);
 
-    // Handle contract property operations differently
+    let operation = op;
+    
+    if (op === "add") operation = "add";
+    else if (op === "sub") operation = "sub";
+    else if (op === "mul") operation = "mul";
+    else if (op === "div") operation = "div";
+    else if (op === "mod") operation = "mod";
+    else if (op === "addUnchecked") operation = "addUnchecked";
+    else if (op === "subUnchecked") operation = "subUnchecked";
+    else if (op === "mulUnchecked") operation = "mulUnchecked";
+    else if (op === "divUnchecked") operation = "divUnchecked";
+    else if (op === "modUnchecked") operation = "modUnchecked";
+
     if (expr.scope === "storage") {
       return {
         setupLines: [...argRes.setupLines],
-        valueExpr: `I256.${op}(load_${prop}(), ${argRes.valueExpr})`,
+        valueExpr: `I256.${operation}(load_${prop}(), ${argRes.valueExpr})`,
         valueType: "I256",
       };
     }
 
-    // For regular object operations
     return {
       setupLines: [...argRes.setupLines],
-      valueExpr: `I256.${op}(${prop}, ${argRes.valueExpr})`,
+      valueExpr: `I256.${operation}(${prop}, ${argRes.valueExpr})`,
       valueType: "I256",
     };
   }
-} 
+}

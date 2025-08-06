@@ -11,7 +11,8 @@ export class I256PropertyHandler extends Handler {
    */
   canHandle(expr: Call): boolean {
     const target = expr.target || "";
-    return target.endsWith(".isNegative") && expr.args.length === 0;
+    const canHandle = target.endsWith(".isNegative") && expr.args.length === 0;
+    return canHandle;
   }
 
   /**

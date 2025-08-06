@@ -73,9 +73,7 @@ export class MappingTransformer extends Handler {
     }
   }
 
-  private transformMapGet(
-    expr: IRMapGet,
-  ): EmitResult {
+  private transformMapGet(expr: IRMapGet): EmitResult {
     const keyResult = this.contractContext.emit(expr.key);
     const method = this.getMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
@@ -100,9 +98,7 @@ export class MappingTransformer extends Handler {
     };
   }
 
-  private transformMapGet2(
-    expr: IRMapGet2,
-  ): EmitResult {
+  private transformMapGet2(expr: IRMapGet2): EmitResult {
     const key1Result = this.contractContext.emit(expr.key1);
     const key2Result = this.contractContext.emit(expr.key2);
     const method = this.getNestedMappingMethod(expr.valueType, "get");
@@ -112,9 +108,7 @@ export class MappingTransformer extends Handler {
     
     // For boolean mappings, use Boolean.fromABI() in statement context
     let valueExpr = baseExpr;
-    //if (expr.valueType === "boolean" && context.isInStatement) {
     if (expr.valueType === "boolean") {
-      console.log("boolean", expr);
       valueExpr = `Boolean.fromABI(${baseExpr})`;
     }
     
@@ -124,9 +118,7 @@ export class MappingTransformer extends Handler {
     };
   }
 
-  private transformMapSet2(
-    expr: IRMapSet2,
-  ): EmitResult {
+  private transformMapSet2(expr: IRMapSet2): EmitResult {
     const key1Result = this.contractContext.emit(expr.key1);
     const key2Result = this.contractContext.emit(expr.key2);
     const valueResult = this.contractContext.emit(expr.value);

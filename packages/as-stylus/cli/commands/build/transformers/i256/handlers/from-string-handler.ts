@@ -49,14 +49,12 @@ export class I256FromStringHandler extends Handler {
         setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
       setup.push(`const ${lenVar}: u32 = ${strLen};`);
-      setup.push(`const ${i256Ptr}: usize = I256.create();`);
-      setup.push(`I256.setFromString(${i256Ptr}, ${strPtr}, ${lenVar});`);
+      setup.push(`const ${i256Ptr}: usize = I256.fromString(${strPtr}, ${lenVar});`);
     } else {
       setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
       setup.push(`const ${strPtr}: usize = malloc(66);`);
       setup.push(
-        `const ${i256Ptr}: usize = I256.create();`,
-        `I256.setFromString(${i256Ptr}, ${strPtr}, ${lenVar});`
+        `const ${i256Ptr}: usize = I256.fromString(${strPtr}, ${lenVar});`
       );
     }
 

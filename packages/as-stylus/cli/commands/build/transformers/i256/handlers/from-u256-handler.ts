@@ -28,4 +28,4 @@ export class I256FromU256Handler extends Handler {
       valueType: "I256",
     };
   }
-} 
+}

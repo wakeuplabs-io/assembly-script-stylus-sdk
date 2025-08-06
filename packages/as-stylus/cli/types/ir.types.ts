@@ -59,6 +59,7 @@ export type IRMapGet = {
   keyType: string;
   valueType: string;
   type: AbiType.Mapping;
+  returnType: SupportedType;
 };
 
 export type IRMapSet = {
@@ -80,6 +81,7 @@ export type IRMapGet2 = {
   keyType2: string;
   valueType: string;
   type: AbiType.MappingNested;
+  returnType: SupportedType;
 };
 
 export type IRMapSet2 = {
