@@ -12,7 +12,7 @@ import { makeTemp } from "../../utils/temp-factory.js";
  *  - If the argument is a **variable** (`string`) reserve 66 bytes
  *    (`"0x" + 64 hex digits`) and copy at runtime using `memory.copy`.
  *
- *  Then call `U256.setFromString(ptrU256, ptrStr, len)`.
+ *  Then call `U256.fromString(ptrStr, len)` which returns a new U256.
  */
 export class U256FromStringHandler implements ExpressionHandler {
   canHandle(expr: any): boolean {
@@ -30,7 +30,6 @@ export class U256FromStringHandler implements ExpressionHandler {
     // emit arg first
     const argRes = emit(arg, ctx);
 
-    const u256Ptr = makeTemp("u256");
     const strPtr = makeTemp("str");
     const lenVar = makeTemp("len");
 
@@ -45,20 +44,14 @@ export class U256FromStringHandler implements ExpressionHandler {
         setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
       setup.push(`const ${lenVar}: u32 = ${strLen};`);
-      setup.push(`const ${u256Ptr}: usize = U256.create();`);
-      setup.push(`U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`);
     } else {
       setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
       setup.push(`const ${strPtr}: usize = malloc(66);`);
-      setup.push(
-        `const ${u256Ptr}: usize = U256.create();`,
-        `U256.setFromString(${u256Ptr}, ${strPtr}, ${lenVar});`,
-      );
     }
 
     return {
       setupLines: setup,
-      valueExpr: u256Ptr,
+      valueExpr: `U256.fromString(${strPtr}, ${lenVar})`,
       valueType: "U256",
     };
   }

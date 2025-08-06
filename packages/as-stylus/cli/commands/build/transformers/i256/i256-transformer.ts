@@ -71,7 +71,7 @@ export class I256Transformer extends BaseTypeTransformer {
           target.endsWith(".greaterThan") ||
           target.endsWith(".lessThanOrEqual") ||
           target.endsWith(".greaterThanOrEqual") ||
-          target.endsWith(".equal") ||
+          target.endsWith(".equals") ||
           target.endsWith(".notEqual")
         ) {
           return true;

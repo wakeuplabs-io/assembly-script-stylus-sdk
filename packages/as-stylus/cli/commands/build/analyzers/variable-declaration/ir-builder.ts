@@ -59,7 +59,10 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
 
     const expression = new ExpressionIRBuilder(initializer as Expression).validateAndBuildIR();
     if (type === AbiType.Any || type === AbiType.Unknown) {
-      variable.type = (expression as any).returnType ?? (expression as any).type ?? variable.type;
+      // Try to get the return type from the expression (important for mappings)
+      const exprReturnType = (expression as any).returnType;
+      const exprType = (expression as any).type;
+      variable.type = exprReturnType ?? exprType ?? variable.type;
     }
     this.symbolTable.declareVariable(variable.name, variable);
 

@@ -1,23 +1,30 @@
-/******************************************************************
- * Address — low-level (20-byte big-endian buffer)
- ******************************************************************/
 import { account_codehash } from "../modules/hostio";
 import { malloc } from "../modules/memory";
 import { hexChar, hexIsZeroPrefix } from "../utils/ascii";
 
 export class Address {
-  static ADDRESS_SIZE: u32 = 32; // Ethereum addresses are 20 bytes, not 32
+  static ADDRESS_SIZE: u32 = 32;
   private static EMPTY_HASH: u8[] = [
     0xc5, 0xd2, 0x46, 0x01, 0x86, 0xf7, 0x23, 0x3c, 0x92, 0x7e, 0x7d, 0xb2, 0xdc, 0xc7, 0x03, 0xc0,
     0xe5, 0x00, 0xb6, 0x53, 0xca, 0x82, 0x27, 0x3b, 0x7b, 0xfa, 0xd8, 0x04, 0x5d, 0x85, 0xa4, 0x70,
   ];
 
+  /**
+   * Creates a new zero-initialized address
+   * @returns Pointer to the newly allocated address
+   */
   static create(): usize {
     const ptr = malloc(32);
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) store<u8>(ptr + i, 0);
     return ptr;
   }
 
+  /**
+   * Sets an address from a hexadecimal string representation
+   * @param destAddress - Pointer to destination address
+   * @param hexString - Pointer to hexadecimal string data
+   * @param hexLength - Length of the hexadecimal string
+   */
   static setFromStringHex(destAddress: usize, hexString: usize, hexLength: u32): void {
     let prefixOffset: u32 = 0;
     if (hexIsZeroPrefix(hexString, hexLength)) prefixOffset = 2;
@@ -35,7 +42,6 @@ export class Address {
       }
     }
 
-    // Process pairs of hex digits
     while (destByteIndex >= 0 && sourceCharIndex >= <i32>prefixOffset + 1) {
       const lowNibble = hexChar(load<u8>(hexString + sourceCharIndex));
       const highNibble = hexChar(load<u8>(hexString + sourceCharIndex - 1));
@@ -44,6 +50,11 @@ export class Address {
     }
   }
 
+  /**
+   * Creates an address from a 20-byte buffer
+   * @param ptr_20 - Pointer to 20-byte address data
+   * @returns Pointer to the newly allocated address
+   */
   static fromBytes(ptr_20: usize): usize {
     const addr = Address.create();
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
@@ -52,6 +63,12 @@ export class Address {
     return addr;
   }
 
+  /**
+   * Compares two addresses for equality
+   * @param a - Pointer to first address
+   * @param b - Pointer to second address
+   * @returns true if addresses are equal, false otherwise
+   */
   static equals(a: usize, b: usize): bool {
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
       const a_i = load<u8>(a + i);
@@ -63,6 +80,11 @@ export class Address {
     return true;
   }
 
+  /**
+   * Checks if an address is the zero address
+   * @param ptr_address - Pointer to the address
+   * @returns true if address is zero, false otherwise
+   */
   static isZero(ptr_address: usize): bool {
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
       if (load<u8>(ptr_address + i) != 0) {
@@ -72,12 +94,23 @@ export class Address {
     return true;
   }
 
+  /**
+   * Creates an address from a hexadecimal string representation
+   * @param strPtr - Pointer to string data
+   * @param len - Length of the string
+   * @returns Pointer to the newly allocated address
+   */
   static fromString(strPtr: usize, len: u32): usize {
     const addr = Address.create();
     Address.setFromStringHex(addr, strPtr, len);
     return addr;
   }
 
+  /**
+   * Creates a 32-byte topic representation of an address (for events)
+   * @param addr - Pointer to the address
+   * @returns Pointer to the 32-byte topic
+   */
   static topic(addr: usize): usize {
     const t = malloc(32);
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) store<u8>(t + i, load<u8>(addr + i));
@@ -85,6 +118,11 @@ export class Address {
     return t;
   }
 
+  /**
+   * Creates a copy of an existing address
+   * @param src - Pointer to source address
+   * @returns Pointer to the newly allocated address copy
+   */
   static copyNew(src: usize): usize {
     const dst = Address.create();
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
@@ -93,6 +131,11 @@ export class Address {
     return dst;
   }
 
+  /**
+   * Checks if an address has associated code (is a contract)
+   * @param addrPtr - Pointer to the address
+   * @returns true if address has code, false otherwise
+   */
   static hasCode(addrPtr: usize): bool {
     const hashPtr = malloc(32);
     account_codehash(addrPtr, hashPtr);

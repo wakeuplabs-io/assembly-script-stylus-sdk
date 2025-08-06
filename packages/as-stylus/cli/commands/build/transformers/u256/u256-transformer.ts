@@ -5,6 +5,7 @@ import { U256ComparisonHandler } from "./handlers/comparison-handler.js";
 import { U256CopyHandler } from "./handlers/copy-handler.js";
 import { U256CreateHandler } from "./handlers/create-handler.js";
 import { U256FromStringHandler } from "./handlers/from-string-handler.js";
+import { U256FunctionCallHandler } from "./handlers/function-call-handler.js";
 import { U256OperationHandler } from "./handlers/operation-handler.js";
 import { U256ToStringHandler } from "./handlers/to-string-handler.js";
 
@@ -24,6 +25,7 @@ export class U256Transformer extends BaseTypeTransformer {
     this.registerHandler(new U256CreateHandler());
     this.registerHandler(new U256CopyHandler());
     this.registerHandler(new U256FromStringHandler());
+    this.registerHandler(new U256FunctionCallHandler());
     this.registerHandler(new U256OperationHandler());
     this.registerHandler(new U256ComparisonHandler());
     this.registerHandler(new U256ToStringHandler());
@@ -76,7 +78,7 @@ export class U256Transformer extends BaseTypeTransformer {
           "greaterThan",
           "lessThanOrEqual",
           "greaterThanOrEqual",
-          "equal",
+          "equals",
           "notEqual",
           "copy",
           "toString",

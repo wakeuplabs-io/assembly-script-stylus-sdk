@@ -1,10 +1,3 @@
-// as-stylus/core/types/str.ts
-// ---------------------------------------------------------------------
-// String wrapper — memory layout: [len: u32][bytes...]
-// If len ≤ 28  → can be packed into a single slot (packed)
-// If len > 28  → stored as a Solidity-style dynamic array
-// ---------------------------------------------------------------------
-
 import { U256 } from "./u256";
 import { storeU32BE, loadU32BE } from "../modules/endianness";
 import {
@@ -24,27 +17,37 @@ function min(a: u32, b: u32): u32 {
   return a < b ? a : b;
 }
 
-// Helper function to read a u32 value from a 32-byte big-endian field
 function loadU32FromBytes32(ptr: usize): u32 {
   return loadU32BE(ptr + 28);
 }
 
 export class Str {
+  /**
+   * Creates a new empty string
+   * @returns Pointer to the newly allocated empty string
+   */
   static create(): usize {
     const ptr = malloc(4);
     store<u32>(ptr, 0);
     return ptr;
   }
 
+  /**
+   * Creates a string from ABI-encoded data
+   * @param pointer - Pointer to ABI-encoded string data
+   * @returns Pointer to the newly created string
+   */
   static fromABI(pointer: usize): usize {
-    // ABI format: [offset: 32 bytes][length: 32 bytes][data: variable bytes]
-    // Read length from bytes 32-63 (position 0x20 + 28)
     const len: u32 = loadU32BE(pointer + 0x20 + 28);
-    // Read data starting from byte 64 (0x40)
     const dataPtr = pointer + 0x40;
     return Str.fromBytes(dataPtr, len);
   }
 
+  /**
+   * Creates a string from an AssemblyScript string literal
+   * @param str - AssemblyScript string literal
+   * @returns Pointer to the newly created string
+   */
   static fromString(str: string): usize {
     const ptr = malloc(str.length);
     for (let i: i32 = 0; i < str.length; ++i) store<u8>(ptr + i, str.charCodeAt(i));
@@ -52,12 +55,11 @@ export class Str {
   }
 
   /**
-   * Create a new string from a pointer and a length
-   * @param src - pointer to the source string
-   * @param len - length of the source string
-   * @returns pointer to the new string
+   * Creates a string from a byte array
+   * @param src - Pointer to source byte data
+   * @param len - Length of the byte data
+   * @returns Pointer to the newly created string
    */
-
   static fromBytes(src: usize, len: u32): usize {
     const ptr = malloc(4 + len);
     store<u32>(ptr, len);
@@ -66,21 +68,19 @@ export class Str {
   }
 
   /**
-   * Reads a string argument from ABI-encoded data at a specific position
-   * Simplifies reading string arguments in contract entry points
-   * @param argsPtr - pointer to the arguments data
-   * @returns pointer to the created string
+   * Creates a string from fixed-size argument data
+   * @param argsPtr - Pointer to argument data
+   * @returns Pointer to the newly created string
    */
   static fromArg(argsPtr: usize): usize {
-    // For simple fixed-size string arguments, just read the data directly
     return Str.fromBytes(argsPtr, 32);
   }
 
   /**
-   * Reads a dynamic string argument from ABI-encoded data
-   * @param argStart - pointer to the start of arguments data (after selector)
-   * @param current - pointer to the 32-byte offset field
-   * @returns pointer to the created string
+   * Creates a string from dynamic ABI-encoded argument data
+   * @param argStart - Pointer to start of arguments
+   * @param current - Pointer to offset field
+   * @returns Pointer to the newly created string
    */
   static fromDynamicArg(argStart: usize, current: usize): usize {
     const off = loadU32FromBytes32(current);
@@ -90,16 +90,20 @@ export class Str {
     return Str.fromBytes(dataPtr, len);
   }
 
-  /* Decodifica a string JS (solo para debugging - costoso) */
+  /**
+   * Converts string to AssemblyScript string for debugging
+   * @param ptr - Pointer to the string
+   * @returns AssemblyScript string representation
+   */
   static toString(ptr: usize): string {
     const len = load<u32>(ptr);
     return String.UTF8.decodeUnsafe(ptr + 4, len, true);
   }
 
   /**
-   * Returns the length of the string
-   * @param ptr - pointer to the string
-   * @returns pointer to the length
+   * Returns the length of the string as a 32-byte value
+   * @param ptr - Pointer to the string
+   * @returns Pointer to 32-byte length representation
    */
   static length(ptr: usize): usize {
     const out = malloc(32);
@@ -108,7 +112,13 @@ export class Str {
     return out;
   }
 
-  /* ────────────── Helpers de slicing en memoria ────────────── */
+  /**
+   * Creates a substring from the original string
+   * @param ptr - Pointer to the original string
+   * @param offset - Starting offset
+   * @param len - Length of the substring
+   * @returns Pointer to the newly created substring
+   */
   static slice(ptr: usize, offset: usize, len: usize): usize {
     const original: u32 = load<u32>(ptr);
     if (offset + len > original) len = <usize>(original - offset);
@@ -119,20 +129,28 @@ export class Str {
     return out;
   }
 
-  /* ────────────── Empaquetado en un slot (≤28 bytes) ────────────── */
+  /**
+   * Converts string to packed storage format (≤28 bytes)
+   * @param ptr - Pointer to the string
+   * @returns Pointer to packed 32-byte representation
+   */
   static toPacked(ptr: usize): usize {
-    const len: u32 = load<u32>(ptr); // 0–28
+    const len: u32 = load<u32>(ptr);
     const buf = malloc(32);
     zero(buf, 32);
 
     const n = min(len, 28);
     for (let i: u32 = 0; i < n; ++i) store<u8>(buf + i, load<u8>(ptr + 4 + i));
 
-    // longitud en los últimos 4 bytes (little-endian)
     store<u32>(buf + 28, len);
-    return buf; // 32-byte block
+    return buf;
   }
 
+  /**
+   * Creates string from packed storage format
+   * @param buf - Pointer to packed 32-byte data
+   * @returns Pointer to the newly created string
+   */
   static fromPacked(buf: usize): usize {
     const len: u32 = load<u32>(buf + 28);
     const ptr = malloc(4 + len);
@@ -141,10 +159,13 @@ export class Str {
     return ptr;
   }
 
-  /* ────────────── API de storage estilo Solidity ────────────── */
+  /**
+   * Stores string to contract storage using Solidity-style layout
+   * @param slot - Storage slot identifier
+   * @param ptr - Pointer to the string to store
+   */
   static storeTo(slot: u64, ptr: usize): void {
     const len: u32 = load<u32>(ptr);
-    // Caso 1 ─ packed (≤28)
     if (len <= 28) {
       const packed = Str.toPacked(ptr);
       storage_cache_bytes32(createStorageKey(slot), packed);
@@ -152,20 +173,16 @@ export class Str {
       return;
     }
 
-    // Caso 2 ─ dinámico (>28)
-    // 1) slot base ← longitud
     const lenBuf = malloc(32);
     zero(lenBuf, 32);
     store<u32>(lenBuf + 28, len);
     storage_cache_bytes32(createStorageKey(slot), lenBuf);
     storage_flush_cache(0);
 
-    // 2) keccak256(slot) → base key
     const slotKey = createStorageKey(slot);
     const base = malloc(32);
     native_keccak256(slotKey, 32, base);
 
-    // 3) escribir chunks consecutivos
     let remaining = len;
     let off: u32 = 0;
     let chunk: u64 = 0;
@@ -176,9 +193,7 @@ export class Str {
       zero(chunkBuf, 32);
       for (let i: u32 = 0; i < size; ++i) store<u8>(chunkBuf + i, load<u8>(ptr + 4 + off + i));
 
-      const keyPtr = malloc(32);
-      const keyVal: usize = U256.addNew(base, U256.fromU64(chunk));
-      U256.copy(keyPtr, keyVal);
+      const keyPtr: usize = U256.add(base, U256.fromU64(chunk));
 
       storage_cache_bytes32(keyPtr, chunkBuf);
       storage_flush_cache(0);
@@ -189,15 +204,18 @@ export class Str {
     }
   }
 
+  /**
+   * Loads string from contract storage using Solidity-style layout
+   * @param slot - Storage slot identifier
+   * @returns Pointer to the loaded string
+   */
   static loadFrom(slot: u64): usize {
     const lenBuf = malloc(32);
     storage_load_bytes32(createStorageKey(slot), lenBuf);
     const len: u32 = load<u32>(lenBuf + 28);
 
-    // Caso 1 ─ packed
     if (len <= 28) return Str.fromPacked(lenBuf);
 
-    // Caso 2 ─ dinámico
     const ptr = malloc(4 + len);
     store<u32>(ptr, len);
 
@@ -211,9 +229,7 @@ export class Str {
 
     while (remaining > 0) {
       const size: u32 = remaining >= 32 ? 32 : remaining;
-      const keyPtr = malloc(32);
-      const keyVal: usize = U256.addNew(base, U256.fromU64(chunk));
-      U256.copy(keyPtr, keyVal);
+      const keyPtr: usize = U256.add(base, U256.fromU64(chunk));
 
       const chunkBuf = malloc(32);
       storage_load_bytes32(keyPtr, chunkBuf);
@@ -228,6 +244,11 @@ export class Str {
     return ptr;
   }
 
+  /**
+   * Converts string to ABI-encoded format
+   * @param ptr - Pointer to the string
+   * @returns Pointer to ABI-encoded data
+   */
   static toABI(ptr: usize): usize {
     const len: u32 = load<u32>(ptr);
     const paddedLen = (len + 31) & ~31;
@@ -246,6 +267,11 @@ export class Str {
     return out;
   }
 
+  /**
+   * Converts raw string pointer to ABI-encoded format
+   * @param stringPtr - Pointer to raw string data
+   * @returns Pointer to ABI-encoded data
+   */
   static rawStringToABI(stringPtr: usize): usize {
     if (stringPtr == 0) {
       const out = malloc(0x40);
@@ -261,13 +287,11 @@ export class Str {
 
     const out = malloc(total);
 
-    // ABI header
     zero(out, 32);
     store<u8>(out + 31, 0x20);
     zero(out + 0x20, 32);
     storeU32BE(out + 0x20 + 28, len);
 
-    // Copy string data
     for (let i: u32 = 0; i < len; ++i) {
       store<u8>(out + 0x40 + i, load<u8>(stringPtr + i));
     }

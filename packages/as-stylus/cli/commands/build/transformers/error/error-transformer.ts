@@ -80,7 +80,7 @@ export function registerErrorTransformer(contract: IRContract): string[] {
       error.fields.forEach((field, idx) => {
         const offset = 4 + (idx * 32);
         lines.push(`  // Write argument ${idx + 1}: ${field.name} (${field.type})`);
-        lines.push(`  U256.copy(errorData + ${offset}, arg${idx});`);
+        lines.push(`  U256.copyInPlace(errorData + ${offset}, arg${idx});`);
       });
       
       lines.push(`  return errorData;`);

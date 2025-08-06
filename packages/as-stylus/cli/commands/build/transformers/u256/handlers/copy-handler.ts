@@ -18,25 +18,21 @@ export class U256CopyHandler implements ExpressionHandler {
     emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
   ): EmitResult {
     const target = expr.target || "";
-    const dstPtr = makeTemp("u256Copy");
 
     if (target === "U256.copy" && expr.args.length === 1) {
-      // Static method: U256.copy(src)
+      // Static method: U256.copy(src) - directly returns new instance
       const srcArg = emitExprFn(expr.args[0], context);
       return {
-        setupLines: [
-          ...srcArg.setupLines,
-          `const ${dstPtr}: usize = U256.copyNew(${srcArg.valueExpr});`,
-        ],
-        valueExpr: dstPtr,
+        setupLines: [...srcArg.setupLines],
+        valueExpr: `U256.copy(${srcArg.valueExpr})`,
         valueType: "U256",
       };
     } else if (target.endsWith(".copy") && expr.args.length === 0) {
-      // Instance method: variable.copy()
+      // Instance method: variable.copy() - directly returns new instance
       const varName = target.replace(".copy", "");
       return {
-        setupLines: [`const ${dstPtr}: usize = U256.copyNew(${varName});`],
-        valueExpr: dstPtr,
+        setupLines: [],
+        valueExpr: `U256.copy(${varName})`,
         valueType: "U256",
       };
     }

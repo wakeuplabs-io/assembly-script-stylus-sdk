@@ -203,8 +203,8 @@ function handleFallbackExpression(expr: IRExpression): string {
       const keyResult = emitExpression(expr.key);
       const valueResult = emitExpression(expr.value);
       
-      // Choose mapping method based on key type
-      const method = expr.valueType === "U256" ? "setU256" : "setAddress";
+      // Choose mapping method based on value type
+      const method = expr.valueType === "Address" ? "setAddress" : "setU256";
       
       return `Mapping.${method}(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr}, ${valueResult.valueExpr})`;
     }
@@ -212,8 +212,8 @@ function handleFallbackExpression(expr: IRExpression): string {
     case "map_get": {
       const keyResult = emitExpression(expr.key);
       
-      // Choose mapping method based on key type  
-      const method = expr.valueType === "U256" ? "getU256" : "getAddress";
+      // Choose mapping method based on value type
+      const method = expr.valueType === "Address" ? "getAddress" : "getU256";
       
       return `Mapping.${method}(__SLOT${expr.slot.toString(16).padStart(2, "0")}, ${keyResult.valueExpr})`;
     }
