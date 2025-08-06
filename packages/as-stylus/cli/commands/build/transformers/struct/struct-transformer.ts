@@ -168,7 +168,7 @@ export function ${structName}_copy(dst: usize, src: usize): void {
     if (field.type === AbiType.String || field.type === "Str") {
       // Special handling for strings - read directly from storage
       helpers.push(`
-export function ${structName}_get_${field.name}(): usize {
+export function ${structName}_get_${field.name}(ptr: usize): usize {
   return Struct.getString(__SLOT${slotNumber});
 }`);
     } else if (field.type === AbiType.Bool) {
