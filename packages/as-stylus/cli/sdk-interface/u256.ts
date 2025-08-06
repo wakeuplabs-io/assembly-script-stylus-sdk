@@ -1,10 +1,10 @@
 /**
  * @interface U256
  * @description Interface for a 256-bit unsigned integer
- * 
+ *
  * DEFAULT BEHAVIOR: Checked arithmetic (panic on overflow/underflow)
  * EXPLICIT UNCHECKED: Use *Unchecked methods for wrapping behavior
- * 
+ *
  * @property {U256} add - Add with overflow checking (DEFAULT)
  * @property {U256} sub - Subtract with underflow checking (DEFAULT)
  * @property {U256} mul - Multiply with overflow checking (DEFAULT)
@@ -32,7 +32,7 @@ export interface U256 {
   div(other: U256): U256;
   mod(other: U256): U256;
   pow(exponent: U256): U256;
-  
+
   // EXPLICIT: Unchecked arithmetic (wrapping behavior)
   addUnchecked(other: U256): U256;
   subUnchecked(other: U256): U256;
@@ -40,7 +40,7 @@ export interface U256 {
   divUnchecked(other: U256): U256;
   modUnchecked(other: U256): U256;
   powUnchecked(exponent: U256): U256;
-  
+
   // Comparison operations
   greaterThan(other: U256): boolean;
   greaterThanOrEqual(other: U256): boolean;
@@ -48,7 +48,7 @@ export interface U256 {
   lessThanOrEqual(other: U256): boolean;
   equals(other: U256): boolean;
   notEqual(other: U256): boolean;
-  
+
   // Utility methods
   toString(): string;
   copy(): U256;
