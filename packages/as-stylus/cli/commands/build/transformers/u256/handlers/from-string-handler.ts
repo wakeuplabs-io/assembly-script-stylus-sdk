@@ -27,7 +27,7 @@ export class U256FromStringHandler extends Handler {
     const [arg] = expr.args;
 
     // emit arg first
-    const argRes = this.contractContext.emit(arg);
+    const argRes = this.contractContext.emitExpression(arg);
 
     const strPtr = makeTemp("str");
     const lenVar = makeTemp("len");

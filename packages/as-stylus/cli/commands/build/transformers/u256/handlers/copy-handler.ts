@@ -21,7 +21,7 @@ export class U256CopyHandler extends Handler {
     const target = callExpression.target || "";
     if (target === "U256.copy" && callExpression.args.length === 1) {
       // Static method: U256.copy(src) - directly returns new instance
-      const srcArg = this.contractContext.emit(callExpression.args[0]);
+      const srcArg = this.contractContext.emitExpression(callExpression.args[0]);
       return {
         setupLines: [...srcArg.setupLines],
         valueExpr: `U256.copy(${srcArg.valueExpr})`,

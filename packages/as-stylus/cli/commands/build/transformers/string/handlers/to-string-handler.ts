@@ -16,7 +16,7 @@ export class StrToStringHandler extends Handler {
   }
 
   handle(expr: Call): EmitResult {
-    const recv = this.contractContext.emit(expr.receiver!);
+    const recv = this.contractContext.emitExpression(expr.receiver!);
     return {
       setupLines: [...recv.setupLines],
       valueExpr: `Str.toString(${recv.valueExpr})`,

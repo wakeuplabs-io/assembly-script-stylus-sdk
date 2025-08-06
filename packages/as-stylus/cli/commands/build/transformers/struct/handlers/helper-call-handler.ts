@@ -37,7 +37,7 @@ export class StructHelperCallHandler extends Handler {
     const argResults: EmitResult[] = [];
     if (expr.args && expr.args.length > 0) {
       for (const arg of expr.args) {
-        argResults.push(this.contractContext.emit(arg));
+        argResults.push(this.contractContext.emitExpression(arg));
       }
     }
 

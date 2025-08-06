@@ -20,7 +20,7 @@ export class I256FromU256Handler extends Handler {
    * Processes I256Factory.fromU256() expressions
    */
   handle(expr: Call): EmitResult {
-    const u256ValueResult = this.contractContext.emit(expr.args[0]);
+    const u256ValueResult = this.contractContext.emitExpression(expr.args[0]);
 
     return {
       setupLines: [...u256ValueResult.setupLines],

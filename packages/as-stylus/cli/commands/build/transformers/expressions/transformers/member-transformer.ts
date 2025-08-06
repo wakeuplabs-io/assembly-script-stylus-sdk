@@ -25,12 +25,12 @@ export class MemberTransformer extends Handler {
       };
     }
 
-    const result = this.contractContext.emit(member);
+    const result = this.contractContext.emitExpression(member);
     if (result.setupLines.length > 0) {
       return result;
     }
 
-    const objResult = this.contractContext.emit(member.object);
+    const objResult = this.contractContext.emitExpression(member.object);
     
     return {
       setupLines: objResult.setupLines,

@@ -9,12 +9,12 @@ import { registerEventTransformer } from "../event/utils/register-events.js";
 import { ExpressionHandler } from "../expressions/expression-handler.js";
 import { I256Transformer } from "../i256/i256-transformer.js";
 import { MsgTransformer } from "../msg/msg-transformer.js";
+import { StatementHandler } from "../statements/statement-handler.js";
 import { StrTransformer } from "../string/string-transformer.js";
 import { registerStructTransformer, StructTransformer } from "../struct/struct-transformer.js";
 import { U256Transformer } from "../u256/u256-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
-import { emitStatements } from "../utils/statements.js";
 import { generateImports, generateStorageHelpers } from "../utils/storage.js";
 
 interface ArgumentSignature {
@@ -48,13 +48,14 @@ function generateMethodSignature(method: IRMethod): ArgumentSignature {
  * @returns Generated method code
  */
 function generateMethod(method: IRMethod, contractContext: ContractContext): string {
+  const statementHandler = new StatementHandler(contractContext);
   let returnType = "void";
   if (method.outputs && method.outputs.length > 0 && method.outputs[0].type !== "void") {
     returnType = "usize";
   }
 
   const { argsSignature, aliasLines } = generateMethodSignature(method);
-  const body = emitStatements(method.ir, contractContext);
+  const body = statementHandler.handleStatements(method.ir);
 
   const methodLines = [
     `export function ${method.name}(${argsSignature}): ${returnType} {`,

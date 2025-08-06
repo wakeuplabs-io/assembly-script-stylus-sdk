@@ -58,7 +58,7 @@ export class StructFactoryCreateHandler extends Handler {
         continue;
       }
       
-      const valueResult = this.contractContext.emit(valueArg);
+      const valueResult = this.contractContext.emitExpression(valueArg);
       setup.push(...valueResult.setupLines);
       setup.push(`${structType}_memory_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
     }
@@ -69,7 +69,7 @@ export class StructFactoryCreateHandler extends Handler {
       const valueArg = initialValues[i];
 
       if (field.type === AbiType.String || field.type === "Str") {
-        const valueResult = this.contractContext.emit(valueArg);
+        const valueResult = this.contractContext.emitExpression(valueArg);
         setup.push(...valueResult.setupLines);
         setup.push(
           `${structType}_memory_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`,

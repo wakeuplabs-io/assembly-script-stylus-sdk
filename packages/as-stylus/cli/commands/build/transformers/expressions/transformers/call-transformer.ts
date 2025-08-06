@@ -55,11 +55,11 @@ export class CallTransformer extends Handler {
       };
     }
 
-    return this.contractContext.emit(call);
+    return this.contractContext.emitExpression(call);
   }
 
   private transformArguments(args: IRExpression[]): EmitResult[] {
-    return args.map(arg => this.contractContext.emit(arg));
+    return args.map(arg => this.contractContext.emitExpression(arg));
   }
 
   private combineSetupLines(argResults: EmitResult[]): string[] {

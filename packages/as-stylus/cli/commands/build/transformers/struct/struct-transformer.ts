@@ -93,7 +93,7 @@ export class StructTransformer extends BaseTypeTransformer {
         const struct = this.structs.get(structName);
         
         if (struct && expr.args && expr.args.length === 1) {
-          const objectArg = this.contractContext.emit(expr.args[0]);
+          const objectArg = this.contractContext.emitExpression(expr.args[0]);
           
           return {
             setupLines: [...objectArg.setupLines],
@@ -113,8 +113,8 @@ export class StructTransformer extends BaseTypeTransformer {
         const struct = this.structs.get(structName);
         
         if (struct && expr.args && expr.args.length === 2) {
-          const objectArg = this.contractContext.emit(expr.args[0]);
-          const valueArg = this.contractContext.emit(expr.args[1]);
+          const objectArg = this.contractContext.emitExpression(expr.args[0]);
+          const valueArg = this.contractContext.emitExpression(expr.args[1]);
           
           return {
             setupLines: [

@@ -49,8 +49,8 @@ export class StructFieldSetHandler extends Handler {
       };
     }
     
-    const objectArg = this.contractContext.emit(expr.args[0]);
-    const valueArg = this.contractContext.emit(expr.args[1]);
+    const objectArg = this.contractContext.emitExpression(expr.args[0]);
+    const valueArg = this.contractContext.emitExpression(expr.args[1]);
     
     return {
       setupLines: [

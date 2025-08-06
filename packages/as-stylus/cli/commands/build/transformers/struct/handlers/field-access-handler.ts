@@ -23,7 +23,7 @@ export class StructFieldAccessHandler extends Handler {
   }
 
   handle(expr: Member): EmitResult {
-    const objectResult = this.contractContext.emit(expr.object);
+    const objectResult = this.contractContext.emitExpression(expr.object);
     
     const structInfo = this.getStructInfo(expr.object);
 

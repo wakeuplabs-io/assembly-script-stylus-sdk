@@ -35,7 +35,7 @@ export class I256OperationHandler extends Handler {
   handle(expr: Call): EmitResult {
     const [prop, op] = expr.target.split(".");
 
-    const argRes = this.contractContext.emit(expr.args[0]);
+    const argRes = this.contractContext.emitExpression(expr.args[0]);
 
     let operation = op;
     

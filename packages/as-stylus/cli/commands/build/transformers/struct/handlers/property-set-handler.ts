@@ -31,8 +31,8 @@ export class StructPropertySetHandler extends Handler {
     const fieldNameArg = expr.args[1] as IRExpression;
     const valueArg = expr.args[2] as IRExpression;
 
-    const objectResult = this.contractContext.emit(objectArg);
-    const valueResult = this.contractContext.emit(valueArg);
+    const objectResult = this.contractContext.emitExpression(objectArg);
+    const valueResult = this.contractContext.emitExpression(valueArg);
 
     const fieldName = (fieldNameArg as Arg)?.value || (fieldNameArg as Arg).name;
 

@@ -21,7 +21,7 @@ export class AddressIsZeroHandler extends Handler {
       const chain = expr.target.slice(0, -".isZero".length);
       expr.receiver = { kind:"var", name: chain, type: AbiType.Address, scope: "memory" };
   }
-    const recv = this.contractContext.emit(expr.receiver!);
+    const recv = this.contractContext.emitExpression(expr.receiver!);
 
     return {
       setupLines: [...recv.setupLines],

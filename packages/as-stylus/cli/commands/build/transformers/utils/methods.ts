@@ -1,5 +1,4 @@
 import { generateArgsLoadBlock } from "./args.js";
-import { emitStatements } from "./statements.js";
 import { IRContract } from "../../../../types/ir.types.js";
 import { ContractContext } from "../core/contract-context.js";
 
@@ -20,7 +19,7 @@ export function generateMethods(contract: IRContract, contractContext: ContractC
     const { callArgs } = generateArgsLoadBlock(m.inputs);
     const argsSignature = callArgs.map(arg => `${arg.name}: ${arg.type}`).join(", ");
     
-    const body = emitStatements(m.ir, contractContext);
+    const body = contractContext.emitStatements(m.ir);
     const aliasLines = m.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
     
     if (m.inputs.some(inp => inp.type === "string")) {

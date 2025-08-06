@@ -46,7 +46,7 @@ export class ErrorRevertHandler extends Handler {
       const argResults: string[] = [];
       
       expr.args.forEach((arg: IRExpression) => {
-        const argResult = this.contractContext.emit(arg);
+        const argResult = this.contractContext.emitExpression(arg);
         setup.push(...argResult.setupLines);
         argResults.push(argResult.valueExpr);
       });

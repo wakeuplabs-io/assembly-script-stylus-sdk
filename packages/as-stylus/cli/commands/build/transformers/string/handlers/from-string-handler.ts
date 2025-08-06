@@ -16,7 +16,7 @@ export class StrFromStringHandler extends Handler {
 
   handle(expr: Call): EmitResult {
     const arg = expr.args[0];
-    const argIR = this.contractContext.emit(arg);
+    const argIR = this.contractContext.emitExpression(arg);
     const setup = [...argIR.setupLines];
 
      const resultStr = makeTemp("strObj");

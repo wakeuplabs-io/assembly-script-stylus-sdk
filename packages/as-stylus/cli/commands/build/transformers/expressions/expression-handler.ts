@@ -54,11 +54,11 @@ export class ExpressionHandler extends BaseTypeTransformer {
    * Main function to emit code from an expression.
    * Uses the provided context manager to get the appropriate context.
    */
-  handle(expr: IRExpression, isStatement: boolean = false): EmitResult {
+  handle(expr: IRExpression): EmitResult {
     if (expr) {
-      const transformer = this.createTransformers()[expr.kind];
+      const transformer = this.createTransformers()[expr.kind as TransformerKind];
       if (transformer) {
-        return transformer.handle(expr, isStatement);
+        return transformer.handle(expr);
       }
     }
 

@@ -1,8 +1,9 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
-import { IRExpression } from "@/cli/types/ir.types.js";
+import { IRExpression, IRStatement } from "@/cli/types/ir.types.js";
 
 import { TypeTransformer } from "./base-abstract-handlers.js";
 import { TransformerRegistry } from "./transformer-registry.js";
+import { StatementHandler } from "../statements/statement-handler.js";
 
 
 /**
@@ -28,7 +29,7 @@ export class ContractContext {
     return this.parentName;
   }
 
-  emit(expr: IRExpression): EmitResult {
+  emitExpression(expr: IRExpression): EmitResult {
     const transformer = this.transformerRegistry.detectExpressionType(expr);
     if (transformer) {
       return transformer.handle(expr);
@@ -38,6 +39,11 @@ export class ContractContext {
       setupLines: [],
       valueExpr: expr.toString()
     };
+  }
+
+  emitStatements(statements: IRStatement[]): string { 
+    const statementHandler = new StatementHandler(this);
+    return statementHandler.handleStatements(statements);
   }
 }
 

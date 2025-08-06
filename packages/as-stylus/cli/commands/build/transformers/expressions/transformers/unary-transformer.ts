@@ -17,7 +17,7 @@ export class UnaryTransformer extends Handler {
   }
 
   handle(unary: IRUnaryExpression): EmitResult {
-    const exprResult = this.contractContext.emit(unary.expr);
+    const exprResult = this.contractContext.emitExpression(unary.expr);
     
     // Handle boolean operations with Boolean class
     if (unary.op === "!" || unary.op === "not") {

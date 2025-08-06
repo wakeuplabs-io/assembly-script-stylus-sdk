@@ -41,7 +41,7 @@ export class EventEmitHandler extends Handler {
     const nonIndexed: string[] = [];
 
     meta.fields.forEach((field, i) => {
-      const argExpr = this.contractContext.emit(expr.args[i]);
+      const argExpr = this.contractContext.emitExpression(expr.args[i]);
       setup.push(...argExpr.setupLines);
     
       if (field.indexed) {

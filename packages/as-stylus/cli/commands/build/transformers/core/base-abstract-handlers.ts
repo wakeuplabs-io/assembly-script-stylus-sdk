@@ -20,7 +20,7 @@ export abstract class Handler {
   /**
    * Processes the expression and returns the EmitResult
    */
-  abstract handle(expr: IRExpression, isStatement?: boolean): EmitResult;
+  abstract handle(expr: IRExpression): EmitResult;
 }
 
 export abstract class TypeTransformer extends Handler {

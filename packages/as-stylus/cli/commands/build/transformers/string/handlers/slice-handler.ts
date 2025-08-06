@@ -35,9 +35,9 @@ export class StrSliceHandler extends Handler {
     }
 
     // Emit the original nodes
-    const recvIR   = this.contractContext.emit(expr.receiver!);
-    const offIR    = this.contractContext.emit(expr.args[0]);
-    const lenIR    = this.contractContext.emit(expr.args[1]);
+    const recvIR   = this.contractContext.emitExpression(expr.receiver!);
+    const offIR    = this.contractContext.emitExpression(expr.args[0]);
+    const lenIR    = this.contractContext.emitExpression(expr.args[1]);
 
     // Temps for big-endian decode
     const offsetBE = makeTemp("offsetBE");

@@ -26,7 +26,7 @@ export class ConditionTransformer extends Handler {
     
     // Handle single expression conditions
     if (!condition.right) {
-      const leftResult = this.contractContext.emit(condition.left);
+      const leftResult = this.contractContext.emitExpression(condition.left);
       return {
         setupLines: leftResult.setupLines,
         valueExpr: leftResult.valueExpr
@@ -34,8 +34,8 @@ export class ConditionTransformer extends Handler {
     }
     
     // Handle other binary conditions
-    const leftResult = this.contractContext.emit(condition.left);
-    const rightResult = this.contractContext.emit(condition.right!);
+    const leftResult = this.contractContext.emitExpression(condition.left);
+    const rightResult = this.contractContext.emitExpression(condition.right!);
     
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
@@ -46,8 +46,8 @@ export class ConditionTransformer extends Handler {
   private handleRelationalComparison(
     condition: IRCondition,
   ): EmitResult {
-    const leftResult = this.contractContext.emit(condition.left);
-    const rightResult = this.contractContext.emit(condition.right!);
+    const leftResult = this.contractContext.emitExpression(condition.left);
+    const rightResult = this.contractContext.emitExpression(condition.right!);
     
     // Detect type class (I256 vs U256)
     const typeClass = this.detectTypeClass(condition.left);

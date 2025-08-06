@@ -38,8 +38,8 @@ export class AddressEqualsHandler extends Handler {
     }
 
 
-    const left = expr.receiver ? this.contractContext.emit(expr.receiver) : { setupLines: [], valueExpr: "undefined" };
-    const right = this.contractContext.emit(expr.args[0]);
+    const left = expr.receiver ? this.contractContext.emitExpression(expr.receiver) : { setupLines: [], valueExpr: "undefined" };
+    const right = this.contractContext.emitExpression(expr.args[0]);
 
     return {
       setupLines: [...left.setupLines, ...right.setupLines],

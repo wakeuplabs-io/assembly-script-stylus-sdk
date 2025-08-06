@@ -36,7 +36,7 @@ export class U256OperationHandler extends Handler {
   handle(expr: Call): EmitResult {
     const [prop, op] = expr.target.split(".");
 
-    const argRes = this.contractContext.emit(expr.args[0]);
+    const argRes = this.contractContext.emitExpression(expr.args[0]);
 
     // Map operation names to U256 static methods
     let operation = op;

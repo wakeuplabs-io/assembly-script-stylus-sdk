@@ -32,7 +32,7 @@ export class I256FromStringHandler extends Handler {
     const [arg] = expr.args;
 
     // emit arg first
-    const argRes = this.contractContext.emit(arg);
+    const argRes = this.contractContext.emitExpression(arg);
 
     const i256Ptr = makeTemp("i256");
     const strPtr = makeTemp("str");

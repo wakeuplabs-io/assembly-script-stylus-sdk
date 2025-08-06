@@ -74,7 +74,7 @@ export class MappingTransformer extends Handler {
   }
 
   private transformMapGet(expr: IRMapGet): EmitResult {
-    const keyResult = this.contractContext.emit(expr.key);
+    const keyResult = this.contractContext.emitExpression(expr.key);
     const method = this.getMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
     
@@ -87,8 +87,8 @@ export class MappingTransformer extends Handler {
   private transformMapSet(
     expr: IRMapSet,
   ): EmitResult {
-    const keyResult = this.contractContext.emit(expr.key);
-    const valueResult = this.contractContext.emit(expr.value);
+    const keyResult = this.contractContext.emitExpression(expr.key);
+    const valueResult = this.contractContext.emitExpression(expr.value);
     const method = this.getMappingMethod(expr.valueType, "set");
     const slot = this.formatSlot(expr.slot);
     
@@ -99,8 +99,8 @@ export class MappingTransformer extends Handler {
   }
 
   private transformMapGet2(expr: IRMapGet2): EmitResult {
-    const key1Result = this.contractContext.emit(expr.key1);
-    const key2Result = this.contractContext.emit(expr.key2);
+    const key1Result = this.contractContext.emitExpression(expr.key1);
+    const key2Result = this.contractContext.emitExpression(expr.key2);
     const method = this.getNestedMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
     
@@ -119,9 +119,9 @@ export class MappingTransformer extends Handler {
   }
 
   private transformMapSet2(expr: IRMapSet2): EmitResult {
-    const key1Result = this.contractContext.emit(expr.key1);
-    const key2Result = this.contractContext.emit(expr.key2);
-    const valueResult = this.contractContext.emit(expr.value);
+    const key1Result = this.contractContext.emitExpression(expr.key1);
+    const key2Result = this.contractContext.emitExpression(expr.key2);
+    const valueResult = this.contractContext.emitExpression(expr.value);
     const method = this.getNestedMappingMethod(expr.valueType, "set");
     const slot = this.formatSlot(expr.slot);
     

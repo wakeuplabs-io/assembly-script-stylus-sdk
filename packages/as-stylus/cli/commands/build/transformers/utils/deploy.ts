@@ -2,7 +2,6 @@ import { AbiType } from "@/cli/types/abi.types.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 
 import { generateArgsLoadBlock } from "./args.js";
-import { emitStatements } from "./statements.js";
 import { ContractContext } from "../core/contract-context.js";
 
 export function generateDeployFunction(contract: IRContract, contractContext: ContractContext): string {
@@ -38,7 +37,7 @@ export function generateDeployFunction(contract: IRContract, contractContext: Co
   });
 
   if (contract.constructor) {
-    const constructorBody = emitStatements(contract.constructor.ir, contractContext);
+    const constructorBody = contractContext.emitStatements(contract.constructor.ir);
     if (constructorBody.trim()) {
       lines.push(constructorBody);
     }

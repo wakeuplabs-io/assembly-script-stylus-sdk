@@ -16,7 +16,7 @@ export class StrLengthHandler extends Handler {
   }
 
   handle(callExpression: Call): EmitResult {
-    const recv = this.contractContext.emit(callExpression.receiver!);
+    const recv = this.contractContext.emitExpression(callExpression.receiver!);
 
     return {
       setupLines: [...recv.setupLines],

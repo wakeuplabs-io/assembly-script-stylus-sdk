@@ -15,7 +15,7 @@ export class BooleanCopyHandler extends Handler {
   }
 
   handle(expr: Call): EmitResult {
-    const srcArg = this.contractContext.emit(expr.args[0]);
+    const srcArg = this.contractContext.emitExpression(expr.args[0]);
     const dstPtr = makeTemp("boolCopy");
 
     // Use create for direct boolean values (from function parameters)

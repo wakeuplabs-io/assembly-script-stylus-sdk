@@ -28,7 +28,7 @@ export class BinaryTransformer extends Handler {
   private handleAssignment(expr: IRExpressionBinary): EmitResult {
     if (expr.left.kind === "var" && expr.left.scope === "storage") {
       const property = expr.left.name;
-      const rightResult = this.contractContext.emit(expr.right);
+      const rightResult = this.contractContext.emitExpression(expr.right);
       
       if (expr.left.type === AbiType.Bool) {
         return this.handleBooleanStorageAssignment(property, expr, rightResult);
@@ -40,8 +40,8 @@ export class BinaryTransformer extends Handler {
       };
     }
     
-    const leftResult = this.contractContext.emit(expr.left);
-    const rightResult = this.contractContext.emit(expr.right);
+    const leftResult = this.contractContext.emitExpression(expr.left);
+    const rightResult = this.contractContext.emitExpression(expr.right);
    
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
@@ -69,8 +69,8 @@ export class BinaryTransformer extends Handler {
   private handleArithmetic(
     expr: IRExpressionBinary,
   ): EmitResult {
-    const leftResult = this.contractContext.emit(expr.left);
-    const rightResult = this.contractContext.emit(expr.right);
+    const leftResult = this.contractContext.emitExpression(expr.left);
+    const rightResult = this.contractContext.emitExpression(expr.right);
     
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
