@@ -196,6 +196,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       const name = method.getName();
       this.symbolTable.declareFunction(name, {
         returnType: convertType(method.getReturnType().getText()),
+        isDeclaredByUser: true,
         name: name,
         parameters: method.getParameters().map(param => ({
           name: param.getName(),

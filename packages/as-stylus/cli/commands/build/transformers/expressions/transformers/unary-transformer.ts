@@ -21,8 +21,11 @@ export class UnaryTransformer extends Handler {
     
     // Handle boolean operations with Boolean class
     if (unary.op === "!" || unary.op === "not") {
-      const result = unary.expr.kind === "call" ?
-      `Boolean.not(Boolean.fromABI(${exprResult.valueExpr}))` : `Boolean.not(${exprResult.valueExpr})`;
+      let result = `Boolean.not(${exprResult.valueExpr})`;
+      if (unary.expr.kind === "call" && !exprResult.valueExpr.includes("Boolean.fromABI")) {
+        result = `Boolean.not(Boolean.fromABI(${exprResult.valueExpr}))`;
+      }
+
       return {
         setupLines: exprResult.setupLines,
         valueExpr: result

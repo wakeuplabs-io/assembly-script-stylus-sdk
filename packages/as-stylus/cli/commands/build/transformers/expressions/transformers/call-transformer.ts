@@ -1,8 +1,8 @@
-import { AbiType } from "../../../../../types/abi.types.js";
-import { EmitResult } from "../../../../../types/emit.types.js";
-import { IRExpression, Call } from "../../../../../types/ir.types.js";
-import { ContractContext } from "../../core/contract-context.js";
-import { Handler } from "../../core/interfaces.js";
+import { AbiType } from "@/cli/types/abi.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { IRExpression, Call } from "@/cli/types/ir.types.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { Handler } from "@/transformers/core/interfaces.js";
 
 /**
  * Transformer for function call expressions.
@@ -28,12 +28,6 @@ export class CallTransformer extends Handler {
       };
     }
 
-    const result = this.contractContext.emit(call);
-    if (result.setupLines.length > 0) {
-      return result;
-    }
-
-    
     const argResults = this.transformArguments(call.args);
     const allSetupLines = this.combineSetupLines(argResults);
     const argValues = argResults.map(r => r.valueExpr).join(", ");
@@ -53,11 +47,15 @@ export class CallTransformer extends Handler {
         valueExpr: `Str.fromABI(${baseCall})`
       };
     }
-    
-    return {
-      setupLines: allSetupLines,
-      valueExpr: baseCall
-    };
+
+    if (call.type === AbiType.UserDefinedFunction) {
+      return {
+        setupLines: allSetupLines,
+        valueExpr: baseCall
+      };
+    }
+
+    return this.contractContext.emit(call);
   }
 
   private transformArguments(args: IRExpression[]): EmitResult[] {
