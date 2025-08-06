@@ -18,11 +18,6 @@ export class CallTransformer extends Handler {
   }
 
   handle(call: Call): EmitResult {
-    const result = this.contractContext.emit(call);
-    if (result.setupLines.length > 0) {
-      return result;
-    }
-
     if (call.target === "super") {
       const argResults = this.transformArguments(call.args);
       const allSetupLines = this.combineSetupLines(argResults);
@@ -32,6 +27,12 @@ export class CallTransformer extends Handler {
         valueExpr: `${this.contractContext.getParentName()}_constructor(${argResults.map(r => r.valueExpr).join(", ")})`
       };
     }
+
+    const result = this.contractContext.emit(call);
+    if (result.setupLines.length > 0) {
+      return result;
+    }
+
     
     const argResults = this.transformArguments(call.args);
     const allSetupLines = this.combineSetupLines(argResults);
