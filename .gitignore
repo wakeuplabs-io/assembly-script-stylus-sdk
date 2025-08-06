@@ -54,5 +54,4 @@ packages/ui/cache
 /.vscode/settings.json
 .cursor
 
-**/CLAUDE.md
 DS_Store
