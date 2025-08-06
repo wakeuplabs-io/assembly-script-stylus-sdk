@@ -1,7 +1,6 @@
 import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
 
 import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
 
 /**
  * Handler for I256 negate method
@@ -25,27 +24,20 @@ export class I256NegateHandler implements ExpressionHandler {
     _emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
   ): EmitResult {
     const [prop] = expr.target.split(".");
-    const tempVar = makeTemp("i256Negate");
 
     // Handle contract property operations differently
     if (expr.scope === "storage") {
       return {
-        setupLines: [
-          `const ${tempVar}: usize = I256.copyNew(load_${prop}());`,
-          `I256.negate(${tempVar});`
-        ],
-        valueExpr: tempVar,
+        setupLines: [],
+        valueExpr: `I256.negate(load_${prop}())`,
         valueType: "I256",
       };
     }
 
     // For regular object operations
     return {
-      setupLines: [
-        `const ${tempVar}: usize = I256.copyNew(${prop});`,
-        `I256.negate(${tempVar});`
-      ],
-      valueExpr: tempVar,
+      setupLines: [],
+      valueExpr: `I256.negate(${prop})`,
       valueType: "I256",
     };
   }

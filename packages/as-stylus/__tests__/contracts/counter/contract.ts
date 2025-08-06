@@ -17,13 +17,13 @@ export class Counter {
   @External
   static increment(): void {
     const delta: U256 = U256Factory.fromString("1");
-    counter = counter.add(delta);
+    counter = counter.addUnchecked(delta);
   }
 
   @External
   static decrement(): void {
     const delta: U256 = U256Factory.fromString("1");
-    counter = counter.sub(delta);
+    counter = counter.subUnchecked(delta);
   }
 
   @View

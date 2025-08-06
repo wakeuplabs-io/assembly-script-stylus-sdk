@@ -7,19 +7,26 @@ import { ComparisonOperator, IRCondition, IRExpression } from "@/cli/types/ir.ty
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { SymbolTableStack } from "../shared/symbol-table.js";
 
-type I256ComparisonOperation = keyof Omit<I256, "toString" | "add" | "sub" | "negate" | "abs" | "isNegative">;
+type I256ComparisonOperation = keyof Omit<
+  I256,
+  "toString" | "add" | "sub" | "negate" | "abs" | "isNegative"
+>;
 const operationConvertor: Record<I256ComparisonOperation, ComparisonOperator> = {
   lessThan: "<",
   greaterThan: ">",
   lessThanOrEqual: "<=",
   greaterThanOrEqual: ">=",
-  equal: "==",
+  equals: "==",
   notEqual: "!=",
 };
 
 const booleanReturnMethods = ["isNegative"];
 
-export function buildI256IR(target: string, call: CallExpression, symbolTable: SymbolTableStack): IRExpression {
+export function buildI256IR(
+  target: string,
+  call: CallExpression,
+  symbolTable: SymbolTableStack,
+): IRExpression {
   const [varName, operation] = target.split(".");
   const args = call.getArguments().map((arg) => {
     const builder = new ExpressionIRBuilder(arg as Expression);
@@ -44,4 +51,4 @@ export function buildI256IR(target: string, call: CallExpression, symbolTable: S
 
   const returnType = isBooleanReturnMethod ? AbiType.Bool : AbiType.Int256;
   return { kind: "call", target, args, type: AbiType.Function, returnType, scope };
-} 
+}

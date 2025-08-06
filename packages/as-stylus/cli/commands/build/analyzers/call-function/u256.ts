@@ -7,17 +7,21 @@ import { U256 } from "@/cli/types/u256.interface.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { SymbolTableStack } from "../shared/symbol-table.js";
 
-type U256ComparisonOperation = keyof Omit<U256, "toString" | "add" | "sub" >;
+type U256ComparisonOperation = keyof Omit<U256, "toString" | "add" | "sub">;
 const operationConvertor: Record<U256ComparisonOperation, ComparisonOperator> = {
   lessThan: "<",
   greaterThan: ">",
   lessThanOrEqual: "<=",
   greaterThanOrEqual: ">=",
-  equal: "==",
+  equals: "==",
   notEqual: "!=",
 };
 
-export function buildU256IR(target: string, call: CallExpression, symbolTable: SymbolTableStack): IRExpression {
+export function buildU256IR(
+  target: string,
+  call: CallExpression,
+  symbolTable: SymbolTableStack,
+): IRExpression {
   const [varName, operation] = target.split(".");
   const args = call.getArguments().map((arg) => {
     const builder = new ExpressionIRBuilder(arg as Expression);
@@ -41,4 +45,3 @@ export function buildU256IR(target: string, call: CallExpression, symbolTable: S
 
   return { kind: "call", target, args, type: AbiType.Function, returnType: AbiType.Uint256, scope };
 }
-

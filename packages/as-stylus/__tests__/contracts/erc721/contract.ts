@@ -146,12 +146,12 @@ export class ERC721 {
     const isFromZero = owner.isZero();
     if (!isFromZero) {
       tokenApprovals.set(tokenId, zeroAddress);
-      const fromBalance = balances.get(owner);
+      const fromBalance: U256 = balances.get(owner);
       balances.set(owner, fromBalance.sub(one));
     }
 
     if (!isToZero) {
-      const toBalance = balances.get(to);
+      const toBalance: U256 = balances.get(to);
       balances.set(to, toBalance.add(one));
     }
 

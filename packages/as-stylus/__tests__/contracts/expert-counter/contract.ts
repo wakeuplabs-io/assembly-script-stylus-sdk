@@ -160,12 +160,12 @@ export class ExpertCounter {
     const zero = U256Factory.create();
     const one = U256Factory.fromString("1");
 
-    if (exp.equal(zero)) {
+    if (exp.equals(zero)) {
       unsignedCounter = one;
       return;
     }
     
-    if (exp.equal(one)) {
+    if (exp.equals(one)) {
       unsignedCounter = base;
       return;
     }
@@ -187,7 +187,7 @@ export class ExpertCounter {
     let x = a.copy();
     let y = b.copy();
     
-    while (!y.equal(zero)) {
+    while (!y.equals(zero)) {
       const tmp = y.copy();
       y = x.mod(y);
       x = tmp;

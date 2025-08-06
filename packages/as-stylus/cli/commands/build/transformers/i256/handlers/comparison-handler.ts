@@ -14,7 +14,7 @@ export class I256ComparisonHandler implements ExpressionHandler {
       target.endsWith(".greaterThan") ||
       target.endsWith(".lessThanOrEqual") ||
       target.endsWith(".greaterThanOrEqual") ||
-      target.endsWith(".equal") ||
+      target.endsWith(".equals") ||
       target.endsWith(".notEqual")
     );
   }
@@ -34,7 +34,7 @@ export class I256ComparisonHandler implements ExpressionHandler {
       greaterThan: "greaterThan",
       lessThanOrEqual: "lessThanOrEqual",
       greaterThanOrEqual: "greaterThanOrEqual",
-      equal: "equals",
+      equals: "equals",
       notEqual: "notEquals"
     };
 
