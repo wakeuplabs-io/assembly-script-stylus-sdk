@@ -1,7 +1,7 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
-import { Handler } from "@/transformers/core/interfaces.js";
 
 /**
  * AddressFactory.create()  →  Address.create()

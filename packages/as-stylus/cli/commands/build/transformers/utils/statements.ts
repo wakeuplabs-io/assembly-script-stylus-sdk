@@ -135,12 +135,12 @@ function emitStatement(s: IRStatement, indent: string, contractContext: Contract
       // For boolean mappings, don't wrap with Boolean.create() since they already return proper format
       const isBooleanMapping = baseExpr.includes("MappingNested.getBoolean") || 
                                baseExpr.includes("Mapping.getBoolean");
-      
       let returnExpr: string;
+
       
       if (isBooleanMapping) {
         // Mapping booleans already return correct 32-byte format
-        returnExpr = baseExpr;
+        returnExpr = `Boolean.create(${baseExpr})`;
       } else if (type === AbiType.Bool && !baseExpr.includes("_storage") && !baseExpr.includes("load")) {
         // Regular boolean literals get wrapped with Boolean.create()
         returnExpr = `Boolean.create(${baseExpr})`;

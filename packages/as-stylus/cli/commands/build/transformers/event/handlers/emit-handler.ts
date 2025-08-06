@@ -1,11 +1,11 @@
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
+import { makeTemp } from "@/cli/commands/build/transformers/utils/temp-factory.js";
 import { AbiType, AssemblyScriptType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call, IREvent } from "@/cli/types/ir.types.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
 
-import { ContractContext } from "../../core/contract-context.js";
-import { Handler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
 
 export class EventEmitHandler extends Handler {
   private eventsMap: Map<string, IREvent>;

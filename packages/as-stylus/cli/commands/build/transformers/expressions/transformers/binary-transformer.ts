@@ -1,8 +1,8 @@
-import { AbiType } from "../../../../../types/abi.types.js";
-import { EmitResult } from "../../../../../types/emit.types.js";
-import { IRExpression, IRExpressionBinary } from "../../../../../types/ir.types.js";
-import { ContractContext } from "../../core/contract-context.js";
-import { Handler } from "../../core/interfaces.js";
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
+import { AbiType } from "@/cli/types/abi.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { IRExpression, IRExpressionBinary } from "@/cli/types/ir.types.js";
 
 /**
  * Transformer for binary expressions.

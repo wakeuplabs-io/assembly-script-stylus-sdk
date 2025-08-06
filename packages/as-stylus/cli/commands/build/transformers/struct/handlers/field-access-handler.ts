@@ -1,30 +1,29 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { IRStruct } from "../../../../../types/ir.types.js";
-import { getStructInfoFromVariableName } from "../../../analyzers/struct/struct-utils.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { IRExpression, IRStruct, Member } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
 
-export class StructFieldAccessHandler implements ExpressionHandler {
+import { getStructInfoFromVariableName } from "../../../analyzers/struct/struct-utils.js";
+
+export class StructFieldAccessHandler extends Handler {
   private structs: Map<string, IRStruct>;
 
-  constructor(structs: Map<string, IRStruct>) {
+  constructor(contractContext: ContractContext, structs: Map<string, IRStruct>) {
+    super(contractContext);
     this.structs = structs;
   }
 
-  canHandle(expr: any): boolean {
+  canHandle(expr: IRExpression): boolean {
     return (
       expr.kind === "member" &&
-      expr.object &&
-      expr.property &&
+      !!expr.object &&
+      !!expr.property &&
       this.isStructAccess(expr)
     );
   }
 
-  handle(
-    expr: any,
-    context: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
-    const objectResult = emit(expr.object, context);
+  handle(expr: Member): EmitResult {
+    const objectResult = this.contractContext.emit(expr.object);
     
     const structInfo = this.getStructInfo(expr.object);
     
@@ -63,12 +62,12 @@ export class StructFieldAccessHandler implements ExpressionHandler {
     };
   }
 
-  private isStructAccess(expr: any): boolean {
+  private isStructAccess(expr: Member): boolean {
     const structInfo = this.getStructInfo(expr.object);
     return structInfo.isStruct;
   }
 
-  private getStructInfo(objectExpr: any): { isStruct: boolean; structName?: string; variableName?: string } {
+  private getStructInfo(objectExpr: IRExpression): { isStruct: boolean; structName?: string; variableName?: string } {
     // If it's a simple identifier (variable)
     if (objectExpr.kind === "var") {
       const variableName = objectExpr.name;

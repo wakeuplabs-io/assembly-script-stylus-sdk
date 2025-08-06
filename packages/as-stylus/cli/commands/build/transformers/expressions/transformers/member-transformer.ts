@@ -1,24 +1,23 @@
-import { EmitResult, EmitContext } from "../../../../../types/emit.types.js";
-import { IRExpression, Member } from "../../../../../types/ir.types.js";
-import { detectExpressionType, typeTransformers } from "../../core/base-transformer.js";
-import { IExpressionTransformer } from "../interfaces/expression-transformer.interface.js";
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { IRExpression, Member } from "@/cli/types/ir.types.js";
 
 /**
  * Transformer for member access expressions.
  * Handles property access on objects and storage properties.
  */
-export class MemberTransformer implements IExpressionTransformer {
+export class MemberTransformer extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+
+
   canHandle(expr: IRExpression): boolean {
     return expr.kind === "member";
   }
 
-  transform(
-    expr: IRExpression,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
-  ): EmitResult {
-    const member = expr as Member;
-    
+  handle(member: Member): EmitResult {
     if (member.object.kind === "var" && member.object.scope === "storage") {
       return {
         setupLines: [],
@@ -26,13 +25,12 @@ export class MemberTransformer implements IExpressionTransformer {
       };
     }
 
-    const typeName = detectExpressionType(expr);
-    const transformer = typeName ? typeTransformers[typeName] : null;
-    if (transformer && typeof transformer.emit === 'function') {
-      return transformer.emit(expr, context, emitExpression);
+    const result = this.contractContext.emit(member);
+    if (result.setupLines.length > 0) {
+      return result;
     }
-    
-    const objResult = emitExpression(member.object, context);
+
+    const objResult = this.contractContext.emit(member.object);
     
     return {
       setupLines: objResult.setupLines,

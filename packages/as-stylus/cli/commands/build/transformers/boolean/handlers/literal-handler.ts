@@ -1,10 +1,8 @@
-// src/cli/transformers/boolean/handlers/literal-handler.ts
-
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { IRExpression, Literal } from "@/cli/types/ir.types.js";
 
-import { ContractContext } from "../../core/contract-context.js";
-import { Handler } from "../../core/interfaces.js";
 
 /**
  * Handler for boolean literals

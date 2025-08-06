@@ -1,15 +1,21 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
 
 /**
  * strFactory.create() → Str.create()
  */
-export class StrCreateHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
-    return expr.kind === "call" && expr.target === "strFactory.create";
+export class StrCreateHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
   }
 
-  handle(_expr: any, _ctx: EmitContext, _emit: (e: any, c: EmitContext) => EmitResult): EmitResult {
+  canHandle(expr: Call): boolean {
+    return expr.target === "strFactory.create";
+  }
+
+  handle(): EmitResult {
     return {
       setupLines: [],
       valueExpr: "Str.create()",

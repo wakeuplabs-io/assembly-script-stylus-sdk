@@ -1,7 +1,7 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call, IRExpression } from "@/cli/types/ir.types.js";
 
-import { Handler } from "../../core/interfaces.js";
+import { Handler } from "../../core/base-abstract-handlers.js";
 import { makeTemp } from "../../utils/temp-factory.js";
 
 export class U256CopyHandler extends Handler {

@@ -1,16 +1,15 @@
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
-
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 
 /**
  * Handler for U256 operation methods (add, sub)
  */
-export class U256OperationHandler implements ExpressionHandler {
+export class U256OperationHandler extends Handler {
   /**
    * Determines if this handler can process the given expression
    */
-  canHandle(expr: any): boolean {
-    if (expr.kind !== "call") return false;
+  canHandle(expr: Call): boolean {
     const target = expr.target || "";
     return target.endsWith(".add") || target.endsWith(".sub");
   }
@@ -18,14 +17,10 @@ export class U256OperationHandler implements ExpressionHandler {
   /**
    * Processes U256 operation method calls
    */
-  handle(
-    expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const [prop, op] = expr.target.split(".");
 
-    const argRes = emitExprFn(expr.args[0], context);
+    const argRes = this.contractContext.emit(expr.args[0]);
 
     // Handle contract property operations differently
     if (expr.scope === "storage") {

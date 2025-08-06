@@ -1,34 +1,70 @@
-import { EmitResult, EmitContext } from "../../../../../types/emit.types.js";
-import { IRExpression, IRMapGet, IRMapSet, IRMapGet2, IRMapSet2 } from "../../../../../types/ir.types.js";
-import { MAPPING_METHODS, NESTED_MAPPING_METHODS } from "../constants/expression-constants.js";
-import { IExpressionTransformer } from "../interfaces/expression-transformer.interface.js";
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { IRExpression, IRMapGet, IRMapSet, IRMapGet2, IRMapSet2 } from "@/cli/types/ir.types.js";
+
+/**
+ * Mapping methods for different value types
+ */
+ const MAPPING_METHODS = {
+  U256: {
+    get: "getU256",
+    set: "setU256"
+  },
+  Address: {
+    get: "getAddress", 
+    set: "setAddress"
+  },
+  Boolean: {
+    get: "getBoolean",
+    set: "setBoolean"
+  },
+  String: {
+    get: "getString",
+    set: "setString"
+  }
+} as const;
+
+/**
+ * Nested mapping methods
+ */
+export const NESTED_MAPPING_METHODS = {
+  U256: {
+    get: "getU256",
+    set: "setU256"
+  },
+  boolean: {
+    get: "getBoolean",
+    set: "setBoolean"
+  }
+} as const;
 
 /**
  * Transformer for mapping operations.
  * Handles both simple mappings and nested mappings (mapping2).
  */
-export class MappingTransformer implements IExpressionTransformer {
-  canHandle(expr: IRExpression): boolean {
+export class MappingTransformer extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+
+    canHandle(expr: IRExpression): boolean {
     return expr.kind === "map_get" || 
            expr.kind === "map_set" || 
            expr.kind === "map_get2" || 
            expr.kind === "map_set2";
   }
 
-  transform(
-    expr: IRExpression,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: IRExpression): EmitResult {
     switch (expr.kind) {
       case "map_get":
-        return this.transformMapGet(expr as IRMapGet, context, emitExpression);
+        return this.transformMapGet(expr as IRMapGet);
       case "map_set":
-        return this.transformMapSet(expr as IRMapSet, context, emitExpression);
+        return this.transformMapSet(expr as IRMapSet);
       case "map_get2":
-        return this.transformMapGet2(expr as IRMapGet2, context, emitExpression);
+        return this.transformMapGet2(expr as IRMapGet2);
       case "map_set2":
-        return this.transformMapSet2(expr as IRMapSet2, context, emitExpression);
+        return this.transformMapSet2(expr as IRMapSet2);
       default:
         return {
           setupLines: [],
@@ -39,10 +75,8 @@ export class MappingTransformer implements IExpressionTransformer {
 
   private transformMapGet(
     expr: IRMapGet,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
   ): EmitResult {
-    const keyResult = emitExpression(expr.key, context);
+    const keyResult = this.contractContext.emit(expr.key);
     const method = this.getMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
     
@@ -54,11 +88,9 @@ export class MappingTransformer implements IExpressionTransformer {
 
   private transformMapSet(
     expr: IRMapSet,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
   ): EmitResult {
-    const keyResult = emitExpression(expr.key, context);
-    const valueResult = emitExpression(expr.value, context);
+    const keyResult = this.contractContext.emit(expr.key);
+    const valueResult = this.contractContext.emit(expr.value);
     const method = this.getMappingMethod(expr.valueType, "set");
     const slot = this.formatSlot(expr.slot);
     
@@ -70,11 +102,9 @@ export class MappingTransformer implements IExpressionTransformer {
 
   private transformMapGet2(
     expr: IRMapGet2,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
   ): EmitResult {
-    const key1Result = emitExpression(expr.key1, context);
-    const key2Result = emitExpression(expr.key2, context);
+    const key1Result = this.contractContext.emit(expr.key1);
+    const key2Result = this.contractContext.emit(expr.key2);
     const method = this.getNestedMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
     
@@ -82,7 +112,9 @@ export class MappingTransformer implements IExpressionTransformer {
     
     // For boolean mappings, use Boolean.fromABI() in statement context
     let valueExpr = baseExpr;
-    if (expr.valueType === "boolean" && context.isInStatement) {
+    //if (expr.valueType === "boolean" && context.isInStatement) {
+    if (expr.valueType === "boolean") {
+      console.log("boolean", expr);
       valueExpr = `Boolean.fromABI(${baseExpr})`;
     }
     
@@ -94,12 +126,10 @@ export class MappingTransformer implements IExpressionTransformer {
 
   private transformMapSet2(
     expr: IRMapSet2,
-    context: EmitContext,
-    emitExpression: (expr: IRExpression, ctx: EmitContext) => EmitResult
   ): EmitResult {
-    const key1Result = emitExpression(expr.key1, context);
-    const key2Result = emitExpression(expr.key2, context);
-    const valueResult = emitExpression(expr.value, context);
+    const key1Result = this.contractContext.emit(expr.key1);
+    const key2Result = this.contractContext.emit(expr.key2);
+    const valueResult = this.contractContext.emit(expr.value);
     const method = this.getNestedMappingMethod(expr.valueType, "set");
     const slot = this.formatSlot(expr.slot);
     

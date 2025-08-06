@@ -1,8 +1,7 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
-import { Call, IRExpression } from "@/cli/types/ir.types.js";
-
-import { Handler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
 /**
  * U256Factory.fromString(...)
@@ -16,9 +15,8 @@ import { makeTemp } from "../../utils/temp-factory.js";
  *  Then call `U256.setFromString(ptrU256, ptrStr, len)`.
  */
 export class U256FromStringHandler extends Handler {
-  canHandle(expr: IRExpression): boolean {
+  canHandle(expr: Call): boolean {
     return (
-      expr.kind === "call" &&
       expr.target === "U256Factory.fromString" &&
       expr.args &&
       expr.args.length === 1

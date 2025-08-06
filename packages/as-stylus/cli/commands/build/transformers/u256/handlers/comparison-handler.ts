@@ -1,7 +1,7 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call, IRExpression } from "@/cli/types/ir.types.js";
 
-import { Handler } from "../../core/interfaces.js";
+import { Handler } from "../../core/base-abstract-handlers.js";
 
 /**
  * Handler for U256 comparison methods (lessThan, greaterThan, equal, etc.)

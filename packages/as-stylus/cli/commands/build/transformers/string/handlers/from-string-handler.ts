@@ -1,21 +1,22 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
 
-export class StrFromStringHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
-    return (
-      expr.kind === "call" &&
-      expr.target === "StrFactory.fromString" &&
-      expr.args.length === 1 &&
-      ["literal", "var"].includes(expr.args[0].kind)
-    );
+export class StrFromStringHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
   }
 
-  handle(expr: any, ctx: EmitContext, emit: (e: any, c: EmitContext) => EmitResult): EmitResult {
+  canHandle(callExpression: Call): boolean {
+    return callExpression.target === "StrFactory.fromString" && callExpression.args.length === 1 && ["literal", "var"].includes(callExpression.args[0].kind);
+  } 
+
+  handle(expr: Call): EmitResult {
     const arg = expr.args[0];
-    const argIR = emit(arg, ctx);
+    const argIR = this.contractContext.emit(arg);
     const setup = [...argIR.setupLines];
 
      const resultStr = makeTemp("strObj");

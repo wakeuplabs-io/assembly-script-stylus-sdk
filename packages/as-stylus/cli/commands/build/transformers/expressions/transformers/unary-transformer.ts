@@ -1,7 +1,7 @@
-import { EmitResult } from "../../../../../types/emit.types.js";
-import { IRExpression, IRUnaryExpression } from "../../../../../types/ir.types.js";
-import { ContractContext } from "../../core/contract-context.js";
-import { Handler } from "../../core/interfaces.js";
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { IRExpression, IRUnaryExpression } from "@/cli/types/ir.types.js";
 
 /**
  * Transformer for unary expressions.

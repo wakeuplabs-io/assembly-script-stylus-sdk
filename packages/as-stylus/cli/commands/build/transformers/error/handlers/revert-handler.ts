@@ -1,9 +1,9 @@
+
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
+import { makeTemp } from "@/cli/commands/build/transformers/utils/temp-factory.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call, IRErrorDecl, IRExpression } from "@/cli/types/ir.types.js";
-
-import { ContractContext } from "../../core/contract-context.js";
-import { Handler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
 
 export class ErrorRevertHandler extends Handler {
   private errorsMap: Map<string, IRErrorDecl>;

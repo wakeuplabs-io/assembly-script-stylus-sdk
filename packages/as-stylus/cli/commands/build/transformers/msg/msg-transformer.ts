@@ -1,18 +1,19 @@
-import { IRExpression, Member, Variable } from "@/cli/types/ir.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Member, Variable } from "@/cli/types/ir.types.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
 
-import { EmitResult } from "../../../../types/emit.types.js";
 import { BaseTypeTransformer } from "../core/base-transformer.js";
-import { ContractContext } from "../core/contract-context.js";
+
+
 
 export class MsgTransformer extends BaseTypeTransformer {
   constructor(contractContext: ContractContext) {
     super(contractContext, "Msg");
   }
 
-  canHandle(expr: IRExpression): boolean {
-    return expr.kind === "member" && 
-           expr.object?.kind === "var" && 
-           (expr.object as Variable).name === "msg";
+  canHandle(expr: Member): boolean {
+    const object = expr.object as Variable;
+    return object.name === "msg";
   }
 
   protected handleDefault(expr: Member): EmitResult {

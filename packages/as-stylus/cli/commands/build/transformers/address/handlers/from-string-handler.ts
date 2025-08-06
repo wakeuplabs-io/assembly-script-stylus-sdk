@@ -1,8 +1,8 @@
 // src/emit/transformers/address/handlers/address-from-string.ts
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call } from "@/cli/types/ir.types.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
-import { Handler } from "@/transformers/core/interfaces.js";
 import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
 /**

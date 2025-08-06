@@ -10,7 +10,8 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/transformers/*": ["./cli/commands/build/transformers/*"]
     },
     "strict": true,
     "esModuleInterop": true,

@@ -1,29 +1,26 @@
-import { AbiType } from "../../../../../types/abi.types.js";
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { IRStruct } from "../../../../../types/ir.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { AbiType } from "@/cli/types/abi.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRStruct } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
-export class StructFactoryCreateHandler implements ExpressionHandler {
+export class StructFactoryCreateHandler extends Handler {
   private structs: Map<string, IRStruct>;
 
-  constructor(structs: Map<string, IRStruct>) {
+  constructor(contractContext: ContractContext, structs: Map<string, IRStruct>) {
+    super(contractContext);
     this.structs = structs;
   }
 
-  canHandle(expr: any): boolean {
+  canHandle(expr: Call): boolean {
     return (
-      expr.kind === "call" && 
       expr.target === "StructFactory.create" &&
       expr.metadata?.isStructCreation === true
     );
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const structType = expr.metadata?.structType;
     
     if (!structType) {
@@ -61,7 +58,7 @@ export class StructFactoryCreateHandler implements ExpressionHandler {
         continue;
       }
       
-      const valueResult = emit(valueArg, ctx);
+      const valueResult = this.contractContext.emit(valueArg);
       setup.push(...valueResult.setupLines);
       setup.push(`${structType}_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
     }
@@ -89,7 +86,7 @@ export class StructFactoryCreateHandler implements ExpressionHandler {
         const valueArg = initialValues[i];
         
         if (field.type === AbiType.String || field.type === "Str") {
-          const valueResult = emit(valueArg, ctx);
+          const valueResult = this.contractContext.emit(valueArg);
           setup.push(...valueResult.setupLines);
           setup.push(`${structType}_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
         }

@@ -1,16 +1,18 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { IRStruct } from "../../../../../types/ir.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRStruct } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
 
-export class StructFieldSetHandler implements ExpressionHandler {
+export class StructFieldSetHandler extends Handler {
   private structs: Map<string, IRStruct>;
 
-  constructor(structs: Map<string, IRStruct>) {
+  constructor(contractContext: ContractContext, structs: Map<string, IRStruct>) {
+    super(contractContext);
     this.structs = structs;
   }
 
-  canHandle(expr: any): boolean {
-    if (expr.kind !== "call" || !expr.target) return false;
+  canHandle(expr: Call): boolean {
+    if (!expr.target) return false;
     
     const target = expr.target;
     
@@ -33,11 +35,7 @@ export class StructFieldSetHandler implements ExpressionHandler {
     return false;
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const target = expr.target;
     const parts = target.split("_set_");
     const structName = parts[0];
@@ -51,8 +49,8 @@ export class StructFieldSetHandler implements ExpressionHandler {
       };
     }
     
-    const objectArg = emit(expr.args[0], ctx);
-    const valueArg = emit(expr.args[1], ctx);
+    const objectArg = this.contractContext.emit(expr.args[0]);
+    const valueArg = this.contractContext.emit(expr.args[1]);
     
     return {
       setupLines: [
