@@ -1,32 +1,34 @@
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
-
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { AbiType } from "@/cli/types/abi.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRExpression } from "@/cli/types/ir.types.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
 
 /** a.equals(b)  →  Address.equals(a,b)  */
-export class AddressEqualsHandler implements ExpressionHandler {
-
-  canHandle(expr: any): boolean {
-    return expr.kind === "call" && expr.target.endsWith(".equals");
+export class AddressEqualsHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
   }
 
-  private makeReceiver(chain: string): any {
+  canHandle(expr: Call): boolean {
+    const target = expr.target || "";
+
+    return target.endsWith(".equals");
+  }
+
+  private makeReceiver(chain: string): IRExpression {
     if (chain.indexOf(".") === -1) {
-      return { kind: "var", name: chain };
+      return { kind: "var" as const, name: chain, type: AbiType.Address, scope: "memory" };
     }
     const [head, ...rest] = chain.split(".");
-    let node: any = { kind: "var", name: head };
+    let node: IRExpression = { kind: "var" as const, name: head, type: AbiType.Address, scope: "memory" };
     for (const prop of rest) {
-      node = { kind: "member", object: node, property: prop };
+      node = { kind: "member" as const, object: node, property: prop, type: AbiType.Address };
     }
     return node;
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
-
+  handle(expr: Call): EmitResult {
     if (!expr.receiver && expr.target.endsWith(".equals")) {
       if (!expr.receiver) {
         const chain = expr.target.slice(0, -".equals".length);
@@ -36,8 +38,8 @@ export class AddressEqualsHandler implements ExpressionHandler {
     }
 
 
-    const left = emit(expr.receiver, ctx);
-    const right = emit(expr.args[0], ctx);
+    const left = expr.receiver ? this.contractContext.emitExpression(expr.receiver) : { setupLines: [], valueExpr: "undefined" };
+    const right = this.contractContext.emitExpression(expr.args[0]);
 
     return {
       setupLines: [...left.setupLines, ...right.setupLines],

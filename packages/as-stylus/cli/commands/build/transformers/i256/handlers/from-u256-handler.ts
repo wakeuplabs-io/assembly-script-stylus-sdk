@@ -1,27 +1,26 @@
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
-
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 
 /**
  * Handler for I256Factory.fromU256() expressions
  */
-export class I256FromU256Handler implements ExpressionHandler {
+export class I256FromU256Handler extends Handler {
   /**
    * Determines if this handler can process the given expression
    */
-  canHandle(expr: any): boolean {
-    return expr.kind === "call" && expr.target === "I256Factory.fromU256" && expr.args.length === 1;
+  canHandle(expr: Call): boolean {
+    return (
+      expr.target === "I256Factory.fromU256" &&
+      expr.args.length === 1
+    );
   }
 
   /**
    * Processes I256Factory.fromU256() expressions
    */
-  handle(
-    expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
-  ): EmitResult {
-    const u256ValueResult = emitExprFn(expr.args[0], context);
+  handle(expr: Call): EmitResult {
+    const u256ValueResult = this.contractContext.emitExpression(expr.args[0]);
 
     return {
       setupLines: [...u256ValueResult.setupLines],

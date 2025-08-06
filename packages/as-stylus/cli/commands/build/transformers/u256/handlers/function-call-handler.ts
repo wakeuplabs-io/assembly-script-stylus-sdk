@@ -1,17 +1,16 @@
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
-
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 
 /**
  * Handler for U256 function call expressions that return U256
  * Handles internal contract function calls like: increment(value)
  */
-export class U256FunctionCallHandler implements ExpressionHandler {
+export class U256FunctionCallHandler extends Handler {
   /**
    * Determines if this handler can process the given expression
    */
-  canHandle(expr: any): boolean {
-    if (expr.kind !== "call") return false;
+  canHandle(expr: Call): boolean {
     
     // Handle function calls that return U256 (uint256)
     // But exclude factory methods and property operations
@@ -30,17 +29,13 @@ export class U256FunctionCallHandler implements ExpressionHandler {
   /**
    * Processes U256 function call expressions
    */
-  handle(
-    expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const functionName = expr.target;
     
     // Process arguments
-    const argResults = (expr.args || []).map((arg: any) => emitExprFn(arg, context));
-    const setupLines = argResults.flatMap((result: any) => result.setupLines);
-    const argExprs = argResults.map((result: any) => result.valueExpr);
+    const argResults = (expr.args || []).map((arg) => this.contractContext.emitExpression(arg));
+    const setupLines = argResults.flatMap((result) => result.setupLines);
+    const argExprs = argResults.map((result) => result.valueExpr);
     
     // Generate function call
     const functionCall = `${functionName}(${argExprs.join(", ")})`;

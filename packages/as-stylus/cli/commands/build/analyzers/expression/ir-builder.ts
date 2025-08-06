@@ -1,5 +1,6 @@
 import { BinaryExpression, CallExpression, ConditionalExpression, Expression, Identifier, PrefixUnaryExpression, PropertyAccessExpression, SyntaxKind } from "ts-morph";
 
+import { Logger } from "@/cli/services/logger.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
@@ -87,13 +88,16 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
           kind: "call",
           target: "conditional",
           args: [condition, whenTrue, whenFalse],
-          returnType: AbiType.Any,
+          type: AbiType.Function,
+          returnType: AbiType.Bool,
           scope: "memory"
-        } as any;
+        };
       }
   
-      default:
+      default: {
+        Logger.getInstance().warn(`IRExpr: unsupported node kind ${this.expression.getKindName()}`);
         throw new Error(`IRExpr: unsupported node kind ${this.expression.getKindName()}`);
+      }
     }
   }
 }

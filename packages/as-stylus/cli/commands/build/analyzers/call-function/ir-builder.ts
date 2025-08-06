@@ -159,7 +159,10 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       return buildAddressIR(target, this.call, this.symbolTable);
     }
 
-    return { kind: "call", target, args, type: AbiType.Function, returnType: this.getReturnType(target), scope };
+    const isUserDefinedFunction = (this.symbolTable.lookup(target) as FunctionSymbol)?.isDeclaredByUser;
+    const type = isUserDefinedFunction ? AbiType.UserDefinedFunction : AbiType.Function;
+
+    return { kind: "call", target, args, type, returnType: this.getReturnType(target), scope };
   }
 
   private lookupSlot(fqName: string): number | undefined {

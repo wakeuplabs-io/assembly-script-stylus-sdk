@@ -1,6 +1,6 @@
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
-
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 
 /**
  * Handler for U256 operation methods (add, sub, mul, div, mod, pow)
@@ -8,12 +8,11 @@ import { ExpressionHandler } from "../../core/interfaces.js";
  * DEFAULT: Checked arithmetic (panic on overflow/underflow)
  * EXPLICIT: Unchecked arithmetic (wrapping behavior) with *Unchecked suffix
  */
-export class U256OperationHandler implements ExpressionHandler {
+export class U256OperationHandler extends Handler {
   /**
    * Determines if this handler can process the given expression
    */
-  canHandle(expr: any): boolean {
-    if (expr.kind !== "call") return false;
+  canHandle(expr: Call): boolean {
     const target = expr.target || "";
     return (
       target.endsWith(".add") ||
@@ -34,15 +33,10 @@ export class U256OperationHandler implements ExpressionHandler {
   /**
    * Processes U256 operation method calls
    */
-  handle(
-    expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const [prop, op] = expr.target.split(".");
 
-    // Handle operations with arguments
-    const argRes = emitExprFn(expr.args[0], context);
+    const argRes = this.contractContext.emitExpression(expr.args[0]);
 
     // Map operation names to U256 static methods
     let operation = op;

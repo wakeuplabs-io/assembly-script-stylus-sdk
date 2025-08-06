@@ -1,18 +1,21 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { IRStruct } from "../../../../../types/ir.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { AbiType } from "@/cli/types/abi.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRStruct, Member } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
 
 /**
  * Handler for direct struct helper function calls like StructTest_get_to()
  */
-export class StructHelperCallHandler implements ExpressionHandler {
+export class StructHelperCallHandler extends Handler {
   private structs: Map<string, IRStruct>;
 
-  constructor(structs: Map<string, IRStruct>) {
+  constructor(contractContext: ContractContext, structs: Map<string, IRStruct>) {
+    super(contractContext);
     this.structs = structs;
   }
 
-  canHandle(expr: any): boolean {
+  canHandle(expr: Call | Member): boolean {
     if (expr.kind !== "call") return false;
 
     const target = expr.target || "";
@@ -28,17 +31,13 @@ export class StructHelperCallHandler implements ExpressionHandler {
     return false;
   }
 
-  handle(
-    expr: any,
-    context: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult,
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const target = expr.target || "";
 
     const argResults: EmitResult[] = [];
     if (expr.args && expr.args.length > 0) {
       for (const arg of expr.args) {
-        argResults.push(emit(arg, context));
+        argResults.push(this.contractContext.emitExpression(arg));
       }
     }
 
@@ -63,16 +62,16 @@ export class StructHelperCallHandler implements ExpressionHandler {
           const field = struct.fields.find((f) => f.name === fieldName);
           if (field) {
             switch (field.type) {
-              case "address":
+              case AbiType.Address:
                 returnType = "Address";
                 break;
-              case "string":
+              case AbiType.String:
                 returnType = "Str";
                 break;
-              case "uint256":
+              case AbiType.Uint256:
                 returnType = "U256";
                 break;
-              case "bool":
+              case AbiType.Bool:
                 returnType = "boolean";
                 break;
               default:

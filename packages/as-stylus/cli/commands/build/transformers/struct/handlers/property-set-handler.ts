@@ -1,38 +1,40 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { IRStruct } from "../../../../../types/ir.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRExpression, IRStruct, Member } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
 
+type Arg = {
+  name?: string;
+  value?: string;
+};
 /**
  * Handler for property_set calls like property_set(structTemp, "fieldName", value)
  * This is used to set the value of a field on a struct
  */
-export class StructPropertySetHandler implements ExpressionHandler {
+export class StructPropertySetHandler extends Handler {
   private structs: Map<string, IRStruct>;
 
-  constructor(structs: Map<string, IRStruct>) {
+  constructor(contractContext: ContractContext, structs: Map<string, IRStruct>) {
+    super(contractContext);
     this.structs = structs;
   }
 
-  canHandle(expr: any): boolean {
+  canHandle(expr: Call | Member): boolean {
     if (expr.kind !== "call") return false;
 
     const target = expr.target || "";
     return target === "property_set" && expr.args && expr.args.length === 3;
   }
 
-  handle(
-    expr: any,
-    context: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult,
-  ): EmitResult {
-    const objectArg = expr.args[0];
-    const fieldNameArg = expr.args[1];
-    const valueArg = expr.args[2];
+  handle(expr: Call): EmitResult {
+    const objectArg = expr.args[0] as IRExpression;
+    const fieldNameArg = expr.args[1] as IRExpression;
+    const valueArg = expr.args[2] as IRExpression;
 
-    const objectResult = emit(objectArg, context);
-    const valueResult = emit(valueArg, context);
+    const objectResult = this.contractContext.emitExpression(objectArg);
+    const valueResult = this.contractContext.emitExpression(valueArg);
 
-    const fieldName = fieldNameArg.value || fieldNameArg.name;
+    const fieldName = (fieldNameArg as Arg)?.value || (fieldNameArg as Arg).name;
 
     if (!fieldName) {
       return {

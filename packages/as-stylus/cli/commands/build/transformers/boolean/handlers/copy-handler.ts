@@ -1,23 +1,21 @@
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
 
-export class BooleanCopyHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
-    return (
-      expr.kind === "call" && 
-      expr.target === "boolean.copy" &&
-      expr.args.length === 1
-    );
+export class BooleanCopyHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
   }
 
-  handle(
-    expr: any,
-    context: EmitContext,
-    emitExprFn: (expr: any, ctx: EmitContext) => EmitResult,
-  ): EmitResult {
-    const srcArg = emitExprFn(expr.args[0], context);
+  canHandle(expr: Call): boolean {
+    return expr.target === "boolean.copy";
+  }
+
+  handle(expr: Call): EmitResult {
+    const srcArg = this.contractContext.emitExpression(expr.args[0]);
     const dstPtr = makeTemp("boolCopy");
 
     // Use create for direct boolean values (from function parameters)

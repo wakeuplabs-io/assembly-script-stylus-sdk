@@ -1,21 +1,25 @@
-// src/emit/transformers/address/handlers/to-string-handler.ts
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { ExpressionHandler as ConcreteExpressionHandler } from "@/transformers/expressions/expression-handler.js";
 
 /**
  * <addr>.toString()  →  Address.toString(<addr>)
  */
-export class AddressToStringHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
-    return expr.kind === "call" && expr.target.endsWith(".toString");
+export class AddressToStringHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
   }
 
-  handle(
-    expr: any,
-    ctx : EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
-    const receiverRes = emit(expr.receiver, ctx);
+  canHandle(expr: Call): boolean {
+    const target = expr.target || "";
+
+    return target.endsWith(".toString");
+  }
+
+  handle(expr: Call): EmitResult {
+    const receiverRes = new ConcreteExpressionHandler(this.contractContext).handle(expr.receiver!);
     const valueExpr = `Address.toString(${receiverRes.valueExpr})`;
 
     return {

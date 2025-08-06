@@ -33,6 +33,7 @@ export enum AbiType {
   Mapping = "mapping",
   MappingNested = "mapping2",
   Function = "function",
+  UserDefinedFunction = "user_defined_function",
   Unknown = "unknown",
 }
 

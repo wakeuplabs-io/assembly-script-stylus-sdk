@@ -14,6 +14,15 @@ export class Boolean {
   }
 
   /**
+   * Negates a boolean value
+   * @param value - The boolean value to negate
+   * @returns The negated boolean value
+   */
+  static not(value: boolean): boolean {
+    return !value;
+  }
+
+  /**
    * Extracts a boolean value from ABI-encoded data
    * @param pointer - Pointer to 32-byte ABI-encoded boolean data
    * @returns The boolean value

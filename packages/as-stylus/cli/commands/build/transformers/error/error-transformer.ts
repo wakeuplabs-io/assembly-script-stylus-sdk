@@ -1,26 +1,23 @@
 import { toFunctionSelector } from "viem";
 
-import { IRContract, IRErrorDecl } from "@/cli/types/ir.types.js";
+import { IRContract, IRErrorDecl, IRExpression } from "@/cli/types/ir.types.js";
 
 import { convertType } from "../../builder/build-abi.js";
-import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+import { BaseTypeTransformer } from "../core/base-transformer.js";
+import { ContractContext } from "../core/contract-context.js";
 import { ErrorRevertHandler } from "./handlers/revert-handler.js";
 
 export class ErrorTransformer extends BaseTypeTransformer {
-  private errors: IRErrorDecl[];
 
-  constructor(errors: IRErrorDecl[]) {
-    super("Error");
-    this.errors = errors;
-    this.registerHandler(new ErrorRevertHandler(errors));
+  constructor(contractContext: ContractContext, errors: IRErrorDecl[]) {
+    super(contractContext, "Error");
+    this.registerHandler(new ErrorRevertHandler(contractContext, errors));
   }
 
-  matchesType(expr: any): boolean {
-    return (
-      expr.kind === "call" &&
-      typeof expr.target === "string" &&
-      expr.target.endsWith(".revert")
-    );
+  canHandle(expr: IRExpression): boolean {
+    if (!expr || expr.kind !== "call") return false;
+    const target = expr.target || "";
+    return target.endsWith(".revert");
   }
 
   protected handleDefault() {
@@ -28,15 +25,7 @@ export class ErrorTransformer extends BaseTypeTransformer {
       setupLines: [],
       valueExpr: "/* unsupported error operation */",
     };
-  }
-  
-  generateLoadCode(_property: string): string {
-    return `/* Errors do not support load operations */`;
-  }
-  
-  generateStoreCode(_property: string, _valueExpr: string): string {
-    return `/* Errors do not support store operations */`;
-  }
+  }  
 }
 
 export function generateErrorSignature(error: IRErrorDecl): string {
@@ -49,10 +38,7 @@ export function registerErrorTransformer(contract: IRContract): string[] {
 
   if (contract.errors && contract.errors.length > 0) {
     const errors = contract.errors;
-    const instance = new ErrorTransformer(errors);
-    registerTransformer(instance);
 
-    // Generar funciones helper para escribir selectores de errores
     for (const error of errors) {
       const signature = generateErrorSignature(error);
       const selector = toFunctionSelector(signature);
@@ -69,7 +55,6 @@ export function registerErrorTransformer(contract: IRContract): string[] {
       lines.push(`}`);
       lines.push("");
 
-      // Generar función helper para crear el error completo
       const errorDataFnName = `__create_error_data_${error.name}`;
       const totalSize = 4 + (error.fields.length * 32);
       
@@ -93,7 +78,7 @@ export function registerErrorTransformer(contract: IRContract): string[] {
 }
 
 export function generateErrorABI(contract: IRContract): any[] {
-  const errorABI: any[] = [];
+  const errorABI = [];
 
   if (contract.errors && contract.errors.length > 0) {
     for (const error of contract.errors) {
@@ -104,7 +89,7 @@ export function generateErrorABI(contract: IRContract): any[] {
           name: field.name,
           type: convertType(field.type),
           internalType: convertType(field.type),
-        }))
+        })),
       });
     }
   }
@@ -124,7 +109,6 @@ function mapTypeToAbi(type: string): string {
 }
 
 function hexToByteArray(hex: string): string[] {
-  // Remover el "0x" si está presente
   const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
   const bytes: string[] = [];
   

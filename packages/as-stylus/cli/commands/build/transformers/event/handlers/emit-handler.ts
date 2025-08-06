@@ -1,31 +1,26 @@
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
+import { makeTemp } from "@/cli/commands/build/transformers/utils/temp-factory.js";
 import { AbiType, AssemblyScriptType } from "@/cli/types/abi.types.js";
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
-import { IREvent } from "@/cli/types/ir.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IREvent } from "@/cli/types/ir.types.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
 
-import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
 
-export class EventEmitHandler implements ExpressionHandler {
+export class EventEmitHandler extends Handler {
   private eventsMap: Map<string, IREvent>;
 
-  constructor(events: IREvent[]) {
+  constructor(contractContext: ContractContext, events: IREvent[]) {
+    super(contractContext);
     this.eventsMap = new Map(events.map(e => [e.name, e]));
   }
 
-  canHandle(expr: any): boolean {
-    return (
-      expr.kind === "call" &&
-      typeof expr.target === "string" &&
-      expr.target.endsWith(".emit")
-    );
+  canHandle(expr: Call): boolean {
+    const target = expr.target || "";
+    return target.endsWith(".emit");
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const eventName = expr.target.replace(/\.emit$/, "");
     const meta = this.eventsMap.get(eventName);
     if (!meta) {
@@ -39,7 +34,6 @@ export class EventEmitHandler implements ExpressionHandler {
     const dataTemp   = makeTemp("data");
     const setup: string[] = [];
 
-    // topic0 = keccak256("Transfer(address,address,uint256)")
     setup.push(`// topic0 for ${eventName}`);
     setup.push(`const ${topicsTemp}: usize = malloc(${meta.fields.filter(f=>f.indexed).length * 32 + 32});`);
     setup.push(`__write_topic0_${eventName}(${topicsTemp});`);
@@ -47,12 +41,16 @@ export class EventEmitHandler implements ExpressionHandler {
     const nonIndexed: string[] = [];
 
     meta.fields.forEach((field, i) => {
-      const argExpr = emit(expr.args[i], ctx);
+      const argExpr = this.contractContext.emitExpression(expr.args[i]);
       setup.push(...argExpr.setupLines);
     
       if (field.indexed) {
         const size = getReturnSize(field.type as AbiType);
-        setup.push(`addTopic(${topicsTemp} + ${topicOffset}, ${argExpr.valueExpr}, ${size});`);
+        if (field.type === AssemblyScriptType.Bool) {
+          setup.push(`addTopic(${topicsTemp} + ${topicOffset}, Boolean.toABI(${argExpr.valueExpr}), ${size});`);
+        } else {
+          setup.push(`addTopic(${topicsTemp} + ${topicOffset}, ${argExpr.valueExpr}, ${size});`);
+        }
         topicOffset += 32;
       } else {
         nonIndexed.push(argExpr.valueExpr);

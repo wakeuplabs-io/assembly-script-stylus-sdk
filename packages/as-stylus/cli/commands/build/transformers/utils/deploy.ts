@@ -2,9 +2,9 @@ import { AbiType } from "@/cli/types/abi.types.js";
 import { IRContract } from "@/cli/types/ir.types.js";
 
 import { generateArgsLoadBlock } from "./args.js";
-import { emitStatements } from "./statements.js";
+import { ContractContext } from "../core/contract-context.js";
 
-export function generateDeployFunction(contract: IRContract): string {
+export function generateDeployFunction(contract: IRContract, contractContext: ContractContext): string {
   const lines: string[] = [];
   
   if (contract.constructor) {
@@ -28,7 +28,8 @@ export function generateDeployFunction(contract: IRContract): string {
           lines.push(`  const empty${variable.name} = Str.create();`);
           lines.push(`  store_${variable.name}(empty${variable.name});`);
         } else {
-          lines.push(`  const default${variable.name} = ${getInitializer(variable.type, defaultValue)};`);
+          const symbol = contract.symbolTable.lookup(variable.name);
+          lines.push(`  const default${variable.name} = ${getInitializer(variable.type as AbiType, defaultValue, symbol?.dynamicType)};`);
           lines.push(`  store_${variable.name}(default${variable.name});`);
         }
         break;
@@ -36,7 +37,7 @@ export function generateDeployFunction(contract: IRContract): string {
   });
 
   if (contract.constructor) {
-    const constructorBody = emitStatements(contract.constructor.ir);
+    const constructorBody = contractContext.emitStatements(contract.constructor.ir);
     if (constructorBody.trim()) {
       lines.push(constructorBody);
     }
@@ -66,7 +67,7 @@ function getDefaultValueForType(type: AbiType | string): string {
   }
 }
 
-function getInitializer(type: AbiType | string, defaultValue: string): string {
+function getInitializer(type: AbiType, defaultValue: string, dynamicType?: string): string {
   switch (type) {
     case AbiType.Uint256:
       return `U256.create()`;
@@ -77,11 +78,8 @@ function getInitializer(type: AbiType | string, defaultValue: string): string {
     case AbiType.String:
       return `Str.create()`;
     case AbiType.Struct:
-      return `${type}_alloc()`;
+      return `${dynamicType}_alloc()`;
     default:
-      if (typeof type === "string" && (type.endsWith("Test") || type.includes("Struct"))) {
-        return `${type}_alloc()`;
-      }
       return defaultValue;
   }
 }

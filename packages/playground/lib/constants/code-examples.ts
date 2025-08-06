@@ -416,7 +416,6 @@ export function user_entrypoint(args_len: usize): i32 {
     (<u32>load<u8>(position + 1) << 16) |
     (<u32>load<u8>(position + 2) << 8) |
     (<u32>load<u8>(position + 3));
-  let result: u64 = 0;
 
   if (isFirstTimeDeploy()) {
     store_initialized_storage(Boolean.create(true));
@@ -483,7 +482,7 @@ export function user_entrypoint(args_len: usize): i32 {
     contract_constructor(arg0, arg1); return 0;
   }
   return 0;
-}`
+}`;
 
 export const ERC20_CONTRACT_TRANSFORMED = `// contract_transformed.ts - Auto-generated
 import {
@@ -886,7 +885,6 @@ export function user_entrypoint(args_len: usize): i32 {
     (<u32>load<u8>(position + 1) << 16) |
     (<u32>load<u8>(position + 2) << 8) |
     (<u32>load<u8>(position + 3));
-  let result: u64 = 0;
 
   if (isFirstTimeDeploy()) {
     store_initialized_storage(Boolean.create(true));
@@ -955,7 +953,7 @@ export function user_entrypoint(args_len: usize): i32 {
     contract_constructor(arg0, arg1); return 0;
   }
   return 0;
-}`
+}`;
 
 export const ERC721_CONTRACT_TRANSFORMED = `// contract_transformed.ts - Auto-generated
 // eslint-disable-next-line import/namespace

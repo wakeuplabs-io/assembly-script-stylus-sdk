@@ -1,11 +1,12 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 
-import { EmitResult, EmitContext } from "../../../../types/emit.types.js";
-import { IRStruct, IRContract, IRSimpleVar } from "../../../../types/ir.types.js";
+import { EmitResult } from "../../../../types/emit.types.js";
+import { IRStruct, IRContract, IRSimpleVar, IRExpression, Call } from "../../../../types/ir.types.js";
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { StructFactoryCreateHandler } from "./handlers/factory-create-handler.js";
 import { StructFieldAccessHandler } from "./handlers/field-access-handler.js";
 import { StructFieldSetHandler } from "./handlers/field-set-handler.js";
+import { ContractContext } from "../core/contract-context.js";
 import { StructHelperCallHandler } from "./handlers/helper-call-handler.js";
 import { StructPropertySetHandler } from "./handlers/property-set-handler.js";
 
@@ -17,16 +18,16 @@ export class StructTransformer extends BaseTypeTransformer {
   private helperCallHandler: StructHelperCallHandler;
   private propertySetHandler: StructPropertySetHandler;
 
-  constructor(structs: IRStruct[]) {
-    super("Struct");
-
-    this.structs = new Map(structs.map((s) => [s.name, s]));
-    this.fieldAccessHandler = new StructFieldAccessHandler(this.structs);
-    this.fieldSetHandler = new StructFieldSetHandler(this.structs);
-    this.factoryCreateHandler = new StructFactoryCreateHandler(this.structs);
-    this.helperCallHandler = new StructHelperCallHandler(this.structs);
-    this.propertySetHandler = new StructPropertySetHandler(this.structs);
-
+  constructor(contractContext: ContractContext, structs: IRStruct[]) {
+    super(contractContext, "Struct");
+    
+    this.structs = new Map(structs.map(s => [s.name, s]));
+    this.fieldAccessHandler = new StructFieldAccessHandler(contractContext, this.structs);
+    this.fieldSetHandler = new StructFieldSetHandler(contractContext, this.structs);
+    this.factoryCreateHandler = new StructFactoryCreateHandler(contractContext, this.structs);
+    this.helperCallHandler = new StructHelperCallHandler(contractContext, this.structs);
+    this.propertySetHandler = new StructPropertySetHandler(contractContext, this.structs);
+    
     // Registrar handlers
     this.registerHandler(this.fieldAccessHandler);
     this.registerHandler(this.fieldSetHandler);
@@ -35,7 +36,7 @@ export class StructTransformer extends BaseTypeTransformer {
     this.registerHandler(this.propertySetHandler);
   }
 
-  matchesType(expr: any): boolean {
+  canHandle(expr: IRExpression): boolean {
     if (!expr) return false;
 
     if (expr.kind === "call") {
@@ -80,13 +81,9 @@ export class StructTransformer extends BaseTypeTransformer {
     return false;
   }
 
-  protected handleDefault(
-    expr: unknown,
-    context: EmitContext,
-    emitExprFn: (expr: unknown, ctx: EmitContext) => EmitResult,
-  ): EmitResult {
-    const target = (expr as any).target || "";
-
+  protected handleDefault(expr: Call): EmitResult {
+    const target = expr.target || "";
+    
     // Handle specific getters
     if (target.includes("_get_")) {
       const parts = target.split("_get_");
@@ -94,14 +91,14 @@ export class StructTransformer extends BaseTypeTransformer {
         const structName = parts[0];
         const fieldName = parts[1];
         const struct = this.structs.get(structName);
-
-        if (struct && (expr as any).args && (expr as any).args.length === 1) {
-          const objectArg = emitExprFn((expr as any).args[0], context);
-
+        
+        if (struct && expr.args && expr.args.length === 1) {
+          const objectArg = this.contractContext.emitExpression(expr.args[0]);
+          
           return {
             setupLines: [...objectArg.setupLines],
-            valueExpr: `${structName}_get_${fieldName}(${objectArg.valueExpr})`,
-            valueType: "usize",
+            valueExpr: `${structName}_get_${fieldName}()`,
+            valueType: "usize"
           };
         }
       }
@@ -114,11 +111,11 @@ export class StructTransformer extends BaseTypeTransformer {
         const structName = parts[0];
         const fieldName = parts[1];
         const struct = this.structs.get(structName);
-
-        if (struct && (expr as any).args && (expr as any).args.length === 2) {
-          const objectArg = emitExprFn((expr as any).args[0], context);
-          const valueArg = emitExprFn((expr as any).args[1], context);
-
+        
+        if (struct && expr.args && expr.args.length === 2) {
+          const objectArg = this.contractContext.emitExpression(expr.args[0]);
+          const valueArg = this.contractContext.emitExpression(expr.args[1]);
+          
           return {
             setupLines: [
               ...objectArg.setupLines,
@@ -141,10 +138,6 @@ export class StructTransformer extends BaseTypeTransformer {
 
   generateLoadCode(prop: string): string {
     return `load_${prop}()`;
-  }
-
-  generateStoreCode(prop: string, val: string): string {
-    return `store_${prop}(${val});`;
   }
 }
 
@@ -257,7 +250,6 @@ export function ${structName}_memory_set_${field.name}(ptr: usize, v: usize): vo
  */
 export function registerStructTransformer(contract: IRContract): string[] {
   const parts: string[] = [];
-
   if (contract.structs && contract.structs.length > 0) {
     contract.structs.forEach((struct) => {
       const structVariable = contract.storage.find((v) => {

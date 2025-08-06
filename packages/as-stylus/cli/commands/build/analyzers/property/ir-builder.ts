@@ -73,7 +73,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   buildIR(): IRVariable {
     const [name, typeDefined] = this.property.getName().split(":");
     const type = typeDefined ? typeDefined : inferType(this.property.getType().getText());
-    this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage" });
+    this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage", dynamicType: type });
   
     const fullTypeText = this.property.getType().getText();
     console.log(`[DEBUG] Processing mapping '${name}' with type: '${fullTypeText}'`);

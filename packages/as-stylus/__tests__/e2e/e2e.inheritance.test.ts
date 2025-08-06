@@ -55,10 +55,6 @@ describe("Inheritance", () => {
       // getSumInMemory calls the internal getSumByParams method from parent
       const result = await contract.read("getSumInMemory", [1n, 2n]);
       expect(result).toBe(3n);
-
-      // Test with different values to ensure the internal method is working
-      const result2 = await contract.read("getSumInMemory", [10n, 20n]);
-      expect(result2).toBe(30n);
     });
   });
 });

@@ -1,12 +1,13 @@
-import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRExpression } from "@/cli/types/ir.types.js";
 
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { Handler } from "../../core/base-abstract-handlers.js";
 
 /**
  * Handler for U256 comparison methods (lessThan, greaterThan, equal, etc.)
  */
-export class U256ComparisonHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
+export class U256ComparisonHandler extends Handler {
+  canHandle(expr: IRExpression): boolean {
     if (expr.kind !== "call") return false;
     const target = expr.target || "";
     return (
@@ -19,14 +20,10 @@ export class U256ComparisonHandler implements ExpressionHandler {
     );
   }
 
-  handle(
-    expr: any,
-    context: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const [prop, method] = expr.target.split(".");
 
-    const argRes = emit(expr.args[0], context);
+    const argRes = this.contractContext.emitExpression(expr.args[0]);
 
     // Map method names to U256 static methods
     const methodMap: { [key: string]: string } = {

@@ -45,7 +45,6 @@ export function user_entrypoint(args_len: usize): i32 {
     (<u32>load<u8>(position + 1) << 16) |
     (<u32>load<u8>(position + 2) << 8) |
     (<u32>load<u8>(position + 3));
-  let result: u64 = 0;
 
   if (isFirstTimeDeploy()) {
     store_initialized_storage(Boolean.create(true));

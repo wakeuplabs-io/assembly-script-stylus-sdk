@@ -1,11 +1,17 @@
 // src/emit/transformers/str/handlers/slice-handler.ts
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
-export class StrSliceHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
-    return expr.kind === "call" && expr.target.endsWith(".slice");
+export class StrSliceHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
+  }
+
+  canHandle(expr: Call): boolean {
+    return expr.target.endsWith(".slice");
   }
 
   private makeReceiver(chain: string, scope: string): any {
@@ -20,11 +26,7 @@ export class StrSliceHandler implements ExpressionHandler {
     return node;
   }
 
-  handle(
-    expr : any,
-    ctx  : EmitContext,
-    emit : (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     // Normalize the receiver
     if (!expr.receiver) {
       const chain = expr.target.slice(0, -".slice".length);
@@ -33,9 +35,9 @@ export class StrSliceHandler implements ExpressionHandler {
     }
 
     // Emit the original nodes
-    const recvIR   = emit(expr.receiver, ctx);
-    const offIR    = emit(expr.args[0], ctx);
-    const lenIR    = emit(expr.args[1], ctx);
+    const recvIR   = this.contractContext.emitExpression(expr.receiver!);
+    const offIR    = this.contractContext.emitExpression(expr.args[0]);
+    const lenIR    = this.contractContext.emitExpression(expr.args[1]);
 
     // Temps for big-endian decode
     const offsetBE = makeTemp("offsetBE");
