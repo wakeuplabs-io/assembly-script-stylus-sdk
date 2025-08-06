@@ -1,10 +1,9 @@
 // src/emit/transformers/address/handlers/address-from-string.ts
-import { Call, IRExpression } from "@/cli/types/ir.types.js";
-
-import { EmitResult } from "../../../../../types/emit.types.js";
-import { ContractContext } from "../../core/contract-context.js";
-import { Handler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { Handler } from "@/transformers/core/interfaces.js";
+import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
 /**
  * AddressFactory.fromString(...)
@@ -23,13 +22,11 @@ export class AddressFromStringHandler extends Handler {
     super(contractContext);
   }
 
-  canHandle(expr: IRExpression): boolean {
-    return (
-      expr.kind === "call" &&
-      expr.target === "AddressFactory.fromString" &&
-      expr.args.length === 1 &&
-      ["literal", "var"].includes(expr.args[0].kind)
-    );
+  canHandle(expr: Call): boolean {
+    if (expr.target !== "AddressFactory.fromString") return false;
+    if (expr.args.length !== 1) return false;
+    if (expr.args[0].kind !== "literal" && expr.args[0].kind !== "var") return false;
+    return true;
   }
 
   handle(expr: Call): EmitResult {

@@ -1,10 +1,9 @@
-// src/emit/transformers/address/handlers/has-code-handler.ts
 import { AbiType } from "@/cli/types/abi.types.js";
-import { Call, IRExpression } from "@/cli/types/ir.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { Handler } from "@/transformers/core/interfaces.js";
 
-import { EmitResult } from "../../../../../types/emit.types.js";
-import { ContractContext } from "../../core/contract-context.js";
-import { Handler } from "../../core/interfaces.js";
 
 /**
  * a.hasCode()  ─►  Address.hasCode(a)
@@ -14,8 +13,8 @@ export class AddressHasCodeHandler extends Handler {
     super(contractContext);
   }
 
-  canHandle(expr: IRExpression): boolean {
-    return expr.kind === "call" && expr.target.endsWith(".hasCode");
+  canHandle(expr: Call): boolean {
+    return expr.target.endsWith(".hasCode");
   }
 
   handle(expr: Call): EmitResult {

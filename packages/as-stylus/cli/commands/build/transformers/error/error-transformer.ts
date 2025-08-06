@@ -15,11 +15,9 @@ export class ErrorTransformer extends BaseTypeTransformer {
   }
 
   canHandle(expr: IRExpression): boolean {
-    return (
-      expr.kind === "call" &&
-      typeof expr.target === "string" &&
-      expr.target.endsWith(".revert")
-    );
+    if (!expr || expr.kind !== "call") return false;
+    const target = expr.target || "";
+    return target.endsWith(".revert");
   }
 
   protected handleDefault() {

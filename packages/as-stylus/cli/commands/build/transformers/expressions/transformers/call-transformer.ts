@@ -18,7 +18,11 @@ export class CallTransformer extends Handler {
   }
 
   handle(call: Call): EmitResult {
-    this.contractContext.emit(call);
+    const result = this.contractContext.emit(call);
+    if (result.setupLines.length > 0) {
+      return result;
+    }
+
     if (call.target === "super") {
       const argResults = this.transformArguments(call.args);
       const allSetupLines = this.combineSetupLines(argResults);

@@ -1,10 +1,9 @@
 import { AbiType } from "@/cli/types/abi.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call } from "@/cli/types/ir.types.js";
-
-import { EmitResult } from "../../../../../types/emit.types.js";
-import { ContractContext } from "../../core/contract-context.js";
-import { Handler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { Handler } from "@/transformers/core/interfaces.js";
+import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
 
 export class AddressCopyHandler extends Handler {

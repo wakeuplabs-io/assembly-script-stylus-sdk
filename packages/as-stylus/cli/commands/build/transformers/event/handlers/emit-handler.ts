@@ -1,6 +1,6 @@
 import { AbiType, AssemblyScriptType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
-import { Call, IREvent, IRExpression } from "@/cli/types/ir.types.js";
+import { Call, IREvent } from "@/cli/types/ir.types.js";
 import { getReturnSize } from "@/cli/utils/type-utils.js";
 
 import { ContractContext } from "../../core/contract-context.js";
@@ -15,12 +15,9 @@ export class EventEmitHandler extends Handler {
     this.eventsMap = new Map(events.map(e => [e.name, e]));
   }
 
-  canHandle(expr: IRExpression): boolean {
-    return (
-      expr.kind === "call" &&
-      typeof expr.target === "string" &&
-      expr.target.endsWith(".emit")
-    );
+  canHandle(expr: Call): boolean {
+    const target = expr.target || "";
+    return target.endsWith(".emit");
   }
 
   handle(expr: Call): EmitResult {
@@ -37,7 +34,6 @@ export class EventEmitHandler extends Handler {
     const dataTemp   = makeTemp("data");
     const setup: string[] = [];
 
-    // topic0 = keccak256("Transfer(address,address,uint256)")
     setup.push(`// topic0 for ${eventName}`);
     setup.push(`const ${topicsTemp}: usize = malloc(${meta.fields.filter(f=>f.indexed).length * 32 + 32});`);
     setup.push(`__write_topic0_${eventName}(${topicsTemp});`);
