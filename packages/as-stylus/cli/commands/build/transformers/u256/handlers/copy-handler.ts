@@ -1,6 +1,5 @@
 import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
 import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
 
 export class U256CopyHandler implements ExpressionHandler {
   canHandle(expr: any): boolean {

@@ -4,7 +4,7 @@ import { ExpressionHandler } from "../../core/interfaces.js";
 
 /**
  * Handler for U256 operation methods (add, sub, mul, div, mod, pow)
- * 
+ *
  * DEFAULT: Checked arithmetic (panic on overflow/underflow)
  * EXPLICIT: Unchecked arithmetic (wrapping behavior) with *Unchecked suffix
  */
@@ -46,7 +46,7 @@ export class U256OperationHandler implements ExpressionHandler {
 
     // Map operation names to U256 static methods
     let operation = op;
-    
+
     // DEFAULT: Checked arithmetic (new behavior)
     if (op === "add") operation = "add";
     else if (op === "sub") operation = "sub";
@@ -54,7 +54,6 @@ export class U256OperationHandler implements ExpressionHandler {
     else if (op === "div") operation = "div";
     else if (op === "mod") operation = "mod";
     else if (op === "pow") operation = "pow";
-    
     // EXPLICIT: Unchecked arithmetic (wrapping behavior)
     else if (op === "addUnchecked") operation = "addUnchecked";
     else if (op === "subUnchecked") operation = "subUnchecked";
