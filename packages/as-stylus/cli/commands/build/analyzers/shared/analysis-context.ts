@@ -31,10 +31,12 @@ export class AnalysisContext {
     this.symbolTable.declareFunction("StrFactory.toString", { name: "StrFactory.toString", parameters: [], returnType: AbiType.String, isDeclaredByUser: false });
     this.symbolTable.declareFunction("StrFactory.slice", { name: "StrFactory.slice", parameters: [], returnType: AbiType.String, isDeclaredByUser: false });
     this.symbolTable.declareFunction("StrFactory.length", { name: "StrFactory.length", parameters: [], returnType: AbiType.Uint256, isDeclaredByUser: false });
-    this.symbolTable.declareFunction("Address.copy", { name: "Address.copy", parameters: [], returnType: AbiType.Address, isDeclaredByUser: false });
+    this.symbolTable.declareFunction("StrFactory.concat", { name: "StrFactory.concat", parameters: [], returnType: AbiType.String, isDeclaredByUser: false });
 
     // Address
-    this.symbolTable.declareFunction("AddressFactory.create", { name: "AddressFactory.create",  parameters: [], returnType: AbiType.Address, isDeclaredByUser: false });
+    this.symbolTable.declareFunction("Address.copy", { name: "Address.copy", parameters: [], returnType: AbiType.Address, isDeclaredByUser: false });
+    this.symbolTable.declareFunction("AddressFactory.create", { name: "AddressFactory.create", parameters: [], returnType: AbiType.Address, isDeclaredByUser: false });
+    this.symbolTable.declareFunction("Address.fromString", { name: "Address.fromString", parameters: [], returnType: AbiType.Address, isDeclaredByUser: false });
     this.symbolTable.declareFunction("Address.equals", { name: "Address.equals", parameters: [], returnType: AbiType.Bool, isDeclaredByUser: false });
     this.symbolTable.declareFunction("Address.isZero", { name: "Address.isZero", parameters: [], returnType: AbiType.Bool, isDeclaredByUser: false });
 

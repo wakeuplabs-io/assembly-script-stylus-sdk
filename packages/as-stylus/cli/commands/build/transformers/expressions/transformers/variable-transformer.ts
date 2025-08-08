@@ -16,7 +16,7 @@ export class VariableTransformer extends Handler {
     return expr.kind === "var";
   }
 
-  handle(variable: Variable): EmitResult {  
+  handle(variable: Variable): EmitResult {
     if (variable.scope === "storage") {
       if (variable.type === AbiType.Bool) {
         return {

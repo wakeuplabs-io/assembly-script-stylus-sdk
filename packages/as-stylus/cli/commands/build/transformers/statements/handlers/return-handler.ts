@@ -43,7 +43,7 @@ export class ReturnHandler extends StatementHandler {
     if (isBooleanMapping) {
       // Mapping booleans already return correct 32-byte format
       returnExpr = `Boolean.create(${baseExpr})`;
-    } else if (type === AbiType.Bool && !baseExpr.includes("_storage") && !baseExpr.includes("load")) {
+    } else if (type === AbiType.Bool && !baseExpr.includes("_storage")) {
       // Regular boolean literals get wrapped with Boolean.create()
       returnExpr = `Boolean.create(${baseExpr})`;
     } else {
