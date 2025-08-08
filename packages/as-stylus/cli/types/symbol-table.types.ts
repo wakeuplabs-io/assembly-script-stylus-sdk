@@ -14,7 +14,7 @@ export interface VariableSymbol {
 
 export interface FunctionSymbol {
   name: string;
-  type: AbiType.Function;
+  type: AbiType.Function | AbiType.UserDefinedFunction;
   isDeclaredByUser: boolean;
   returnType: AbiType;
   dynamicType?: string;

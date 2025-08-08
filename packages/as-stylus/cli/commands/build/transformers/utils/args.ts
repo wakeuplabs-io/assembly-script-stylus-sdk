@@ -43,11 +43,11 @@ export function generateArgsLoadBlock(
         type = AssemblyScriptType.Pointer;
         break;
 
-        case AbiType.Bytes:
-          argLines.push(`const ${argName} = Str.fromDynamicArg(position + ${baseOffset}, position + ${offset});`);
-          offset += 32;
-          type = AssemblyScriptType.Pointer;
-          break;
+      case AbiType.Bytes:
+        argLines.push(`const ${argName} = Str.fromDynamicArg(position + ${baseOffset}, position + ${offset});`);
+        offset += 32;
+        type = AssemblyScriptType.Pointer;
+        break;
 
       default:
         throw new Error(`Unsupported input type: ${input.type}`);
