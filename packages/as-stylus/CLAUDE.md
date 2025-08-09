@@ -413,6 +413,254 @@ TypeScript interfaces that developers use when writing contracts:
 ✅ **Use `copyInPlace()` for buffer operations, `copy()` for new instances**
 ✅ **Prefer memory-based API over in-place modifications**
 
+## Stack Overflow Prevention
+
+### Common Patterns That Cause "Maximum call stack size exceeded"
+
+The transformer/compiler can enter infinite recursion loops with certain code patterns. Here are the most common issues and their solutions:
+
+#### 1. **Nested/Chained Boolean Operations**
+
+**❌ PROBLEMATIC - Causes infinite recursion:**
+```typescript
+// Nested calls confuse the transformer
+const doubleResult = Boolean.fromABI(Boolean.fromABI(x));
+const chainedResult = Boolean.toABI(Boolean.toABI(true));
+
+// Ternary with nested calls
+return Boolean.fromABI(getFalseFlag()) ? value1 : value2;
+```
+
+**✅ CORRECT - Step-by-step operations:**
+```typescript
+// Break into separate steps
+const temp = Boolean.fromABI(x);
+const doubleResult = Boolean.fromABI(temp);
+
+// Use intermediate variables
+const flagResult = getFalseFlag();
+const boolValue = Boolean.fromABI(flagResult);
+if (boolValue) {
+  return value1;
+} else {
+  return value2;
+}
+```
+
+#### 2. **Chained Mathematical Operations**
+
+**❌ PROBLEMATIC - Transformer recursion:**
+```typescript
+// Too many chained operations
+return assets.mul(supply).div(totalAssets).add(U256Factory.fromString("1"));
+
+// Function calls as arguments in chains
+return value.add(calculateFee(amount)).mul(getRate());
+```
+
+**✅ CORRECT - Divide into steps:**
+```typescript
+// Step-by-step operations
+const step1 = assets.mul(supply);
+const step2 = step1.div(totalAssets);
+const step3 = U256Factory.fromString("1");
+return step2.add(step3);
+
+// Separate function calls
+const fee = calculateFee(amount);
+const step1 = value.add(fee);
+const rate = getRate();
+return step1.mul(rate);
+```
+
+#### 3. **Ternary Operations (AssemblyScript Limitation)**
+
+**❌ PROBLEMATIC - Not supported:**
+```typescript
+// Ternary operators cause transformer issues
+return supply.equals(zero) ? assets : calculation;
+const result = flag ? U256Factory.fromString("1") : U256Factory.fromString("0");
+```
+
+**✅ CORRECT - Use explicit if/else:**
+```typescript
+// Explicit conditional blocks
+if (supply.equals(zero)) {
+  return assets;
+} else {
+  return calculation;
+}
+
+// Clear branching logic
+let result: U256;
+if (flag) {
+  result = U256Factory.fromString("1");
+} else {
+  result = U256Factory.fromString("0");
+}
+return result;
+```
+
+#### 4. **Function Calls as Arguments**
+
+**❌ PROBLEMATIC - Recursive call detection:**
+```typescript
+// Function calls nested in other calls
+if (Boolean.fromABI(getFalseFlag())) {
+  // transformer gets confused about getFalseFlag() return type
+}
+
+// Multiple nested calls
+const result = processValue(getValue(getInput()));
+```
+
+**✅ CORRECT - Separate the calls:**
+```typescript
+// Extract function calls first
+const flagResult = getFalseFlag();
+if (Boolean.fromABI(flagResult)) {
+  // Clear and predictable
+}
+
+// Step by step
+const input = getInput();
+const value = getValue(input);
+const result = processValue(value);
+```
+
+#### 5. **Msg.sender() Pattern (Critical Bug)**
+
+**❌ PROBLEMATIC - Infinite recursion:**
+```typescript
+// This specific pattern causes infinite loops
+Msg.sender()  // Wrong - causes CallTransformer recursion
+
+// Any call to Msg methods
+Msg.value()
+```
+
+**✅ CORRECT - Use property access:**
+```typescript
+// Use the property, not method call
+msg.sender  // Correct - property access
+
+// For message value
+msg.value
+```
+
+#### 6. **MappingNested Initialization**
+
+**❌ PROBLEMATIC - Transformer doesn't handle new:**
+```typescript
+// Using 'new' with MappingNested
+static allowances: MappingNested<Address, Address, U256> = new MappingNested();
+
+// This doesn't transform correctly
+const mapping = new MappingNested<Address, U256>();
+```
+
+**✅ CORRECT - Declaration without initialization:**
+```typescript
+// Simple declaration
+static allowances: MappingNested<Address, Address, U256>;
+
+// SDK handles the initialization automatically
+// No need for explicit 'new' calls
+```
+
+#### 7. **Union Types (AssemblyScript Limitation)**
+
+**❌ PROBLEMATIC - Not supported by AssemblyScript:**
+```typescript
+// Union types cause compilation errors
+static toABI(value: usize | bool): usize {
+  // AssemblyScript doesn't support union types
+}
+
+// Multiple type parameters
+function process(value: string | U256): void {
+}
+```
+
+**✅ CORRECT - Use method overloads:**
+```typescript
+// Separate methods for different types
+static toABI(value: bool): usize {
+  return Boolean.create(value);
+}
+
+static toABIFromPointer(value: usize): usize {
+  // Handle pointer case
+}
+
+// Or use generic approaches
+function processString(value: string): void { }
+function processU256(value: U256): void { }
+```
+
+### Root Causes Analysis
+
+The transformer fails when:
+
+1. **Expression trees are too deep** - Nested function calls create complex AST trees
+2. **Type detection is ambiguous** - Union types, ternaries confuse the type system  
+3. **Call chains are complex** - Multiple chained operations overwhelm the transformer
+4. **Pattern matching fails** - Specific patterns like `Msg.sender()` trigger recursion bugs
+
+### Debugging Tips
+
+#### Identify the Problem Pattern:
+1. **Look for error location** - The stack trace usually points to the problematic line
+2. **Check for nested calls** - `func(func(value))` patterns
+3. **Look for chained operations** - `a.method1().method2().method3()`
+4. **Search for ternary operators** - `condition ? value1 : value2`
+
+#### Quick Fixes:
+1. **Add intermediate variables** - Break complex expressions into steps
+2. **Use if/else instead of ternary** - More reliable in AssemblyScript
+3. **Separate function calls** - Don't nest function calls as arguments
+4. **Check Msg patterns** - Use `msg.sender` not `Msg.sender()`
+
+#### Prevention:
+- **Maximum 2 operations per line** - Keep expressions simple
+- **Clear variable naming** - Use descriptive temporary variables
+- **One function call per statement** - Don't nest calls
+- **Explicit conditionals** - Avoid ternary operators
+
+### Example: Complex Expression Refactoring
+
+**❌ PROBLEMATIC:**
+```typescript
+@External
+static complexOperation(amount: U256): U256 {
+  return amount.mul(getRate()).div(getTotalSupply()).add(
+    getFee(amount.mul(U256Factory.fromString("100")))
+  );
+}
+```
+
+**✅ CORRECT:**
+```typescript
+@External
+static complexOperation(amount: U256): U256 {
+  // Step 1: Get rate
+  const rate = getRate();
+  const step1 = amount.mul(rate);
+  
+  // Step 2: Get total supply
+  const totalSupply = getTotalSupply();
+  const step2 = step1.div(totalSupply);
+  
+  // Step 3: Calculate fee
+  const multiplier = U256Factory.fromString("100");
+  const feeAmount = amount.mul(multiplier);
+  const fee = getFee(feeAmount);
+  
+  // Step 4: Final result
+  return step2.add(fee);
+}
+```
+
 ### Testing Guidelines
 
 - Run `npm run pre:build` before any compilation
