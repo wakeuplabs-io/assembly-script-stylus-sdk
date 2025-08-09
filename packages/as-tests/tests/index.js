@@ -20,7 +20,7 @@ import {
   test, 
   describe, 
   printHeader, 
-  printFinalStats 
+  printFinalStats,
 } from "./test-framework.js";
 
 // Print professional header

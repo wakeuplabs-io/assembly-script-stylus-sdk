@@ -14,7 +14,7 @@ import {
   testChainOperations,
   testRepeatedOperations,
   testComprehensive
-} from "./boolean/tests";
+} from "./bool/tests";
 
 /**
  * Initialize heap to start from a safe memory location
