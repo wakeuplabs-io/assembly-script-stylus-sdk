@@ -41,7 +41,6 @@ export class I256Transformer extends BaseTypeTransformer {
    */
   canHandle(expr: IRExpression): boolean {
     if (expr.kind !== "call") return false;
-    
     const target = expr.target || "";
 
     // Factory methods
@@ -92,7 +91,6 @@ export class I256Transformer extends BaseTypeTransformer {
         }
       }
     }
-  
     return false;
   }
 

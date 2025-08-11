@@ -20,13 +20,11 @@ export class ForHandler extends StatementHandler {
     let initCode = "";
     if (forStmt.init) {
       if (forStmt.init.kind === "let") {
-        const initResult = this.contractContext.emitExpression(forStmt.init.expr);
-        if (initResult.setupLines && initResult.setupLines.length > 0) {
-          lines.push(...initResult.setupLines.map(line => `${indent}${line}`));
-          initCode = `let ${forStmt.init.name} = ${initResult.valueExpr}`;
-        } else {
-          initCode = `let ${forStmt.init.name} = ${initResult.valueExpr}`;
+        const initResult = this.emitConditionWithSetup(forStmt.init.expr, indent);
+        if (initResult.setupLines.length > 0) {
+          lines.push(...initResult.setupLines);
         }
+        initCode = `let ${forStmt.init.name} = ${initResult.conditionExpr}`;
       } else {
         const initStatement = mainHandler.handle(forStmt.init, "");
         initCode = initStatement.trim();
@@ -36,18 +34,24 @@ export class ForHandler extends StatementHandler {
     // Handle condition
     let conditionCode = "";
     if (forStmt.condition) {
-      const condResult = this.contractContext.emitExpression(forStmt.condition);
-      if (condResult.setupLines && condResult.setupLines.length > 0) {
-        lines.push(...condResult.setupLines.map(line => `${indent}${line}`));
+      const conditionResult = this.emitConditionWithSetup(forStmt.condition, indent);
+      if (conditionResult.setupLines.length > 0) {
+        lines.push(...conditionResult.setupLines);
       }
-      conditionCode = condResult.valueExpr;
+      conditionCode = conditionResult.conditionExpr;
     }
     
-    // Handle update expression  
+    // Handle update expression - Note: update expressions in for loops
+    // typically don't need complex setup lines, but handle them for completeness
     let updateCode = "";
     if (forStmt.update) {
-      const updateResult = this.contractContext.emitExpression(forStmt.update);
-      updateCode = updateResult.valueExpr;
+      const updateResult = this.emitConditionWithSetup(forStmt.update, indent);
+      if (updateResult.setupLines.length > 0) {
+        // For update expressions, we might need to emit setup lines
+        // but this is rare in typical for loops
+        lines.push(...updateResult.setupLines);
+      }
+      updateCode = updateResult.conditionExpr;
     }
     
     // Generate for statement

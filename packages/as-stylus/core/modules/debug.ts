@@ -49,8 +49,7 @@ export class DebugU256 {
   }
 
   static dec(ptr: usize): void {
-    const tmp = malloc(32);
-    U256.copy(tmp, ptr);
+    const tmp = U256.copy(ptr);
     const buf = malloc(100);
     let len: u32 = 0;
 

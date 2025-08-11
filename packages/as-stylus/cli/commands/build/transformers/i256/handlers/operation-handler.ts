@@ -2,10 +2,9 @@ import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call } from "@/cli/types/ir.types.js";
 import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 
-
 /**
  * Handler for I256 operation methods (add, sub, mul, div, mod)
- * 
+ *
  * DEFAULT: Checked arithmetic (panic on overflow/underflow)
  * EXPLICIT: Unchecked arithmetic (wrapping behavior) with *Unchecked suffix
  */
@@ -38,7 +37,6 @@ export class I256OperationHandler extends Handler {
     const argRes = this.contractContext.emitExpression(expr.args[0]);
 
     let operation = op;
-    
     if (op === "add") operation = "add";
     else if (op === "sub") operation = "sub";
     else if (op === "mul") operation = "mul";

@@ -205,34 +205,22 @@ export class U256 {
       panicArithmeticOverflow();
     }
 
+    // Handle special cases
+    if (this.lessThan(dividend, divisor)) {
+      return zero;
+    }
+    
+    if (this.equals(dividend, divisor)) {
+      return this.fromU64(1);
+    }
+
+    // Simple repeated subtraction for now (can be optimized later)
     const result = this.create();
-    const remainder = this.create();
-    const divisorCopy = this.copy(divisor);
-
-    for (let i = 0; i < 256; ++i) {
-      let carry: u16 = 0;
-      for (let j = 31; j >= 0; --j) {
-        const shifted = (load<u8>(remainder + j) << 1) | carry;
-        store<u8>(remainder + j, <u8>shifted);
-        carry = shifted >> 8;
-      }
-
-      const byteIndex = i >> 3;
-      const bitIndex = i & 7;
-      const bit = <u8>((load<u8>(dividend + byteIndex) >> (<u8>bitIndex)) & 1);
-      if (bit) {
-        store<u8>(remainder + 31, load<u8>(remainder + 31) | 1);
-      }
-
-      if (!this.lessThan(remainder, divisorCopy)) {
-        this.subInPlace(remainder, divisorCopy);
-        const resultByteIndex = i >> 3;
-        const resultBitIndex = i & 7;
-        store<u8>(
-          result + resultByteIndex,
-          load<u8>(result + resultByteIndex) | (<u8>(1 << (<u8>resultBitIndex))),
-        );
-      }
+    const temp = this.copy(dividend);
+    
+    while (!this.lessThan(temp, divisor)) {
+      this.subInPlace(temp, divisor);
+      this.addInPlace(result, this.fromU64(1));
     }
 
     return result;
@@ -531,6 +519,17 @@ export class U256 {
         store<u8>(dest + i, <u8>(d - s));
         borrow = 0;
       }
+    }
+  }
+
+  private static addInPlace(dest: usize, src: usize): void {
+    let carry: u8 = 0;
+    for (let i: i32 = 31; i >= 0; --i) {
+      const d: u16 = load<u8>(dest + i);
+      const s: u16 = load<u8>(src + i) + carry;
+      const sum = d + s;
+      store<u8>(dest + i, <u8>sum);
+      carry = <u8>(sum >> 8);
     }
   }
 
