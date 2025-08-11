@@ -43,13 +43,10 @@ export class Boolean {
    * @returns Pointer to the ABI-encoded boolean (same or new)
    */
   static toABI(value: usize): usize {
-    // Boolean primitive or low values (0-255 range)
     if (value < 256) {
       return Boolean.create(value == 1);
     }
 
-    // Validate existing ABI structure
-    // Valid ABI: first 31 bytes must be 0, last byte must be 0 or 1
     let isValidABI = true;
     for (let i = 0; i < 31; i++) {
       if (load<u8>(value + i) != 0) {
@@ -61,12 +58,10 @@ export class Boolean {
     if (isValidABI) {
       const lastByte = load<u8>(value + 31);
       if (lastByte <= 1) {
-        // Valid ABI structure - return as-is
         return value;
       }
     }
 
-    // Invalid structure - create new clean structure
     return Boolean.create(false);
   }
 }
