@@ -1,7 +1,7 @@
-import { SourceFile, ConstructorDeclaration, ClassDeclaration } from "ts-morph";
+import { SourceFile, ConstructorDeclaration, ClassDeclaration, SyntaxKind, CallExpression, VariableDeclaration } from "ts-morph";
 
 import { ctx } from "@/cli/shared/compilation-context.js";
-import { IRContract } from "@/cli/types/ir.types.js";
+import { IRContract, IRErrorDecl } from "@/cli/types/ir.types.js";
 
 import { ContractSemanticValidator } from "./semantic-validator.js";
 import { ContractSyntaxValidator } from "./syntax-validator.js";
@@ -155,12 +155,66 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
   }
 
   private processErrors(classes: ClassDeclaration[]) {
-    const errorClasses = this.filterClassesByDecorator(classes, DECORATORS.ERROR);
+    const errors: IRErrorDecl[] = [];
     
-    return errorClasses.map(errorClass => {
+    // TODO: Remove this once we have a proper way to handle ErrorFactory.create<T>() calls
+    const errorClasses = this.filterClassesByDecorator(classes, DECORATORS.ERROR);
+    errorClasses.forEach(errorClass => {
       const errorIRBuilder = new ErrorIRBuilder(errorClass);
-      return errorIRBuilder.validateAndBuildIR();
+      errors.push(errorIRBuilder.validateAndBuildIR());
     });
+    
+    // Process ErrorFactory.create<T>() calls
+    const errorFactoryErrors = this.processErrorFactoryCalls();
+    errors.push(...errorFactoryErrors);
+    
+    return errors;
+  }
+
+  private processErrorFactoryCalls(): IRErrorDecl[] {
+    const errors: IRErrorDecl[] = [];
+    const sourceFile = this.sourceFile;
+    
+    // Find all ErrorFactory.create<T>() calls
+    const errorFactoryCalls = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
+    
+    for (const call of errorFactoryCalls) {
+      const expr = call.getExpression();
+      
+      if (expr.getText() === "ErrorFactory.create") {
+        
+        // Create a synthetic class declaration for the error
+        const parent = call.getParent();
+        
+        if (parent && parent.getKind() === SyntaxKind.VariableDeclaration) {
+          const varDecl = parent as VariableDeclaration;
+          const errorName = varDecl.getName();
+          
+          const syntheticClass = this.createSyntheticErrorClass(errorName, call);
+          
+          const errorIRBuilder = new ErrorIRBuilder(syntheticClass);
+          const errorIR = errorIRBuilder.validateAndBuildIR();
+          
+          errors.push(errorIR);
+        }
+      }
+    }
+    
+    return errors;
+  }
+
+  private createSyntheticErrorClass(errorName: string, errorFactoryCall: CallExpression): ClassDeclaration {
+    const sourceFile = this.sourceFile;
+    
+    const tempClass = sourceFile.addClass({
+      name: errorName,
+      isExported: false,
+      decorators: []
+    });
+    
+    (tempClass as any).errorFactoryCall = errorFactoryCall;
+    
+    return tempClass;
   }
 
   private processStorage(contractClass: ClassDeclaration) {

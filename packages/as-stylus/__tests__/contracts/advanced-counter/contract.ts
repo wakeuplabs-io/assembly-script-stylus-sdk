@@ -1,27 +1,26 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import { Contract, External, U256, U256Factory, I256, I256Factory, View } from "as-stylus";
 
 @Contract
 export class AdvancedCounter {
-  static unsignedCounter: U256;
-  static signedCounter: I256;
+  unsignedCounter: U256;
+  signedCounter: I256;
 
-  static stepSize: U256;
+  stepSize: U256;
 
   constructor() {
-    unsignedCounter = U256Factory.create();
-    signedCounter = I256Factory.create();
-    stepSize = U256Factory.fromString("1");
+    this.unsignedCounter = U256Factory.create();
+    this.signedCounter = I256Factory.create();
+    this.stepSize = U256Factory.fromString("1");
   }
 
   @External
-  static increment(): void {
+  increment(): void {
     const delta: U256 = U256Factory.fromString("1");
-    unsignedCounter = unsignedCounter.add(delta);
+    this.unsignedCounter = this.unsignedCounter.add(delta);
   }
 
   @External
-  static testForLoop(): void {
+  testForLoop(): void {
     const iterations = U256Factory.fromString("5");
     const one = U256Factory.fromString("1");
     for (
@@ -29,33 +28,33 @@ export class AdvancedCounter {
       iterator.lessThan(iterations);
       iterator = iterator.add(one)
     ) {
-      unsignedCounter = unsignedCounter.add(stepSize);
+      this.unsignedCounter = this.unsignedCounter.add(this.stepSize);
     }
   }
 
   @External
-  static testWhileLoop(): void {
+  testWhileLoop(): void {
     let iterator = I256Factory.create();
     const iterations = I256Factory.fromString("3");
     const one = I256Factory.fromString("1");
     while (iterator.lessThan(iterations)) {
-      signedCounter = signedCounter.add(one);
+      this.signedCounter = this.signedCounter.add(one);
       iterator = iterator.add(one);
     }
   }
 
   @External
-  static testDoWhileLoop(): void {
+  testDoWhileLoop(): void {
     let iterator = I256Factory.create();
     const iterations = I256Factory.fromString("2");
     do {
-      signedCounter = signedCounter.sub(I256Factory.fromString("1"));
+      this.signedCounter = this.signedCounter.sub(I256Factory.fromString("1"));
       iterator = iterator.add(I256Factory.fromString("1"));
     } while (iterator.lessThan(iterations));
   }
 
   @External
-  static testMixedOperations(): void {
+  testMixedOperations(): void {
     const five: U256 = U256Factory.fromString("5");
     const negativeTwo: I256 = I256Factory.fromString("-2");
     const one: U256 = U256Factory.fromString("1");
@@ -66,29 +65,29 @@ export class AdvancedCounter {
       iterator.lessThan(five);
       iterator = iterator.add(one)
     ) {
-      unsignedCounter = unsignedCounter.add(two);
+      this.unsignedCounter = this.unsignedCounter.add(two);
     }
 
     let iterator2: I256 = I256Factory.create();
     const iOne = I256Factory.fromString("1");
     while (iterator2.lessThan(negativeTwo)) {
-      signedCounter = signedCounter.add(iterator2);
+      this.signedCounter = this.signedCounter.add(iterator2);
       iterator2 = iterator2.add(iOne);
     }
   }
 
   @View
-  static getUnsignedCounter(): U256 {
-    return unsignedCounter;
+  getUnsignedCounter(): U256 {
+    return this.unsignedCounter;
   }
 
   @View
-  static getSignedCounter(): I256 {
-    return signedCounter;
+  getSignedCounter(): I256 {
+    return this.signedCounter;
   }
 
   @View
-  static getStepSize(): U256 {
-    return stepSize;
+  getStepSize(): U256 {
+    return this.stepSize;
   }
 }

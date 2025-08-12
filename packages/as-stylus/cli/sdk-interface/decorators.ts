@@ -20,12 +20,6 @@ export function Event(_target: any): typeof _target & { emit: (...args: any[]) =
 }
 
 /**
- * Marks a class as a custom error
- * @param _target - The target class
- */
-export function Error(_target: any): any {}
-
-/**
  * Marks a method as external (callable from outside the contract)
  * @param _target - The target method
  * @param _propertyKey - The property key

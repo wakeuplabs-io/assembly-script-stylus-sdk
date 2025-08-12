@@ -1,4 +1,5 @@
 export * from "./decorators.js";
+export * from "./error.js";
 
 // Export original modules
 export * from "./address.js";
