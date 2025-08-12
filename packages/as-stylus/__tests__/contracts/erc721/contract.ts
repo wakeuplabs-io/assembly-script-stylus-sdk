@@ -59,14 +59,10 @@ export class ApprovalForAll {
 
 @Contract
 export class ERC721 {
-  static owners: Mapping<U256, Address> = new Mapping<U256, Address>();
-  static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
-  static tokenApprovals: Mapping<U256, Address> = new Mapping<U256, Address>();
-  static operatorApprovals: MappingNested<Address, Address, boolean> = new MappingNested<
-    Address,
-    Address,
-    boolean
-  >();
+  static owners: Mapping<U256, Address>;
+  static balances: Mapping<Address, U256>;
+  static tokenApprovals: Mapping<U256, Address>;
+  static operatorApprovals: MappingNested<Address, Address, boolean>;
   static name: Str;
   static symbol: Str;
 
