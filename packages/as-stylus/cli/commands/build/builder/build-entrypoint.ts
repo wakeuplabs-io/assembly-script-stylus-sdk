@@ -106,9 +106,10 @@ function generateStructReturnLogic(
   const { dynamic, size } = structInfo;
   let callLine = "";
 
+  const argsList = callArgs.map(arg => arg.name).join(", ");
   if (dynamic) {
     callLine = [
-      `const structPtr = ${methodName}(${callArgs.join(", ")});`,
+      `const structPtr = ${methodName}(${argsList});`,
       `const strLen   = loadU32BE(structPtr + 160 + 28);`,
       `const padded   = ((strLen + 31) & ~31);`,
       `const tupleSz  = 160 + 32 + padded;`,
@@ -120,7 +121,7 @@ function generateStructReturnLogic(
     ].join("\n    ");
   } else {
     callLine = [
-      `const ptr = ${methodName}(${callArgs.join(", ")});`,
+      `const ptr = ${methodName}(${argsList});`,
       `write_result(ptr, ${size});`,
       `return 0;`,
     ].join("\n    ");

@@ -14,6 +14,7 @@ import { I256OperationHandler } from "./handlers/operation-handler.js";
 import { I256PropertyHandler } from "./handlers/property-handler.js";
 import { I256ToStringHandler } from "./handlers/to-string-handler.js";
 import { ContractContext } from "../core/contract-context.js";
+import { I256FunctionCallHandler } from "./handlers/function-call-handler.js";
 
 /**
  * **I256 Type Transformer**
@@ -77,6 +78,7 @@ export class I256Transformer extends BaseTypeTransformer {
     this.registerHandler(new I256NegateHandler(contractContext));
     this.registerHandler(new I256ToStringHandler(contractContext));
     this.registerHandler(new I256AbsHandler(contractContext));
+    this.registerHandler(new I256FunctionCallHandler(contractContext));
   }
 
   /**
@@ -135,6 +137,9 @@ export class I256Transformer extends BaseTypeTransformer {
 
     // Check returnType first - this is the most reliable indicator
     if (expr.returnType === AbiType.Int256) {
+      if (expr.originalType || target.includes("_get_") || target.includes("_set_")) {
+        return false;
+      }
       return true;
     }
 

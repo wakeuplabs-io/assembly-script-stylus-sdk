@@ -55,11 +55,9 @@ export class ExpressionHandler extends BaseTypeTransformer {
   }
 
   canHandle(expr: { kind: string }): boolean {
-    // ExpressionHandler serves as fallback - should only handle expressions that 
-    // type-specific transformers don't claim
     const expressions = [
       "expr",
-      "call", // ← Handle calls as fallback (type-specific transformers have priority)
+      "call",
       "literal",
       "var",
       "member",
