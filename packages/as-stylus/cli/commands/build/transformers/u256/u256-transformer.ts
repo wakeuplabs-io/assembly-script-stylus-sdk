@@ -75,17 +75,29 @@ export class U256Transformer extends BaseTypeTransformer {
           "div",
           "mod",
           "pow",
+          "copy",
+          "toString",
+        ];
+
+        return methodName ? u256Methods.includes(methodName) : false;
+      }
+
+      const arg = expr.args[0];
+      if (expr.returnType === AbiType.Bool) {
+        const u256BoolMethods = [
           "lessThan",
           "greaterThan",
           "lessThanOrEqual",
           "greaterThanOrEqual",
           "equals",
           "notEqual",
-          "copy",
-          "toString",
         ];
 
-        return methodName ? u256Methods.includes(methodName) : false;
+        if (u256BoolMethods.includes(methodName || "")) {
+          if (arg.type === AbiType.Uint256) {
+            return true;
+          }
+        }
       }
     }
 

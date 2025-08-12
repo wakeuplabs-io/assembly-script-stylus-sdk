@@ -12,6 +12,7 @@ import { buildU256IR } from "./u256.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { SupportedType } from "../shared/supported-types.js";
+import { parseThis } from "../shared/utils/parse-this.js";
 import { StructFactoryBuilder } from "../struct/struct-factory-builder.js";
 
 export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
@@ -145,7 +146,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
         }
       }
     }
-    const target = expr.getText();
+    const target = parseThis(expr.getText());
     const args = this.call.getArguments().map((argument) => {
       const expressionBuilder = new ExpressionIRBuilder(argument as Expression);
       return expressionBuilder.validateAndBuildIR();

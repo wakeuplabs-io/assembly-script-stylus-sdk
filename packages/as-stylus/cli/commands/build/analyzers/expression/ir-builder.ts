@@ -4,6 +4,7 @@ import { Logger } from "@/cli/services/logger.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
+import { buildVariableIR } from "./variable.js";
 import { BinaryExpressionIRBuilder } from "../binary-expression/ir-builder.js";
 import { CallFunctionIRBuilder } from "../call-function/ir-builder.js";
 import { LiteralIRBuilder } from "../literal/ir-builder.js";
@@ -42,11 +43,11 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
   
       /* ---------- Variables ---------- */
       // Example: counter, value, amount
+      case SyntaxKind.ThisKeyword: {
+        return { kind: "this", type: AbiType.Void };
+      }
       case SyntaxKind.Identifier: {
-        const id = this.expression as Identifier;
-        const [name] = id.getText().split(".");
-        const variable = this.symbolTable.lookup(name);
-        return { kind: "var", name: id.getText(), type: variable?.type ?? AbiType.Void, scope: variable?.scope ?? "memory" };
+        return buildVariableIR(this.expression as Identifier, this.symbolTable);
       }
   
       /* ---------- Function calls ---------- */
@@ -60,6 +61,10 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       // For method access obj.prop, this is a PropertyAccessExpression
       // For property access obj["prop"], this is an ElementAccessExpression
       case SyntaxKind.PropertyAccessExpression: {
+        const count = this.expression.getText().split(".").length;
+        if (this.expression.getText().startsWith("this.") && count === 2) {
+          return buildVariableIR(this.expression as Identifier, this.symbolTable);
+        }
         // Example: contract.balance, u256value.toString()
         const member = new MemberIRBuilder(this.expression as PropertyAccessExpression);
         return member.validateAndBuildIR();

@@ -105,6 +105,11 @@ export type IRCondition = {
   type: AbiType.Bool;
 };
 
+export type IRThis = {
+  kind: "this";
+  type: SupportedType;
+};
+
 export type IRExpression =
   | IRUnaryExpression
   | Literal
@@ -116,7 +121,8 @@ export type IRExpression =
   | IRMapGet
   | IRMapSet
   | IRMapGet2
-  | IRMapSet2;
+  | IRMapSet2
+  | IRThis;
 
 // ───────────────────────
 // Statements

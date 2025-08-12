@@ -74,6 +74,7 @@ export class I256Transformer extends BaseTypeTransformer {
         return true;
       }
 
+      const arg = expr.args[0];      
       // Comparison methods - only for I256 variables
       if (
         target.endsWith(".lessThan") ||
@@ -83,7 +84,9 @@ export class I256Transformer extends BaseTypeTransformer {
         target.endsWith(".equals") ||
         target.endsWith(".notEqual")
       ) {
-        return true;
+        if (arg.type === AbiType.Int256) {
+          return true;
+        }
       }
     }
 

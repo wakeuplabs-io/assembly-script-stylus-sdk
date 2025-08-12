@@ -31,8 +31,15 @@ export class AddressTransformer extends BaseTypeTransformer {
     if (["AddressFactory.create", "AddressFactory.fromString", "Address.copy"].includes(target)) {
       return true;
     }
+    
+    if (target.endsWith(".equals")) {
+      const arg = expr.args[0];
+      if (arg.type === AbiType.Address) {
+        return true;
+      }
+    }
 
-    if (target.endsWith(".equals") || target.endsWith(".isZero") || target.endsWith(".hasCode")) {
+    if (target.endsWith(".isZero") || target.endsWith(".hasCode")) {
       return true;
     }
 

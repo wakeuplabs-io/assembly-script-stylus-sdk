@@ -8,6 +8,7 @@ import { inferType } from "@/cli/utils/inferType.js";
 import { PropertySyntaxValidator } from "./syntax-validator.js";
 import { convertType } from "../../builder/build-abi.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { parseName } from "../shared/utils/parse-this.js";
 
 /**
  * Extracts generic types from mapping declarations
@@ -70,9 +71,11 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     return syntaxValidator.validate();
   }
 
+
+
   buildIR(): IRVariable {
-    const [name, typeDefined] = this.property.getName().split(":");
-    const type = typeDefined ? typeDefined : inferType(this.property.getType().getText());
+    const typeInferred = inferType(this.property.getType().getText());
+    const { name, type } = parseName(this.property.getName(), typeInferred);
     this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage", dynamicType: type });
   
     const fullTypeText = this.property.getType().getText();

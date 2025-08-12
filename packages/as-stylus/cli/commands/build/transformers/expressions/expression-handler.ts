@@ -11,11 +11,12 @@ import { FallbackTransformer } from "./transformers/fallback-transformer.js";
 import { LiteralTransformer } from "./transformers/literal-transformer.js";
 import { MappingTransformer } from "./transformers/mapping-transformer.js";
 import { MemberTransformer } from "./transformers/member-transformer.js";
+import { ThisTransformer } from "./transformers/this-transformer.js";
 import { UnaryTransformer } from "./transformers/unary-transformer.js";
 import { VariableTransformer } from "./transformers/variable-transformer.js";
 
 
-type TransformerKind = "member" | "call" | "binary" | "condition" | "unary" | "literal" | "var" | "map_get" | "map_set" | "map_get2" | "map_set2" | "fallback";
+type TransformerKind = "this" | "member" | "call" | "binary" | "condition" | "unary" | "literal" | "var" | "map_get" | "map_set" | "map_get2" | "map_set2" | "fallback";
 
 
 
@@ -31,6 +32,7 @@ export class ExpressionHandler extends BaseTypeTransformer {
   private createTransformers(): Record<TransformerKind, Handler> {
     return {
       member: new MemberTransformer(this.contractContext),
+      "this": new ThisTransformer(this.contractContext),
       call: new CallTransformer(this.contractContext),
       binary: new BinaryTransformer(this.contractContext),
       condition: new ConditionTransformer(this.contractContext),
@@ -46,7 +48,7 @@ export class ExpressionHandler extends BaseTypeTransformer {
   }
 
   canHandle(expr: { kind: string }): boolean {
-    const expressions = ["expr", "call", "literal", "var", "member", "unary", "binary", "condition", "fallback", "map_get", "map_set", "map_get2", "map_set2"];
+    const expressions = ["expr", "call", "literal", "var", "this", "member", "unary", "binary", "condition", "fallback", "map_get", "map_set", "map_get2", "map_set2"];
     return expressions.includes(expr.kind);
   }
 
