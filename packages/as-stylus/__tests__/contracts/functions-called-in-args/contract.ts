@@ -2,319 +2,183 @@
 // @ts-nocheck
 
 @Struct
-export class UserData {
-  name: Str;
+export class User {
+  index: U256;
   age: U256;
+  // name: Str;
   isActive: boolean;
-}
-
-@Event
-export class ValuesSet {
-  @Indexed stringValue: Str;
-  @Indexed numberValue: U256;
-  @Indexed booleanValue: boolean;
   address: Address;
 }
 
-@Error
-export class InvalidOperation {
-  operation: Str;
-  reason: Str;
+@Struct
+export class AllViewResults {
+  strValue: Str;
+  u256Value: U256;
+  i256Value: I256;
+  boolValue: boolean;
+  addrValue: Address;
+  user: User;
+  balance: U256;
 }
 
 @Contract
-export class FunctionsInArgsTest {
-  static booleanStorage: boolean;
-  static u256Storage: U256;
-  static i256Storage: I256;
-  static stringStorage: Str;
-  static addressStorage: Address;
-  static userData: Struct<UserData>;
-
+export class FunctionCallArgsTest {
+  static strValue: Str;
+  static u256Value: U256;
+  static i256Value: I256;
+  static boolValue: boolean;
+  static addrValue: Address;
+  static user: Struct<User>;
   static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
-  static userProfiles: Mapping<U256, UserData> = new Mapping<U256, UserData>();
 
-  constructor() {
-    booleanStorage = false;
-    u256Storage = U256Factory.create();
-    i256Storage = I256Factory.create();
-    stringStorage = StrFactory.fromString("initial");
-    addressStorage = msg.sender;
-
-    userData.name = StrFactory.fromString("default");
-    userData.age = U256Factory.create();
-    userData.isActive = false;
-
-    balances.set(msg.sender, U256Factory.fromString("1000"));
+  @Internal
+  getStr(): Str {
+    return StrFactory.fromString("abc");
   }
 
   @Internal
-  static getCalculatedNumber(): U256 {
-    return U256Factory.fromString("1000");
-  }
-
-  @Internal
-  static getBooleanTrue(): boolean {
-    return true;
-  }
-
-  @Internal
-  static getBooleanFalse(): boolean {
-    return false;
-  }
-
-  @Internal
-  static getCalculatedBoolean(): boolean {
-    return !booleanStorage;
-  }
-
-  @Internal
-  static getSmallNumber(): U256 {
+  getU256(): U256 {
     return U256Factory.fromString("42");
   }
 
   @Internal
-  static getLargeNumber(): U256 {
-    return U256Factory.fromString("999999");
+  getI256(): I256 {
+    return I256Factory.fromString("-10");
   }
 
   @Internal
-  static getAddedNumbers(): U256 {
-    const a = getSmallNumber();
-    const b = U256Factory.fromString("8");
-    return a.add(b);
+  getBool(): boolean {
+    return true;
   }
 
   @Internal
-  static getNegativeNumber(): I256 {
-    return I256Factory.fromString("-100");
-  }
-
-  @Internal
-  static getPositiveI256(): I256 {
-    return I256Factory.fromString("200");
-  }
-
-  @Internal
-  static getCalculatedI256(): I256 {
-    const negative = getNegativeNumber();
-    const positive = getPositiveI256();
-    return negative.add(positive);
-  }
-
-  @Internal
-  static getShortString(): Str {
-    return StrFactory.fromString("Hello");
-  }
-
-  @Internal
-  static getLongString(): Str {
-    return StrFactory.fromString("This is a very long string for testing purposes");
-  }
-
-  @Internal
-  static getConcatenatedString(): Str {
-    /*
-    const part1 = getShortString();
-    const part2 = StrFactory.fromString(" World!");
-    return part1.concat(part2);
-    */
-    return StrFactory.fromString("Hello World!");
-  }
-
-  @Internal
-  static getSenderAddress(): Address {
-    return msg.sender;
-  }
-
-  @Internal
-  static getZeroAddress(): Address {
-    return AddressFactory.fromString("0x0000000000000000000000000000000000000000");
-  }
-
-  @Internal
-  static getTestAddress(): Address {
-    return AddressFactory.fromString("0x1234567890123456789012345678901234567890");
-  }
-
-  @Internal
-  static createUserData(): UserData {
-    user.name = getConcatenatedString();
-    user.age = getCalculatedNumber();
-    user.isActive = getBooleanTrue();
+  getAddr(user: Address): Address {
     return user;
   }
 
-  @External
-  static testBooleanFunctionArgs(): void {
-    booleanStorage = getBooleanTrue();
-
-    const result = !getCalculatedBoolean();
-    booleanStorage = result;
+  @Internal
+  getUser(): User {
+    const tempUser = StructFactory.create<User>([getStr(), getU256()]);
+    return tempUser;
   }
 
   @External
-  static testU256FunctionArgs(): void {
-    u256Storage = getCalculatedNumber();
-
-    const sum = getSmallNumber().add(getLargeNumber());
-    u256Storage = sum;
-
-    const product = getAddedNumbers().mul(getSmallNumber());
-    u256Storage = product;
+  testU256InArg(): void {
+    u256Value = getU256().add(U256Factory.fromString("100"));
   }
 
   @External
-  static testI256FunctionArgs(): void {
-    i256Storage = getCalculatedI256();
-
-    const difference = getPositiveI256().sub(getNegativeNumber());
-    i256Storage = difference;
+  testI256InArg(): void {
+    i256Value = getI256().add(I256Factory.fromString("20"));
   }
 
   @External
-  static testStringFunctionArgs(): void {
-    stringStorage = getConcatenatedString();
-
-    const doubled = getConcatenatedString().concat(getShortString());
-    stringStorage = doubled;
+  testBoolInIf(): void {
+    if (getBool()) {
+      boolValue = true;
+    }
   }
 
   @External
-  static testAddressFunctionArgs(): void {
-    addressStorage = getSenderAddress();
-
-    balances.set(getTestAddress(), getCalculatedNumber());
-
-    const isZero = addressStorage.equals(getZeroAddress());
-    booleanStorage = isZero;
+  testAddrInMapping(): void {
+    balances.set(getAddr(msg.sender), getU256());
   }
 
   @External
-  static testStructFunctionArgs(): void {
-    userData = createUserData();
-
-    userData.name = getConcatenatedString();
-    userData.age = getAddedNumbers();
-    userData.isActive = getCalculatedBoolean();
+  testStructInStorage(): void {
+    user = StructFactory.create<User>([getStr(), getU256()]);
   }
 
   @External
-  static testMappingFunctionArgs(): void {
-    balances.set(getSenderAddress(), getCalculatedNumber());
-
-    const balance = balances.get(getTestAddress());
-    u256Storage = balance;
-
-    balances.set(getZeroAddress(), getSmallNumber().add(getLargeNumber()));
+  testFuncInFuncCall(): void {
+    u256Value = getU256().add(getU256().mul(U256Factory.fromString("2")));
   }
 
   @External
-  static testEventFunctionArgs(): void {
-    ValuesSet.emit(
-      getConcatenatedString(),
-      getCalculatedNumber(),
-      getBooleanTrue(),
-      getSenderAddress(),
+  testFunctionAsParameter(str: Str, u256: U256, addr: Address): void {
+    strValue = str;
+    u256Value = u256;
+    addrValue = addr;
+  }
+
+  @External
+  testFunctionCallAsParameter(): void {
+    testFunctionAsParameter(getStr(), getU256(), getAddr(msg.sender));
+  }
+
+  @View
+  getStrValue(): Str {
+    return strValue;
+  }
+
+  @View
+  getU256Value(): U256 {
+    return u256Value;
+  }
+
+  @View
+  getI256Value(): I256 {
+    return i256Value;
+  }
+
+  @View
+  getBoolValue(): boolean {
+    return boolValue;
+  }
+
+  @View
+  getAddrValue(): Address {
+    return addrValue;
+  }
+
+  @External
+  setAddress(addr: Address): void {
+    addrValue = addr;
+  }
+
+  @External
+  setUser(age: U256, index: U256, isActive: boolean, address: Address): void {
+    user.age = age;
+    user.index = index;
+    user.isActive = isActive;
+    user.address = address;
+  }
+
+  @View
+  getUserExternal(): User {
+    return user;
+  }
+
+  @View
+  getBalance(addr: Address): U256 {
+    return balances.get(addr);
+  }
+
+  @Internal
+  createResult(
+    str: Str,
+    u256: U256,
+    i256: I256,
+    bool: boolean,
+    addr: Address,
+    balance: U256,
+  ): AllViewResults {
+    const structTemp = StructFactory.create<AllViewResults>([str, u256, i256, bool, addr, balance]);
+
+    return structTemp;
+  }
+
+  @View
+  getAllViewResults(addr: Address): AllViewResults {
+    const structTemp = createResult(
+      getStrValue(),
+      getU256Value(),
+      getI256Value(),
+      getBoolValue(),
+      getAddrValue(),
+      getBalance(addr),
     );
-  }
 
-  @External
-  static testErrorFunctionArgs(): void {
-    InvalidOperation.revert(getShortString(), getConcatenatedString());
-  }
-
-  @External
-  static testNestedFunctionCalls(): void {
-    const nested1 = getCalculatedNumber().add(getAddedNumbers());
-    const nested2 = getConcatenatedString().concat(getLongString());
-    const nested3 = getCalculatedI256().add(getNegativeNumber());
-
-    u256Storage = nested1;
-    stringStorage = nested2;
-    i256Storage = nested3;
-  }
-
-  @External
-  static testComplexFunctionArgs(): void {
-    const sender = getSenderAddress();
-    const recipient = getTestAddress();
-    const amount = getCalculatedNumber();
-
-    const senderBalance = balances.get(sender);
-    if (senderBalance.gte(amount)) {
-      balances.set(sender, senderBalance.sub(amount));
-      balances.set(recipient, balances.get(recipient).add(amount));
-    }
-
-    ValuesSet.emit(getLongString(), getAddedNumbers(), getCalculatedBoolean(), getTestAddress());
-  }
-
-  @External
-  static testConditionalFunctionArgs(): void {
-    const condition = getBooleanTrue();
-
-    if (condition) {
-      u256Storage = getSmallNumber();
-    } else {
-      u256Storage = getLargeNumber();
-    }
-
-    booleanStorage = getBooleanTrue() ? getCalculatedBoolean() : getBooleanFalse();
-
-    const complexCondition = getBooleanTrue() && !getBooleanFalse();
-    if (complexCondition) {
-      stringStorage = getConcatenatedString();
-    }
-  }
-
-  @View
-  static getBooleanStorage(): boolean {
-    return booleanStorage;
-  }
-
-  @View
-  static getU256Storage(): U256 {
-    return u256Storage;
-  }
-
-  @View
-  static getI256Storage(): I256 {
-    return i256Storage;
-  }
-
-  @View
-  static getStringStorage(): Str {
-    return stringStorage;
-  }
-
-  @View
-  static getAddressStorage(): Address {
-    return addressStorage;
-  }
-
-  @View
-  static getUserData(): UserData {
-    return userData;
-  }
-
-  @View
-  static getBalance(address: Address): U256 {
-    return balances.get(address);
-  }
-
-  @View
-  static verifySmallNumber(): U256 {
-    return getSmallNumber();
-  }
-
-  @View
-  static verifyConcatenatedString(): Str {
-    return getConcatenatedString();
-  }
-
-  @View
-  static verifyCalculatedBoolean(): boolean {
-    return getCalculatedBoolean();
+    return structTemp;
   }
 }
