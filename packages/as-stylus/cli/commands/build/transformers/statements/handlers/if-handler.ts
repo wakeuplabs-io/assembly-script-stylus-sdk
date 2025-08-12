@@ -13,18 +13,19 @@ export class IfHandler extends StatementHandler {
 
   handle(stmt: IRStatement, indent: string): string {
     const ifStmt = stmt as If;
-    const condResult = this.contractContext.emitExpression(ifStmt.condition);
     const mainHandler = new MainStatementHandler(this.contractContext);
 
-    let lines: string[] = [];
+    // Use common method for consistent setup lines handling
+    const conditionResult = this.emitConditionWithSetup(ifStmt.condition, indent);
+    const lines: string[] = [];
     
-    // Add condition setup lines if any
-    if (condResult.setupLines.length > 0) {
-      lines = [...condResult.setupLines.map((line) => `${indent}${line}`)];
+    // Add condition setup lines first
+    if (conditionResult.setupLines.length > 0) {
+      lines.push(...conditionResult.setupLines);
     }
 
     // Add if statement
-    lines.push(`${indent}if (${condResult.valueExpr}) {`);
+    lines.push(`${indent}if (${conditionResult.conditionExpr}) {`);
     
     // Add then body
     const thenBody = ifStmt.then

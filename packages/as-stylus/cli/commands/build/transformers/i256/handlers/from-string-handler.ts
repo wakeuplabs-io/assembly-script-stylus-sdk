@@ -21,11 +21,17 @@ export class I256FromStringHandler extends Handler {
   }
 
   canHandle(expr: Call): boolean {
-    return (
-      expr.target === "I256Factory.fromString" &&
-      expr.args &&
-      expr.args.length === 1
-    );
+    if (!expr.args || expr.args.length !== 1) return false;
+    
+    // Legacy format
+    if (expr.target === "I256Factory.fromString") return true;
+    
+    // New receiver-based format
+    if (expr.target === "fromString" && expr.receiver) {
+      return expr.receiver.kind === "var" && expr.receiver.name === "I256Factory";
+    }
+    
+    return false;
   }
 
   handle(expr: Call): EmitResult {

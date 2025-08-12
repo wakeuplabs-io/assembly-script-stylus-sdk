@@ -10,5 +10,10 @@ import { parseThis } from "../shared/utils/parse-this.js";
 export function buildVariableIR(id: Identifier, symbolTable: SymbolTableStack): IRExpression {
   const [name] = parseThis(id.getText()).split(".");
   const variable = symbolTable.lookup(name);
-  return { kind: "var", name: name, type: variable?.type ?? AbiType.Void, scope: variable?.scope ?? "memory" };
+  return {
+    kind: "var",
+    name: name, // TODO: id.getText()
+    type: variable?.type ?? AbiType.Void,
+    scope: variable?.scope ?? "memory"
+  };
 }

@@ -15,10 +15,20 @@ import { ThisTransformer } from "./transformers/this-transformer.js";
 import { UnaryTransformer } from "./transformers/unary-transformer.js";
 import { VariableTransformer } from "./transformers/variable-transformer.js";
 
-
-type TransformerKind = "this" | "member" | "call" | "binary" | "condition" | "unary" | "literal" | "var" | "map_get" | "map_set" | "map_get2" | "map_set2" | "fallback";
-
-
+type TransformerKind =
+  | "this"
+  | "member"
+  | "call"
+  | "binary"
+  | "condition"
+  | "unary"
+  | "literal"
+  | "var"
+  | "map_get"
+  | "map_set"
+  | "map_get2"
+  | "map_set2"
+  | "fallback";
 
 /**
  * Expression handler focused solely on expression transformation.
@@ -48,7 +58,22 @@ export class ExpressionHandler extends BaseTypeTransformer {
   }
 
   canHandle(expr: { kind: string }): boolean {
-    const expressions = ["expr", "call", "literal", "var", "this", "member", "unary", "binary", "condition", "fallback", "map_get", "map_set", "map_get2", "map_set2"];
+    const expressions = [
+      "this",
+      "expr",
+      "call",
+      "literal",
+      "var",
+      "member",
+      "unary",
+      "binary",
+      "condition",
+      "fallback",
+      "map_get",
+      "map_set",
+      "map_get2",
+      "map_set2",
+    ];
     return expressions.includes(expr.kind);
   }
 
@@ -66,7 +91,7 @@ export class ExpressionHandler extends BaseTypeTransformer {
 
     return {
       setupLines: [],
-      valueExpr: `/* Unsupported expression: ${expr} */`
+      valueExpr: `/* Unsupported expression: ${expr} */`,
     };
   }
 }

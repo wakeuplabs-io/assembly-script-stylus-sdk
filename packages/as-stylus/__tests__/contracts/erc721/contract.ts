@@ -59,14 +59,10 @@ export class ApprovalForAll {
 
 @Contract
 export class ERC721 {
-  static owners: Mapping<U256, Address> = new Mapping<U256, Address>();
-  static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
-  static tokenApprovals: Mapping<U256, Address> = new Mapping<U256, Address>();
-  static operatorApprovals: MappingNested<Address, Address, boolean> = new MappingNested<
-    Address,
-    Address,
-    boolean
-  >();
+  static owners: Mapping<U256, Address>;
+  static balances: Mapping<Address, U256>;
+  static tokenApprovals: Mapping<U256, Address>;
+  static operatorApprovals: MappingNested<Address, Address, boolean>;
   static name: Str;
   static symbol: Str;
 
@@ -147,12 +143,12 @@ export class ERC721 {
     if (!isFromZero) {
       tokenApprovals.set(tokenId, zeroAddress);
       const fromBalance: U256 = balances.get(owner);
-      balances.set(owner, fromBalance.sub(one));
+      balances.set(owner, fromBalance.sub(U256Factory.fromString("1")));
     }
 
     if (!isToZero) {
       const toBalance: U256 = balances.get(to);
-      balances.set(to, toBalance.add(one));
+      balances.set(to, toBalance.add(U256Factory.fromString("1")));
     }
 
     owners.set(tokenId, to);
@@ -162,7 +158,6 @@ export class ERC721 {
   @External
   static mint(to: Address, tokenId: U256): void {
     const zeroAddress = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
-    const one = U256Factory.fromString("1");
 
     const isToZero = to.isZero();
     if (isToZero) {
@@ -178,7 +173,7 @@ export class ERC721 {
 
     if (!isToZero) {
       const toBalance = balances.get(to);
-      balances.set(to, toBalance.add(one));
+      balances.set(to, toBalance.add(U256Factory.fromString("1")));
     }
 
     owners.set(tokenId, to);
@@ -188,7 +183,6 @@ export class ERC721 {
   @External
   static burn(tokenId: U256): void {
     const zeroAddress = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
-    const one = U256Factory.fromString("1");
 
     const from = owners.get(tokenId);
 
@@ -196,7 +190,7 @@ export class ERC721 {
     if (!isFromZero) {
       tokenApprovals.set(tokenId, zeroAddress);
       const fromBalance = balances.get(from);
-      balances.set(from, fromBalance.sub(one));
+      balances.set(from, fromBalance.sub(U256Factory.fromString("1")));
     }
 
     owners.set(tokenId, zeroAddress);
@@ -219,7 +213,7 @@ export class ERC721 {
   @View
   static ownerOf(tokenId: U256): Address {
     const owner = owners.get(tokenId);
-    const isZero = owner.isZero();
+    const isZero = owners.get(tokenId).isZero();
     if (isZero) ERC721NonexistentToken.revert(tokenId);
     return owner;
   }

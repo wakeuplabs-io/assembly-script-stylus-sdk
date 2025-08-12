@@ -15,22 +15,25 @@ export class DoWhileHandler extends StatementHandler {
     const doWhileStmt = stmt as DoWhile;
     const mainHandler = new MainStatementHandler(this.contractContext);
     const lines: string[] = [];
-   
+
+    const conditionResult = this.emitConditionWithSetup(doWhileStmt.condition, indent);
+
+    if (conditionResult.setupLines.length > 0) {
+      lines.push(...conditionResult.setupLines);
+    }
+
     lines.push(`${indent}do {`);
-    
-    // Generate body
+
     const bodyLines = doWhileStmt.body
-      .map(s => mainHandler.handle(s, indent + "  "))
-      .filter(s => s.trim());
-    
+      .map((s) => mainHandler.handle(s, indent + "  "))
+      .filter((s) => s.trim());
+
     if (bodyLines.length > 0) {
       lines.push(...bodyLines);
     }
-    
-    // Handle condition
-    const condResult = this.contractContext.emitExpression(doWhileStmt.condition);
-    lines.push(`${indent}} while (${condResult.valueExpr});`);
-    
+
+    lines.push(`${indent}} while (${conditionResult.conditionExpr});`);
+
     return lines.join("\n");
   }
 }

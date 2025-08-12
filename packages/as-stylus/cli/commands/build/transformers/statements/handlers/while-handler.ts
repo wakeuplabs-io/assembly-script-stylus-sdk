@@ -15,26 +15,25 @@ export class WhileHandler extends StatementHandler {
     const whileStmt = stmt as While;
     const mainHandler = new MainStatementHandler(this.contractContext);
     const lines: string[] = [];
-   
-    // Handle condition
-    const condResult = this.contractContext.emitExpression(whileStmt.condition);
-    if (condResult.setupLines && condResult.setupLines.length > 0) {
-      lines.push(...condResult.setupLines.map(line => `${indent}${line}`));
+
+    const conditionResult = this.emitConditionWithSetup(whileStmt.condition, indent);
+
+    if (conditionResult.setupLines.length > 0) {
+      lines.push(...conditionResult.setupLines);
     }
-    
-    lines.push(`${indent}while (${condResult.valueExpr}) {`);
-    
-    // Generate body
+
+    lines.push(`${indent}while (${conditionResult.conditionExpr}) {`);
+
     const bodyLines = whileStmt.body
-      .map(s => mainHandler.handle(s, indent + "  "))
-      .filter(s => s.trim());
-    
+      .map((s) => mainHandler.handle(s, indent + "  "))
+      .filter((s) => s.trim());
+
     if (bodyLines.length > 0) {
       lines.push(...bodyLines);
     }
-    
+
     lines.push(`${indent}}`);
-    
+
     return lines.join("\n");
   }
 }

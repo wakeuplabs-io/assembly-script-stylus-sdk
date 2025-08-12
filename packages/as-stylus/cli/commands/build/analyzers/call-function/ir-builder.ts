@@ -56,11 +56,11 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
   buildIR(): IRExpression {
     const expr = this.call.getExpression();
-    
+
     if (StructFactoryBuilder.isStructFactoryCreate(this.call)) {
       return StructFactoryBuilder.buildStructCreateIR(this.call);
     }
-    
+
     // Try to detect Mapping access: Balances.balances.get(user) or .set(user, value)
     if (expr.getKindName() === "PropertyAccessExpression") {
       const methodAccess = expr as PropertyAccessExpression;
@@ -79,68 +79,86 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
         if (slot !== undefined) {
           // Get mapping type information from context
           const mappingTypeInfo = ctx.mappingTypes.get(mappingName);
-          
+
           if (methodName === "get" && args.length === 1) {
             // Convert valueType to AbiType for returnType
             const valueType = mappingTypeInfo?.valueType || "U256";
             let returnType: SupportedType;
-            switch(valueType) {
-              case "Address": returnType = AbiType.Address; break;
-              case "U256": returnType = AbiType.Uint256; break;
-              case "I256": returnType = AbiType.Int256; break;
-              case "boolean": returnType = AbiType.Bool; break;
-              default: returnType = AbiType.Unknown;
+            switch (valueType) {
+              case "Address":
+                returnType = AbiType.Address;
+                break;
+              case "U256":
+                returnType = AbiType.Uint256;
+                break;
+              case "I256":
+                returnType = AbiType.Int256;
+                break;
+              case "boolean":
+                returnType = AbiType.Bool;
+                break;
+              default:
+                returnType = AbiType.Unknown;
             }
-            return { 
-              kind: "map_get", 
-              slot, 
+            return {
+              kind: "map_get",
+              slot,
               key: args[0],
               keyType: mappingTypeInfo?.keyType || "Address",
               valueType,
               type: AbiType.Mapping,
-              returnType
+              returnType,
             } as IRMapGet;
           } else if (methodName === "set" && args.length === 2) {
-            return { 
-              kind: "map_set", 
-              slot, 
-              key: args[0], 
+            return {
+              kind: "map_set",
+              slot,
+              key: args[0],
               value: args[1],
               keyType: mappingTypeInfo?.keyType || "Address",
-              valueType: mappingTypeInfo?.valueType || "U256"
+              valueType: mappingTypeInfo?.valueType || "U256",
             } as IRMapSet;
           } else if (methodName === "get" && args.length === 2) {
             // Convert valueType to AbiType for returnType
             const valueType = mappingTypeInfo?.valueType || "U256";
             let returnType: SupportedType;
-            switch(valueType) {
-              case "Address": returnType = AbiType.Address; break;
-              case "U256": returnType = AbiType.Uint256; break;
-              case "I256": returnType = AbiType.Int256; break;
-              case "boolean": returnType = AbiType.Bool; break;
-              default: returnType = AbiType.Unknown;
+            switch (valueType) {
+              case "Address":
+                returnType = AbiType.Address;
+                break;
+              case "U256":
+                returnType = AbiType.Uint256;
+                break;
+              case "I256":
+                returnType = AbiType.Int256;
+                break;
+              case "boolean":
+                returnType = AbiType.Bool;
+                break;
+              default:
+                returnType = AbiType.Unknown;
             }
-            return { 
-              kind: "map_get2", 
-              slot, 
-              key1: args[0], 
+            return {
+              kind: "map_get2",
+              slot,
+              key1: args[0],
               key2: args[1],
               keyType1: mappingTypeInfo?.keyType1 || "Address",
               keyType2: mappingTypeInfo?.keyType2 || "Address",
               valueType,
               type: AbiType.MappingNested,
-              returnType
+              returnType,
             } as IRMapGet2;
           } else if (methodName === "set" && args.length === 3) {
-            return { 
-              kind: "map_set2", 
-              slot, 
-              key1: args[0], 
-              key2: args[1], 
+            return {
+              kind: "map_set2",
+              slot,
+              key1: args[0],
+              key2: args[1],
               value: args[2],
               keyType1: mappingTypeInfo?.keyType1 || "Address",
               keyType2: mappingTypeInfo?.keyType2 || "Address",
-              valueType: mappingTypeInfo?.valueType || "U256"
+              valueType: mappingTypeInfo?.valueType || "U256",
             } as IRMapSet2;
           }
         }
@@ -172,7 +190,8 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       return buildAddressIR(target, this.call, this.symbolTable);
     }
 
-    const isUserDefinedFunction = (this.symbolTable.lookup(target) as FunctionSymbol)?.isDeclaredByUser;
+    const isUserDefinedFunction = (this.symbolTable.lookup(target) as FunctionSymbol)
+      ?.isDeclaredByUser;
     const type = isUserDefinedFunction ? AbiType.UserDefinedFunction : AbiType.Function;
 
     return { kind: "call", target, args, type, returnType: this.getReturnType(target), scope };
@@ -181,4 +200,5 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
   private lookupSlot(fqName: string): number | undefined {
     return ctx.slotMap.get(fqName);
   }
+
 }

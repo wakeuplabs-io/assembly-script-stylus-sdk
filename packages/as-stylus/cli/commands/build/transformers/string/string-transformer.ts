@@ -1,6 +1,7 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
+import { MethodName } from "@/cli/types/method-types.js";
 
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { ContractContext } from "../core/contract-context.js";
@@ -10,7 +11,6 @@ import { StrFromStringHandler } from "./handlers/from-string-handler.js";
 import { StrLengthHandler } from "./handlers/length-handler.js";
 import { StrSliceHandler } from "./handlers/slice-handler.js";
 import { StrToStringHandler } from "./handlers/to-string-handler.js";
-
 
 export class StrTransformer extends BaseTypeTransformer {
   constructor(contractContext: ContractContext) {
@@ -28,33 +28,41 @@ export class StrTransformer extends BaseTypeTransformer {
     if (!expr || expr.kind !== "call") return false;
     const target = expr.target || "";
 
-    if (target.endsWith(".equals")) {
-      const arg = expr.args[0];
-      if (arg.type === AbiType.String) {
+
+    if (target === "StrFactory.create" || target === "StrFactory.fromString") {
+      return true;
+    }
+
+    if ((target === MethodName.Create || target === MethodName.FromString) && expr.receiver) {
+      if (expr.receiver.kind === "var" && expr.receiver.name === "StrFactory") {
         return true;
       }
     }
 
-    if (expr.returnType !== AbiType.String && expr.type !== AbiType.String) {
-      return false;
+    const stringBooleanMethods = [MethodName.Equals];
+    if (stringBooleanMethods.some((method) => target.endsWith(`.${method}`))) {
+      return true;
     }
 
-    return (
-      target === "strFactory.create" ||
-      target === "StrFactory.fromString" ||
-      target.endsWith(".toString") ||
-      target.endsWith(".slice")
-    );
+    if (expr.returnType === AbiType.String || expr.type === AbiType.String) {
+      const stringMethods = [MethodName.ToString, MethodName.Slice, MethodName.Length];
+      if (stringMethods.some((method) => target.endsWith(`.${method}`))) {
+        return true;
+      }
+
+      if (expr.receiver && stringMethods.includes(target as MethodName)) {
+        return expr.receiver.type === AbiType.String;
+      }
+    }
+
+    return false;
   }
 
-  protected handleDefault(
-    expr: IRExpression,
-  ): EmitResult {
+  protected handleDefault(expr: IRExpression): EmitResult {
     return {
       setupLines: [],
       valueExpr: `/* Unsupported Str expression: ${expr.kind} */`,
-      valueType: "Str"
+      valueType: "Str",
     };
   }
-
 }

@@ -110,6 +110,24 @@ export type IRThis = {
   type: SupportedType;
 };
 
+export type ChainedCall = {
+  kind: "call";
+  target: string;
+  baseExpression: IRExpression;
+  methodName: string;
+  args: IRExpression[];
+  type: SupportedType;
+  returnType: SupportedType;
+  originalType?: string;
+  scope: "storage" | "memory";
+  context?: "argument" | "assignment" | "return";
+  receiver?: IRExpression;
+  metadata?: {
+    isStructCreation?: boolean;
+    structType?: string;
+  };
+};
+
 export type IRExpression =
   | IRUnaryExpression
   | Literal
@@ -122,7 +140,8 @@ export type IRExpression =
   | IRMapSet
   | IRMapGet2
   | IRMapSet2
-  | IRThis;
+  | IRThis
+  | ChainedCall;
 
 // ───────────────────────
 // Statements
