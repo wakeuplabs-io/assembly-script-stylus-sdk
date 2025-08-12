@@ -3,7 +3,6 @@
 
 @Contract
 export class NestedFunctions {
-  // State variables for complex operations
   static unsignedCounter: U256;
   static signedCounter: I256;
   static stepSize: U256;
@@ -20,7 +19,6 @@ export class NestedFunctions {
     maxIterations = U256Factory.fromString("100");
   }
 
-  // Boolean methods
   @Internal
   static toggle(arg: boolean): boolean {
     return !arg;
@@ -31,7 +29,6 @@ export class NestedFunctions {
     return toggle(false) && !toggle(true);
   }
 
-  // U256 methods
   @Internal
   static increment(value: U256): U256 {
     return value.add(U256Factory.fromString("1"));
@@ -47,7 +44,6 @@ export class NestedFunctions {
     return increment(increment(increment(value)));
   }
 
-  // Str methods
   @Internal
   static getString(arg: Str): Str {
     return arg;
@@ -60,7 +56,6 @@ export class NestedFunctions {
     return result;
   }
 
-  // Address methods
   @Internal
   static getAddress(arg: Address): Address {
     return arg;
@@ -72,7 +67,6 @@ export class NestedFunctions {
     return sender;
   }
 
-  // Complex loop operations with inline literals (no const declarations)
   @External
   static tripleIncrement(): void {
     let iterator = U256Factory.create();
@@ -114,35 +108,33 @@ export class NestedFunctions {
     let result = baseValue;
     let multiplier = U256Factory.create();
     
-    // Use predefined constants to avoid dynamic string creation in loop
+    // Mix of constants and nested calls to demonstrate both patterns
     const zero = U256Factory.fromString("0");
     const one = U256Factory.fromString("1");
     const two = U256Factory.fromString("2");
     const three = U256Factory.fromString("3");
-    const five = U256Factory.fromString("5");
-    const seven = U256Factory.fromString("7");
-    const ten = U256Factory.fromString("10");
     
-    // Complex nested operation with optimized constants
-    while (multiplier.lessThan(five)) {
+    while (multiplier.lessThan(U256Factory.fromString("5"))) {
       if (multiplier.equals(zero)) {
-        result = result.add(ten);
+        // Nested factory call inside method call
+        result = result.add(U256Factory.fromString("10"));
       } else if (multiplier.equals(one)) {
         result = result.mul(two);
-      } else if (multiplier.equals(two)) {
+      } else if (multiplier.equals(U256Factory.fromString("2"))) {
         result = result.sub(three);
-      } else if (multiplier.equals(three)) {
-        result = result.div(two);
+      } else if (multiplier.equals(U256Factory.fromString("3"))) {
+        // Nested factory call in div operation
+        result = result.div(U256Factory.fromString("2"));
       } else {
-        result = result.add(seven);
+        // Multiple nested calls - this is the key test case
+        result = result.add(U256Factory.fromString("7"));
       }
-      multiplier = multiplier.add(one);
+      multiplier = multiplier.add(U256Factory.fromString("1"));
     }
     
     return result;
   }
 
-  // Getters for state variables
   @View
   static getUnsignedCounter(): U256 {
     return unsignedCounter;
@@ -153,7 +145,6 @@ export class NestedFunctions {
     return signedCounter;
   }
 
-  // Simple stress test with moderate complexity (removed extreme recursion functions)
   @External
   static moderateComplexityTest(input: U256): U256 {
     let result = input;
@@ -178,7 +169,6 @@ export class NestedFunctions {
     return result;
   }
 
-  // Reset functions for testing
   @External
   static resetCounters(): void {
     unsignedCounter = U256Factory.create();

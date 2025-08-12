@@ -155,17 +155,18 @@ describe("Nested Functions — E2E Tests", () => {
       expect(result).toBe(15n);
     });
 
-    it("complexCalculation should handle moderately large numbers", async () => {
-      const moderateNumber = 10000n; // Reduced to avoid gas limit issues
-      const result = await contract.read("complexCalculation", [moderateNumber]);
+    it("complexCalculation should demonstrate nested calls in loops", async () => {
+      const testNumber = 50000n; // Moderate size to demonstrate nested calls efficiently
+      // Use high gas limit to accommodate nested function calls in loops
+      const result = await contract.read("complexCalculation", [testNumber], 30000000n);
 
-      // Expected calculation steps:
-      // Step 0: 10000 + 10 = 10010
-      // Step 1: 10010 × 2 = 20020
-      // Step 2: 20020 - 3 = 20017
-      // Step 3: 20017 ÷ 2 = 10008 (integer division)
-      // Step 4: 10008 + 7 = 10015
-      expect(result).toBe(10015n);
+      // Expected calculation steps with nested factory calls:
+      // Step 0: 50000 + 10 = 50010 (nested: result.add(U256Factory.fromString("10")))
+      // Step 1: 50010 × 2 = 100020 (constant: result.mul(two))
+      // Step 2: 100020 - 3 = 100017 (constant: result.sub(three))
+      // Step 3: 100017 ÷ 2 = 50008 (nested: result.div(U256Factory.fromString("2")))
+      // Step 4: 50008 + 7 = 50015 (nested: result.add(U256Factory.fromString("7")))
+      expect(result).toBe(50015n);
     });
   });
 
@@ -199,7 +200,6 @@ describe("Nested Functions — E2E Tests", () => {
 
   describe("Moderate Complexity Stress Test", () => {
     it("moderateComplexityTest should handle step-by-step operations correctly", async () => {
-      // Starting with input = 50
       const result = await contract.read("moderateComplexityTest", [50n]);
 
       // Manual calculation for verification:
@@ -209,7 +209,6 @@ describe("Nested Functions — E2E Tests", () => {
     });
 
     it("moderateComplexityTest should handle small input triggering else branch", async () => {
-      // Test with smaller input that will trigger the else branch
       const result = await contract.read("moderateComplexityTest", [5n]);
 
       // counter=0: result=5, 5 <= 10 → result = 5*3/2 = 15/2 = 7 (integer division)
