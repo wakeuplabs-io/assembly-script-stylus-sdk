@@ -105,6 +105,24 @@ export type IRCondition = {
   type: AbiType.Bool;
 };
 
+export type ChainedCall = {
+  kind: "call";
+  target: string; // Will be "chainedCall_methodName"
+  baseExpression: IRExpression;
+  methodName: string;
+  args: IRExpression[];
+  type: SupportedType;
+  returnType: SupportedType;
+  originalType?: string;
+  scope: "storage" | "memory";
+  context?: "argument" | "assignment" | "return";
+  receiver?: IRExpression;
+  metadata?: {
+    isStructCreation?: boolean;
+    structType?: string;
+  };
+};
+
 export type IRExpression =
   | IRUnaryExpression
   | Literal
@@ -116,7 +134,8 @@ export type IRExpression =
   | IRMapGet
   | IRMapSet
   | IRMapGet2
-  | IRMapSet2;
+  | IRMapSet2
+  | ChainedCall;
 
 // ───────────────────────
 // Statements

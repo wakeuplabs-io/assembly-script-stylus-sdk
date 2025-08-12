@@ -1,4 +1,13 @@
-import { BinaryExpression, CallExpression, ConditionalExpression, Expression, Identifier, PrefixUnaryExpression, PropertyAccessExpression, SyntaxKind } from "ts-morph";
+import {
+  BinaryExpression,
+  CallExpression,
+  ConditionalExpression,
+  Expression,
+  Identifier,
+  PrefixUnaryExpression,
+  PropertyAccessExpression,
+  SyntaxKind,
+} from "ts-morph";
 
 import { Logger } from "@/cli/services/logger.js";
 import { AbiType } from "@/cli/types/abi.types.js";
@@ -6,6 +15,7 @@ import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { BinaryExpressionIRBuilder } from "../binary-expression/ir-builder.js";
 import { CallFunctionIRBuilder } from "../call-function/ir-builder.js";
+import { ChainedCallAnalyzer } from "../chained-call/ir-builder.js";
 import { LiteralIRBuilder } from "../literal/ir-builder.js";
 import { MemberIRBuilder } from "../member/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
@@ -28,7 +38,7 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
   }
 
   buildIR(): IRExpression {
-     switch (this.expression.getKind()) {
+    switch (this.expression.getKind()) {
       /* ---------- Literal values ---------- */
       // Example: "hello", 42, true, false
       case SyntaxKind.StringLiteral:
@@ -39,23 +49,35 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
         return literal.validateAndBuildIR();
       }
 
-  
       /* ---------- Variables ---------- */
       // Example: counter, value, amount
       case SyntaxKind.Identifier: {
         const id = this.expression as Identifier;
         const [name] = id.getText().split(".");
         const variable = this.symbolTable.lookup(name);
-        return { kind: "var", name: id.getText(), type: variable?.type ?? AbiType.Void, scope: variable?.scope ?? "memory" };
+        return {
+          kind: "var",
+          name: id.getText(),
+          type: variable?.type ?? AbiType.Void,
+          scope: variable?.scope ?? "memory",
+        };
       }
-  
+
       /* ---------- Function calls ---------- */
-      // Example: increment(), U256Factory.create()
       case SyntaxKind.CallExpression: {
-        const call = new CallFunctionIRBuilder(this.expression as CallExpression);
+        const callExpr = this.expression as CallExpression;
+
+        // Check if this is a chained call first
+        if (ChainedCallAnalyzer.isChainedCall(callExpr)) {
+          const chainedAnalyzer = new ChainedCallAnalyzer(callExpr);
+          return chainedAnalyzer.validateAndBuildIR();
+        }
+
+        // Regular call processing
+        const call = new CallFunctionIRBuilder(callExpr);
         return call.validateAndBuildIR();
       }
-  
+
       /* ---------- Member access ---------- */
       // For method access obj.prop, this is a PropertyAccessExpression
       // For property access obj["prop"], this is an ElementAccessExpression
@@ -64,7 +86,7 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
         const member = new MemberIRBuilder(this.expression as PropertyAccessExpression);
         return member.validateAndBuildIR();
       }
-  
+
       case SyntaxKind.BinaryExpression: {
         const bin = new BinaryExpressionIRBuilder(this.expression as BinaryExpression);
         return bin.validateAndBuildIR();
@@ -82,7 +104,7 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
         const condition = new ExpressionIRBuilder(conditional.getCondition()).validateAndBuildIR();
         const whenTrue = new ExpressionIRBuilder(conditional.getWhenTrue()).validateAndBuildIR();
         const whenFalse = new ExpressionIRBuilder(conditional.getWhenFalse()).validateAndBuildIR();
-        
+
         // For now, return a simple representation (TODO: implement proper conditional IR)
         return {
           kind: "call",
@@ -90,10 +112,10 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
           args: [condition, whenTrue, whenFalse],
           type: AbiType.Function,
           returnType: AbiType.Bool,
-          scope: "memory"
+          scope: "memory",
         };
       }
-  
+
       default: {
         Logger.getInstance().warn(`IRExpr: unsupported node kind ${this.expression.getKindName()}`);
         throw new Error(`IRExpr: unsupported node kind ${this.expression.getKindName()}`);

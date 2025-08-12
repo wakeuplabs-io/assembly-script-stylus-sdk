@@ -15,55 +15,51 @@ export class ForHandler extends StatementHandler {
     const forStmt = stmt as For;
     const mainHandler = new MainStatementHandler(this.contractContext);
     const lines: string[] = [];
-    
-    // Handle initialization
+
     let initCode = "";
     if (forStmt.init) {
       if (forStmt.init.kind === "let") {
-        const initResult = this.contractContext.emitExpression(forStmt.init.expr);
-        if (initResult.setupLines && initResult.setupLines.length > 0) {
-          lines.push(...initResult.setupLines.map(line => `${indent}${line}`));
-          initCode = `let ${forStmt.init.name} = ${initResult.valueExpr}`;
-        } else {
-          initCode = `let ${forStmt.init.name} = ${initResult.valueExpr}`;
+        const initResult = this.emitConditionWithSetup(forStmt.init.expr, indent);
+        if (initResult.setupLines.length > 0) {
+          lines.push(...initResult.setupLines);
         }
+        initCode = `let ${forStmt.init.name} = ${initResult.conditionExpr}`;
       } else {
         const initStatement = mainHandler.handle(forStmt.init, "");
         initCode = initStatement.trim();
       }
     }
-   
-    // Handle condition
+
     let conditionCode = "";
     if (forStmt.condition) {
-      const condResult = this.contractContext.emitExpression(forStmt.condition);
-      if (condResult.setupLines && condResult.setupLines.length > 0) {
-        lines.push(...condResult.setupLines.map(line => `${indent}${line}`));
+      const conditionResult = this.emitConditionWithSetup(forStmt.condition, indent);
+      if (conditionResult.setupLines.length > 0) {
+        lines.push(...conditionResult.setupLines);
       }
-      conditionCode = condResult.valueExpr;
+      conditionCode = conditionResult.conditionExpr;
     }
-    
-    // Handle update expression  
+
     let updateCode = "";
     if (forStmt.update) {
-      const updateResult = this.contractContext.emitExpression(forStmt.update);
-      updateCode = updateResult.valueExpr;
+      const updateResult = this.emitConditionWithSetup(forStmt.update, indent);
+      if (updateResult.setupLines.length > 0) {
+        lines.push(...updateResult.setupLines);
+      }
+      updateCode = updateResult.conditionExpr;
     }
-    
-    // Generate for statement
+
     lines.push(`${indent}for (${initCode}; ${conditionCode}; ${updateCode}) {`);
-    
-    // Generate body
+
     const bodyLines = forStmt.body
-      .map(s => mainHandler.handle(s, indent + "  "))
-      .filter(s => s.trim());
-    
+      .map((s) => mainHandler.handle(s, indent + "  "))
+      .filter((s) => s.trim());
+
     if (bodyLines.length > 0) {
       lines.push(...bodyLines);
     }
-    
+
     lines.push(`${indent}}`);
-    
+
     return lines.join("\n");
   }
 }

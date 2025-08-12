@@ -71,11 +71,21 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
       return result;
     },
 
-    read: async (functionName: string, args: (string | boolean | Address | bigint)[]) => {
+    read: async (
+      functionName: string,
+      args: (string | boolean | Address | bigint)[],
+      gasLimit?: bigint,
+    ) => {
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ calldata:", data);
 
-      const { data: raw } = await publicClient.call({ to: contractAddr, data });
+      const callParams: any = { to: contractAddr, data };
+      if (gasLimit) {
+        callParams.gas = gasLimit;
+        if (verbose) console.log("→ using custom gas limit:", gasLimit);
+      }
+
+      const { data: raw } = await publicClient.call(callParams);
       if (verbose) console.log("← raw:", raw);
       const decoded = decodeFunctionResult({ abi, functionName, data: raw || "0x" });
       if (verbose) console.log("← decoded:", decoded);

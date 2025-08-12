@@ -11,7 +11,15 @@ export class I256CreateHandler extends Handler {
    * Determines if this handler can process the given expression
    */
   canHandle(expr: Call): boolean {
-    return expr.target === "I256Factory.create";
+    // Legacy format
+    if (expr.target === "I256Factory.create") return true;
+    
+    // New receiver-based format
+    if (expr.target === "create" && expr.receiver) {
+      return expr.receiver.kind === "var" && expr.receiver.name === "I256Factory";
+    }
+    
+    return false;
   }
 
   /**

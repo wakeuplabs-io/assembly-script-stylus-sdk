@@ -4,9 +4,7 @@ import { IREvent, IRExpression } from "@/cli/types/ir.types.js";
 
 import { EventEmitHandler } from "./handlers/emit-handler.js";
 
-
 export class EventTransformer extends BaseTypeTransformer {
-
   constructor(contractContext: ContractContext, events: IREvent[]) {
     super(contractContext, "Event");
     this.registerHandler(new EventEmitHandler(contractContext, events));
@@ -23,6 +21,5 @@ export class EventTransformer extends BaseTypeTransformer {
       setupLines: [],
       valueExpr: "/* unsupported event emit */",
     };
-  }  
+  }
 }
-

@@ -23,10 +23,18 @@ export class AddressFromStringHandler extends Handler {
   }
 
   canHandle(expr: Call): boolean {
-    if (expr.target !== "AddressFactory.fromString") return false;
     if (expr.args.length !== 1) return false;
     if (expr.args[0].kind !== "literal" && expr.args[0].kind !== "var") return false;
-    return true;
+    
+    // Legacy format
+    if (expr.target === "AddressFactory.fromString") return true;
+    
+    // New receiver-based format
+    if (expr.target === "fromString" && expr.receiver) {
+      return expr.receiver.kind === "var" && expr.receiver.name === "AddressFactory";
+    }
+    
+    return false;
   }
 
   handle(expr: Call): EmitResult {
