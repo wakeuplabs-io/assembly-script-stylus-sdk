@@ -16,11 +16,17 @@ import { makeTemp } from "@/transformers/utils/temp-factory.js";
  */
 export class U256FromStringHandler extends Handler {
   canHandle(expr: Call): boolean {
-    return (
-      expr.target === "U256Factory.fromString" &&
-      expr.args &&
-      expr.args.length === 1
-    );
+    if (!expr.args || expr.args.length !== 1) return false;
+    
+    // Legacy format
+    if (expr.target === "U256Factory.fromString") return true;
+    
+    // Modern receiver-based format
+    if (expr.target === "fromString" && expr.receiver) {
+      return expr.receiver.kind === "var" && expr.receiver.name === "U256Factory";
+    }
+    
+    return false;
   }
 
   handle(expr: Call): EmitResult {

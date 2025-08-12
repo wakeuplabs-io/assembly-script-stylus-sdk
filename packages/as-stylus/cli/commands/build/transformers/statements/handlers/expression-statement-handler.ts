@@ -1,6 +1,5 @@
 import { ExpressionStatement, IRStatement } from "@/cli/types/ir.types.js";
 
-import { ExpressionHandler } from "../../expressions/expression-handler.js";
 import { StatementHandler } from "../base-statement-handler.js";
 
 /**
@@ -14,8 +13,8 @@ export class ExpressionStatementHandler extends StatementHandler {
 
   handle(stmt: IRStatement, indent: string): string {
     const exprStmt = stmt as ExpressionStatement;
-    const exprHandler = new ExpressionHandler(this.contractContext);
-    const exprResult = exprHandler.handle(exprStmt.expr);
+    // Use ContractContext.emitExpression to access registered transformers (including EventTransformer)
+    const exprResult = this.contractContext.emitExpression(exprStmt.expr);
 
     // Handle cases where the expression returns statement lines
     if (exprResult.statementLines?.length) {

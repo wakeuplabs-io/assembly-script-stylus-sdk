@@ -15,8 +15,7 @@ export class ForHandler extends StatementHandler {
     const forStmt = stmt as For;
     const mainHandler = new MainStatementHandler(this.contractContext);
     const lines: string[] = [];
-    
-    // Handle initialization
+
     let initCode = "";
     if (forStmt.init) {
       if (forStmt.init.kind === "let") {
@@ -30,8 +29,7 @@ export class ForHandler extends StatementHandler {
         initCode = initStatement.trim();
       }
     }
-   
-    // Handle condition
+
     let conditionCode = "";
     if (forStmt.condition) {
       const conditionResult = this.emitConditionWithSetup(forStmt.condition, indent);
@@ -40,34 +38,28 @@ export class ForHandler extends StatementHandler {
       }
       conditionCode = conditionResult.conditionExpr;
     }
-    
-    // Handle update expression - Note: update expressions in for loops
-    // typically don't need complex setup lines, but handle them for completeness
+
     let updateCode = "";
     if (forStmt.update) {
       const updateResult = this.emitConditionWithSetup(forStmt.update, indent);
       if (updateResult.setupLines.length > 0) {
-        // For update expressions, we might need to emit setup lines
-        // but this is rare in typical for loops
         lines.push(...updateResult.setupLines);
       }
       updateCode = updateResult.conditionExpr;
     }
-    
-    // Generate for statement
+
     lines.push(`${indent}for (${initCode}; ${conditionCode}; ${updateCode}) {`);
-    
-    // Generate body
+
     const bodyLines = forStmt.body
-      .map(s => mainHandler.handle(s, indent + "  "))
-      .filter(s => s.trim());
-    
+      .map((s) => mainHandler.handle(s, indent + "  "))
+      .filter((s) => s.trim());
+
     if (bodyLines.length > 0) {
       lines.push(...bodyLines);
     }
-    
+
     lines.push(`${indent}}`);
-    
+
     return lines.join("\n");
   }
 }

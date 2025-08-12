@@ -25,15 +25,38 @@ export class AddressTransformer extends BaseTypeTransformer {
   }
 
   canHandle(expr: IRExpression): boolean {
-    if (!expr ||expr.kind !== "call") return false;
+    if (!expr || expr.kind !== "call") return false;
 
     const target = expr.target || "";
+    
+    // Legacy factory methods
     if (["AddressFactory.create", "AddressFactory.fromString", "Address.copy"].includes(target)) {
       return true;
     }
+    
+    // Factory methods with receiver structure
+    if ((target === "create" || target === "fromString") && expr.receiver) {
+      if (expr.receiver.kind === "var" && expr.receiver.name === "AddressFactory") {
+        return true;
+      }
+    }
 
+    // Legacy method calls
     if (target.endsWith(".equals") || target.endsWith(".isZero") || target.endsWith(".hasCode")) {
       return true;
+    }
+    
+    // Method calls with receiver structure
+    if (expr.receiver && ["equals", "isZero", "hasCode", "toString"].includes(target)) {
+      // Check if receiver is Address type or returns Address type
+      const receiverIsAddress = expr.receiver.type === AbiType.Address;
+      const receiverReturnsAddress = expr.receiver.kind === "call" && 
+                                    (expr.receiver.returnType === AbiType.Address);
+      
+      return receiverIsAddress || 
+             receiverReturnsAddress ||
+             (expr.returnType as AbiType) === AbiType.Bool || // address methods can return bool
+             (expr.returnType as AbiType) === AbiType.String; // toString returns string
     }
 
     if (target.endsWith(".toString")) {

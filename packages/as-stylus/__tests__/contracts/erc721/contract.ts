@@ -213,7 +213,7 @@ export class ERC721 {
   @View
   static ownerOf(tokenId: U256): Address {
     const owner = owners.get(tokenId);
-    const isZero = owner.isZero();
+    const isZero = owners.get(tokenId).isZero();
     if (isZero) ERC721NonexistentToken.revert(tokenId);
     return owner;
   }

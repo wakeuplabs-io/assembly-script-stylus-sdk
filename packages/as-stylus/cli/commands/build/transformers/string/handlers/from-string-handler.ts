@@ -11,7 +11,19 @@ export class StrFromStringHandler extends Handler {
   }
 
   canHandle(callExpression: Call): boolean {
-    return callExpression.target === "StrFactory.fromString" && callExpression.args.length === 1 && ["literal", "var"].includes(callExpression.args[0].kind);
+    if (callExpression.args.length !== 1 || !["literal", "var"].includes(callExpression.args[0].kind)) {
+      return false;
+    }
+    
+    // Legacy format
+    if (callExpression.target === "StrFactory.fromString") return true;
+    
+    // New receiver-based format
+    if (callExpression.target === "fromString" && callExpression.receiver) {
+      return callExpression.receiver.kind === "var" && callExpression.receiver.name === "StrFactory";
+    }
+    
+    return false;
   } 
 
   handle(expr: Call): EmitResult {

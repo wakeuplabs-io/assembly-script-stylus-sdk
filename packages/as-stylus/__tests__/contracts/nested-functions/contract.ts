@@ -9,6 +9,7 @@ export class NestedFunctions {
   static stepSize: U256;
   static negativeStepSize: I256;
   static maxIterations: U256;
+  static owners: Mapping<U256, Address>;
 
   @Constructor
   static constructor(): void {
@@ -173,5 +174,12 @@ export class NestedFunctions {
   static resetCounters(): void {
     unsignedCounter = U256Factory.create();
     signedCounter = I256Factory.create();
+  }
+
+  @View
+  static ownerOf(tokenId: U256): Address {
+    const isZero = owners.get(tokenId).isZero();
+    if (isZero) return AddressFactory.create();
+    return owners.get(tokenId);
   }
 }

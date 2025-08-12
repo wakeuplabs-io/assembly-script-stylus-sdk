@@ -53,7 +53,7 @@ function generateMethod(method: IRMethod, contractContext: ContractContext): str
   if (method.outputs && method.outputs.length > 0 && method.outputs[0].type !== "void") {
     returnType = "usize";
   }
-
+  console.log(JSON.stringify(method.ir, null, 2));
   const { argsSignature, aliasLines } = generateMethodSignature(method);
   const body = statementHandler.handleStatements(method.ir);
 
@@ -76,16 +76,19 @@ export function emitContract(contract: IRContract): string {
   // Initialize context-aware expression handler with contract information
   const transformerRegistry = new TransformerRegistry();
   const contractContext = new ContractContext(transformerRegistry, contract.name, contract.parent?.name);
-
+  
+  // Register type-specific transformers FIRST (highest priority)
+  transformerRegistry.register(new U256Transformer(contractContext));
+  transformerRegistry.register(new I256Transformer(contractContext));
   transformerRegistry.register(new AddressTransformer(contractContext));
+  transformerRegistry.register(new StrTransformer(contractContext));
   transformerRegistry.register(new BooleanTransformer(contractContext));
+  transformerRegistry.register(new MsgTransformer(contractContext));
   transformerRegistry.register(new ErrorTransformer(contractContext, contract.errors || []));
   transformerRegistry.register(new EventTransformer(contractContext, contract.events || []));
   transformerRegistry.register(new StructTransformer(contractContext, contract.structs || []));
-  transformerRegistry.register(new I256Transformer(contractContext));
-  transformerRegistry.register(new MsgTransformer(contractContext));
-  transformerRegistry.register(new StrTransformer(contractContext));
-  transformerRegistry.register(new U256Transformer(contractContext));
+  
+  // Register ExpressionHandler LAST as fallback
   transformerRegistry.register(new ExpressionHandler(contractContext));
 
   const parts: string[] = [];

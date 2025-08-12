@@ -12,7 +12,15 @@ export class AddressCreateHandler extends Handler {
   }
 
   canHandle(expr: Call): boolean {
-    return expr.target === "AddressFactory.create";
+    // Legacy format
+    if (expr.target === "AddressFactory.create") return true;
+    
+    // New receiver-based format
+    if (expr.target === "create" && expr.receiver) {
+      return expr.receiver.kind === "var" && expr.receiver.name === "AddressFactory";
+    }
+    
+    return false;
   }
 
   handle(_expr: Call): EmitResult {

@@ -6,23 +6,23 @@ import { IRExpression, IRMapGet, IRMapSet, IRMapGet2, IRMapSet2 } from "@/cli/ty
 /**
  * Mapping methods for different value types
  */
- const MAPPING_METHODS = {
+const MAPPING_METHODS = {
   U256: {
     get: "getU256",
-    set: "setU256"
+    set: "setU256",
   },
   Address: {
-    get: "getAddress", 
-    set: "setAddress"
+    get: "getAddress",
+    set: "setAddress",
   },
   Boolean: {
     get: "getBoolean",
-    set: "setBoolean"
+    set: "setBoolean",
   },
   String: {
     get: "getString",
-    set: "setString"
-  }
+    set: "setString",
+  },
 } as const;
 
 /**
@@ -31,12 +31,12 @@ import { IRExpression, IRMapGet, IRMapSet, IRMapGet2, IRMapSet2 } from "@/cli/ty
 export const NESTED_MAPPING_METHODS = {
   U256: {
     get: "getU256",
-    set: "setU256"
+    set: "setU256",
   },
   boolean: {
     get: "getBoolean",
-    set: "setBoolean"
-  }
+    set: "setBoolean",
+  },
 } as const;
 
 /**
@@ -48,11 +48,13 @@ export class MappingTransformer extends Handler {
     super(contractContext);
   }
 
-    canHandle(expr: IRExpression): boolean {
-    return expr.kind === "map_get" || 
-           expr.kind === "map_set" || 
-           expr.kind === "map_get2" || 
-           expr.kind === "map_set2";
+  canHandle(expr: IRExpression): boolean {
+    return (
+      expr.kind === "map_get" ||
+      expr.kind === "map_set" ||
+      expr.kind === "map_get2" ||
+      expr.kind === "map_set2"
+    );
   }
 
   handle(expr: IRExpression): EmitResult {
@@ -68,7 +70,7 @@ export class MappingTransformer extends Handler {
       default:
         return {
           setupLines: [],
-          valueExpr: `/* Unsupported mapping operation: ${expr.kind} */`
+          valueExpr: `/* Unsupported mapping operation: ${expr.kind} */`,
         };
     }
   }
@@ -77,24 +79,22 @@ export class MappingTransformer extends Handler {
     const keyResult = this.contractContext.emitExpression(expr.key);
     const method = this.getMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
-    
+
     return {
       setupLines: keyResult.setupLines,
-      valueExpr: `Mapping.${method}(${slot}, ${keyResult.valueExpr})`
+      valueExpr: `Mapping.${method}(${slot}, ${keyResult.valueExpr})`,
     };
   }
 
-  private transformMapSet(
-    expr: IRMapSet,
-  ): EmitResult {
+  private transformMapSet(expr: IRMapSet): EmitResult {
     const keyResult = this.contractContext.emitExpression(expr.key);
     const valueResult = this.contractContext.emitExpression(expr.value);
     const method = this.getMappingMethod(expr.valueType, "set");
     const slot = this.formatSlot(expr.slot);
-    
+
     return {
       setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
-      valueExpr: `Mapping.${method}(${slot}, ${keyResult.valueExpr}, ${valueResult.valueExpr})`
+      valueExpr: `Mapping.${method}(${slot}, ${keyResult.valueExpr}, ${valueResult.valueExpr})`,
     };
   }
 
@@ -103,18 +103,18 @@ export class MappingTransformer extends Handler {
     const key2Result = this.contractContext.emitExpression(expr.key2);
     const method = this.getNestedMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
-    
+
     const baseExpr = `MappingNested.${method}(${slot}, ${key1Result.valueExpr}, ${key2Result.valueExpr})`;
-    
+
     // For boolean mappings, use Boolean.fromABI() in statement context
     let valueExpr = baseExpr;
     if (expr.valueType === "boolean") {
       valueExpr = `Boolean.fromABI(${baseExpr})`;
     }
-    
+
     return {
       setupLines: [...key1Result.setupLines, ...key2Result.setupLines],
-      valueExpr
+      valueExpr,
     };
   }
 
@@ -124,31 +124,31 @@ export class MappingTransformer extends Handler {
     const valueResult = this.contractContext.emitExpression(expr.value);
     const method = this.getNestedMappingMethod(expr.valueType, "set");
     const slot = this.formatSlot(expr.slot);
-    
+
     return {
       setupLines: [...key1Result.setupLines, ...key2Result.setupLines, ...valueResult.setupLines],
-      valueExpr: `MappingNested.${method}(${slot}, ${key1Result.valueExpr}, ${key2Result.valueExpr}, ${valueResult.valueExpr})`
+      valueExpr: `MappingNested.${method}(${slot}, ${key1Result.valueExpr}, ${key2Result.valueExpr}, ${valueResult.valueExpr})`,
     };
   }
 
   private getMappingMethod(valueType: string, operation: "get" | "set"): string {
     const normalizedType = this.normalizeValueType(valueType);
     const methods = MAPPING_METHODS[normalizedType as keyof typeof MAPPING_METHODS];
-    
+
     if (!methods) {
       return operation === "get" ? "getU256" : "setU256"; // fallback
     }
-    
+
     return methods[operation];
   }
 
   private getNestedMappingMethod(valueType: string, operation: "get" | "set"): string {
     const methods = NESTED_MAPPING_METHODS[valueType as keyof typeof NESTED_MAPPING_METHODS];
-    
+
     if (!methods) {
       return operation === "get" ? "getU256" : "setU256"; // fallback
     }
-    
+
     return methods[operation];
   }
 
