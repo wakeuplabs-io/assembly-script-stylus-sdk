@@ -1,5 +1,6 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call, IRExpression } from "@/cli/types/ir.types.js";
+import { METHOD_GROUPS } from "@/cli/types/method-types.js";
 
 import { Handler } from "../../core/base-abstract-handlers.js";
 
@@ -10,34 +11,20 @@ export class U256ComparisonHandler extends Handler {
   canHandle(expr: IRExpression): boolean {
     if (expr.kind !== "call") return false;
     const target = expr.target || "";
-    
+
     // Handle new receiver-based IR structure
     if (expr.receiver) {
-      return (
-        target === "lessThan" ||
-        target === "greaterThan" ||
-        target === "lessThanOrEqual" ||
-        target === "greaterThanOrEqual" ||
-        target === "equals" ||
-        target === "notEqual"
-      );
+      return METHOD_GROUPS.COMPARISON.includes(target as (typeof METHOD_GROUPS.COMPARISON)[number]);
     }
-    
+
     // Handle legacy hybrid targets (backward compatibility)
-    return (
-      target.endsWith(".lessThan") ||
-      target.endsWith(".greaterThan") ||
-      target.endsWith(".lessThanOrEqual") ||
-      target.endsWith(".greaterThanOrEqual") ||
-      target.endsWith(".equals") ||
-      target.endsWith(".notEqual")
-    );
+    return METHOD_GROUPS.COMPARISON.some((method) => target.endsWith(`.${method}`));
   }
 
   handle(expr: Call): EmitResult {
     let receiverExpr: string;
     let method: string;
-    
+
     // Handle new receiver-based IR structure
     if (expr.receiver) {
       const receiverResult = this.contractContext.emitExpression(expr.receiver);
@@ -59,7 +46,7 @@ export class U256ComparisonHandler extends Handler {
       lessThanOrEqual: "lessThanOrEqual",
       greaterThanOrEqual: "greaterThanOrEqual",
       equals: "equals",
-      notEqual: "notEquals"
+      notEqual: "notEquals",
     };
 
     const staticMethod = methodMap[method] || method;
@@ -73,10 +60,12 @@ export class U256ComparisonHandler extends Handler {
 
     // Contract property case (e.g., `contract.unsignedCounter.lessThan(x)`)
     if (expr.scope === "storage") {
-      const propName = expr.receiver ? 
-        (expr.receiver.kind === "var" ? expr.receiver.name : receiverExpr) :
-        receiverExpr;
-        
+      const propName = expr.receiver
+        ? expr.receiver.kind === "var"
+          ? expr.receiver.name
+          : receiverExpr
+        : receiverExpr;
+
       return {
         setupLines: allSetupLines,
         valueExpr: `Boolean.fromABI(U256.${staticMethod}(load_${propName}(), ${argRes.valueExpr}))`,

@@ -1,5 +1,6 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call } from "@/cli/types/ir.types.js";
+import { MethodName } from "@/cli/types/method-types.js";
 import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
@@ -17,15 +18,15 @@ import { makeTemp } from "@/transformers/utils/temp-factory.js";
 export class U256FromStringHandler extends Handler {
   canHandle(expr: Call): boolean {
     if (!expr.args || expr.args.length !== 1) return false;
-    
+
     // Legacy format
     if (expr.target === "U256Factory.fromString") return true;
-    
+
     // Modern receiver-based format
-    if (expr.target === "fromString" && expr.receiver) {
+    if (expr.target === MethodName.FromString && expr.receiver) {
       return expr.receiver.kind === "var" && expr.receiver.name === "U256Factory";
     }
-    
+
     return false;
   }
 

@@ -114,20 +114,29 @@ export class NestedFunctions {
     let result = baseValue;
     let multiplier = U256Factory.create();
     
-    // Complex nested operation without const declarations
-    while (multiplier.lessThan(U256Factory.fromString("5"))) {
-      if (multiplier.equals(U256Factory.fromString("0"))) {
-        result = result.add(U256Factory.fromString("10"));
-      } else if (multiplier.equals(U256Factory.fromString("1"))) {
-        result = result.mul(U256Factory.fromString("2"));
-      } else if (multiplier.equals(U256Factory.fromString("2"))) {
-        result = result.sub(U256Factory.fromString("3"));
-      } else if (multiplier.equals(U256Factory.fromString("3"))) {
-        result = result.div(U256Factory.fromString("2"));
+    // Use predefined constants to avoid dynamic string creation in loop
+    const zero = U256Factory.fromString("0");
+    const one = U256Factory.fromString("1");
+    const two = U256Factory.fromString("2");
+    const three = U256Factory.fromString("3");
+    const five = U256Factory.fromString("5");
+    const seven = U256Factory.fromString("7");
+    const ten = U256Factory.fromString("10");
+    
+    // Complex nested operation with optimized constants
+    while (multiplier.lessThan(five)) {
+      if (multiplier.equals(zero)) {
+        result = result.add(ten);
+      } else if (multiplier.equals(one)) {
+        result = result.mul(two);
+      } else if (multiplier.equals(two)) {
+        result = result.sub(three);
+      } else if (multiplier.equals(three)) {
+        result = result.div(two);
       } else {
-        result = result.add(U256Factory.fromString("7"));
+        result = result.add(seven);
       }
-      multiplier = multiplier.add(U256Factory.fromString("1"));
+      multiplier = multiplier.add(one);
     }
     
     return result;
@@ -155,7 +164,7 @@ export class NestedFunctions {
       if (result.greaterThan(ten)) {
         const five = U256Factory.fromString("5");
         const multiplier = U256Factory.fromString("2").add(counter);
-        const increment = five.mul(U256Factory.fromString("2"));
+        const increment = five.mul(multiplier);
         result = result.add(increment);
       } else {
         const three = U256Factory.fromString("3");

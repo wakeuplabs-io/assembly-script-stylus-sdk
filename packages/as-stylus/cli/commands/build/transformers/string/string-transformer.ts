@@ -1,6 +1,7 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
+import { MethodName } from "@/cli/types/method-types.js";
 
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { ContractContext } from "../core/contract-context.js";
@@ -29,9 +30,9 @@ export class StrTransformer extends BaseTypeTransformer {
     if (target === "StrFactory.create" || target === "StrFactory.fromString") {
       return true;
     }
-    
+
     // Factory methods with receiver structure
-    if ((target === "create" || target === "fromString") && expr.receiver) {
+    if ((target === MethodName.Create || target === MethodName.FromString) && expr.receiver) {
       if (expr.receiver.kind === "var" && expr.receiver.name === "StrFactory") {
         return true;
       }
@@ -40,12 +41,13 @@ export class StrTransformer extends BaseTypeTransformer {
     // String methods - check return type or receiver type
     if (expr.returnType === AbiType.String || expr.type === AbiType.String) {
       // Legacy format
-      if (target.endsWith(".toString") || target.endsWith(".slice") || target.endsWith(".length")) {
+      const stringMethods = [MethodName.ToString, MethodName.Slice, MethodName.Length];
+      if (stringMethods.some((method) => target.endsWith(`.${method}`))) {
         return true;
       }
-      
+
       // Receiver-based format
-      if (expr.receiver && ["toString", "slice", "length"].includes(target)) {
+      if (expr.receiver && stringMethods.includes(target as MethodName)) {
         return expr.receiver.type === AbiType.String;
       }
     }

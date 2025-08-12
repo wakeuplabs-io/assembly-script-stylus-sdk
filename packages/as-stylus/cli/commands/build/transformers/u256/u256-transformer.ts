@@ -1,6 +1,7 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call, IRExpression } from "@/cli/types/ir.types.js";
+import { MethodName, METHOD_GROUPS } from "@/cli/types/method-types.js";
 
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { ContractContext } from "../core/contract-context.js";
@@ -112,23 +113,23 @@ export class U256Transformer extends BaseTypeTransformer {
         receiverReceiver.kind === "var" &&
         receiverReceiver.name === "U256Factory"
       ) {
-        const u256Methods = [
-          "add",
-          "sub",
-          "mul",
-          "div",
-          "mod",
-          "pow",
-          "lessThan",
-          "greaterThan",
-          "equals",
+        const u256ChainableMethods = [
+          MethodName.Add,
+          MethodName.Sub,
+          MethodName.Mul,
+          MethodName.Div,
+          MethodName.Mod,
+          MethodName.Pow,
+          MethodName.LessThan,
+          MethodName.GreaterThan,
+          MethodName.Equals,
         ];
-        return u256Methods.includes(target);
+        return u256ChainableMethods.includes(target as MethodName);
       }
     }
 
     // Factory methods with receiver structure (modern)
-    if ((target === "create" || target === "fromString") && expr.receiver) {
+    if ((target === MethodName.Create || target === MethodName.FromString) && expr.receiver) {
       // Check if receiver is U256Factory
       if (expr.receiver.kind === "var" && expr.receiver.name === "U256Factory") {
         return true;
@@ -168,20 +169,10 @@ export class U256Transformer extends BaseTypeTransformer {
       }
 
       const u256Methods = [
-        "mul",
-        "add",
-        "sub",
-        "div",
-        "mod",
-        "pow",
-        "lessThan",
-        "greaterThan",
-        "lessThanOrEqual",
-        "greaterThanOrEqual",
-        "equals",
-        "notEqual",
+        ...METHOD_GROUPS.ARITHMETIC,
+        ...METHOD_GROUPS.COMPARISON,
+        MethodName.ToString,
         "copy",
-        "toString",
       ];
 
       if (u256Methods.includes(methodName)) {

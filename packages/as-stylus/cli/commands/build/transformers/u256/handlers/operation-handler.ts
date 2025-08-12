@@ -1,5 +1,6 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call } from "@/cli/types/ir.types.js";
+import { METHOD_GROUPS } from "@/cli/types/method-types.js";
 import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 
 /**
@@ -14,39 +15,25 @@ export class U256OperationHandler extends Handler {
    */
   canHandle(expr: Call): boolean {
     const target = expr.target || "";
-    
+
     // Handle new receiver-based IR structure
     if (expr.receiver) {
+      const arithmeticMethods = METHOD_GROUPS.ARITHMETIC;
+      const uncheckedMethods = arithmeticMethods.map((method) => `${method}Unchecked`);
+
       return (
-        target === "add" ||
-        target === "sub" ||
-        target === "mul" ||
-        target === "div" ||
-        target === "mod" ||
-        target === "pow" ||
-        target === "addUnchecked" ||
-        target === "subUnchecked" ||
-        target === "mulUnchecked" ||
-        target === "divUnchecked" ||
-        target === "modUnchecked" ||
-        target === "powUnchecked"
+        arithmeticMethods.includes(target as (typeof METHOD_GROUPS.ARITHMETIC)[number]) ||
+        uncheckedMethods.includes(target)
       );
     }
-    
+
     // Handle legacy hybrid targets (for backward compatibility)
+    const arithmeticMethods = METHOD_GROUPS.ARITHMETIC;
+    const uncheckedMethods = arithmeticMethods.map((method) => `${method}Unchecked`);
+
     return (
-      target.endsWith(".add") ||
-      target.endsWith(".sub") ||
-      target.endsWith(".mul") ||
-      target.endsWith(".div") ||
-      target.endsWith(".mod") ||
-      target.endsWith(".pow") ||
-      target.endsWith(".addUnchecked") ||
-      target.endsWith(".subUnchecked") ||
-      target.endsWith(".mulUnchecked") ||
-      target.endsWith(".divUnchecked") ||
-      target.endsWith(".modUnchecked") ||
-      target.endsWith(".powUnchecked")
+      arithmeticMethods.some((method) => target.endsWith(`.${method}`)) ||
+      uncheckedMethods.some((method) => target.endsWith(`.${method}`))
     );
   }
 
@@ -56,14 +43,14 @@ export class U256OperationHandler extends Handler {
   handle(expr: Call): EmitResult {
     let operation: string;
     let receiverExpr: string;
-    
+
     // Handle new receiver-based IR structure
     if (expr.receiver) {
       // Transform the receiver (e.g., variable, nested call)
       const receiverResult = this.contractContext.emitExpression(expr.receiver);
       receiverExpr = receiverResult.valueExpr;
-        
-      // Use the target directly as operation name  
+
+      // Use the target directly as operation name
       operation = expr.target;
     } else {
       // Handle legacy hybrid targets (backward compatibility)
@@ -79,10 +66,12 @@ export class U256OperationHandler extends Handler {
     // Handle contract property operations differently
     if (expr.scope === "storage") {
       // For storage operations with receiver structure, we need to extract the property name
-      const propName = expr.receiver ? 
-        (expr.receiver.kind === "var" ? expr.receiver.name : receiverExpr) :
-        receiverExpr.split('.')[0];
-        
+      const propName = expr.receiver
+        ? expr.receiver.kind === "var"
+          ? expr.receiver.name
+          : receiverExpr
+        : receiverExpr.split(".")[0];
+
       return {
         setupLines: [...argRes.setupLines],
         valueExpr: `U256.${operation}(load_${propName}(), ${argRes.valueExpr})`,
