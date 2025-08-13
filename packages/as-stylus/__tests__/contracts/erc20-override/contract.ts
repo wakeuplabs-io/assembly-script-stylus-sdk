@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import { Contract, View, U256, U256Factory } from "as-stylus";
 
 import { ERC20 } from "./erc20.ts";
 

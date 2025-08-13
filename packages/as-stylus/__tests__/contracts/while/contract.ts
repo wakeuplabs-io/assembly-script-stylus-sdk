@@ -12,13 +12,13 @@ import {
 
 @Contract
 export class WhileTest {
-  public u256Counter: U256;
-  public i256Counter: I256;
-  public booleanFlag: boolean;
-  public loopIterations: U256;
-  public maxIterations: U256;
-  public stringCounter: U256;
-  public currentString: Str;
+  u256Counter: U256;
+  i256Counter: I256;
+  booleanFlag: boolean;
+  loopIterations: U256;
+  maxIterations: U256;
+  stringCounter: U256;
+  currentString: Str;
 
   constructor() {
     this.u256Counter = U256Factory.create();

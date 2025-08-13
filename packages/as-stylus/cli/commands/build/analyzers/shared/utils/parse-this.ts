@@ -26,5 +26,5 @@ export function parseName(definition: string, defaultType: string): { name: stri
  */
 export function parseNameWithMethod(definition: string): { name: string, method: string } {
   const [nameDefinition, methodDefinition] = parseThis(definition).split(".");
-  return { name: nameDefinition, method: methodDefinition.split("(")[0] };
+  return { name: nameDefinition, method: methodDefinition?.split("(")[0] };
 }
