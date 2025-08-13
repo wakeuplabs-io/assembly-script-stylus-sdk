@@ -75,15 +75,13 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
 
   buildIR(): IRVariable {
     const typeInferred = inferType(this.property.getType().getText());
-    const { name, type } = parseName(this.property.getName(), typeInferred);
+    const { name, type } = parseName(this.property.getText(), typeInferred);
     this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage", dynamicType: type });
   
     const fullTypeText = this.property.getType().getText();
-    console.log(`[DEBUG] Processing mapping '${name}' with type: '${fullTypeText}'`);
     const mappingTypes = extractMappingTypes(fullTypeText);
-    console.log(`[DEBUG] Extracted types for '${name}':`, mappingTypes);
     
-    if (type === AbiType.MappingNested) {
+    if (type === AbiType.MappingNested || type.startsWith("MappingNested")) {
       const variable: IRVariable = {
         name,
         type: AbiType.MappingNested,
@@ -103,7 +101,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       return variable;
     }
 
-    if (type === AbiType.Mapping) {
+    if (type === AbiType.Mapping || type.startsWith("Mapping")) {
       const variable: IRVariable = {
         name,
         type: AbiType.Mapping,

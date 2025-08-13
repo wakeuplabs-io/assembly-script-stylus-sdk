@@ -20,6 +20,13 @@ export function Event(_target: any): typeof _target & { emit: (...args: any[]) =
 }
 
 /**
+ * Marks a method as internal (callable from within the contract)
+ * @param _target - The target method
+ * @param _propertyKey - The property key
+ */
+export function Internal(_target: any, _propertyKey: string): any {}
+
+/**
  * Marks a method as external (callable from outside the contract)
  * @param _target - The target method
  * @param _propertyKey - The property key

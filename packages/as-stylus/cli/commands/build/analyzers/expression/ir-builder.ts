@@ -82,6 +82,7 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
         if (this.expression.getText().startsWith("this.") && count === 2) {
           return buildVariableIR(this.expression as Identifier, this.symbolTable);
         }
+
         // Example: contract.balance, u256value.toString()
         const member = new MemberIRBuilder(this.expression as PropertyAccessExpression);
         return member.validateAndBuildIR();
