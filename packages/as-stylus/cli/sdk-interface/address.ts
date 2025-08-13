@@ -27,4 +27,8 @@ export class AddressFactory {
   static create(): Address {
     throw new Error("Method not implemented.");
   }
+
+  static equals(_other: Address): boolean {
+    throw new Error("Method not implemented.");
+  }
 }

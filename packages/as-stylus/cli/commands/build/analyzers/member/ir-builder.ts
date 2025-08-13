@@ -5,6 +5,7 @@ import { IRExpression, Call, Member } from "@/cli/types/ir.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { parseThis } from "../shared/utils/parse-this.js";
 import { isExpressionOfStructType, getStructInfoFromVariableName } from "../struct/struct-utils.js";
 
 export class MemberIRBuilder extends IRBuilder<IRExpression> {
@@ -21,7 +22,7 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
 
   buildIR(): IRExpression {
     const objectIR = new ExpressionIRBuilder(this.expression.getExpression()).validateAndBuildIR();
-    const propertyName = this.expression.getName();
+    const propertyName = parseThis(this.expression.getName());
 
     const structInfo = isExpressionOfStructType(objectIR);
     if (structInfo.isStruct && structInfo.structName) {

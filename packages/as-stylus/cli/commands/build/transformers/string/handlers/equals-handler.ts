@@ -1,31 +1,39 @@
-import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call } from "@/cli/types/ir.types.js";
-import { ContractContext } from "@/transformers/core/contract-context.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 
 import { convertVariableInParams } from "../../utils/convert-variable-in-params.js";
 
-/** a.equals(b)  →  Address.equals(a,b)  */
-export class AddressEqualsHandler extends Handler {
-  constructor(contractContext: ContractContext) {
-    super(contractContext);
-  }
 
+/**
+ * Handler for I256 operation methods (add, sub, mul, div, mod)
+ * 
+ * DEFAULT: Checked arithmetic (panic on overflow/underflow)
+ * EXPLICIT: Unchecked arithmetic (wrapping behavior) with *Unchecked suffix
+ */
+export class StrEqualsHandler extends Handler {
+  /**
+   * Determines if this handler can process the given expression
+   */
   canHandle(expr: Call): boolean {
     const target = expr.target || "";
-
-    return target.endsWith(".equals");
+    return (
+      target.endsWith(".equals")
+    );
   }
 
+  /**
+   * Processes I256 operation method calls
+   */
   handle(expr: Call): EmitResult {
     if (!expr.receiver && expr.target.endsWith(".equals")) {
       
       if (!expr.receiver) {
         const chain = expr.target.slice(0, -".equals".length);
-        expr.receiver = convertVariableInParams(chain, AbiType.Address);
+        expr.receiver = convertVariableInParams(chain, AbiType.String);
       }
-      expr.target = "Address.equals";
+      expr.target = "Str.equals";
     }
 
 
@@ -34,7 +42,7 @@ export class AddressEqualsHandler extends Handler {
 
     return {
       setupLines: [...left.setupLines, ...right.setupLines],
-      valueExpr: `Address.equals(${left.valueExpr}, ${right.valueExpr})`,
+      valueExpr: `Str.equals(${left.valueExpr}, ${right.valueExpr})`,
       valueType: "bool",
     };
   }

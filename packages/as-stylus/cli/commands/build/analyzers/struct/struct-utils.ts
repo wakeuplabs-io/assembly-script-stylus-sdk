@@ -28,6 +28,14 @@ export function convertBasicType(typeString: string): AbiType | null {
     return typeString as AbiType;
   }
 
+  if (typeString.startsWith("MappingNested")) {
+    return AbiType.MappingNested;
+  }
+
+  if (typeString.startsWith("Mapping")) {
+    return AbiType.Mapping;
+  }
+
   switch (typeString.toLowerCase()) {
     case "u256":
       return AbiType.Uint256;

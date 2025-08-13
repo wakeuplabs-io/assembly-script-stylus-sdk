@@ -64,6 +64,10 @@ export class StructTransformer extends BaseTypeTransformer {
     }
 
     if (expr.kind === "member") {
+      if (expr.object?.kind === "this") {
+        return false;
+      }
+
       if (expr.object && expr.property) {
         const objectType = expr.object.type;
         if (objectType === "struct") {

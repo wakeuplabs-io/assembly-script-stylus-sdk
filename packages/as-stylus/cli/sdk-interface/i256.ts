@@ -1,10 +1,10 @@
 /**
  * @interface I256
  * @description Interface for a 256-bit signed integer
- * 
+ *
  * DEFAULT BEHAVIOR: Checked arithmetic (panic on overflow/underflow)
  * EXPLICIT UNCHECKED: Use *Unchecked methods for wrapping behavior
- * 
+ *
  * @property {I256} add - Add with overflow checking (DEFAULT)
  * @property {I256} sub - Subtract with underflow checking (DEFAULT)
  * @property {I256} mul - Multiply with overflow checking (DEFAULT)
@@ -32,26 +32,26 @@ export interface I256 {
   mul(other: I256): I256;
   div(other: I256): I256;
   mod(other: I256): I256;
-  
+
   // EXPLICIT: Unchecked arithmetic (wrapping behavior)
   addUnchecked(other: I256): I256;
   subUnchecked(other: I256): I256;
   mulUnchecked(other: I256): I256;
   divUnchecked(other: I256): I256;
   modUnchecked(other: I256): I256;
-  
+
   // Comparison operations
   greaterThan(other: I256): boolean;
   greaterThanOrEqual(other: I256): boolean;
   lessThan(other: I256): boolean;
   lessThanOrEqual(other: I256): boolean;
   equals(other: I256): boolean;
-  
+
   // Sign operations
   isNegative(): boolean;
   negate(): I256;
   abs(): I256;
-  
+
   // Utility methods
   toString(): string;
   copy(): I256;

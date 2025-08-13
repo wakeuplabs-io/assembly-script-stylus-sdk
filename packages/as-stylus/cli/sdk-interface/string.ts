@@ -6,9 +6,33 @@ import { U256 } from "./u256.js";
  * @property {U256} length - Get the length of the string
  * @property {Str} slice - Slice the string
  */
-export interface Str {
-  length(): U256;
-  slice(offset: U256, length: U256): Str;
+export class Str {
+  length(): U256 {
+    throw new Error("Method not implemented.");
+  }
+
+  slice(_offset: U256, _length: U256): Str {
+    throw new Error("Method not implemented.");
+  }
+
+  /**
+   * @method equals
+   * @description Check if two strings are equal
+   * @param {Str} other - The other string
+   * @returns {boolean} True if the strings are equal, false otherwise
+   */
+  equals(_other: Str): boolean {
+    throw new Error("Method not implemented.");
+  }
+
+  /**
+   * @method toString
+   * @description Convert the Str instance to a string
+   * @returns {string} The string
+   */
+  toString(): string {
+    throw new Error("Method not implemented.");
+  }
 }
 
 /**
@@ -18,8 +42,33 @@ export interface Str {
  * @method fromUtf8 - Create a string from a UTF-8 encoded byte array
  * @method fromString - Create a string from a string
  */
-export interface StrFactory {
-  create(): Str;
-  fromUtf8(bytes: Uint8Array): Str;
-  fromString(value: string): Str;
+export class StrFactory {
+  /**
+   * @method create
+   * @description Create a new string
+   * @returns {Str} A new string
+   */
+  static create(): Str {
+    throw new Error("Method not implemented.");
+  }
+
+  /**
+   * @method fromUtf8
+   * @description Create a string from a UTF-8 encoded byte array
+   * @param {Uint8Array} bytes - The UTF-8 encoded byte array
+   * @returns {Str} A new string
+   */
+  static fromUtf8(_bytes: Uint8Array): Str {
+    throw new Error("Method not implemented.");
+  }
+
+  /**
+   * @method fromString
+   * @description Create a string from a string
+   * @param {string} value - The string to create
+   * @returns {Str} A new string
+   */
+  static fromString(_value: string): Str {
+    throw new Error("Method not implemented.");
+  }
 }

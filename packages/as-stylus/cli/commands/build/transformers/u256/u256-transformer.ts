@@ -102,7 +102,6 @@ export class U256Transformer extends BaseTypeTransformer {
 
     const target = expr.target || "";
 
-    // PRIORITY: Chained factory calls (modern receiver structure)
     if (expr.receiver && expr.receiver.kind === "call") {
       const receiverTarget = expr.receiver.target || "";
       const receiverReceiver = expr.receiver.receiver;
@@ -128,16 +127,12 @@ export class U256Transformer extends BaseTypeTransformer {
       }
     }
 
-    // Factory methods with receiver structure (modern)
     if ((target === MethodName.Create || target === MethodName.FromString) && expr.receiver) {
-      // Check if receiver is U256Factory
       if (expr.receiver.kind === "var" && expr.receiver.name === "U256Factory") {
         return true;
       }
     }
 
-    // Check returnType first - most reliable indicator
-    // But exclude expressions that belong to structs
     if (expr.returnType === AbiType.Uint256) {
       if (expr.originalType || target.includes("_get_") || target.includes("_set_")) {
         return false;
@@ -150,7 +145,6 @@ export class U256Transformer extends BaseTypeTransformer {
     }
 
     if (target.includes(".") || expr.receiver) {
-      // Type exclusion: Prevent conflicts with other transformers
       if (
         target.startsWith("boolean.") ||
         target.startsWith("address.") ||
@@ -181,7 +175,11 @@ export class U256Transformer extends BaseTypeTransformer {
           const hasU256Return =
             (expr.returnType as AbiType) === AbiType.Uint256 ||
             (expr.returnType as AbiType) === AbiType.Bool;
-
+          
+          // TODO: check if this is needed
+          // if (arg.type === AbiType.Uint256) {
+          //   return true;
+          // }
           return hasU256Receiver || hasU256Return;
         }
 
