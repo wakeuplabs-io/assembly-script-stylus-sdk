@@ -4,6 +4,10 @@ import { malloc } from "../modules/memory";
 export class Msg {
   private constructor() {}
 
+  /**
+   * Gets the address of the message sender (caller)
+   * @returns Pointer to 32-byte address representation of msg.sender
+   */
   public static sender(): usize {
     const ptr = malloc(32);
     for (let i = 0; i < 12; i++) {

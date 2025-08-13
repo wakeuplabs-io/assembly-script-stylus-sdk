@@ -31,11 +31,19 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
   }
 
   private getConversionType(left: IRExpression, right: IRExpression): SupportedType {
-    const leftType = (left as any).type;
-    const rightType = (right as any).type;
+    const leftType = left.type;
+    let rightType = right.type;
+
+    if (rightType === AbiType.Function) {
+      rightType = (right as any).returnType;
+    }
+
+    if (leftType === AbiType.Unknown) {
+      return rightType;
+    }
 
     if (leftType !== rightType) {
-      Logger.getInstance().warn(`TODO: implement conversion from ${leftType} to ${rightType}`);
+      Logger.getInstance().warn(`TODO: implement conversion from ${rightType} to ${leftType}`);
       return leftType;  
     }
 

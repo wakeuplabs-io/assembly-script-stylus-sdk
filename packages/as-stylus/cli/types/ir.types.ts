@@ -2,10 +2,6 @@ import { AbiType, AbiInput, AbiOutput, StateMutability, Visibility } from "./abi
 import { SupportedType } from "../commands/build/analyzers/shared/supported-types.js";
 import { SymbolTableStack } from "../commands/build/analyzers/shared/symbol-table.js";
 
-// Statements// ───────────────────────
-// Base IR node types
-// ───────────────────────
-
 export type IRUnaryExpression = {
   kind: "unary";
   op: string;
@@ -30,10 +26,16 @@ export type Call = {
   kind: "call";
   target: string;
   args: IRExpression[];
+  type: SupportedType;
   returnType: SupportedType;
   originalType?: string;
   scope: "storage" | "memory";
   context?: "argument" | "assignment" | "return";
+  receiver?: IRExpression; // TODO: REVIEW
+  metadata?: {
+    isStructCreation?: boolean;
+    structType?: string;
+  };
 };
 export type Member = {
   kind: "member";
@@ -50,10 +52,6 @@ export type IRExpressionBinary = {
   type: SupportedType;
 };
 
-// ───────────────────────
-// Mapping IR extensions
-// ───────────────────────
-
 export type IRMapGet = {
   kind: "map_get";
   slot: number;
@@ -61,6 +59,7 @@ export type IRMapGet = {
   keyType: string;
   valueType: string;
   type: AbiType.Mapping;
+  returnType: SupportedType;
 };
 
 export type IRMapSet = {
@@ -81,7 +80,8 @@ export type IRMapGet2 = {
   keyType1: string;
   keyType2: string;
   valueType: string;
-  type: AbiType.Mapping2;
+  type: AbiType.MappingNested;
+  returnType: SupportedType;
 };
 
 export type IRMapSet2 = {
@@ -93,12 +93,8 @@ export type IRMapSet2 = {
   keyType1: string;
   keyType2: string;
   valueType: string;
-  type: AbiType.Mapping2;
+  type: AbiType.MappingNested;
 };
-
-// ───────────────────────
-// Conditions
-// ───────────────────────
 
 export type ComparisonOperator = "==" | "!=" | "<" | "<=" | ">" | ">=";
 export type IRCondition = {
@@ -109,9 +105,23 @@ export type IRCondition = {
   type: AbiType.Bool;
 };
 
-// ───────────────────────
-// Expressions
-// ───────────────────────
+export type ChainedCall = {
+  kind: "call";
+  target: string; // Will be "chainedCall_methodName"
+  baseExpression: IRExpression;
+  methodName: string;
+  args: IRExpression[];
+  type: SupportedType;
+  returnType: SupportedType;
+  originalType?: string;
+  scope: "storage" | "memory";
+  context?: "argument" | "assignment" | "return";
+  receiver?: IRExpression;
+  metadata?: {
+    isStructCreation?: boolean;
+    structType?: string;
+  };
+};
 
 export type IRExpression =
   | IRUnaryExpression
@@ -124,7 +134,8 @@ export type IRExpression =
   | IRMapGet
   | IRMapSet
   | IRMapGet2
-  | IRMapSet2;
+  | IRMapSet2
+  | ChainedCall;
 
 // ───────────────────────
 // Statements
@@ -197,9 +208,9 @@ export type IRMappingVar = {
   valueType: string;
   kind: "mapping";
 };
-export type IRMapping2Var = {
+export type IRMappingNestedVar = {
   name: string;
-  type: AbiType.Mapping2;
+  type: AbiType.MappingNested;
   slot: number;
   keyType1: string;
   keyType2: string;
@@ -207,7 +218,7 @@ export type IRMapping2Var = {
   kind: "mapping2";
 };
 
-export type IRVariable = IRSimpleVar | IRMappingVar | IRMapping2Var;
+export type IRVariable = IRSimpleVar | IRMappingVar | IRMappingNestedVar;
 
 // ───────────────────────
 // Contract structure
@@ -244,10 +255,6 @@ export interface IREvent {
   fields: IREventField[];
 }
 
-// ───────────────────────
-// Struct structure
-// ───────────────────────
-
 export interface IRStructField {
   name: string;
   type: string;
@@ -263,10 +270,6 @@ export interface IRStruct {
   dynamic: boolean;
   alignment: number;
 }
-
-// ───────────────────────
-// Custom error structure
-// ───────────────────────
 
 export interface IRErrorField {
   name: string;

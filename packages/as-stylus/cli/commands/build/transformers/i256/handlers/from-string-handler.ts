@@ -1,7 +1,8 @@
-import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
-
-import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
 /**
  * I256Factory.fromString(...)
@@ -14,25 +15,30 @@ import { makeTemp } from "../../utils/temp-factory.js";
  *
  *  Then call `I256.setFromString(ptrI256, ptrStr, len)`.
  */
-export class I256FromStringHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
-    return (
-      expr.kind === "call" &&
-      expr.target === "I256Factory.fromString" &&
-      expr.args &&
-      expr.args.length === 1
-    );
+export class I256FromStringHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  canHandle(expr: Call): boolean {
+    if (!expr.args || expr.args.length !== 1) return false;
+    
+    // Legacy format
+    if (expr.target === "I256Factory.fromString") return true;
+    
+    // New receiver-based format
+    if (expr.target === "fromString" && expr.receiver) {
+      return expr.receiver.kind === "var" && expr.receiver.name === "I256Factory";
+    }
+    
+    return false;
+  }
+
+  handle(expr: Call): EmitResult {
     const [arg] = expr.args;
 
     // emit arg first
-    const argRes = emit(arg, ctx);
+    const argRes = this.contractContext.emitExpression(arg);
 
     const i256Ptr = makeTemp("i256");
     const strPtr = makeTemp("str");
@@ -49,14 +55,12 @@ export class I256FromStringHandler implements ExpressionHandler {
         setup.push(`store<u8>(${strPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
       setup.push(`const ${lenVar}: u32 = ${strLen};`);
-      setup.push(`const ${i256Ptr}: usize = I256.create();`);
-      setup.push(`I256.setFromString(${i256Ptr}, ${strPtr}, ${lenVar});`);
+      setup.push(`const ${i256Ptr}: usize = I256.fromString(${strPtr}, ${lenVar});`);
     } else {
       setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
       setup.push(`const ${strPtr}: usize = malloc(66);`);
       setup.push(
-        `const ${i256Ptr}: usize = I256.create();`,
-        `I256.setFromString(${i256Ptr}, ${strPtr}, ${lenVar});`
+        `const ${i256Ptr}: usize = I256.fromString(${strPtr}, ${lenVar});`
       );
     }
 

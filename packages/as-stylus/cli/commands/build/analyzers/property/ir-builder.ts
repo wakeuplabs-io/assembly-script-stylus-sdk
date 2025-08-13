@@ -13,7 +13,7 @@ import { IRBuilder } from "../shared/ir-builder.js";
  * Extracts generic types from mapping declarations
  * Examples:
  *   "Mapping<U256, Address>" → { keyType: "U256", valueType: "Address" }
- *   "Mapping2<Address, Address, boolean>" → { keyType1: "Address", keyType2: "Address", valueType: "boolean" }
+ *   "MappingNested<Address, Address, boolean>" → { keyType1: "Address", keyType2: "Address", valueType: "boolean" }
  */
 function extractMappingTypes(typeText: string): {
   keyType?: string;
@@ -22,26 +22,34 @@ function extractMappingTypes(typeText: string): {
   keyType2?: string;
 } {
   const cleanType = typeText.replace(/\s/g, "");
-  const genericMatch = cleanType.match(/^Mapping2?<(.+)>$/);
   
-  if (!genericMatch) {
-    return {};
+  // Handle MappingNested<K1,K2,V>
+  if (cleanType.startsWith('MappingNested<')) {
+    const nestedMatch = cleanType.match(/^MappingNested<(.+)>$/);
+    if (nestedMatch) {
+      const types = nestedMatch[1].split(',');
+      if (types.length === 3) {
+        return {
+          keyType1: types[0],
+          keyType2: types[1], 
+          valueType: types[2]
+        };
+      }
+    }
   }
   
-  const genericContent = genericMatch[1];
-  const types = genericContent.split(',');
-  
-  if (cleanType.startsWith('Mapping2<') && types.length === 3) {
-    return {
-      keyType1: types[0],
-      keyType2: types[1], 
-      valueType: types[2]
-    };
-  } else if (cleanType.startsWith('Mapping<') && types.length === 2) {
-    return {
-      keyType: types[0],
-      valueType: types[1]
-    };
+  // Handle regular Mapping<K,V>
+  if (cleanType.startsWith('Mapping<')) {
+    const mappingMatch = cleanType.match(/^Mapping<(.+)>$/);
+    if (mappingMatch) {
+      const types = mappingMatch[1].split(',');
+      if (types.length === 2) {
+        return {
+          keyType: types[0],
+          valueType: types[1]
+        };
+      }
+    }
   }
   
   return {};
@@ -65,15 +73,17 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   buildIR(): IRVariable {
     const [name, typeDefined] = this.property.getName().split(":");
     const type = typeDefined ? typeDefined : inferType(this.property.getType().getText());
-    this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage" });
+    this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage", dynamicType: type });
   
     const fullTypeText = this.property.getType().getText();
+    console.log(`[DEBUG] Processing mapping '${name}' with type: '${fullTypeText}'`);
     const mappingTypes = extractMappingTypes(fullTypeText);
+    console.log(`[DEBUG] Extracted types for '${name}':`, mappingTypes);
     
-    if (type === AbiType.Mapping2) {
+    if (type === AbiType.MappingNested) {
       const variable: IRVariable = {
         name,
-        type: AbiType.Mapping2,
+        type: AbiType.MappingNested,
         slot: this.slot,
         keyType1: mappingTypes.keyType1 || "Address",
         keyType2: mappingTypes.keyType2 || "Address", 

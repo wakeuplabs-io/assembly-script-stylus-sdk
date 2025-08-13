@@ -1,17 +1,19 @@
-import { EmitContext, EmitResult } from "@/cli/types/emit.types.js";
-import { IRErrorDecl } from "@/cli/types/ir.types.js";
 
-import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
+import { makeTemp } from "@/cli/commands/build/transformers/utils/temp-factory.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRErrorDecl, IRExpression } from "@/cli/types/ir.types.js";
 
-export class ErrorRevertHandler implements ExpressionHandler {
+export class ErrorRevertHandler extends Handler {
   private errorsMap: Map<string, IRErrorDecl>;
 
-  constructor(errors: IRErrorDecl[]) {
+  constructor(contractContext: ContractContext, errors: IRErrorDecl[]) {
+    super(contractContext);
     this.errorsMap = new Map(errors.map(e => [e.name, e]));
   }
 
-  canHandle(expr: any): boolean {
+  canHandle(expr: IRExpression): boolean {
     return (
       expr.kind === "call" &&
       typeof expr.target === "string" &&
@@ -19,11 +21,7 @@ export class ErrorRevertHandler implements ExpressionHandler {
     );
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const errorName = expr.target.replace(/\.revert$/, "");
     const errorDecl = this.errorsMap.get(errorName);
     
@@ -45,17 +43,14 @@ export class ErrorRevertHandler implements ExpressionHandler {
       setup.push(`__write_error_selector_${errorName}(${errorDataTemp});`);
       setup.push(`abort_with_data(${errorDataTemp}, 4);`);
     } else {
-      // Error con parámetros - usar la función helper completa
       const argResults: string[] = [];
       
-      // Procesar cada argumento
-      expr.args.forEach((arg: any) => {
-        const argResult = emit(arg, ctx);
+      expr.args.forEach((arg: IRExpression) => {
+        const argResult = this.contractContext.emitExpression(arg);
         setup.push(...argResult.setupLines);
         argResults.push(argResult.valueExpr);
       });
 
-      // Usar la función helper para crear el error data
       const argsList = argResults.join(", ");
       setup.push(`const ${errorDataTemp}: usize = __create_error_data_${errorName}(${argsList});`);
       

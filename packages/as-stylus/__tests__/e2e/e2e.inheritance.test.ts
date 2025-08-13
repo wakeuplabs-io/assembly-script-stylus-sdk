@@ -1,12 +1,7 @@
 import { WalletClient } from "viem";
 
 import { ContractService, getWalletClient } from "../helpers/client.js";
-import {
-  CONTRACT_ADDRESS_REGEX,
-  CONTRACT_PATHS,
-  DEPLOY_TIMEOUT,
-  PRIVATE_KEY,
-} from "../helpers/constants.js";
+import { CONTRACT_PATHS, DEPLOY_TIMEOUT, PRIVATE_KEY } from "../helpers/constants.js";
 import { setupE2EContract } from "../helpers/setup.js";
 import { handleDeploymentError } from "../helpers/utils.js";
 
@@ -17,7 +12,7 @@ const walletClient: WalletClient = getWalletClient(PRIVATE_KEY);
 
 beforeAll(async () => {
   try {
-    contract = await setupE2EContract(contractPath, abiPath, CONTRACT_ADDRESS_REGEX, {
+    contract = await setupE2EContract(contractPath, abiPath, {
       deployArgs: [10n],
       walletClient,
     });
@@ -26,7 +21,7 @@ beforeAll(async () => {
   }
 }, DEPLOY_TIMEOUT);
 
-describe.skip("Inheritance", () => {
+describe("Inheritance", () => {
   describe("Initial state and constructor inheritance", () => {
     it("should have initial sum value of zero after deployment", async () => {
       const sum = await contract.read("getSum", []);
@@ -56,12 +51,10 @@ describe.skip("Inheritance", () => {
   });
 
   describe("Calling parent methods", () => {
-    it("should override getSumByParams method in child", async () => {
+    it("should call internal parent method through external child method", async () => {
+      // getSumInMemory calls the internal getSumByParams method from parent
       const result = await contract.read("getSumInMemory", [1n, 2n]);
       expect(result).toBe(3n);
-
-      const result2 = await contract.read("getSumByParams", [1n, 2n]);
-      expect(result2).toBe(3n);
     });
   });
 });

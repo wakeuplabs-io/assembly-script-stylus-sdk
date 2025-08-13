@@ -1,7 +1,9 @@
 // src/emit/transformers/address/handlers/address-from-string.ts
-import { EmitContext, EmitResult } from "../../../../../types/emit.types.js";
-import { ExpressionHandler } from "../../core/interfaces.js";
-import { makeTemp } from "../../utils/temp-factory.js";
+import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { ContractContext } from "@/transformers/core/contract-context.js";
+import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
 /**
  * AddressFactory.fromString(...)
@@ -15,23 +17,29 @@ import { makeTemp } from "../../utils/temp-factory.js";
  *
  * The result is a buffer of 20 raw bytes (big-endian) ready to use.
  */
-export class AddressFromStringHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
-    return (
-      expr.kind === "call" &&
-      expr.target === "AddressFactory.fromString" &&
-      expr.args.length === 1 &&
-      ["literal", "var"].includes(expr.args[0].kind)
-    );
+export class AddressFromStringHandler extends Handler {
+  constructor(contractContext: ContractContext) {
+    super(contractContext);
   }
 
-  handle(
-    expr: any,
-    ctx: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  canHandle(expr: Call): boolean {
+    if (expr.args.length !== 1) return false;
+    if (expr.args[0].kind !== "literal" && expr.args[0].kind !== "var") return false;
+    
+    // Legacy format
+    if (expr.target === "AddressFactory.fromString") return true;
+    
+    // New receiver-based format
+    if (expr.target === "fromString" && expr.receiver) {
+      return expr.receiver.kind === "var" && expr.receiver.name === "AddressFactory";
+    }
+    
+    return false;
+  }
+
+  handle(expr: Call): EmitResult {
     const arg    = expr.args[0];
-    const argIR  = emit(arg, ctx);
+    const argIR  = this.contractContext.emitExpression(arg);
     const setup  = [...argIR.setupLines];
 
     const hexPtr = makeTemp("hexPtr");

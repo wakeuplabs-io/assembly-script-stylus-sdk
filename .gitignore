@@ -54,3 +54,5 @@ packages/ui/cache
 /.vscode/settings.json
 .cursor
 
+agent.md
+DS_Store

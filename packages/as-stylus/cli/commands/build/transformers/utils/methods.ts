@@ -1,13 +1,13 @@
 import { generateArgsLoadBlock } from "./args.js";
-import { emitStatements } from "./statements.js";
 import { IRContract } from "../../../../types/ir.types.js";
+import { ContractContext } from "../core/contract-context.js";
 
 /**
  * Generates AssemblyScript methods from IR method representations
  * @param methods Array of IR methods to generate
  * @returns Array of generated method strings
  */
-export function generateMethods(contract: IRContract): string[] {
+export function generateMethods(contract: IRContract, contractContext: ContractContext): string[] {
   const methodParts: string[] = [];
 
   contract.methods.forEach((m) => {
@@ -19,7 +19,7 @@ export function generateMethods(contract: IRContract): string[] {
     const { callArgs } = generateArgsLoadBlock(m.inputs);
     const argsSignature = callArgs.map(arg => `${arg.name}: ${arg.type}`).join(", ");
     
-    const body = emitStatements(m.ir);
+    const body = contractContext.emitStatements(m.ir);
     const aliasLines = m.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
     
     if (m.inputs.some(inp => inp.type === "string")) {

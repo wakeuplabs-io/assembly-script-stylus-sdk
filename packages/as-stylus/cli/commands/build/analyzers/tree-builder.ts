@@ -72,7 +72,7 @@ export function exportContractToJSON(contract: IRContract, outputDir?: string): 
  * @param contract The contract IR to transform
  * @returns A tree structure ready for visualization
  */
-export function generateContractTree(contract: IRContract): any {
+export function generateContractTree(contract: IRContract) {
   // Create a tree structure that's easier to navigate visually
   const tree = {
     id: "root",

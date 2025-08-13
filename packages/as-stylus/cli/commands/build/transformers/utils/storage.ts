@@ -1,7 +1,6 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRContract, IRStruct, IRVariable } from "@/cli/types/ir.types.js";
 
-
 function formatSlotName(slot: number): string {
   return `__SLOT${slot.toString(16).padStart(2, "0")}`;
 }
@@ -28,24 +27,28 @@ function store_${name}(ptr: usize): void {
 }
 
 export function generateImports(contract: IRContract): string {
-  const lines: string[] = ['// eslint-disable-next-line import/namespace'];
+  const lines: string[] = ["// eslint-disable-next-line import/namespace"];
 
   const types = contract.symbolTable.getTypes();
   const hasEvents = contract.events && contract.events.length > 0;
   const hasErrors = contract.errors && contract.errors.length > 0;
 
   if (types.size === 0) {
-    return '';
+    return "";
   }
 
-  const hasSimple = types.has(AbiType.String) || types.has(AbiType.Bool) || types.has(AbiType.Address) || types.has(AbiType.Uint256);
+  const hasSimple =
+    types.has(AbiType.String) ||
+    types.has(AbiType.Bool) ||
+    types.has(AbiType.Address) ||
+    types.has(AbiType.Uint256);
 
   if (hasSimple) {
     lines.push(
-      'import {',
-      '  storage_load_bytes32,',
-      '  storage_cache_bytes32,',
-      '  storage_flush_cache,',
+      "import {",
+      "  storage_load_bytes32,",
+      "  storage_cache_bytes32,",
+      "  storage_flush_cache,",
       '} from "as-stylus/core/modules/hostio";',
       'import { createStorageKey } from "as-stylus/core/modules/storage";',
     );
@@ -63,8 +66,8 @@ export function generateImports(contract: IRContract): string {
     lines.push('import { Mapping } from "as-stylus/core/types/mapping";');
   }
 
-  if (types.has(AbiType.Mapping2)) {
-    lines.push('import { Mapping2 } from "as-stylus/core/types/mapping2";');
+  if (types.has(AbiType.MappingNested)) {
+    lines.push('import { MappingNested } from "as-stylus/core/types/mapping2";');
   }
 
   if (types.has(AbiType.Bool)) {
@@ -90,40 +93,41 @@ export function generateImports(contract: IRContract): string {
   lines.push('import { Struct } from "as-stylus/core/types/struct";');
   lines.push('import { Msg } from "as-stylus/core/types/msg";');
   lines.push('import { malloc } from "as-stylus/core/modules/memory";');
+  lines.push('import { DebugU256 } from "as-stylus/core/modules/debug";');
 
-  lines.push('');
+  lines.push("");
   return lines.join("\n");
 }
 
 function generateStructStorageFunctions(variable: IRVariable, struct: IRStruct): string[] {
   const lines: string[] = [];
   const numSlots = Math.ceil(struct.size / 32);
-  
+
   // Generate load function
   let loadBody = `  const ptr = Struct.alloc(${struct.size});`;
   for (let i = 0; i < numSlots; i++) {
     const slotValue = variable.slot + i;
     const slotName = formatSlotName(slotValue);
     const offset = i * 32;
-    loadBody += `\n  Struct.loadFromStorage(ptr${offset > 0 ? ` + ${offset}` : ''}, ${slotName});`;
+    loadBody += `\n  Struct.loadFromStorage(ptr${offset > 0 ? ` + ${offset}` : ""}, ${slotName});`;
   }
   loadBody += `\n  return ptr;`;
-  
+
   lines.push(`
 function load_${variable.name}(): usize {
 ${loadBody}
 }`);
 
   // Generate store function
-  let storeBody = '';
+  let storeBody = "";
   for (let i = 0; i < numSlots; i++) {
     const slotValue = variable.slot + i;
     const slotName = formatSlotName(slotValue);
     const offset = i * 32;
-    storeBody += `  Struct.storeToStorage(ptr${offset > 0 ? ` + ${offset}` : ''}, ${slotName});\n`;
+    storeBody += `  Struct.storeToStorage(ptr${offset > 0 ? ` + ${offset}` : ""}, ${slotName});\n`;
   }
   storeBody += `  Struct.flushStorage();`;
-  
+
   lines.push(`
 function store_${variable.name}(ptr: usize): void {
 ${storeBody}
@@ -132,9 +136,12 @@ ${storeBody}
   return lines;
 }
 
-export function generateStorageHelpers(variables: IRVariable[], structs: IRStruct[] = []): string[] {
+export function generateStorageHelpers(
+  variables: IRVariable[],
+  structs: IRStruct[] = [],
+): string[] {
   const lines: string[] = [];
-  const structMap = new Map(structs.map(s => [s.name, s]));
+  const structMap = new Map(structs.map((s) => [s.name, s]));
 
   for (const variable of variables) {
     lines.push(slotConst(variable.slot));
@@ -143,14 +150,16 @@ export function generateStorageHelpers(variables: IRVariable[], structs: IRStruc
       // Handle different types of simple variables
       switch (variable.type) {
         case AbiType.String:
-          lines.push(`
+          lines.push(
+            `
 function load_${variable.name}(): usize {
   return Str.loadFrom(${formatSlotName(variable.slot)});
 }
 
 function store_${variable.name}(strPtr: usize): void {
   Str.storeTo(${formatSlotName(variable.slot)}, strPtr);
-}`.trim());
+}`.trim(),
+          );
           break;
 
         case AbiType.Struct:

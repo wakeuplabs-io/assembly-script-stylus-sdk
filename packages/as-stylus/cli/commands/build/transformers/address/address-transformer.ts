@@ -1,58 +1,78 @@
-import { EmitContext, EmitResult } from "../../../../types/emit.types.js";
-import { BaseTypeTransformer, registerTransformer } from "../core/base-transformer.js";
+import { AbiType } from "@/cli/types/abi.types.js";
+import { IRExpression } from "@/cli/types/ir.types.js";
+import { MethodName } from "@/cli/types/method-types.js";
+
+import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { AddressCopyHandler } from "./handlers/copy-handler.js";
-import { AddressCreateHandler }   from "./handlers/create-handler.js";
+import { AddressCreateHandler } from "./handlers/create-handler.js";
 import { AddressEqualsHandler } from "./handlers/equals-handler.js";
 import { AddressFromStringHandler } from "./handlers/from-string-handler.js";
 import { AddressHasCodeHandler } from "./handlers/has-code-handler.js";
-import { AddressIsZeroHandler }   from "./handlers/is-zero-handler.js";
+import { AddressIsZeroHandler } from "./handlers/is-zero-handler.js";
 import { AddressToStringHandler } from "./handlers/to-string-handler.js";
+import { ContractContext } from "../core/contract-context.js";
 
 export class AddressTransformer extends BaseTypeTransformer {
-  constructor() {
-    super("Address");
+  constructor(contractContext: ContractContext) {
+    super(contractContext, "Address");
 
-    this.registerHandler(new AddressCopyHandler());
-    this.registerHandler(new AddressCreateHandler());
-    this.registerHandler(new AddressFromStringHandler());
-    this.registerHandler(new AddressToStringHandler());
-    this.registerHandler(new AddressEqualsHandler());
-    this.registerHandler(new AddressIsZeroHandler());
-    this.registerHandler(new AddressHasCodeHandler());
+    this.registerHandler(new AddressCopyHandler(contractContext));
+    this.registerHandler(new AddressCreateHandler(contractContext));
+    this.registerHandler(new AddressFromStringHandler(contractContext));
+    this.registerHandler(new AddressToStringHandler(contractContext));
+    this.registerHandler(new AddressEqualsHandler(contractContext));
+    this.registerHandler(new AddressIsZeroHandler(contractContext));
+    this.registerHandler(new AddressHasCodeHandler(contractContext));
   }
 
-  matchesType(expr: any): boolean {
-    if (!expr ||expr.kind !== "call") return false;
+  canHandle(expr: IRExpression): boolean {
+    if (!expr || expr.kind !== "call") return false;
 
     const target = expr.target || "";
-    return (
-      target === "AddressFactory.create"   ||
-      target === "AddressFactory.fromString" ||
-      target === "Address.copy" ||
-      target.endsWith(".equals")   ||
-      target.endsWith(".isZero")   ||
-      target.endsWith(".toString") ||
-      target.endsWith(".hasCode")
-    );
-  }
 
-  protected handleDefault(
-    expr: any,
-    _ctx: EmitContext,
-    _emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
-    return {
-      setupLines: [],
-      valueExpr: `/* Unsupported Address expression: ${expr.kind} */`,
-      valueType: "Address"
-    };
-  }
+    // Legacy factory methods
+    if (["AddressFactory.create", "AddressFactory.fromString", "Address.copy"].includes(target)) {
+      return true;
+    }
 
-  generateLoadCode(prop: string): string  { return `load_${prop}()`; }
-  generateStoreCode(prop: string, val: string): string {
-    return `store_${prop}(${val});`;
+    // Factory methods with receiver structure
+    if ((target === MethodName.Create || target === MethodName.FromString) && expr.receiver) {
+      if (expr.receiver.kind === "var" && expr.receiver.name === "AddressFactory") {
+        return true;
+      }
+    }
+
+    // Legacy method calls
+    const addressMethods = [MethodName.Equals, MethodName.IsZero, MethodName.HasCode];
+    if (addressMethods.some((method) => target.endsWith(`.${method}`))) {
+      return true;
+    }
+
+    // Method calls with receiver structure
+    const addressInstanceMethods = [
+      MethodName.Equals,
+      MethodName.IsZero,
+      MethodName.HasCode,
+      MethodName.ToString,
+    ];
+    if (expr.receiver && addressInstanceMethods.includes(target as MethodName)) {
+      // Check if receiver is Address type or returns Address type
+      const receiverIsAddress = expr.receiver.type === AbiType.Address;
+      const receiverReturnsAddress =
+        expr.receiver.kind === "call" && expr.receiver.returnType === AbiType.Address;
+
+      return (
+        receiverIsAddress ||
+        receiverReturnsAddress ||
+        (expr.returnType as AbiType) === AbiType.Bool || // address methods can return bool
+        (expr.returnType as AbiType) === AbiType.String
+      ); // toString returns string
+    }
+
+    if (target.endsWith(".toString")) {
+      return expr.args.length === 0 && expr.returnType === AbiType.Address;
+    }
+
+    return false;
   }
 }
-
-export const AddressTransformerInstance = new AddressTransformer();
-registerTransformer(AddressTransformerInstance);

@@ -2,58 +2,58 @@ import { Address, WalletClient } from "viem";
 
 import { contractService, ContractService } from "./client.js";
 import { PRIVATE_KEY, RPC_URL, PROJECT_ROOT } from "./constants.js";
-import { getAbi, run, stripAnsi } from "./utils.js";
+import { getAbi, parseDeploymentOutput, run } from "./utils.js";
 
 export type ContractArgs = (string | boolean | Address | bigint)[];
+
+/**
+ * Creates the deploy command for the contract
+ * @param options Configuration options
+ * @returns The deploy command
+ */
+function createDeployCommand(options: {
+  constructorName?: string;
+  deployArgs?: ContractArgs;
+  walletClient?: WalletClient;
+}) {
+  const deployArgs = options.deployArgs?.reduce((acc, arg) => `${acc} ${arg}`, "");
+  const baseCommand = `npx as-stylus deploy contract.ts --endpoint ${RPC_URL} --private-key ${PRIVATE_KEY}`;
+
+  if (deployArgs) {
+    return `${baseCommand} --constructor-args ${deployArgs}`;
+  }
+
+  return baseCommand;
+}
 
 /**
  * Complete setup for e2e tests: build, deploy, and initialize contract
  * @param contractPath Path to the contract
  * @param abiPath Path to the ABI file
- * @param CONTRACT_ADDRESS_REGEX Regex to extract contract address
  * @param options Configuration options
  * @returns Object with contractAddr and contract service
  */
 export async function setupE2EContract(
   contractPath: string,
   abiPath: string,
-  CONTRACT_ADDRESS_REGEX: RegExp,
   options: {
     constructorName?: string;
     deployArgs?: ContractArgs;
     walletClient?: WalletClient;
   } = {},
 ): Promise<ContractService> {
-  const { deployArgs, walletClient, constructorName = "contract_constructor" } = options;
-
   // Build and compile the contract
   run("npm run pre:build", PROJECT_ROOT);
-  run("npx as-stylus build contract.ts", contractPath);
-  run("npm run compile", contractPath);
-  run("npm run check", contractPath);
+  run(`npx as-stylus compile contract.ts --endpoint ${RPC_URL}`, contractPath);
 
   const abi = getAbi(abiPath);
 
-  // Deploy the contract
-  const deployLog = stripAnsi(
-    run(`PRIVATE_KEY=${PRIVATE_KEY} RPC_URL=${RPC_URL} npm run deploy`, contractPath),
-  );
+  const deployLog = run(createDeployCommand(options), contractPath);
+  const contractAddr = parseDeploymentOutput(deployLog);
 
-  const addressMatch = deployLog.match(CONTRACT_ADDRESS_REGEX);
-  if (!addressMatch) {
-    throw new Error(`Could not extract contract address from deployment log: ${deployLog}`);
-  }
-
-  const contractAddr = addressMatch[1];
   console.log("📍 Contract deployed at:", contractAddr);
 
-  const contract = contractService(contractAddr as Address, abi, false);
-
-  if (deployArgs !== undefined && walletClient) {
-    await contract.write(walletClient, constructorName, deployArgs);
-  }
-
-  return contract;
+  return contractService(contractAddr as Address, abi, false);
 }
 
 /**

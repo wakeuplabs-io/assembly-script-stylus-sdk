@@ -18,7 +18,7 @@ export class Approval {
 @Contract
 export class ERC20Full {
   static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
-  static allowances: Mapping2<Address, Address, U256> = new Mapping2<Address, Address, U256>();
+  static allowances: MappingNested<Address, Address, U256> = new MappingNested<Address, Address, U256>();
   static totalSupply: U256;
   static name: Str;
   static symbol: Str;
@@ -192,7 +192,7 @@ export class ERC721 {
   static owners: Mapping<U256, Address> = new Mapping<U256, Address>();
   static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
   static tokenApprovals: Mapping<U256, Address> = new Mapping<U256, Address>();
-  static operatorApprovals: Mapping2<Address, Address, boolean> = new Mapping2<
+  static operatorApprovals: MappingNested<Address, Address, boolean> = new MappingNested<
     Address,
     Address,
     boolean
@@ -416,7 +416,6 @@ export function user_entrypoint(args_len: usize): i32 {
     (<u32>load<u8>(position + 1) << 16) |
     (<u32>load<u8>(position + 2) << 8) |
     (<u32>load<u8>(position + 3));
-  let result: u64 = 0;
 
   if (isFirstTimeDeploy()) {
     store_initialized_storage(Boolean.create(true));
@@ -483,7 +482,7 @@ export function user_entrypoint(args_len: usize): i32 {
     contract_constructor(arg0, arg1); return 0;
   }
   return 0;
-}`
+}`;
 
 export const ERC20_CONTRACT_TRANSFORMED = `// contract_transformed.ts - Auto-generated
 import {
@@ -494,7 +493,7 @@ import {
 import { createStorageKey } from "as-stylus/core/modules/storage";
 import { addTopic, emitTopics } from "as-stylus/core/modules/events";
 import { Mapping } from "as-stylus/core/types/mapping";
-import { Mapping2 } from "as-stylus/core/types/mapping2";
+import { MappingNested } from "as-stylus/core/types/mapping2";
 import { Boolean } from "as-stylus/core/types/boolean";
 import { Address } from "as-stylus/core/types/address";
 import { U256 } from "as-stylus/core/types/u256";
@@ -644,7 +643,7 @@ export function balanceOf(arg0: usize): usize {
 export function allowance(arg0: usize, arg1: usize): usize {
   const owner = arg0;
   const spender = arg1;
-  return Mapping2.getU256(__SLOT02, owner, spender);
+  return MappingNested.getU256(__SLOT02, owner, spender);
 }
 export function transfer(arg0: usize, arg1: usize): usize {
   const to = arg0;
@@ -671,7 +670,7 @@ export function approve(arg0: usize, arg1: usize): usize {
   const spender = arg0;
   const amount = arg1;
   const owner = Msg.sender();
-  Mapping2.setU256(__SLOT02, owner, spender, amount);
+  MappingNested.setU256(__SLOT02, owner, spender, amount);
   // topic0 for Approval
   const __topics_7: usize = malloc(96);
   __write_topic0_Approval(__topics_7);
@@ -687,7 +686,7 @@ export function transferFrom(arg0: usize, arg1: usize, arg2: usize): usize {
   const to = arg1;
   const amount = arg2;
   const spender = Msg.sender();
-  const allowed = Mapping2.getU256(__SLOT02, from, spender);
+  const allowed = MappingNested.getU256(__SLOT02, from, spender);
   if (U256.lessThan(allowed, amount)) {
     return Boolean.create(false);
   }
@@ -699,7 +698,7 @@ export function transferFrom(arg0: usize, arg1: usize, arg2: usize): usize {
   Mapping.setU256(__SLOT01, from, U256.sub(fromBal, amount));
   const toBal = Mapping.getU256(__SLOT01, to);
   Mapping.setU256(__SLOT01, to, U256.add(toBal, amount));
-  Mapping2.setU256(__SLOT02, from, spender, newAllowed);
+  MappingNested.setU256(__SLOT02, from, spender, newAllowed);
   // topic0 for Transfer
   const __topics_9: usize = malloc(96);
   __write_topic0_Transfer(__topics_9);
@@ -886,7 +885,6 @@ export function user_entrypoint(args_len: usize): i32 {
     (<u32>load<u8>(position + 1) << 16) |
     (<u32>load<u8>(position + 2) << 8) |
     (<u32>load<u8>(position + 3));
-  let result: u64 = 0;
 
   if (isFirstTimeDeploy()) {
     store_initialized_storage(Boolean.create(true));
@@ -955,14 +953,14 @@ export function user_entrypoint(args_len: usize): i32 {
     contract_constructor(arg0, arg1); return 0;
   }
   return 0;
-}`
+}`;
 
 export const ERC721_CONTRACT_TRANSFORMED = `// contract_transformed.ts - Auto-generated
 // eslint-disable-next-line import/namespace
 import { abort_with_data } from "as-stylus/core/modules/errors";
 import { addTopic, emitTopics } from "as-stylus/core/modules/events";
 import { Mapping } from "as-stylus/core/types/mapping";
-import { Mapping2 } from "as-stylus/core/types/mapping2";
+import { MappingNested } from "as-stylus/core/types/mapping2";
 import { Boolean } from "as-stylus/core/types/boolean";
 import { Address } from "as-stylus/core/types/address";
 import { U256 } from "as-stylus/core/types/u256";
@@ -1272,7 +1270,7 @@ export function approve(arg0: usize, arg1: usize): void {
     abort_with_data(__errorData_2, 36);
   }
   const isOwnerAuth = Address.equals(owner, authorizer);
-  const isApprovedForAll = Boolean.fromABI(Mapping2.getBoolean(__SLOT04, owner, authorizer));
+  const isApprovedForAll = Boolean.fromABI(MappingNested.getBoolean(__SLOT04, owner, authorizer));
   const isAuthorized = isOwnerAuth || isApprovedForAll;
   if (!isAuthorized) {
     // Revert with custom error ERC721InvalidApprover
@@ -1299,7 +1297,7 @@ export function setApprovalForAll(arg0: usize, arg1: boolean): void {
     abort_with_data(__errorData_6, 36);
   }
   const owner = Msg.sender();
-  Mapping2.setBoolean(__SLOT04, owner, operator, approved);
+  MappingNested.setBoolean(__SLOT04, owner, operator, approved);
   // topic0 for ApprovalForAll
   const __topics_7: usize = malloc(96);
   __write_topic0_ApprovalForAll(__topics_7);
@@ -1376,7 +1374,7 @@ export function transferFrom(arg0: usize, arg1: usize, arg2: usize): void {
   const authorizer = Msg.sender();
   const isOwnerZero = Address.isZero(owner);
   const approvedAddress = Mapping.getAddress(__SLOT03, tokenId);
-  const isApprovedForAll = Boolean.fromABI(Mapping2.getBoolean(__SLOT04, owner, authorizer));
+  const isApprovedForAll = Boolean.fromABI(MappingNested.getBoolean(__SLOT04, owner, authorizer));
   const isAuthOwner = Address.equals(authorizer, owner);
   const isAuthApproved = Address.equals(authorizer, approvedAddress);
   const isAuthorized = isAuthOwner || isAuthApproved || isApprovedForAll;
@@ -1618,5 +1616,5 @@ export function getApproved(arg0: usize): usize {
 export function isApprovedForAll(arg0: usize, arg1: usize): usize {
   const owner = arg0;
   const operator = arg1;
-  return Mapping2.getBoolean(__SLOT04, owner, operator);
+  return MappingNested.getBoolean(__SLOT04, owner, operator);
 }`

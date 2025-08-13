@@ -1,32 +1,43 @@
-import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call, IRExpression } from "@/cli/types/ir.types.js";
+import { METHOD_GROUPS } from "@/cli/types/method-types.js";
 
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { Handler } from "../../core/base-abstract-handlers.js";
 
 /**
  * Handler for U256 comparison methods (lessThan, greaterThan, equal, etc.)
  */
-export class U256ComparisonHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
+export class U256ComparisonHandler extends Handler {
+  canHandle(expr: IRExpression): boolean {
     if (expr.kind !== "call") return false;
     const target = expr.target || "";
-    return (
-      target.endsWith(".lessThan") ||
-      target.endsWith(".greaterThan") ||
-      target.endsWith(".lessThanOrEqual") ||
-      target.endsWith(".greaterThanOrEqual") ||
-      target.endsWith(".equal") ||
-      target.endsWith(".notEqual")
-    );
+
+    // Handle new receiver-based IR structure
+    if (expr.receiver) {
+      return METHOD_GROUPS.COMPARISON.includes(target as (typeof METHOD_GROUPS.COMPARISON)[number]);
+    }
+
+    // Handle legacy hybrid targets (backward compatibility)
+    return METHOD_GROUPS.COMPARISON.some((method) => target.endsWith(`.${method}`));
   }
 
-  handle(
-    expr: any,
-    context: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
-    const [prop, method] = expr.target.split(".");
+  handle(expr: Call): EmitResult {
+    let receiverExpr: string;
+    let method: string;
 
-    const argRes = emit(expr.args[0], context);
+    // Handle new receiver-based IR structure
+    if (expr.receiver) {
+      const receiverResult = this.contractContext.emitExpression(expr.receiver);
+      receiverExpr = receiverResult.valueExpr;
+      method = expr.target;
+    } else {
+      // Handle legacy hybrid targets (backward compatibility)
+      const [prop, methodName] = expr.target.split(".");
+      receiverExpr = prop;
+      method = methodName;
+    }
+
+    const argRes = this.contractContext.emitExpression(expr.args[0]);
 
     // Map method names to U256 static methods
     const methodMap: { [key: string]: string } = {
@@ -34,25 +45,38 @@ export class U256ComparisonHandler implements ExpressionHandler {
       greaterThan: "greaterThan",
       lessThanOrEqual: "lessThanOrEqual",
       greaterThanOrEqual: "greaterThanOrEqual",
-      equal: "equals",
-      notEqual: "notEquals"
+      equals: "equals",
+      notEqual: "notEquals",
     };
 
     const staticMethod = methodMap[method] || method;
 
+    // Handle receiver setup lines for new IR structure
+    let allSetupLines = [...argRes.setupLines];
+    if (expr.receiver) {
+      const receiverResult = this.contractContext.emitExpression(expr.receiver);
+      allSetupLines = [...receiverResult.setupLines, ...allSetupLines];
+    }
+
     // Contract property case (e.g., `contract.unsignedCounter.lessThan(x)`)
     if (expr.scope === "storage") {
+      const propName = expr.receiver
+        ? expr.receiver.kind === "var"
+          ? expr.receiver.name
+          : receiverExpr
+        : receiverExpr;
+
       return {
-        setupLines: [...argRes.setupLines],
-        valueExpr: `U256.${staticMethod}(load_${prop}(), ${argRes.valueExpr})`,
+        setupLines: allSetupLines,
+        valueExpr: `Boolean.fromABI(U256.${staticMethod}(load_${propName}(), ${argRes.valueExpr}))`,
         valueType: "boolean",
       };
     }
 
-    // Regular object case (e.g., `value.lessThan(x)`)
+    // Regular object case (e.g., `value.lessThan(x)`) - MUST wrap in Boolean.fromABI
     return {
-      setupLines: [...argRes.setupLines],
-      valueExpr: `U256.${staticMethod}(${prop}, ${argRes.valueExpr})`,
+      setupLines: allSetupLines,
+      valueExpr: `Boolean.fromABI(U256.${staticMethod}(${receiverExpr}, ${argRes.valueExpr}))`,
       valueType: "boolean",
     };
   }

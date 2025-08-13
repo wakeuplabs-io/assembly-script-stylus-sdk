@@ -1,32 +1,29 @@
-import { EmitResult, EmitContext } from "@/cli/types/emit.types.js";
 
-import { ExpressionHandler } from "../../core/interfaces.js";
+import { EmitResult } from "@/cli/types/emit.types.js";
+import { Call } from "@/cli/types/ir.types.js";
+import { Handler } from "@/transformers/core/base-abstract-handlers.js";
+
 
 /**
  * Handler for I256 comparison methods (lessThan, greaterThan, equal, etc.)
  */
-export class I256ComparisonHandler implements ExpressionHandler {
-  canHandle(expr: any): boolean {
-    if (expr.kind !== "call") return false;
+export class I256ComparisonHandler extends Handler {
+  canHandle(expr: Call): boolean {
     const target = expr.target || "";
     return (
       target.endsWith(".lessThan") ||
       target.endsWith(".greaterThan") ||
       target.endsWith(".lessThanOrEqual") ||
       target.endsWith(".greaterThanOrEqual") ||
-      target.endsWith(".equal") ||
+      target.endsWith(".equals") ||
       target.endsWith(".notEqual")
     );
   }
 
-  handle(
-    expr: any,
-    context: EmitContext,
-    emit: (e: any, c: EmitContext) => EmitResult
-  ): EmitResult {
+  handle(expr: Call): EmitResult {
     const [prop, method] = expr.target.split(".");
 
-    const argRes = emit(expr.args[0], context);
+    const argRes = this.contractContext.emitExpression(expr.args[0]);
 
     // Map method names to I256 static methods
     const methodMap: { [key: string]: string } = {
@@ -34,7 +31,7 @@ export class I256ComparisonHandler implements ExpressionHandler {
       greaterThan: "greaterThan",
       lessThanOrEqual: "lessThanOrEqual",
       greaterThanOrEqual: "greaterThanOrEqual",
-      equal: "equals",
+      equals: "equals",
       notEqual: "notEquals"
     };
 
