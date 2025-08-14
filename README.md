@@ -16,10 +16,8 @@ The Stylus AssemblyScript SDK is a complete development toolkit for creating Arb
 
 This monorepo contains three main components:
 
-<!--
-### [SDK Core](./packages/as-stylus/) | [NPM Package](https://www.npmjs.com/package/as-stylus)
+### [SDK Core](./packages/as-stylus/) | [NPM Package](https://www.npmjs.com/package/@wakeuplabs/as-stylus)
 - Learn the SDK through interactive examples
--->
 
 ### [SDK Core](./packages/as-stylus/)
 The main SDK package that provides:
@@ -29,13 +27,11 @@ The main SDK package that provides:
 - CLI tools for project scaffolding, compilation, and deployment
 - Built-in support for common standards such as ERC20, ERC721
 
-<!--
 ### [Interactive Playground](./packages/playground/) | [Live Playground](https://as-stylus-playground.wakeuplabs.link/)
 A web-based playground that allows developers to:
 - Try out ERC20 and ERC721 contract examples in the browser
 - Interact with own contracts
 - Learn the SDK through interactive examples
--->
 
 ### [Documentation Website](./packages/website-docs/) | [Live Docs](https://as-stylus.wakeuplabs.io/)
 Comprehensive documentation that covers:
@@ -54,24 +50,18 @@ Comprehensive documentation that covers:
 
 ## Quick Start
 
-### Installation
-
-```bash
-npm install -g as-stylus
-```
-
 ### Generate a new project
 
 ```bash
-as-stylus generate my-contract
+npx @wakeuplabs/as-stylus generate my-contract
 cd my-contract
 ```
 
 ### Build and deploy
 
 ```bash
-as-stylus compile <contract-file>    # build artifacts, Compile to WASM and check Validate with cargo stylus
-npm run deploy  <contract-file>      # Deploy to Arbitrum
+npx @wakeuplabs/as-stylus compile <contract-file> --endpoint <rpc-url>    # build artifacts, Compile to WASM and check Validate with cargo stylus
+npm run deploy <contract-file> --endpoint <rpc-url>                       # Deploy to Arbitrum
 ```
 
 ## Developer Workflow
