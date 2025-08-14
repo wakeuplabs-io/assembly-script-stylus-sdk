@@ -37,7 +37,7 @@ For more information about Stylus, see [Stylus: A Gentle Introduction](https://d
 Install the CLI tool globally:
 
 ```bash
-npm install -g as-stylus
+npm install @wakeuplabs/as-stylus
 ```
 
 Or use with npx:

@@ -10,35 +10,45 @@ interface NavigationItem {
 
 const decorators: NavigationItem[] = [
   {
-    title: '@Contract',
-    description: 'Define your smart contract',
-    link: '/decorators/contract'
+    title: "@Contract",
+    description: "Define your smart contract",
+    link: "/decorators/contract",
   },
   {
-    title: '@External',
-    description: 'Public contract methods',
-    link: '/decorators/external'
+    title: "@External",
+    description: "Public contract methods",
+    link: "/decorators/external",
   },
   {
-    title: '@View',
-    description: 'Read-only methods',
-    link: '/decorators/view'
+    title: "@Public",
+    description: "Alternative public methods",
+    link: "/decorators/public",
   },
   {
-    title: '@Event',
-    description: 'Blockchain event logging',
-    link: '/decorators/event'
+    title: "@Internal",
+    description: "Private contract methods",
+    link: "/decorators/internal",
   },
   {
-    title: '@Error',
-    description: 'Custom error definitions',
-    link: '/decorators/error'
+    title: "@View",
+    description: "Read-only methods",
+    link: "/decorators/view",
   },
   {
-    title: 'Visibility and State Mutability',
-    description: 'Method visibility control',
-    link: '/decorators/visibility'
-  }
+    title: "@Event",
+    description: "Blockchain event logging",
+    link: "/decorators/event",
+  },
+  {
+    title: "@Error",
+    description: "Custom error definitions",
+    link: "/decorators/error",
+  },
+  {
+    title: "State Mutability",
+    description: "Method visibility control",
+    link: "/decorators/visibility",
+  },
 ];
 
 const types: NavigationItem[] = [

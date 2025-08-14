@@ -50,24 +50,30 @@ Comprehensive documentation that covers:
 
 ## Quick Start
 
-### Installation
+### Installation (optional)
+
+Use npx (recommended), or install globally if you prefer.
 
 ```bash
-npm install -g as-stylus
+# Option A: npx (no install)
+npx @wakeuplabs/as-stylus --version
+
+# Option B: global install
+npm install -g @wakeuplabs/as-stylus
 ```
 
 ### Generate a new project
 
 ```bash
-as-stylus generate my-contract
+npx @wakeuplabs/as-stylus generate my-contract
 cd my-contract
 ```
 
 ### Build and deploy
 
 ```bash
-as-stylus compile <contract-file>    # build artifacts, Compile to WASM and check Validate with cargo stylus
-npm run deploy  <contract-file>      # Deploy to Arbitrum
+npx @wakeuplabs/as-stylus compile <contract-file> --endpoint <rpc-url>    # build artifacts, Compile to WASM and check Validate with cargo stylus
+npm run deploy <contract-file> --endpoint <rpc-url>                       # Deploy to Arbitrum
 ```
 
 ## Developer Workflow

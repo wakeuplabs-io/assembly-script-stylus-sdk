@@ -18,20 +18,24 @@ The AssemblyScript Stylus SDK is a complete development framework that allows de
 - **AssemblyScript** >= 0.27.x
 - **cargo stylus** (Rust CLI tool for Stylus validation and deployment)
 
-## Installation
+### Installation
 
-Install the CLI globally to get started:
+Use npx (recommended), or install globally if you prefer.
 
 ```bash
-npm install -g as-stylus
+# Option A: npx (no install)
+npx @wakeuplabs/as-stylus --version
+
+# Option B: global install
+npm install -g @wakeuplabs/as-stylus
 ```
 
-## Generate a New Project
+### Generate a new project
 
 Create a new contract project with built-in scaffolding:
 
 ```bash
-as-stylus generate my-contract
+npx @wakeuplabs/as-stylus generate my-contract
 cd my-contract
 ```
 
@@ -78,7 +82,8 @@ export class Counter {
 Compile your contract to WebAssembly and validate it for Stylus:
 
 ```bash
-as-stylus compile contract.ts --endpoint <RPC_URL>
+# build artifacts, Compile to WASM and check Validate with cargo stylus
+npx @wakeuplabs/as-stylus compile contract.ts --endpoint <RPC_URL>
 ```
 
 Deploy to Arbitrum:
