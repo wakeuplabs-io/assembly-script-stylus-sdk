@@ -24,7 +24,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     step: "Step 4: Deploy to Arbitrum",
     description: "Deploy your contract to Arbitrum Sepolia testnet",
-    command: "npx as-stylus deploy --private-key <YOUR_PRIVATE_KEY> --endpoint <YOUR_RPC_URL> contract.ts",
+    command: "npx as-stylus deploy --private-key <YOUR_PRIVATE_KEY> --endpoint <YOUR_RPC_URL> contract.ts --constructor-args \"MyToken\" \"MYT\"",
     hint: "Arbitrum Sepolia RPC: https://sepolia-rollup.arbitrum.io/rpc",
   },
 ]

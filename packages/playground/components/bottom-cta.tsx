@@ -55,7 +55,7 @@ export function BottomCTA() {
               </a>
 
               <a
-                href="https://https://as-stylus.wakeuplabs.io/"
+                href="https://as-stylus.wakeuplabs.io/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block"
