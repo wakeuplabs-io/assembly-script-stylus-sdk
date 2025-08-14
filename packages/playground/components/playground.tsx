@@ -44,7 +44,7 @@ export function Playground() {
                 <CodeBlock
                   code={activeContract === "ERC20" ? ERC20_CONTRACT_CODE : ERC721_CONTRACT_CODE}
                   showCopy
-                  height="600px"
+                  height="45rem"
                 />
               </div>
 

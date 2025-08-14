@@ -413,7 +413,7 @@ export function ContractInteraction() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {writeFunctions.map((func) => (
+                {writeFunctions.filter((func) => func.name !== "contract_constructor").map((func) => (
                   <div key={func.name} className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-medium text-white">{func.name}</h4>

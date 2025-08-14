@@ -422,7 +422,7 @@ export function user_entrypoint(args_len: usize): i32 {
     return 0;
   }
 
-    if (selector == 0x06fdde03) {
+  if (selector == 0x06fdde03) {
     const buf = name();
     const len = loadU32BE(buf + 60);
     const padded = ((len + 31) & ~31);
@@ -891,7 +891,7 @@ export function user_entrypoint(args_len: usize): i32 {
     return 0;
   }
 
-    if (selector == 0x095ea7b3) {
+  if (selector == 0x095ea7b3) {
     const arg0 = position + 4;
     const arg1 = position + 36;
     approve(arg0, arg1); return 0;
