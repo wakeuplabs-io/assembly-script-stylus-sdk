@@ -12,14 +12,6 @@
 export function Contract(_target: any): any {}
 
 /**
- * Marks a class as an event
- * This creates a proper TypeScript mixin that extends BaseEvent at compile time
- */
-export function Event(_target: any): typeof _target & { emit: (...args: any[]) => void } {
-  return _target;
-}
-
-/**
  * Marks a method as internal (callable from within the contract)
  * @param _target - The target method
  * @param _propertyKey - The property key

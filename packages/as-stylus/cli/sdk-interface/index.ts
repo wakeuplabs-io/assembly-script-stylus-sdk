@@ -1,5 +1,6 @@
 export * from "./decorators.js";
 export * from "./error.js";
+export * from "./event.js";
 
 // Export original modules
 export * from "./address.js";

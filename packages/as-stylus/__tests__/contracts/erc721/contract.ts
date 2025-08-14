@@ -1,8 +1,6 @@
 import {
   Contract,
-  Event,
   External,
-  Indexed,
   U256,
   U256Factory,
   Address,
@@ -14,6 +12,7 @@ import {
   StrFactory,
   msg,
   AddressFactory,
+  EventFactory,
 } from "as-stylus";
 
 const ERC721InvalidOwner = ErrorFactory.create<[owner: Address]>();
@@ -26,26 +25,17 @@ const ERC721InvalidApprover = ErrorFactory.create<[approver: Address]>();
 const ERC721InvalidOperator = ErrorFactory.create<[operator: Address]>();
 const ERC721InvalidSender = ErrorFactory.create<[sender: Address]>();
 
-@Event
-export class Transfer {
-  @Indexed from!: Address;
-  @Indexed to!: Address;
-  @Indexed tokenId!: U256;
-}
+const Transfer = EventFactory.create<[Address, Address, U256]>({
+  indexed: [true, true, true],
+});
 
-@Event
-export class Approval {
-  @Indexed owner!: Address;
-  @Indexed spender!: Address;
-  @Indexed tokenId!: U256;
-}
+const Approval = EventFactory.create<[Address, Address, U256]>({
+  indexed: [true, true, true],
+});
 
-@Event
-export class ApprovalForAll {
-  @Indexed owner!: Address;
-  @Indexed operator!: Address;
-  approved!: boolean;
-}
+const ApprovalForAll = EventFactory.create<[Address, Address, boolean]>({
+  indexed: [true, true, false],
+});
 
 @Contract
 export class ERC721 {

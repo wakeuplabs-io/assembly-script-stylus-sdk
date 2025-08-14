@@ -1,7 +1,7 @@
 import { SourceFile, ConstructorDeclaration, ClassDeclaration, SyntaxKind, CallExpression, VariableDeclaration } from "ts-morph";
 
 import { ctx } from "@/cli/shared/compilation-context.js";
-import { IRContract, IRErrorDecl } from "@/cli/types/ir.types.js";
+import { IRContract, IRErrorDecl, IREvent } from "@/cli/types/ir.types.js";
 
 import { ContractSemanticValidator } from "./semantic-validator.js";
 import { ContractSyntaxValidator } from "./syntax-validator.js";
@@ -63,7 +63,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
     // Process all class-based components
     const structs = this.processStructs(classes);
-    const events = this.processEvents(classes);
+    const events = this.processEvents();
     const errors = this.processErrors(classes);
     const storage = this.processStorage(contractClass);
     const constructor = this.processConstructor(contractClass);
@@ -145,13 +145,31 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     return structs;
   }
 
-  private processEvents(classes: ClassDeclaration[]) {
-    const eventClasses = this.filterClassesByDecorator(classes, DECORATORS.EVENT);
+  private processEvents(): IREvent[] {
+    const events: IREvent[] = [];
+    const sourceFile = this.sourceFile;
     
-    return eventClasses.map(eventClass => {
-      const eventIRBuilder = new EventIRBuilder(eventClass);
-      return eventIRBuilder.validateAndBuildIR();
-    });
+    // Find all EventFactory.create<T>() calls
+    const eventFactoryCalls = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
+    
+    for (const call of eventFactoryCalls) {
+      const expr = call.getExpression();
+      
+      if (expr.getText() === "EventFactory.create") {
+        const parent = call.getParent();
+        
+        if (parent && parent.getKind() === SyntaxKind.VariableDeclaration) {
+          const varDecl = parent as VariableDeclaration;
+          
+          const eventIRBuilder = new EventIRBuilder(varDecl);
+          const eventIR = eventIRBuilder.validateAndBuildIR();
+          
+          events.push(eventIR);
+        }
+      }
+    }
+    
+    return events;
   }
 
   private processErrors(classes: ClassDeclaration[]) {

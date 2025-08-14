@@ -1,29 +1,22 @@
 import {
   Address,
   Contract,
-  Event,
   External,
-  Indexed,
   Mapping,
   MappingNested,
   View,
   U256,
   msg,
+  EventFactory,
 } from "as-stylus";
 
-@Event
-export class Transfer {
-  @Indexed from!: Address;
-  @Indexed to!: Address;
-  value!: U256;
-}
+const Transfer = EventFactory.create<[Address, Address, U256]>({
+  indexed: [true, true, false],
+});
 
-@Event
-export class Approval {
-  @Indexed owner!: Address;
-  @Indexed spender!: Address;
-  value!: U256;
-}
+const Approval = EventFactory.create<[Address, Address, U256]>({
+  indexed: [true, true, false],
+});
 
 @Contract
 export class ERC20 {
