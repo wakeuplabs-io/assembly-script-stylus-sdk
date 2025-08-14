@@ -29,6 +29,7 @@ export function buildPackageJson(targetPath: string, projectName: string) {
         },
         devDependencies: {
           assemblyscript: "^0.27.35",
+          "@wakeuplabs/as-stylus": "*",
         },
       },
       null,

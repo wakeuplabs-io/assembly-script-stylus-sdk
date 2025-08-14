@@ -76,6 +76,9 @@ export function Playground() {
                           </button>
                         </div>
                       )}
+                      {step.hint && (
+                        <p className="text-gray-500 text-xs mt-1 italic">{step.hint}</p>
+                      )}
                     </div>
                   ))}
                 </div>
