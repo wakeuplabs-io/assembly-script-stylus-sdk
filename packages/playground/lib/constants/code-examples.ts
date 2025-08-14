@@ -109,7 +109,7 @@ export class ERC20Full {
     const toAmount = balances.get(to);
     const newAmount = toAmount.add(amount);
     balances.set(to, newAmount);
-    const AddressZero = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
+    const AddressZero = AddressFactory.create();
     Transfer.emit(AddressZero, to, amount);
   }
 
@@ -122,7 +122,7 @@ export class ERC20Full {
     }
     balances.set(sender, senderBal.sub(amount));
     totalSupply = totalSupply.sub(amount);
-    const AddressZero = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
+    const AddressZero = AddressFactory.create();
     Transfer.emit(sender, AddressZero, amount);
   }
 }`
