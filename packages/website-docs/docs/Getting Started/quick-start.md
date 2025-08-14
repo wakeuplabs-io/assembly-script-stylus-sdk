@@ -1,13 +1,8 @@
 # Quick Start
-<!--
-This SDK is currently in **alpha development** and is actively being worked on. It is **not production-ready** and may contain bugs, breaking changes, or incomplete features. Use at your own risk and avoid deploying to mainnet without thorough testing.
---> 
+
 :::caution ALPHA VERSION
 
-This SDK is **not intended for use at this stage**.  
-It is in early alpha development, unstable, and subject to major breaking changes.  
-**Do not use this SDK in any production, staging, or testnet environments.**  
-We strongly advise against integrating or deploying this code until a stable release is announced.
+This SDK is currently in **alpha development** and is actively being worked on. It is **not production-ready** and may contain bugs, breaking changes, or incomplete features. Use at your own risk and avoid deploying to mainnet without thorough testing.
 
 :::
 
@@ -107,4 +102,4 @@ Ready to dive deeper? Check out the [Project Breakdown](project-breakdown) to un
 - [Decorators](/decorators/contract) - Define contract structure and behavior
 - [Data Types](/types/u256) - Master blockchain-optimized types
 - [ERC20 Example](/examples/erc20) - Token contract implementation
-<!-- - [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/) - Test concepts in your browser --> 
+- [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/) - Test concepts in your browser

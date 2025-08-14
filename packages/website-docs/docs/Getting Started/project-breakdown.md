@@ -14,13 +14,11 @@ The main SDK package that provides:
 - CLI tools for project scaffolding, compilation, and deployment
 - Built-in support for common standards (ERC20, ERC721)
 
-<!-- 
 ### 🎮 [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/)
 A web-based playground that allows developers to:
 - Try out ERC20 and ERC721 contract examples in the browser
 - Interact with deployed contracts
 - Learn the SDK through interactive examples
---> 
 
 ### 📚 Documentation Website
 Comprehensive documentation covering:
@@ -145,10 +143,8 @@ The SDK provides efficient memory management through:
 - [Event System](../decorators/event) - Efficient logging and monitoring
 - [Visibility Modifiers](../decorators/visibility) - Access control patterns
 
-<!-- 
 ### Try it Live
 - [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/) - Test concepts in your browser
- --> 
 
 ### Resources
 - [NPM Package](https://www.npmjs.com/package/as-stylus)
