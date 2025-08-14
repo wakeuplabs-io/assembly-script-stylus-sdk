@@ -6,7 +6,7 @@ This comprehensive guide provides an in-depth look at the AssemblyScript Stylus 
 
 Our monorepo contains three main components designed to provide a complete development experience:
 
-### 🛠️ [SDK Core](https://www.npmjs.com/package/as-stylus)
+### 🛠️ [SDK Core](https://www.npmjs.com/package/@wakeuplabs/as-stylus)
 The main SDK package that provides:
 - AssemblyScript bindings for Stylus host functions
 - Type-safe storage and memory management
@@ -14,15 +14,13 @@ The main SDK package that provides:
 - CLI tools for project scaffolding, compilation, and deployment
 - Built-in support for common standards (ERC20, ERC721)
 
-<!-- 
 ### 🎮 [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/)
 A web-based playground that allows developers to:
 - Try out ERC20 and ERC721 contract examples in the browser
 - Interact with deployed contracts
 - Learn the SDK through interactive examples
---> 
 
-### 📚 Documentation Website
+### 📚 [Documentation Website] (https://as-stylus.wakeuplabs.io/)
 Comprehensive documentation covering:
 - Getting started guides and tutorials
 - API reference and examples
@@ -145,13 +143,11 @@ The SDK provides efficient memory management through:
 - [Event System](../decorators/event) - Efficient logging and monitoring
 - [Visibility Modifiers](../decorators/visibility) - Access control patterns
 
-<!-- 
 ### Try it Live
 - [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/) - Test concepts in your browser
- --> 
 
 ### Resources
-- [NPM Package](https://www.npmjs.com/package/as-stylus)
+- [NPM Package](https://www.npmjs.com/package/@wakeuplabs/as-stylus)
 - [GitHub Repository](https://github.com/your-org/assembly-script-stylus-sdk)
 
 ## Next Steps

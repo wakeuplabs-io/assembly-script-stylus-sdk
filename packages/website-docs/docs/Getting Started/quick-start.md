@@ -1,13 +1,8 @@
 # Quick Start
-<!--
-This SDK is currently in **alpha development** and is actively being worked on. It is **not production-ready** and may contain bugs, breaking changes, or incomplete features. Use at your own risk and avoid deploying to mainnet without thorough testing.
---> 
+
 :::caution ALPHA VERSION
 
-This SDK is **not intended for use at this stage**.  
-It is in early alpha development, unstable, and subject to major breaking changes.  
-**Do not use this SDK in any production, staging, or testnet environments.**  
-We strongly advise against integrating or deploying this code until a stable release is announced.
+This SDK is currently in **alpha development** and is actively being worked on. It is **not production-ready** and may contain bugs, breaking changes, or incomplete features. Use at your own risk and avoid deploying to mainnet without thorough testing.
 
 :::
 
@@ -23,20 +18,12 @@ The AssemblyScript Stylus SDK is a complete development framework that allows de
 - **AssemblyScript** >= 0.27.x
 - **cargo stylus** (Rust CLI tool for Stylus validation and deployment)
 
-## Installation
-
-Install the CLI globally to get started:
-
-```bash
-npm install -g as-stylus
-```
-
-## Generate a New Project
+### Generate a new project
 
 Create a new contract project with built-in scaffolding:
 
 ```bash
-as-stylus generate my-contract
+npx @wakeuplabs/as-stylus generate my-contract
 cd my-contract
 ```
 
@@ -83,7 +70,8 @@ export class Counter {
 Compile your contract to WebAssembly and validate it for Stylus:
 
 ```bash
-as-stylus compile contract.ts --endpoint <RPC_URL>
+# build artifacts, Compile to WASM and check Validate with cargo stylus
+npx @wakeuplabs/as-stylus compile contract.ts --endpoint <RPC_URL>
 ```
 
 Deploy to Arbitrum:
@@ -107,4 +95,4 @@ Ready to dive deeper? Check out the [Project Breakdown](project-breakdown) to un
 - [Decorators](/decorators/contract) - Define contract structure and behavior
 - [Data Types](/types/u256) - Master blockchain-optimized types
 - [ERC20 Example](/examples/erc20) - Token contract implementation
-<!-- - [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/) - Test concepts in your browser --> 
+- [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/) - Test concepts in your browser

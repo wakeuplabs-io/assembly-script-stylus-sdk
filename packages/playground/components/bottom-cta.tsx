@@ -30,7 +30,9 @@ export function BottomCTA() {
           className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-[#ac1c5e]/30 shadow-2xl"
         >
           <CardContent className="p-12 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">Ready for your first deploy?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+              Ready for your first deploy?
+            </h2>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
               Start building Stylus contracts with TypeScript today. No Rust knowledge required.
             </p>
@@ -75,5 +77,5 @@ export function BottomCTA() {
         </Card>
       </div>
     </section>
-  )
+  );
 }
