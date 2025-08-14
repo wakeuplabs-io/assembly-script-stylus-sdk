@@ -20,7 +20,7 @@ A web-based playground that allows developers to:
 - Interact with deployed contracts
 - Learn the SDK through interactive examples
 
-### 📚 Documentation Website
+### 📚 [Documentation Website] (https://as-stylus.wakeuplabs.io/)
 Comprehensive documentation covering:
 - Getting started guides and tutorials
 - API reference and examples
