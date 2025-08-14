@@ -2,10 +2,9 @@
 
 > ⚠️ **ALPHA VERSION NOTICE**
 >
-> This SDK is **not intended for use** at this stage.
-> It is in **early alpha development**, unstable, and subject to **major breaking changes**.
-> **Do not use** this SDK in any production, staging, or testnet environments.
-> We **strongly advise against integrating or deploying** this code until a stable release is announced.
+> This SDK is currently in **alpha development** and is actively being worked on. 
+> It is **not production-ready** and may contain bugs, breaking changes, or incomplete features. 
+> Use at your own risk and avoid deploying to mainnet without thorough testing.
 
 **Smart contracts on Arbitrum using AssemblyScript**
 

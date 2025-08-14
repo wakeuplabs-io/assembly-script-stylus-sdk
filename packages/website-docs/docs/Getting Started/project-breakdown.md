@@ -6,7 +6,7 @@ This comprehensive guide provides an in-depth look at the AssemblyScript Stylus 
 
 Our monorepo contains three main components designed to provide a complete development experience:
 
-### 🛠️ [SDK Core](https://www.npmjs.com/package/as-stylus)
+### 🛠️ [SDK Core](https://www.npmjs.com/package/@wakeuplabs/as-stylus)
 The main SDK package that provides:
 - AssemblyScript bindings for Stylus host functions
 - Type-safe storage and memory management
@@ -147,7 +147,7 @@ The SDK provides efficient memory management through:
 - [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/) - Test concepts in your browser
 
 ### Resources
-- [NPM Package](https://www.npmjs.com/package/as-stylus)
+- [NPM Package](https://www.npmjs.com/package/@wakeuplabs/as-stylus)
 - [GitHub Repository](https://github.com/your-org/assembly-script-stylus-sdk)
 
 ## Next Steps

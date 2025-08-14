@@ -16,7 +16,7 @@ The Stylus AssemblyScript SDK is a complete development toolkit for creating Arb
 
 This monorepo contains three main components:
 
-### [SDK Core](./packages/as-stylus/) | [NPM Package](https://www.npmjs.com/package/as-stylus)
+### [SDK Core](./packages/as-stylus/) | [NPM Package](https://www.npmjs.com/package/@wakeuplabs/as-stylus)
 - Learn the SDK through interactive examples
 
 ### [SDK Core](./packages/as-stylus/)
