@@ -53,7 +53,6 @@ function generateMethod(method: IRMethod, contractContext: ContractContext): str
   if (method.outputs && method.outputs.length > 0 && method.outputs[0].type !== "void") {
     returnType = "usize";
   }
-  console.log(JSON.stringify(method.ir, null, 2));
   const { argsSignature, aliasLines } = generateMethodSignature(method);
   const body = statementHandler.handleStatements(method.ir);
 

@@ -31,11 +31,11 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     if (symbol && symbol.type === "function") {
       return (symbol as FunctionSymbol).returnType;
     }
-    
+
     if (symbol && symbol.type === AbiType.UserDefinedFunction) {
       return (symbol as FunctionSymbol).returnType;
     }
-    
+
     const variable = target.split(".")[0];
     const functionCalled = target.includes("(");
 
@@ -43,7 +43,6 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       const type = this.getReturnType(target.split("(")[0]);
       return type;
     }
-
 
     const variableDeclared = this.symbolTable.lookup(variable);
     if (variableDeclared && variableDeclared.type !== "function") {
@@ -55,8 +54,6 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
   buildIR(): IRExpression {
     const expr = this.call.getExpression();
-    console.log(`>>> CallFunctionIRBuilder.buildIR() - Full call: ${this.call.getText()}`);
-    console.log(`>>> CallFunctionIRBuilder.buildIR() - expr: ${expr.getText()}`);
 
     if (StructFactoryBuilder.isStructFactoryCreate(this.call)) {
       return StructFactoryBuilder.buildStructCreateIR(this.call);
@@ -65,7 +62,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     // ChainedCallAnalyzer now handles all chained expressions at ExpressionIRBuilder level
     // This fallback should only handle non-chained calls
     // if (this.isChainedExpression(expr)) {
-    //   return this.buildSimpleChainedCall();  
+    //   return this.buildSimpleChainedCall();
     // }
 
     // Try to detect Mapping access: Balances.balances.get(user) or .set(user, value)
@@ -172,8 +169,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       }
     }
     const target = expr.getText();
-    console.log(`>>> FALLBACK target generation: "${target}"`);
-    
+
     const args = this.call.getArguments().map((argument) => {
       const expressionBuilder = new ExpressionIRBuilder(argument as Expression);
       return expressionBuilder.validateAndBuildIR();
@@ -214,25 +210,16 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
    * Detects if an expression is a chained call that needs special IR structure
    */
   private isChainedExpression(expr: Expression): boolean {
-    console.log(`>>> DEBUG isChainedExpression: ${expr.getText()}`);
-    console.log(`>>> expr kind: ${expr.getKindName()}`);
-    
     // Check if this is a PropertyAccessExpression (method call on an object)
     if (expr.getKind() === SyntaxKind.PropertyAccessExpression) {
       const propAccess = expr as PropertyAccessExpression;
       const leftSide = propAccess.getExpression();
-      
-      console.log(`>>> leftSide kind: ${leftSide.getKindName()}`);
-      console.log(`>>> leftSide text: ${leftSide.getText()}`);
-      
       // Check if the left side is itself a call expression (chained calls)
       if (leftSide.getKind() === SyntaxKind.CallExpression) {
-        console.log(`>>> DETECTED CHAINED CALL: ${expr.getText()}`);
         return true;
       }
     }
-    
-    console.log(`>>> NOT a chained call: ${expr.getText()}`);
+
     return false;
   }
 
@@ -241,35 +228,30 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
    * Handles recursive chaining like owners.get(tokenId).isZero()
    */
   private buildSimpleChainedCall(): IRExpression {
-    console.log(`>>> EXECUTING buildSimpleChainedCall for: ${this.call.getText()}`);
     const callTarget = this.call.getExpression();
-    
+
     if (callTarget.getKind() === SyntaxKind.PropertyAccessExpression) {
       const propAccess = callTarget as PropertyAccessExpression;
       const methodName = propAccess.getName();
       const receiverExpr = propAccess.getExpression();
-      
-      console.log(`>>> Method: ${methodName}, Receiver: ${receiverExpr.getText()}`);
-      
+
       // Build IR for the receiver recursively
       let receiver: IRExpression;
-      
+
       // Build receiver with proper IR structure
       if (receiverExpr.getKind() === SyntaxKind.CallExpression) {
-        console.log(`>>> Receiver is CallExpression, building recursively`);
         const receiverBuilder = new CallFunctionIRBuilder(receiverExpr as CallExpression);
         receiver = receiverBuilder.validateAndBuildIR();
       } else if (receiverExpr.getKind() === SyntaxKind.PropertyAccessExpression) {
-        console.log(`>>> Receiver is PropertyAccessExpression, checking for method calls`);
         // This handles cases like result.mul() in result.mul(three).div(divisor)
         const propAccess = receiverExpr as PropertyAccessExpression;
         const baseExpr = propAccess.getExpression();
         const methodName = propAccess.getName();
-        
+
         // Build IR for the base expression (e.g., 'result')
         const baseBuilder = new ExpressionIRBuilder(baseExpr);
         const baseReceiver = baseBuilder.validateAndBuildIR();
-        
+
         // Create a proper call IR for the method (e.g., result.mul())
         receiver = {
           kind: "call",
@@ -277,29 +259,27 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
           receiver: baseReceiver,
           args: [], // PropertyAccessExpression has no args, actual args come from full call
           type: AbiType.Function,
-          returnType: this.getChainedReturnType('returnType' in baseReceiver ? baseReceiver.returnType : AbiType.Unknown, methodName),
+          returnType: this.getChainedReturnType(
+            "returnType" in baseReceiver ? baseReceiver.returnType : AbiType.Unknown,
+            methodName,
+          ),
           scope: "memory",
         };
-        
-        console.log(`>>> Created method call receiver: ${methodName} on ${baseExpr.getText()}`);
       } else {
-        console.log(`>>> Receiver is ${receiverExpr.getKindName()}, building normally`);
         const receiverBuilder = new ExpressionIRBuilder(receiverExpr);
         receiver = receiverBuilder.validateAndBuildIR();
       }
-      
+
       // Build IR for the arguments
       const args = this.call.getArguments().map((argument) => {
         const expressionBuilder = new ExpressionIRBuilder(argument as Expression);
         return expressionBuilder.validateAndBuildIR();
       });
-      
+
       // Determine return type based on receiver and method
-      const receiverReturnType = 'returnType' in receiver ? receiver.returnType : AbiType.Unknown;
+      const receiverReturnType = "returnType" in receiver ? receiver.returnType : AbiType.Unknown;
       const returnType = this.getChainedReturnType(receiverReturnType, methodName);
-      
-      console.log(`>>> Generated IR with receiver structure - method: ${methodName}, returnType: ${returnType}`);
-      
+
       return {
         kind: "call",
         target: methodName,
@@ -310,14 +290,13 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
         scope: "memory",
       };
     }
-    
+
     // Fallback to regular call handling
-    console.log(`>>> Fallback: not PropertyAccessExpression`);
     const args = this.call.getArguments().map((argument) => {
       const expressionBuilder = new ExpressionIRBuilder(argument as Expression);
       return expressionBuilder.validateAndBuildIR();
     });
-    
+
     return {
       kind: "call",
       target: callTarget.getText(),
@@ -347,13 +326,11 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
    * Determines the return type for a chained method call
    */
   private getChainedReturnType(baseReturnType: SupportedType, methodName: string): SupportedType {
-    console.log(`>>> getChainedReturnType: baseType=${baseReturnType}, method=${methodName}`);
-    
     // For U256 methods, most return U256 except comparisons
     if (baseReturnType === AbiType.Uint256) {
       const comparisonMethods = [
         "lessThan",
-        "greaterThan", 
+        "greaterThan",
         "equals",
         "lessThanOrEqual",
         "greaterThanOrEqual",
@@ -370,7 +347,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       const comparisonMethods = [
         "lessThan",
         "greaterThan",
-        "equals", 
+        "equals",
         "lessThanOrEqual",
         "greaterThanOrEqual",
         "notEqual",
@@ -414,7 +391,6 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       return AbiType.String;
     }
 
-    console.log(`>>> getChainedReturnType: defaulting to baseReturnType for ${methodName}`);
     // For other types, assume same type
     return baseReturnType;
   }
