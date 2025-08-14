@@ -18,18 +18,6 @@ The AssemblyScript Stylus SDK is a complete development framework that allows de
 - **AssemblyScript** >= 0.27.x
 - **cargo stylus** (Rust CLI tool for Stylus validation and deployment)
 
-### Installation
-
-Use npx (recommended), or install globally if you prefer.
-
-```bash
-# Option A: npx (no install)
-npx @wakeuplabs/as-stylus --version
-
-# Option B: global install
-npm install -g @wakeuplabs/as-stylus
-```
-
 ### Generate a new project
 
 Create a new contract project with built-in scaffolding:

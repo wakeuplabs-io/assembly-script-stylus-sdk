@@ -50,18 +50,6 @@ Comprehensive documentation that covers:
 
 ## Quick Start
 
-### Installation (optional)
-
-Use npx (recommended), or install globally if you prefer.
-
-```bash
-# Option A: npx (no install)
-npx @wakeuplabs/as-stylus --version
-
-# Option B: global install
-npm install -g @wakeuplabs/as-stylus
-```
-
 ### Generate a new project
 
 ```bash
