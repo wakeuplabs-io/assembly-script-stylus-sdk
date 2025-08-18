@@ -53,7 +53,6 @@ export class U256ChainedCallHandler extends Handler {
           "greaterThan",
           "equals",
         ];
-        console.log(`>>> U256ChainedCallHandler DETECTED U256 chain: receiver.${target}()`);
         return u256Methods.includes(target);
       }
     }

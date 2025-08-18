@@ -1,12 +1,11 @@
 {
-  "name": "as-stylus",
-  "version": "0.0.9",
+  "name": "@wakeuplabs/as-stylus",
+  "version": "0.1.4",
   "description": "SDK to build AssemblyScript contracts for Stylus",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "as-stylus": "dist/cli/index.js",
-    "test-sdk": "dist/cli/build.js"
+    "as-stylus": "dist/cli/index.js"
   },
   "engines": {
     "node": ">=22.x"
@@ -29,7 +28,8 @@
       "require": "./dist/index.js",
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
-    }
+    },
+    "./core/*": "./core/*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

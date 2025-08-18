@@ -2,6 +2,7 @@ export interface OnboardingStep {
   step: string
   description: string
   command: string
+  hint?: string
 }
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
@@ -11,18 +12,19 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     command: "npx as-stylus generate my-token",
   },
   {
-    step: "Step 2: Copy contract code", 
-    description: "Replace contract.ts with the code shown here",
-    command: "",
+    step: "Step 2: Open project and copy contract code", 
+    description: "Navigate to project folder, open it in your editor, then replace contract.ts with the code shown here",
+    command: "cd my-token && code .",
   },
   {
     step: "Step 3: Build & compile",
     description: "Transform TypeScript into WebAssembly", 
-    command: "cd my-token && npx as-stylus build contract.ts",
+    command: "npx as-stylus compile contract.ts",
   },
   {
     step: "Step 4: Deploy to Arbitrum",
     description: "Deploy your contract to Arbitrum Sepolia testnet",
-    command: " npx as-stylus run deploy --private-key <YOUR_PRIVATE_KEY> --rpc-url <YOUR_RPC_URL>",
+    command: "npx as-stylus deploy --private-key <YOUR_PRIVATE_KEY> --endpoint <YOUR_RPC_URL> contract.ts --constructor-args \"MyToken\" \"MYT\"",
+    hint: "Arbitrum Sepolia RPC: https://sepolia-rollup.arbitrum.io/rpc",
   },
 ]

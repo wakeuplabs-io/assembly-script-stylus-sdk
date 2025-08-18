@@ -11,7 +11,6 @@ import { ExpressionIRBuilder } from "../expression/ir-builder.js";
  * Handles the creation of struct instances in memory with initialization
  */
 export class StructFactoryBuilder {
-  
   /**
    * Checks if this call expression is a StructFactory.create call
    */
@@ -26,9 +25,11 @@ export class StructFactoryBuilder {
   static buildStructCreateIR(call: CallExpression): IRExpression {
     // Extract the struct type from generic parameter
     const structType = extractStructTypeFromCall(call);
-    
+
     if (!structType) {
-      throw new Error("StructFactory.create requires a type parameter: StructFactory.create<StructType>");
+      throw new Error(
+        "StructFactory.create requires a type parameter: StructFactory.create<StructType>",
+      );
     }
 
     // Verify the struct exists in registry
@@ -46,20 +47,13 @@ export class StructFactoryBuilder {
     // Build IR for the array elements
     const arrayArg = args[0];
     const initialValues: IRExpression[] = [];
-    
-    console.log(`🔍 Array argument kind: ${arrayArg.getKind()} (${arrayArg.getKindName()})`);
-    console.log(`🔍 Expected ArrayLiteralExpression: ${SyntaxKind.ArrayLiteralExpression}`);
-    
+
     if (arrayArg.getKind() === SyntaxKind.ArrayLiteralExpression) {
-      console.log("✅ Processing array elements");
       const elements = (arrayArg as any).getElements();
-      console.log(`🔍 Found ${elements.length} elements in array`);
       for (const element of elements) {
         const builder = new ExpressionIRBuilder(element);
         initialValues.push(builder.validateAndBuildIR());
       }
-    } else {
-      console.log("❌ Not an ArrayLiteralExpression, skipping element processing");
     }
 
     // Return IR for struct creation with initialization
@@ -72,8 +66,8 @@ export class StructFactoryBuilder {
       // Add metadata for later processing
       metadata: {
         structType,
-        isStructCreation: true
-      }
+        isStructCreation: true,
+      },
     } as IRExpression & { metadata: any };
   }
-} 
+}

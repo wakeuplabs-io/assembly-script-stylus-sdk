@@ -55,7 +55,6 @@ export function inferType(target: string): AbiType {
   if (target.startsWith("Struct<") && target.endsWith(">")) {
     const innerTypeWithImport = target.slice(7, -1);
     const cleanStructName = extractStructName(innerTypeWithImport);
-    console.log(`🔍 inferType: ${target} → ${innerTypeWithImport} → ${cleanStructName}`);
     return cleanStructName as SupportedType;
   }
 

@@ -27,6 +27,9 @@ export function buildPackageJson(targetPath: string, projectName: string) {
             types: `${BUILD_WASM_PATH}/release.d.ts`,
           },
         },
+        dependencies: {
+          "@wakeuplabs/as-stylus": "*",
+        },
         devDependencies: {
           assemblyscript: "^0.27.35",
         },

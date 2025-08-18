@@ -15,11 +15,14 @@ export class DeployRunner {
     return this.projectFinder.validateProjects();
   }
 
-  deploy(contractPath: string, options: { privateKey: string; endpoint: string }) {
+  deploy(contractPath: string, options: { privateKey: string; endpoint?: string }) {
     const projectTargetPath = this.projectFinder.getProjectBuildPath();
     const contractName = this.projectFinder.getContractName(contractPath);
 
-    const command = `cargo stylus deploy --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm --private-key ${options.privateKey} --endpoint ${options.endpoint}`;
+    const defaultEndpoint = "https://sepolia-rollup.arbitrum.io/rpc";
+    const rpcEndpoint = options.endpoint || defaultEndpoint;
+
+    const command = `cargo stylus deploy --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm --private-key ${options.privateKey} --endpoint ${rpcEndpoint} --no-verify`;
 
     return runCommand(command, {
       cwd: projectTargetPath,
