@@ -23,6 +23,8 @@ const sidebars: SidebarsConfig = {
       items: [
         "decorators/contract",
         "decorators/external",
+        "decorators/public",
+        "decorators/internal",
         "decorators/view",
         "decorators/event",
         "decorators/error",
@@ -43,6 +45,22 @@ const sidebars: SidebarsConfig = {
       type: "category",
       label: "Examples",
       items: ["examples/erc20", "examples/erc721"],
+    },
+    {
+      type: "category",
+      label: "Versions",
+      items: [
+        {
+          type: "doc",
+          id: "versions/index",
+          label: "Version History",
+        },
+        {
+          type: "doc",
+          id: "versions/latest",
+          label: "Latest Release (v0.1.0 Alpha)",
+        },
+      ],
     },
   ],
 };
