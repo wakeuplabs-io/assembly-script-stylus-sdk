@@ -2,8 +2,8 @@
 
 > ⚠️ **ALPHA VERSION NOTICE**
 >
-> This SDK is currently in **alpha development** and is actively being worked on. 
-> It is **not production-ready** and may contain bugs, breaking changes, or incomplete features. 
+> This SDK is currently in **alpha development** and is actively being worked on.
+> It is **not production-ready** and may contain bugs, breaking changes, or incomplete features.
 > Use at your own risk and avoid deploying to mainnet without thorough testing.
 
 **Smart contracts on Arbitrum using AssemblyScript**
@@ -22,7 +22,7 @@ For more information about Stylus, see [Stylus: A Gentle Introduction](https://d
 ## Features
 
 - **TypeScript-like Syntax**: Write contracts using familiar decorators and TypeScript syntax
-- **Type Safety**: Strong typing with compile-time validation  
+- **Type Safety**: Strong typing with compile-time validation
 - **High Performance**: Compiled to WASM for optimal execution on Stylus
 - **Rich Type System**: Support for `U256`, `I256`, `Address`, `String`, `Boolean`, `Mapping`, and `Struct` types
 - **Event System**: Emit events with proper ABI encoding
@@ -32,34 +32,19 @@ For more information about Stylus, see [Stylus: A Gentle Introduction](https://d
 
 ## Quick Start
 
-### Installation
-
-Install the CLI tool globally:
+### Generate a new project
 
 ```bash
-npm install @wakeuplabs/as-stylus
-```
-
-Or use with npx:
-
-```bash
-npx as-stylus --help
-```
-
-### Create Your First Contract
-
-Generate a new project:
-
-```bash
-as-stylus generate my-counter
-cd my-counter
+npx @wakeuplabs/as-stylus generate my-contract
+cd my-contract
 ```
 
 This creates a basic project structure:
+
 ```
 my-counter/
 ├── contract.ts       # Your contract code
-├── package.json      # Project dependencies  
+├── package.json      # Project dependencies
 ├── tsconfig.json     # TypeScript configuration
 └── asconfig.json     # AssemblyScript configuration
 ```
@@ -96,41 +81,37 @@ export class Counter {
 }
 ```
 
-### Build and Deploy
+### Build and deploy
 
-Build and compile to WASM and check:
 ```bash
-npm run compile ./contract.ts
-```
-
-Deploy to Stylus testnet:
-```bash
-export PRIVATE_KEY=your_private_key_here
-npm run deploy ./contract.ts
+npx @wakeuplabs/as-stylus compile <contract-file> --endpoint <rpc-url>    # build artifacts, Compile to WASM and check Validate with cargo stylus
+npm run deploy <contract-file> --endpoint <rpc-url> --private-key <private-key>  --output <output-file> --constructor-args <constructor-args...>                      # Deploy to Arbitrum
 ```
 
 ## CLI Commands
 
 The `as-stylus` CLI provides several commands for contract development:
 
-| Command | Description | Usage |
-|---------|-------------|--------|
+| Command      | Description                                  | Usage                               |
+| ------------ | -------------------------------------------- | ----------------------------------- |
 | **generate** | Create a new Stylus project with boilerplate | `as-stylus generate <project-name>` |
-| **compile** | Compile AssemblyScript to WASM | `as-stylus compile <contract-path>` |
-| **deploy** | Deploy contract to Stylus network | `as-stylus deploy <contract-path>` |
-| **clean** | Remove build artifacts and temporary files | `as-stylus clean` |
+| **compile**  | Compile AssemblyScript to WASM               | `as-stylus compile <contract-path>` |
+| **deploy**   | Deploy contract to Stylus network            | `as-stylus deploy <contract-path>`  |
+| **clean**    | Remove build artifacts and temporary files   | `as-stylus clean`                   |
 
 ## Requirements
 
 - **Node.js** ≥ 18.x
-- **AssemblyScript** ≥ 0.27.x  
+- **AssemblyScript** ≥ 0.27.x
 - **cargo stylus** CLI tool (for compilation and deployment)
 
 Install cargo stylus:
+
 ```bash
 cargo install --force cargo-stylus
 rustup target add wasm32-unknown-unknown
 ```
+
 ## 🏗️ Project Structure
 
 ```
@@ -155,7 +136,7 @@ your-project/
 - [Cargo Stylus CLI](https://docs.arbitrum.io/stylus/tools/stylus-cli)
 - [Arbitrum Developer Portal](https://docs.arbitrum.io/)
 
-## License  
+## License
 
 This project is licensed under either of:
 
