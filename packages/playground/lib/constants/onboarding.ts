@@ -9,7 +9,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     step: "Step 1: Generate project",
     description: "Create a new Stylus contract template",
-    command: "npx as-stylus generate my-token",
+    command: "npx @wakeuplabs/as-stylus generate my-token",
   },
   {
     step: "Step 2: Open project and copy contract code", 
@@ -19,12 +19,12 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     step: "Step 3: Build & compile",
     description: "Transform TypeScript into WebAssembly", 
-    command: "npx as-stylus compile contract.ts",
+    command: "npx @wakeuplabs/as-stylus compile contract.ts",
   },
   {
     step: "Step 4: Deploy to Arbitrum",
     description: "Deploy your contract to Arbitrum Sepolia testnet",
-    command: "npx as-stylus deploy --private-key <YOUR_PRIVATE_KEY> --endpoint <YOUR_RPC_URL> contract.ts --constructor-args \"MyToken\" \"MYT\"",
+    command: "npx @wakeuplabs/as-stylus deploy --private-key <YOUR_PRIVATE_KEY> --endpoint <YOUR_RPC_URL> contract.ts --constructor-args \"MyToken\" \"MYT\"",
     hint: "Arbitrum Sepolia RPC: https://sepolia-rollup.arbitrum.io/rpc",
   },
 ]

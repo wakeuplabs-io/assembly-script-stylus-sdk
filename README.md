@@ -76,7 +76,7 @@ sequenceDiagram
     participant Tests as Testing Framework
     participant Arbitrum as Arbitrum Network
 
-    Dev->>CLI: as-stylus generate my-contract
+    Dev->>CLI: @wakeuplabs/as-stylus generate my-contract
     CLI->>CLI: Create project structure
     CLI->>TS: Generate contract.ts template
     CLI->>CLI: Setup package.json & tsconfig
