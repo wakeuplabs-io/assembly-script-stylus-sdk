@@ -51,7 +51,7 @@ npx as-stylus --help
 Generate a new project:
 
 ```bash
-as-stylus generate my-counter
+npx @wakeuplabs/as-stylus generate my-counter
 cd my-counter
 ```
 
@@ -115,10 +115,10 @@ The `as-stylus` CLI provides several commands for contract development:
 
 | Command | Description | Usage |
 |---------|-------------|--------|
-| **generate** | Create a new Stylus project with boilerplate | `as-stylus generate <project-name>` |
-| **compile** | Compile AssemblyScript to WASM | `as-stylus compile <contract-path>` |
-| **deploy** | Deploy contract to Stylus network | `as-stylus deploy <contract-path>` |
-| **clean** | Remove build artifacts and temporary files | `as-stylus clean` |
+| **generate** | Create a new Stylus project with boilerplate | `@wakeuplabs/as-stylus generate <project-name>` |
+| **compile** | Compile AssemblyScript to WASM | `@wakeuplabs/as-stylus compile <contract-path>` |
+| **deploy** | Deploy contract to Stylus network | `@wakeuplabs/as-stylus deploy <contract-path>` |
+| **clean** | Remove build artifacts and temporary files | `@wakeuplabs/as-stylus clean` |
 
 ## Requirements
 
@@ -168,4 +168,4 @@ at your option.
 
 **Ready to build the future of smart contracts with AssemblyScript?**
 
-Start with `npx as-stylus generate my-first-contract` and join the Stylus revolution!
+Start with `npx @wakeuplabs/as-stylus generate my-first-contract` and join the Stylus revolution!
