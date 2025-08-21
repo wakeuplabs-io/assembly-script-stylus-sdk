@@ -1,14 +1,20 @@
 import { AbiType } from "@/cli/types/abi.types.js";
+import { IRStruct } from "@/cli/types/ir.types.js";
 import { FunctionSymbol, SymbolInfo, SymbolTable, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
+import { SlotManager } from "./slot-manager.js";
+
 export class SymbolTableStack {
+  private structTemplates: Map<string, IRStruct> = new Map();
   private types: Set<AbiType> = new Set();
   private scopes: SymbolTable[] = [];
   private currentScope: number;
-  
-  constructor() {
+  private slotManager: SlotManager;
+
+  constructor(slotManager: SlotManager) {
     this.enterScope();
     this.currentScope = 0;
+    this.slotManager = slotManager;
   }
 
   enterScope() {
@@ -27,12 +33,28 @@ export class SymbolTableStack {
     this.scopes.pop();
   }
 
+  declareStruct(name: string, info: IRStruct): boolean {
+    const current = this.scopes[0];
+    if (current.has(name)) return false;
+    this.types.add(AbiType.Struct);
+    this.structTemplates.set(name, info);
+    return true;
+  }
+
   declareVariable(name: string, info: Omit<VariableSymbol, "scopeLevel">): boolean {  
     const current = this.scopes[this.scopes.length - 1];
     if (current.has(name)) return false;
 
     this.types.add(info.type);
     current.set(name, { ...info, scopeLevel: this.scopes.length - 1 }); 
+
+    if (info.scope === "storage") {
+      this.slotManager.allocateSlot(name, {
+        type: info.type,
+        dynamicType: info.dynamicType,
+      });
+    }
+
     return true;
   }
 
@@ -43,6 +65,10 @@ export class SymbolTableStack {
     this.types.add(info.returnType);
     current.set(name, { ...info, scopeLevel: this.scopes.length - 1, type: AbiType.Function });
     return true;
+  }
+
+  getStructTemplateByName(name: string): IRStruct | undefined {
+    return this.structTemplates.get(name);
   }
 
   lookup(name: string): SymbolInfo | undefined {

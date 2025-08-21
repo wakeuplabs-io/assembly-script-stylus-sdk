@@ -63,7 +63,7 @@ export class ErrorIRBuilder extends IRBuilder<IRErrorDecl> {
   }
 
   private generateErrorSignature(name: string, fields: IRErrorField[]): string {
-    const paramTypes = fields.map(field => convertType(field.type));
+    const paramTypes = fields.map(field => convertType(this.symbolTable, field.type));
     return `${name}(${paramTypes.join(',')})`;
   }
 

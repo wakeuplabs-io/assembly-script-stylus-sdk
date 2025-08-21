@@ -59,7 +59,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     const expr = this.call.getExpression();
 
     if (StructFactoryBuilder.isStructFactoryCreate(this.call)) {
-      return StructFactoryBuilder.buildStructCreateIR(this.call);
+      return StructFactoryBuilder.buildStructCreateIR(this.symbolTable, this.call);
     }
 
     const target = parseThis(expr.getText());
@@ -89,7 +89,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     }
 
     if (variable?.type === AbiType.Mapping || variable?.type === AbiType.MappingNested) {
-      const slot = this.lookupSlot(varName);
+      const slot = this.slotManager.getSlotForVariable(varName);
       const result = buildMappingIR(ctx, this.call, slot ?? 0);
       if (result) {
         return result;
@@ -102,9 +102,4 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
     return { kind: "call", target, args, type, returnType: this.getReturnType(target), scope };
   }
-
-  private lookupSlot(fqName: string): number | undefined {
-    return ctx.slotMap.get(fqName);
-  }
-
 }

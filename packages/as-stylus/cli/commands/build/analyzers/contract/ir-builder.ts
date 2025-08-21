@@ -139,7 +139,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     structs.forEach(struct => {
-      ctx.structRegistry.set(struct.name, struct);
+      this.symbolTable.declareStruct(struct.name, struct);
     });
 
     return structs;
@@ -242,7 +242,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     storage.forEach(variable => {
-      ctx.slotMap.set(variable.name, variable.slot);
+      this.slotManager.allocateSlot(variable.name, variable);
       ctx.variableTypes.set(variable.name, variable.type);
     });
 
@@ -267,12 +267,12 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     const methodNames = methods.map(method => {
       const name = method.getName();
       this.symbolTable.declareFunction(name, {
-        returnType: convertType(method.getReturnType().getText()),
+        returnType: convertType(this.symbolTable, method.getReturnType().getText()),
         isDeclaredByUser: true,
         name: name,
         parameters: method.getParameters().map(param => ({
           name: param.getName(),
-          type: convertType(param.getType().getText()),
+          type: convertType(this.symbolTable, param.getType().getText()),
         })),
       });
       return name;

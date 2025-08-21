@@ -3,13 +3,12 @@ import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, Property
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRStatement , IRExpression } from "@/cli/types/ir.types.js";
 
+import { StructAssignmentBuilder } from "./struct.js";
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { parseThis } from "../shared/utils/parse-this.js";
-import { isExpressionOfStructType, getStructFieldType, isPrimitiveType } from "../struct/struct-utils.js";
 
-// TODO: rename to AssignmentIRBuilder. Merge with VariableIRBuilder.
 export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
   private statement: ExpressionStatement;
 
@@ -22,61 +21,6 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
     const syntaxValidator = new ExpressionStatementSyntaxValidator(this.statement);
     return syntaxValidator.validate();
   }
-
-  private wrapValueWithCopyIfNeeded(valueExpr: IRExpression, fieldType: AbiType | null): IRExpression {
-    if (!fieldType || !isPrimitiveType(fieldType)) {
-      return valueExpr;
-    }
-  
-    const copyTargets = {
-      [AbiType.Uint256]: "U256.copy",
-      [AbiType.Bool]: "boolean.copy",
-      [AbiType.Address]: "Address.copy",
-    };
-  
-    const copyTarget = copyTargets[fieldType as keyof typeof copyTargets];
-    if (!copyTarget) {
-      return valueExpr;
-    }
-  
-    return {
-        kind: "call",
-        target: copyTarget,
-        args: [valueExpr],
-        type: AbiType.Function,
-        returnType: fieldType,
-        scope: "memory"
-    };
-  }
-
-  private handleStructPropertyAssignment(
-    objectExpr: IRExpression,
-    fieldName: string,
-    valueExpr: IRExpression,
-    structInfo: { isStruct: boolean; structName: string | null }
-  ): IRStatement {
-    if (!structInfo.structName) {
-      throw new Error("Struct name is required for struct property assignment");
-    }
-
-    const struct = this.symbolTable.lookup(structInfo.structName);
-    const fieldType = getStructFieldType(structInfo.structName, fieldName);
-    const finalValueExpr = this.wrapValueWithCopyIfNeeded(valueExpr, fieldType ?? null);
-
-    return {
-      kind: "expr",
-      expr: {
-        kind: "call",
-        target: `${structInfo.structName}_set_${fieldName}`,
-        args: [objectExpr, finalValueExpr],
-        type: AbiType.Function,
-        returnType: AbiType.Void,
-        scope: struct?.scope || "memory"
-      },
-      type: AbiType.Void,
-      };
-    }
-
 
   private handleGenericPropertyAssignment(
     objectExpr: IRExpression,
@@ -102,8 +46,6 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
       type: AbiType.Void,
     };
   }
-
-
 
   buildIR(): IRStatement {
     const expr = this.statement.getExpression();
@@ -150,16 +92,14 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
         }
 
         // Handle property access assignment (obj.field = value)
-        if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression && !lhsNode.getText().startsWith("this.")) {
+        if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression) {
           const propAccess = lhsNode as PropertyAccessExpression;
           const fieldName = propAccess.getName();
           const objectExpr = new ExpressionIRBuilder(propAccess.getExpression()).validateAndBuildIR();
           const valueExpr = new ExpressionIRBuilder(rhsNode).validateAndBuildIR();
           
-          const structInfo = isExpressionOfStructType(objectExpr);
-          
-          if (structInfo.isStruct && structInfo.structName) {
-            return this.handleStructPropertyAssignment(objectExpr, fieldName, valueExpr, structInfo as { isStruct: boolean; structName: string | null });
+          if (objectExpr.type === AbiType.Struct) {
+            return new StructAssignmentBuilder(this.symbolTable).buildIR(objectExpr, fieldName, valueExpr);
           } else {
             return this.handleGenericPropertyAssignment(objectExpr, fieldName, valueExpr);
           }

@@ -23,7 +23,7 @@ export class ReturnSyntaxValidator extends BaseValidator {
 
     if (expr) {
       const returnType = expr.getType().getText();
-      if (!SUPPORTED_TYPES.includes(convertType(returnType))) {
+      if (!SUPPORTED_TYPES.includes(convertType(this.symbolTable, returnType))) {
         this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(returnType, SUPPORTED_TYPES));
         hasErrors = true;
       }
