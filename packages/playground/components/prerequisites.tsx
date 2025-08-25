@@ -8,6 +8,10 @@ type Cmd = {
   desc?: string
 }
 
+const RUST_QUICK: Cmd[] = [
+  { cmd: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh", desc: "Install Rust + rustup (skip if already installed). Then source \"$HOME/.cargo/env\"." },
+]
+
 const RUST_SETUP: Cmd[] = [
   { cmd: "rustup update", desc: "Update rustup and installed toolchains." },
   { cmd: "rustup default stable", desc: "Use stable toolchain by default." },
@@ -75,6 +79,25 @@ export function Prerequisites() {
         <p className="text-gray-400 text-sm mb-4">
           Make sure you have the required tools installed before getting started.
         </p>
+
+        <section className="bg-gray-800 border border-gray-700 rounded-xl p-3 sm:p-4 mb-4">
+          <div className="flex items-center justify-between mb-3 gap-2">
+            <h4 className="text-white font-medium text-sm">Quick Install (convenience)</h4>
+          </div>
+
+          <div className="space-y-2">
+            {RUST_QUICK.map((c, i) => (
+              <CommandRow
+                key={`quick-${i}`}
+                id={`quick-${i}`}
+                cmd={c.cmd}
+                desc={c.desc}
+                onCopy={copy}
+                copied={!!copied[`quick-${i}`]}
+              />
+            ))}
+          </div>
+        </section>
 
         <section className="bg-gray-800 border border-gray-700 rounded-xl p-3 sm:p-4 mb-4">
           <div className="flex items-center justify-between mb-3 gap-2">
