@@ -1,6 +1,5 @@
 import { CallExpression, Expression } from "ts-morph";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 import { FunctionSymbol, VariableSymbol } from "@/cli/types/symbol-table.types.js";
@@ -33,11 +32,11 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     if (symbol && symbol.type === "function") {
       return (symbol as FunctionSymbol).returnType;
     }
-    
+
     if (symbol && symbol.type === AbiType.UserDefinedFunction) {
       return (symbol as FunctionSymbol).returnType;
     }
-    
+
     const variable = target.split(".")[0];
     const functionCalled = target.includes("(");
 
@@ -45,7 +44,6 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       const type = this.getReturnType(target.split("(")[0]);
       return type;
     }
-
 
     const variableDeclared = this.symbolTable.lookup(variable);
     if (variableDeclared && variableDeclared.type !== "function") {
@@ -59,7 +57,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     const expr = this.call.getExpression();
 
     if (StructFactoryBuilder.isStructFactoryCreate(this.call)) {
-      return StructFactoryBuilder.buildStructCreateIR(this.call);
+      return StructFactoryBuilder.buildStructCreateIR(this.symbolTable, this.call);
     }
 
     const target = parseThis(expr.getText());
@@ -89,8 +87,8 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     }
 
     if (variable?.type === AbiType.Mapping || variable?.type === AbiType.MappingNested) {
-      const slot = this.lookupSlot(varName);
-      const result = buildMappingIR(ctx, this.call, slot ?? 0);
+      const slot = this.slotManager.getSlotForVariable(varName);
+      const result = buildMappingIR(variable, this.call, slot ?? 0);
       if (result) {
         return result;
       }
@@ -102,9 +100,4 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
     return { kind: "call", target, args, type, returnType: this.getReturnType(target), scope };
   }
-
-  private lookupSlot(fqName: string): number | undefined {
-    return ctx.slotMap.get(fqName);
-  }
-
 }

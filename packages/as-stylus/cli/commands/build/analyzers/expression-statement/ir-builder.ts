@@ -1,15 +1,14 @@
-import { ExpressionStatement, SyntaxKind, BinaryExpression, Identifier, PropertyAccessExpression, CallExpression, Expression } from "ts-morph";
+import { ExpressionStatement, SyntaxKind, BinaryExpression, PropertyAccessExpression, CallExpression, Expression } from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRStatement , IRExpression } from "@/cli/types/ir.types.js";
 
+import { StructAssignmentBuilder } from "./struct.js";
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { parseThis } from "../shared/utils/parse-this.js";
-import { isExpressionOfStructType, getStructFieldType, isPrimitiveType } from "../struct/struct-utils.js";
 
-// TODO: rename to AssignmentIRBuilder. Merge with VariableIRBuilder.
 export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
   private statement: ExpressionStatement;
 
@@ -22,61 +21,6 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
     const syntaxValidator = new ExpressionStatementSyntaxValidator(this.statement);
     return syntaxValidator.validate();
   }
-
-  private wrapValueWithCopyIfNeeded(valueExpr: IRExpression, fieldType: AbiType | null): IRExpression {
-    if (!fieldType || !isPrimitiveType(fieldType)) {
-      return valueExpr;
-    }
-  
-    const copyTargets = {
-      [AbiType.Uint256]: "U256.copy",
-      [AbiType.Bool]: "boolean.copy",
-      [AbiType.Address]: "Address.copy",
-    };
-  
-    const copyTarget = copyTargets[fieldType as keyof typeof copyTargets];
-    if (!copyTarget) {
-      return valueExpr;
-    }
-  
-    return {
-        kind: "call",
-        target: copyTarget,
-        args: [valueExpr],
-        type: AbiType.Function,
-        returnType: fieldType,
-        scope: "memory"
-    };
-  }
-
-  private handleStructPropertyAssignment(
-    objectExpr: IRExpression,
-    fieldName: string,
-    valueExpr: IRExpression,
-    structInfo: { isStruct: boolean; structName: string | null }
-  ): IRStatement {
-    if (!structInfo.structName) {
-      throw new Error("Struct name is required for struct property assignment");
-    }
-
-    const struct = this.symbolTable.lookup(structInfo.structName);
-    const fieldType = getStructFieldType(structInfo.structName, fieldName);
-    const finalValueExpr = this.wrapValueWithCopyIfNeeded(valueExpr, fieldType ?? null);
-
-    return {
-      kind: "expr",
-      expr: {
-        kind: "call",
-        target: `${structInfo.structName}_set_${fieldName}`,
-        args: [objectExpr, finalValueExpr],
-        type: AbiType.Function,
-        returnType: AbiType.Void,
-        scope: struct?.scope || "memory"
-      },
-      type: AbiType.Void,
-      };
-    }
-
 
   private handleGenericPropertyAssignment(
     objectExpr: IRExpression,
@@ -103,7 +47,19 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
     };
   }
 
-
+  private buildRevertExpressionIR(exprText: string, callExpr: CallExpression): IRStatement {
+    const errorName = exprText.slice(0, -'.revert'.length);
+    const args = callExpr.getArguments().map(arg => {
+      const builder = new ExpressionIRBuilder(arg as Expression);
+      return builder.validateAndBuildIR();
+    });
+    
+    return {
+      kind: "revert",
+      error: errorName,
+      args
+    };
+  }
 
   buildIR(): IRStatement {
     const expr = this.statement.getExpression();
@@ -113,17 +69,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
       const exprText = callExpr.getExpression().getText();
       
       if (exprText.endsWith('.revert')) {
-        const errorName = exprText.slice(0, -'.revert'.length);
-        const args = callExpr.getArguments().map(arg => {
-          const builder = new ExpressionIRBuilder(arg as Expression);
-          return builder.validateAndBuildIR();
-        });
-        
-        return {
-          kind: "revert",
-          error: errorName,
-          args
-        };
+        return this.buildRevertExpressionIR(exprText, callExpr);
       }
     }
 
@@ -134,36 +80,35 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
         const rhsNode = bin.getRight();
 
         // Handle simple identifier assignment (x = y)
-        if (lhsNode.getKind() === SyntaxKind.Identifier) {
-          const lhsId = lhsNode as Identifier;
-          const variable = this.symbolTable.lookup(lhsId.getText());
+        const target = parseThis(lhsNode.getText());
+        const [name] = target.split(".");
+        const variable = this.symbolTable.lookup(name);
 
-          //TODO: revise this
+        // Handle property access assignment (obj.field = value)
+        if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression && variable?.type === AbiType.Struct) {
+          const propAccess = lhsNode as PropertyAccessExpression;
+          const fieldName = propAccess.getName();
+          const objectExpr = new ExpressionIRBuilder(propAccess.getExpression()).validateAndBuildIR();
+          const valueExpr = new ExpressionIRBuilder(rhsNode).validateAndBuildIR();
+          
+          if (objectExpr.type === AbiType.Struct) {
+            return new StructAssignmentBuilder(this.symbolTable).buildIR(objectExpr, fieldName, valueExpr);
+          } else {
+            return this.handleGenericPropertyAssignment(objectExpr, fieldName, valueExpr);
+          }
+        }
+
+        if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression) {
           if (variable?.scope === "memory") { 
             return {
               kind: "assign",
-              target: parseThis(lhsId.getText()),
+              target: target,
               expr: new ExpressionIRBuilder(rhsNode).validateAndBuildIR(),
               scope: variable?.scope ?? "memory",
             };
           }
         }
 
-        // Handle property access assignment (obj.field = value)
-        if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression && !lhsNode.getText().startsWith("this.")) {
-          const propAccess = lhsNode as PropertyAccessExpression;
-          const fieldName = propAccess.getName();
-          const objectExpr = new ExpressionIRBuilder(propAccess.getExpression()).validateAndBuildIR();
-          const valueExpr = new ExpressionIRBuilder(rhsNode).validateAndBuildIR();
-          
-          const structInfo = isExpressionOfStructType(objectExpr);
-          
-          if (structInfo.isStruct && structInfo.structName) {
-            return this.handleStructPropertyAssignment(objectExpr, fieldName, valueExpr, structInfo as { isStruct: boolean; structName: string | null });
-          } else {
-            return this.handleGenericPropertyAssignment(objectExpr, fieldName, valueExpr);
-          }
-        }
       }
     }
 

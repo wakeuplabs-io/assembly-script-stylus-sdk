@@ -51,10 +51,10 @@ export class CompileRunner {
     contractName: string,
     endpoint?: string,
   ): void {
-    let command = `cargo stylus check --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm`;
-    if (endpoint) {
-      command += ` --endpoint ${endpoint}`;
-    }
+    const defaultEndpoint = "https://sepolia-rollup.arbitrum.io/rpc";
+    const rpcEndpoint = endpoint || defaultEndpoint;
+
+    const command = `cargo stylus check --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm --endpoint ${rpcEndpoint}`;
 
     runCommand(command, {
       cwd: projectTargetPath,

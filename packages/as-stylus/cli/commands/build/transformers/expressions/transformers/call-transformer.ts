@@ -44,7 +44,14 @@ export class CallTransformer extends Handler {
     const argValues = argResults.map(r => r.valueExpr).join(", ");
     
     const baseCall = `${call.target}(${argValues})`;
-    
+    const isStruct = call.args.length > 0 && call.args[0].type === AbiType.Struct;
+    if (isStruct) {
+      return {
+        setupLines: allSetupLines,
+        valueExpr: baseCall
+      };
+    }
+
     if (call.returnType === AbiType.Bool) {
       return {
         setupLines: allSetupLines,

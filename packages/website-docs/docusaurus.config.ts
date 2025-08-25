@@ -1,43 +1,43 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
-import type * as Preset from '@docusaurus/preset-classic';
+import { themes as prismThemes } from "prism-react-renderer";
+import type { Config } from "@docusaurus/types";
+import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: 'AssemblyScript Stylus SDK',
-  tagline: 'Smart Contract Development for Arbitrum Stylus using AssemblyScript',
-  favicon: 'img/arbitrum_stylus_icon.svg',
+  title: "AssemblyScript Stylus SDK",
+  tagline: "Smart Contract Development for Arbitrum Stylus using AssemblyScript",
+  favicon: "img/arbitrum_stylus_icon.svg",
 
   // Future flags for Docusaurus v4 compatibility
   future: {
     v4: true,
   },
 
-  url: 'https://assemblyscript-stylus-sdk.wakeuplabs.io',
-  baseUrl: '/',
+  url: "https://assemblyscript-stylus-sdk.wakeuplabs.io",
+  baseUrl: "/",
 
-  organizationName: 'wakeuplabs-io',
-  projectName: 'assembly-script-stylus-sdk',
+  organizationName: "wakeuplabs-io",
+  projectName: "assembly-script-stylus-sdk",
 
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenLinks: "throw",
+  onBrokenMarkdownLinks: "warn",
 
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: "en",
+    locales: ["en"],
   },
 
   presets: [
     [
-      'classic',
+      "classic",
       {
         docs: {
-          sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/wakeuplabs-io/assembly-script-stylus-sdk/tree/main/docs/',
-          routeBasePath: '/', // Serve docs at root
+          sidebarPath: "./sidebars.ts",
+          editUrl: "https://github.com/wakeuplabs-io/assembly-script-stylus-sdk/tree/main/docs/",
+          routeBasePath: "/", // Serve docs at root
         },
         blog: false, // Disabled as requested
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: "./src/css/custom.css",
         },
       } satisfies Preset.Options,
     ],
@@ -45,70 +45,72 @@ const config: Config = {
 
   themeConfig: {
     colorMode: {
-      defaultMode: 'dark',
+      defaultMode: "dark",
       disableSwitch: false,
       respectPrefersColorScheme: false,
     },
     navbar: {
-      title: 'AS-Stylus SDK',
+      title: "AS-Stylus SDK",
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'docsSidebar',
-          position: 'left',
-          label: 'Documentation',
+          type: "docSidebar",
+          sidebarId: "docsSidebar",
+          position: "left",
+          label: "Documentation",
         },
         {
-          href: 'https://github.com/wakeuplabs-io/assembly-script-stylus-sdk',
-          label: 'GitHub',
-          position: 'right',
+          href: "https://github.com/wakeuplabs-io/assembly-script-stylus-sdk",
+          label: "GitHub",
+          position: "right",
         },
       ],
     },
     footer: {
-      style: 'dark',
+      style: "dark",
       links: [
         {
-          title: 'Documentation',
+          title: "Documentation",
           items: [
             {
-              label: 'Getting Started',
-              to: '/Getting%20Started/quick-start',
+              label: "Getting Started",
+              to: "/Getting%20Started/quick-start",
             },
             {
-              label: 'Decorators',
-              to: '/decorators/contract',
+              label: "Decorators",
+              to: "/decorators/contract",
             },
             {
-              label: 'Data Types',
-              to: '/types/u256',
+              label: "Data Types",
+              to: "/types/u256",
             },
             {
-              label: 'Data Structures',
-              to: '/structures/mapping',
+              label: "Data Structures",
+              to: "/structures/mapping",
             },
             {
-              label: 'Examples',
-              to: '/examples/erc20',
+              label: "Examples",
+              to: "/examples/erc20",
             },
           ],
         },
         {
-          title: 'Community',
+          title: "Community",
           items: [
             {
-              label: 'GitHub',
-              href: 'https://github.com/wakeuplabs-io/assembly-script-stylus-sdk',
+              label: "GitHub",
+              href: "https://github.com/wakeuplabs-io/assembly-script-stylus-sdk",
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} AssemblyScript Stylus SDK Contributors.`,
+      copyright: `Copyright © ${new Date().getFullYear()} AssemblyScript Stylus SDK Contributors. <br/> <a href="https://www.wakeuplabs.io/" target="_blank" rel="noreferrer">
+      Made with love by WakeUp Labs
+    </a>`,
     },
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ['typescript', 'bash'],
+      additionalLanguages: ["typescript", "bash"],
     },
   } satisfies Preset.ThemeConfig,
 };

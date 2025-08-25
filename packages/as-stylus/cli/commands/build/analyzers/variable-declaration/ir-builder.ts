@@ -1,7 +1,7 @@
 import { Expression, VariableDeclaration } from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRStatement } from "@/cli/types/ir.types.js";
+import { IRStatement, IRExpression } from "@/cli/types/ir.types.js";
 import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
 import { inferType } from "@/cli/utils/inferType.js";
 
@@ -31,46 +31,51 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
     return syntaxValidator.validate();
   }
 
-  buildIR(): IRStatement {
-    const initializer = this.declaration.getInitializer();
-    const type = inferType(initializer?.getText() ?? "");
-    
+  private getDeclarationKind(): "let" | "const" {
     const variableStatement = this.declaration.getVariableStatement();
-    let declarationKind: "let" | "const" = "let";
-    
-    if (variableStatement) {
-      const declarationList = variableStatement.getDeclarationList();
-      const keywordNodes = declarationList.getDeclarationKindKeywords();
-      if (keywordNodes.length > 0) {
-        const keyword = keywordNodes[0].getText();
-        declarationKind = keyword === "const" ? "const" : "let";
-      }
-    }
-    
-    const kind = declarationKind;
-    
-    const variable: VariableSymbol = { name: parseThis(this.declaration.getName()), type: convertType(type), scope: "memory" };
-    if (!initializer) {
-      this.symbolTable.declareVariable(variable.name, variable);
+    if (!variableStatement) return "let";
+    const declarationList = variableStatement.getDeclarationList();
+    const keywordNodes = declarationList.getDeclarationKindKeywords();
+    return keywordNodes[0].getText() === "const" ? "const" : "let";
+  }
 
-      return {
-        kind,
-        name: variable.name,
-        type: variable.type,
-        expr: { kind: "literal", value: null, type: variable.type },
-        scope: variable.scope,
-      };
-    }
+  private createVariable(initializer: string) {
+    const name = parseThis(this.declaration.getName());
+    const dynamicType = inferType(this.symbolTable, initializer);
 
-    const expression = new ExpressionIRBuilder(initializer as Expression).validateAndBuildIR();
-    if (type === AbiType.Any || type === AbiType.Unknown) {
-      // Try to get the return type from the expression (important for mappings)
-      const exprReturnType = 'returnType' in expression ? expression.returnType : undefined;
-      const exprType = 'type' in expression ? expression.type : undefined;
-      variable.type = exprReturnType ?? exprType ?? variable.type;
-    }
+    const variable: VariableSymbol = {
+      name,
+      type: convertType(this.symbolTable, dynamicType),
+      dynamicType,
+      scope: "memory"
+    };
+
+    return variable;
+  }
+
+  private buildDeclaration(variable: VariableSymbol, kind: "let" | "const") {
     this.symbolTable.declareVariable(variable.name, variable);
 
+    return {
+      kind,
+      name: variable.name,
+      type: variable.type,
+      expr: { kind: "literal", value: null, type: variable.type } as const,
+      scope: variable.scope,
+    };
+}
+
+  private buildAssignment(variable: VariableSymbol, initializer: Expression, kind: "let" | "const") {
+    const expression = new ExpressionIRBuilder(initializer).validateAndBuildIR();
+    
+    if (variable.type === AbiType.Any || variable.type === AbiType.Unknown) {
+      const inferredType = this.inferTypeFromExpression(expression);
+      if (inferredType) {
+        variable.type = inferredType;
+      }
+    }
+    this.symbolTable.declareVariable(variable.name, variable);
+    
     return {
       kind,
       name: variable.name,
@@ -78,6 +83,37 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       expr: expression,
       scope: variable.scope,
     };
+
+  }
+
+  /**
+   * Infers the type from an IR expression by checking for returnType or type properties
+   * @param expression - The IR expression to analyze
+   * @returns The inferred type or undefined if no type information is available
+   */
+  private inferTypeFromExpression(expression: IRExpression): AbiType | undefined {
+    if ('returnType' in expression && expression.returnType) {
+      return expression.returnType as AbiType;
+    }
+    
+    if ('type' in expression && expression.type) {
+      return expression.type as AbiType;
+    }
+    
+    return undefined;
+  }
+
+  buildIR(): IRStatement {
+    const initializer = this.declaration.getInitializer();
+    const variable = this.createVariable(initializer?.getText() ?? "");
+    
+    const kind = this.getDeclarationKind();
+    
+    if (!initializer) {
+      return this.buildDeclaration(variable, kind);
+    } else {
+      return this.buildAssignment(variable, initializer, kind);
+    }
   }
 }
 

@@ -12,6 +12,16 @@ export class ReturnHandler extends StatementHandler {
     return stmt.kind === "return";
   }
 
+  private buildReturnWithSetup(setupLines: string[], returnExpr: string, indent: string): string {
+    if (setupLines.length === 0) {
+      return `${indent}return ${returnExpr};`;
+    }
+    
+    const lines = setupLines.map(line => `${indent}${line}`);
+    lines.push(`${indent}return ${returnExpr};`);
+    return lines.join("\n");
+  }
+
   handle(stmt: IRStatement, indent: string): string {
     const returnStmt = stmt as Return;
     
@@ -23,9 +33,14 @@ export class ReturnHandler extends StatementHandler {
     const exprResult = this.contractContext.emitExpression(returnStmt.expr);
     let type = (returnStmt.expr as { type: SupportedType }).type;
 
+    const isStruct = returnStmt.expr.kind === "call" && returnStmt.expr.args.length > 0 && returnStmt.expr.args[0].type === AbiType.Struct;
+    if (isStruct) {
+      type = AbiType.Struct;
+    }
+
     // Handle call expressions
     if (returnStmt.expr.kind === "call") {
-      type = returnStmt.expr.returnType;
+      return this.buildReturnWithSetup(exprResult.setupLines, exprResult.valueExpr, indent);
     }
 
     let baseExpr = exprResult.valueExpr;
@@ -50,13 +65,6 @@ export class ReturnHandler extends StatementHandler {
       returnExpr = baseExpr;
     }
 
-    // Handle setup lines
-    if (exprResult.setupLines.length > 0) {
-      const lines = exprResult.setupLines.map((line) => `${indent}${line}`);
-      lines.push(`${indent}return ${returnExpr};`);
-      return lines.join("\n");
-    }
-
-    return `${indent}return ${returnExpr};`;
+    return this.buildReturnWithSetup(exprResult.setupLines, returnExpr, indent);
   }
 }

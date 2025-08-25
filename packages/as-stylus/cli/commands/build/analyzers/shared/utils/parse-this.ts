@@ -16,6 +16,11 @@ export function parseName(definition: string, defaultType: string): { name: stri
   const [nameDefinition, typeDefined = defaultType] = definition.split(":");
   const name = nameDefinition.replace(/^this\./, '');
   const typeParsed = typeDefined.replace(/[\s;]/g, '');
+
+  if (typeParsed.startsWith("Struct")) {
+    return { name, type: typeParsed.split("<")[1].replace(">", "") };
+  }
+
   return { name, type: typeParsed };
 }
 

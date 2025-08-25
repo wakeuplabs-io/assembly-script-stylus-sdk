@@ -109,7 +109,7 @@ export class ERC20Full {
     const toAmount = balances.get(to);
     const newAmount = toAmount.add(amount);
     balances.set(to, newAmount);
-    const AddressZero = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
+    const AddressZero = AddressFactory.create();
     Transfer.emit(AddressZero, to, amount);
   }
 
@@ -122,7 +122,7 @@ export class ERC20Full {
     }
     balances.set(sender, senderBal.sub(amount));
     totalSupply = totalSupply.sub(amount);
-    const AddressZero = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
+    const AddressZero = AddressFactory.create();
     Transfer.emit(sender, AddressZero, amount);
   }
 }`
@@ -422,7 +422,7 @@ export function user_entrypoint(args_len: usize): i32 {
     return 0;
   }
 
-    if (selector == 0x06fdde03) {
+  if (selector == 0x06fdde03) {
     const buf = name();
     const len = loadU32BE(buf + 60);
     const padded = ((len + 31) & ~31);
@@ -891,7 +891,7 @@ export function user_entrypoint(args_len: usize): i32 {
     return 0;
   }
 
-    if (selector == 0x095ea7b3) {
+  if (selector == 0x095ea7b3) {
     const arg0 = position + 4;
     const arg1 = position + 36;
     approve(arg0, arg1); return 0;

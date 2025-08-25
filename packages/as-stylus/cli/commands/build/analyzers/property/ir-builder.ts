@@ -1,6 +1,5 @@
 import { PropertyDeclaration } from "ts-morph";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRVariable } from "@/cli/types/ir.types.js";
 import { inferType } from "@/cli/utils/inferType.js";
@@ -23,47 +22,45 @@ function extractMappingTypes(typeText: string): {
   keyType2?: string;
 } {
   const cleanType = typeText.replace(/\s/g, "");
-  
+
   // Handle MappingNested<K1,K2,V>
-  if (cleanType.startsWith('MappingNested<')) {
+  if (cleanType.startsWith("MappingNested<")) {
     const nestedMatch = cleanType.match(/^MappingNested<(.+)>$/);
     if (nestedMatch) {
-      const types = nestedMatch[1].split(',');
+      const types = nestedMatch[1].split(",");
       if (types.length === 3) {
         return {
           keyType1: types[0],
-          keyType2: types[1], 
-          valueType: types[2]
+          keyType2: types[1],
+          valueType: types[2],
         };
       }
     }
   }
-  
+
   // Handle regular Mapping<K,V>
-  if (cleanType.startsWith('Mapping<')) {
+  if (cleanType.startsWith("Mapping<")) {
     const mappingMatch = cleanType.match(/^Mapping<(.+)>$/);
     if (mappingMatch) {
-      const types = mappingMatch[1].split(',');
+      const types = mappingMatch[1].split(",");
       if (types.length === 2) {
         return {
           keyType: types[0],
-          valueType: types[1]
+          valueType: types[1],
         };
       }
     }
   }
-  
+
   return {};
 }
 
 export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   private property: PropertyDeclaration;
-  private slot: number;
 
-  constructor(property: PropertyDeclaration, slot: number) {
+  constructor(property: PropertyDeclaration) {
     super(property);
     this.property = property;
-    this.slot = slot;
   }
 
   validate(): boolean {
@@ -74,9 +71,14 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
 
 
   buildIR(): IRVariable {
-    const typeInferred = inferType(this.property.getType().getText());
+    const typeInferred = inferType(this.symbolTable, this.property.getType().getText());
     const { name, type } = parseName(this.property.getText(), typeInferred);
-    this.symbolTable.declareVariable(name, { name, type: convertType(type), scope: "storage", dynamicType: type });
+    this.symbolTable.declareVariable(name, {
+      name,
+      type: convertType(this.symbolTable, type),
+      scope: "storage",
+      dynamicType: type
+    });
   
     const fullTypeText = this.property.getType().getText();
     const mappingTypes = extractMappingTypes(fullTypeText);
@@ -85,18 +87,12 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       const variable: IRVariable = {
         name,
         type: AbiType.MappingNested,
-        slot: this.slot,
+        slot: this.slotManager.getSlotForVariable(name),
         keyType1: mappingTypes.keyType1 || "Address",
-        keyType2: mappingTypes.keyType2 || "Address", 
+        keyType2: mappingTypes.keyType2 || "Address",
         valueType: mappingTypes.valueType || "U256",
         kind: "mapping2",
       };
-      
-        ctx.mappingTypes.set(name, {
-        keyType1: variable.keyType1,
-        keyType2: variable.keyType2,
-        valueType: variable.valueType
-      });
       
       return variable;
     }
@@ -105,35 +101,22 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       const variable: IRVariable = {
         name,
         type: AbiType.Mapping,
-        slot: this.slot,
+        slot: this.slotManager.getSlotForVariable(name),
         keyType: mappingTypes.keyType || "Address",
-        valueType: mappingTypes.valueType || "U256", 
+        valueType: mappingTypes.valueType || "U256",
         kind: "mapping",
       };
-      
-      ctx.mappingTypes.set(name, {
-        keyType: variable.keyType,
-        valueType: variable.valueType
-      });
-      
+
       return variable;
     }
 
-    const isStructType = ctx.structRegistry.has(type);
-    
-    if (isStructType) {
-      ctx.variableTypes.set(`${ctx.contractName}.${name}`, type);
-      ctx.variableTypes.set(name, "struct");
-    } else {
-      ctx.variableTypes.set(`${ctx.contractName}.${name}`, type);
-      ctx.variableTypes.set(name, type);
-    }
+    const struct = this.symbolTable.getStructTemplateByName(type);
 
     return {
       name,
-      type: isStructType ? AbiType.Struct : convertType(type),
-      originalType: isStructType ? type : undefined,
-      slot: this.slot,
+      type: struct ? AbiType.Struct : convertType(this.symbolTable, type),
+      originalType: struct ? type : undefined,
+      slot: this.slotManager.getSlotForVariable(name),
       kind: "simple",
     };
   }

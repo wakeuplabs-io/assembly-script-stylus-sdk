@@ -37,15 +37,15 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
 
   buildIR(): IRStruct {
     const name = this.structClass.getName() || "AnonymousStruct";
-    
+
     const basicFields = this.structClass.getProperties().map(property => ({
       name: property.getName(),
-      type: convertType(property.getType().getText())
+      type: convertType(this.symbolTable, property.getType().getText())
     }));
 
     const layout = calculateFieldLayout(basicFields);
     
-    const fields: IRStructField[] = layout.fields.map(field => ({
+    const fields: IRStructField[] = layout.fields.map((field) => ({
       name: field.name,
       type: field.type,
       offset: field.offset,
