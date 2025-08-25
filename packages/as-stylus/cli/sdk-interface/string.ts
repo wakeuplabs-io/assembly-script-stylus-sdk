@@ -12,14 +12,22 @@ export interface Str {
 }
 
 /**
- * @interface StrFactory
+ * @class StrFactory
  * @description Factory for creating strings
  * @method create - Create a new string
  * @method fromUtf8 - Create a string from a UTF-8 encoded byte array
  * @method fromString - Create a string from a string
  */
-export interface StrFactory {
-  create(): Str;
-  fromUtf8(bytes: Uint8Array): Str;
-  fromString(value: string): Str;
+export class StrFactory {
+  static create(): Str {
+    throw new Error("Method not implemented.");
+  }
+  
+  static fromUtf8(_bytes: Uint8Array): Str {
+    throw new Error("Method not implemented.");
+  }
+  
+  static fromString(_value: string): Str {
+    throw new Error("Method not implemented.");
+  }
 }

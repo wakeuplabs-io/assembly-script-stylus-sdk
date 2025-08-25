@@ -105,6 +105,17 @@ export function generateImports(contract: IRContract): string {
     lines.push(`import { Str } from "${packageName}/core/types/str";`);
     lines.push(`import { loadU32BE } from "${packageName}/core/modules/endianness";`);
   }
+
+  const hasCallFactory = contract.methods.some(method => 
+    method.ir.some((statement: any) => 
+      JSON.stringify(statement).includes("CallFactory")
+    )
+  );
+
+  if (hasCallFactory) {
+    lines.push(`import { Calls } from "${packageName}/core/modules/calls";`);
+  }
+
   lines.push(`import { Struct } from "${packageName}/core/types/struct";`);
   lines.push(`import { Msg } from "${packageName}/core/types/msg";`);
   lines.push(`import { malloc } from "${packageName}/core/modules/memory";`);

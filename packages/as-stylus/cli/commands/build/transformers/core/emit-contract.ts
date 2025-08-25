@@ -13,6 +13,7 @@ import { StatementHandler } from "../statements/statement-handler.js";
 import { StrTransformer } from "../string/string-transformer.js";
 import { registerStructTransformer, StructTransformer } from "../struct/struct-transformer.js";
 import { U256Transformer } from "../u256/u256-transformer.js";
+import { CallsTransformer } from "../calls/calls-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
 import { generateImports, generateStorageHelpers } from "../utils/storage.js";
@@ -83,6 +84,7 @@ export function emitContract(contract: IRContract): string {
   transformerRegistry.register(new StrTransformer(contractContext));
   transformerRegistry.register(new BooleanTransformer(contractContext));
   transformerRegistry.register(new MsgTransformer(contractContext));
+  transformerRegistry.register(new CallsTransformer(contractContext));
   transformerRegistry.register(new ErrorTransformer(contractContext, contract.errors || []));
   transformerRegistry.register(new EventTransformer(contractContext, contract.events || []));
   transformerRegistry.register(new StructTransformer(contractContext, contract.structs || []));

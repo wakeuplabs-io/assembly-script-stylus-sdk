@@ -65,3 +65,13 @@ export function fundUser(userAddress: string): void {
     `cast send ${userAddress} --value 0.1ether --private-key ${PRIVATE_KEY} --rpc-url ${RPC_URL}`,
   );
 }
+
+/**
+ * Gets the ETH balance of an address
+ * @param address Address to check balance for
+ * @returns Balance in wei as bigint
+ */
+export function getBalance(address: string): bigint {
+  const balanceOutput = run(`cast balance ${address} --rpc-url ${RPC_URL}`);
+  return BigInt(balanceOutput.trim());
+}
