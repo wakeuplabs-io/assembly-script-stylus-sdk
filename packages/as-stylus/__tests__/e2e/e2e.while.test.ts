@@ -56,38 +56,4 @@ describe("While Test", () => {
       expect(final).toBe(initial + 4n);
     });
   });
-
-  describe.skip("While loops with string conditions", () => {
-    it("should increment stringCounter based on string length condition", async () => {
-      const initial = (await contract.read("getStringCounter", [])) as bigint;
-      await contract.write(ownerWallet, "testWhileWithStringLength", []);
-      const final = (await contract.read("getStringCounter", [])) as bigint;
-      // Should increment 4 times: "a" -> "aa" -> "aaa" -> "aaaa" -> "aaaaa" (length 5)
-      expect(final).toBe(initial + 4n);
-    });
-
-    it("should increment stringCounter while string is not empty", async () => {
-      const initial = (await contract.read("getStringCounter", [])) as bigint;
-      await contract.write(ownerWallet, "testWhileWithStringEmpty", []);
-      const final = (await contract.read("getStringCounter", [])) as bigint;
-      // Should increment 5 times: "hello" -> "hell" -> "he" -> "h" -> "" (empty)
-      expect(final).toBe(initial + 5n);
-    });
-
-    it("should increment stringCounter based on string comparison", async () => {
-      const initial = (await contract.read("getStringCounter", [])) as bigint;
-      await contract.write(ownerWallet, "testWhileWithStringComparison", []);
-      const final = (await contract.read("getStringCounter", [])) as bigint;
-      // Should increment 2 times: "test" -> "testtest" -> "testtesttest"
-      expect(final).toBe(initial + 2n);
-    });
-
-    it("should increment stringCounter based on string length comparison", async () => {
-      const initial = (await contract.read("getStringCounter", [])) as bigint;
-      await contract.write(ownerWallet, "testWhileWithStringContains", []);
-      const final = (await contract.read("getStringCounter", [])) as bigint;
-      // Should increment 2 times: "a" -> "aa" -> "aaa" (length 3)
-      expect(final).toBe(initial + 2n);
-    });
-  });
 });

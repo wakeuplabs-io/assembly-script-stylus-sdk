@@ -1,4 +1,4 @@
-import { ClassDeclaration, CallExpression, SyntaxKind, TupleTypeNode, TypeReferenceNode } from "ts-morph";
+import { ClassDeclaration, CallExpression, SyntaxKind, TupleTypeNode, NamedTupleMember } from "ts-morph";
 import { toFunctionSelector } from "viem";
 
 import { IRErrorDecl, IRErrorField } from "@/cli/types/ir.types.js";
@@ -38,13 +38,13 @@ export class ErrorIRBuilder extends IRBuilder<IRErrorDecl> {
         const properties = tupleType.getElements();
         
         properties.forEach((property, index) => {
-          if (property.getKind() === SyntaxKind.TypeReference) {
-            const typeReference = property as TypeReferenceNode;
-            const fieldType = typeReference.getText().replace("typeof ", "");
+          if (property.getKind() === SyntaxKind.NamedTupleMember) {
+            const namedTupleMember = property as NamedTupleMember;
+            const type = namedTupleMember.getText().split(":")[1].replaceAll(" ", "");
 
             fields.push({
               name: `arg${index}`,
-              type: fieldType
+              type: convertType(this.symbolTable, type)
             });
           }
         });
@@ -63,8 +63,7 @@ export class ErrorIRBuilder extends IRBuilder<IRErrorDecl> {
   }
 
   private generateErrorSignature(name: string, fields: IRErrorField[]): string {
-    const paramTypes = fields.map(field => convertType(this.symbolTable, field.type));
-    return `${name}(${paramTypes.join(',')})`;
+    return `${name}(${fields.map(field => field.type).join(',')})`;
   }
 
   private calculateErrorSelector(signature: string): string {

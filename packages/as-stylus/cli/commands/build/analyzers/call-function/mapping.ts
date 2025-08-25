@@ -39,9 +39,6 @@ export function buildMappingIR(variable: VariableSymbol, call: CallExpression, s
     });
 
       const { keyType, firstType, secondType } = getMappingTypes(variable.dynamicType || "");
-      console.log("keyType", keyType);
-      console.log("firstType", firstType);
-      console.log("secondType", secondType);
 
       if (methodName === MethodName.Get && args.length === 1) {
         const returnType = getReturnType(firstType || "");
