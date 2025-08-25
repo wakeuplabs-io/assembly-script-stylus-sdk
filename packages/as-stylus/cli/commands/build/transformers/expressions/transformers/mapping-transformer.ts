@@ -165,7 +165,7 @@ export class MappingTransformer extends Handler {
       case "string":
         return "String";
       default:
-        return "U256"; // fallback
+        throw new Error(`Unsupported value type: ${valueType}`);
     }
   }
 

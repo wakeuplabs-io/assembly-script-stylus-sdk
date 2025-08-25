@@ -48,7 +48,7 @@ export class SlotManager {
   public getSlotForVariable(variableName: string): number {
     const slot = this.variableSlotMap.get(variableName);
 
-    if (!slot) {
+    if (!slot && slot !== 0) {
       throw new Error(`Variable '${variableName}' has no allocated slot`);
     }
 

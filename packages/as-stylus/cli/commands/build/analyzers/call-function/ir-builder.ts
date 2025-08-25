@@ -1,6 +1,5 @@
 import { CallExpression, Expression } from "ts-morph";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 import { FunctionSymbol, VariableSymbol } from "@/cli/types/symbol-table.types.js";
@@ -90,7 +89,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
     if (variable?.type === AbiType.Mapping || variable?.type === AbiType.MappingNested) {
       const slot = this.slotManager.getSlotForVariable(varName);
-      const result = buildMappingIR(ctx, this.call, slot ?? 0);
+      const result = buildMappingIR(variable, this.call, slot ?? 0);
       if (result) {
         return result;
       }

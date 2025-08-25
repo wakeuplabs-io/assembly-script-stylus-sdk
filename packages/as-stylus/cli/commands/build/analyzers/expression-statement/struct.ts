@@ -18,11 +18,13 @@ export class StructAssignmentBuilder extends StructBaseBuilder {
   const { fieldType, struct, structTemplate } = this.getStructInfo(structName, fieldName);
   const finalValueExpr = this.wrapValueWithCopyIfNeeded(valueExpr, fieldType);
   
+  const scope = struct?.scope === "memory" ? "_memory" : "";
+  const target = `${structTemplate?.name}${scope}_set_${fieldName}`;
   return {
     kind: "expr",
     expr: {
       kind: "call",
-      target: `${structTemplate?.name}_set_${fieldName}`,
+      target,
       args: [objectExpr, finalValueExpr],
       type: AbiType.Function,
       returnType: AbiType.Void,

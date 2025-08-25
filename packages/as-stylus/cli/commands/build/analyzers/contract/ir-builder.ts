@@ -1,6 +1,5 @@
 import { SourceFile, ConstructorDeclaration, ClassDeclaration, SyntaxKind, CallExpression, VariableDeclaration } from "ts-morph";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
 import { IRContract, IRErrorDecl, IREvent } from "@/cli/types/ir.types.js";
 
 import { ContractSemanticValidator } from "./semantic-validator.js";
@@ -31,7 +30,6 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     super(sourceFile);
     this.sourceFile = sourceFile;
     this.contractName = contractName;
-    ctx.contractName = contractName;
   }
 
   validate(): boolean {
@@ -59,7 +57,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
     // Process inheritance
     const parent = this.processInheritance(contractClass);
-    this.symbolTable.merge(parent?.symbolTable ?? new SymbolTableStack());
+    this.symbolTable.merge(parent?.symbolTable ?? new SymbolTableStack(this.slotManager));
 
     // Process all class-based components
     const structs = this.processStructs(classes);
@@ -91,7 +89,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       constructor: undefined,
       methods: [],
       storage: [],
-      symbolTable: new SymbolTableStack(),
+      symbolTable: new SymbolTableStack(this.slotManager),
     };
   }
 
@@ -236,14 +234,9 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
   }
 
   private processStorage(contractClass: ClassDeclaration) {
-    const storage = contractClass.getProperties().map((property, index) => {
-      const propertyIRBuilder = new PropertyIRBuilder(property, index + 1);
+    const storage = contractClass.getProperties().map((property) => {
+      const propertyIRBuilder = new PropertyIRBuilder(property);
       return propertyIRBuilder.validateAndBuildIR();
-    });
-
-    storage.forEach(variable => {
-      this.slotManager.allocateSlot(variable.name, variable);
-      ctx.variableTypes.set(variable.name, variable.type);
     });
 
     return storage;

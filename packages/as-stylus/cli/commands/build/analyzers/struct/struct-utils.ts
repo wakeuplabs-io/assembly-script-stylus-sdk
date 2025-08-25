@@ -4,30 +4,28 @@ import { IRExpression } from "@/cli/types/ir.types.js";
 import { convertType } from "../../builder/build-abi.js";
 import { SymbolTableStack } from "../shared/symbol-table.js";
 
+function parseImport(fullType: string): string {
+  if (fullType.startsWith("import(") && fullType.includes(").")) {
+    const parts = fullType.split(").");
+    return parts[parts.length - 1];
+  }
+
+  return fullType;
+}
 /**
  * Extracts the struct name from a full type
  * Example: "import(...).StructTest" -> "StructTest"
  */
 export function extractStructName(fullType: string): string | null {
-  if (!fullType || typeof fullType !== 'string') {
-    return null;
-  }
-
-  // If it's an import path, extract only the final name
-  if (fullType.includes(").")) {
-    const parts = fullType.split(").");
-    return parts[parts.length - 1] || null;
-  }
-  
-  // If it's just the name, return it as is
-  return fullType;
+  return parseImport(fullType);
 }
 
 /**
  * Converts basic types to AbiType. Returns null if not a basic type.
  * This is shared logic between different type conversion functions.
  */
-export function convertBasicType(typeString: string): AbiType | null {
+export function convertBasicType(input: string): AbiType | null {
+  const typeString = parseImport(input);
   if (Object.values(AbiType).includes(typeString as AbiType)) {
     return typeString as AbiType;
   }

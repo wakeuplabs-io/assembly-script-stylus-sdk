@@ -18,11 +18,11 @@ export class StructMemberBuilder extends StructBaseBuilder {
 ): IRExpression {
   const propertyName = parseThis(fieldName);
   const { field, struct, structTemplate } = this.getStructInfo(variable.name, propertyName);
-
+  const scope = struct?.scope === "memory" ? "_memory" : "";
   if (objectIR.kind === "var") {
     return {
       kind: "call",
-      target: `${structTemplate?.name}_get_${propertyName}`,
+      target: `${structTemplate?.name}${scope}_get_${propertyName}`,
       args: [objectIR],
       returnType: field?.type as AbiType,
       scope: "storage",
@@ -32,7 +32,7 @@ export class StructMemberBuilder extends StructBaseBuilder {
   
   return {
     kind: "call",
-    target: `${variable.name}_get_${propertyName}`,
+    target: `${variable.name}${scope}_get_${propertyName}`,
     args: [objectIR],
     returnType: AbiType.Uint256,
     scope: objectIR.kind === "call"&& objectIR.scope ? objectIR.scope : "memory",

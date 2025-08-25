@@ -1,9 +1,9 @@
 import { CallExpression, Expression } from "ts-morph";
 
-import { CompilationContext } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression, IRMapGet, IRMapGet2, IRMapSet, IRMapSet2 } from "@/cli/types/ir.types.js";
 import { MethodName } from "@/cli/types/method-types.js";
+import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { SupportedType } from "../shared/supported-types.js";
@@ -24,43 +24,52 @@ function getReturnType(valueType: string): SupportedType {
   }
 }
 
-export function buildMappingIR(ctx: CompilationContext, call: CallExpression, slot: number): IRExpression | undefined {
-    const { name: mappingName, method: methodName } = parseNameWithMethod(call.getText());
+function getMappingTypes(types: string) {
+  const typeDefinition = types.split("<")[1].split(">")[0];
+  const [keyType, firstType, secondType] = typeDefinition.split(",");
+  return { keyType, firstType, secondType };
+}
+
+export function buildMappingIR(variable: VariableSymbol, call: CallExpression, slot: number): IRExpression | undefined {
+    const { method: methodName } = parseNameWithMethod(call.getText());
 
     const args = call.getArguments().map((arg) => {
       const builder = new ExpressionIRBuilder(arg as Expression);
       return builder.validateAndBuildIR();
     });
 
-      const mappingTypeInfo = ctx.mappingTypes.get(mappingName);
+      const { keyType, firstType, secondType } = getMappingTypes(variable.dynamicType || "");
+      console.log("keyType", keyType);
+      console.log("firstType", firstType);
+      console.log("secondType", secondType);
 
       if (methodName === MethodName.Get && args.length === 1) {
-        const valueType = mappingTypeInfo?.valueType || AbiType.Uint256;
-        const returnType = getReturnType(valueType);
+        const returnType = getReturnType(firstType || "");
         return {
           kind: "map_get",
           slot,
           key: args[0],
-          keyType: mappingTypeInfo?.keyType || AbiType.Address,
-          valueType,
+          keyType: keyType || AbiType.Address,
+          valueType: firstType || AbiType.Uint256,
           type: AbiType.Mapping,
           returnType,
         } as IRMapGet;
       } 
       
       if (methodName === MethodName.Set && args.length === 2) {
+
         return {
           kind: "map_set",
           slot,
           key: args[0],
           value: args[1],
-          keyType: mappingTypeInfo?.keyType || AbiType.Address,
-          valueType: mappingTypeInfo?.valueType || AbiType.Uint256,
+          keyType: keyType || AbiType.Address,
+          valueType: firstType || AbiType.Uint256,
         } as IRMapSet;
       } 
       
       if (methodName === MethodName.Get && args.length === 2) {
-        const valueType = mappingTypeInfo?.valueType || AbiType.Uint256;
+        const valueType = secondType || AbiType.Uint256;
         const returnType = getReturnType(valueType);
 
         return {
@@ -68,8 +77,8 @@ export function buildMappingIR(ctx: CompilationContext, call: CallExpression, sl
           slot,
           key1: args[0],
           key2: args[1],
-          keyType1: mappingTypeInfo?.keyType1 || AbiType.Address,
-          keyType2: mappingTypeInfo?.keyType2 || AbiType.Address,
+          keyType1: keyType || AbiType.Address,
+          keyType2: firstType || AbiType.Address,
           valueType,
           type: AbiType.MappingNested,
           returnType,
@@ -83,9 +92,9 @@ export function buildMappingIR(ctx: CompilationContext, call: CallExpression, sl
           key1: args[0],
           key2: args[1],
           value: args[2],
-          keyType1: mappingTypeInfo?.keyType1 || AbiType.Address,
-          keyType2: mappingTypeInfo?.keyType2 || AbiType.Address,
-          valueType: mappingTypeInfo?.valueType || AbiType.Uint256,
+          keyType1: keyType || AbiType.Address,
+          keyType2: firstType || AbiType.Address,
+          valueType: secondType || AbiType.Uint256,
         } as IRMapSet2;
       }
 
