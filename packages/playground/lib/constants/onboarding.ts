@@ -23,8 +23,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     step: "Step 4: Deploy to Arbitrum",
-    description: "Deploy your contract to Arbitrum Sepolia testnet",
-    command: "npx @wakeuplabs/as-stylus deploy --private-key <YOUR_PRIVATE_KEY> --endpoint <YOUR_RPC_URL> contract.ts --constructor-args \"MyToken\" \"MYT\"",
+    description: "Deploy your contract to Arbitrum Sepolia testnet. Replace <YOUR_PRIVATE_KEY> with your wallet's private key (must start with 0x) and use the recommended RPC endpoint below.",
+    command: "npx @wakeuplabs/as-stylus deploy --private-key 0xYOUR_PRIVATE_KEY_HERE --endpoint https://sepolia-rollup.arbitrum.io/rpc contract.ts --constructor-args \"MyToken\" \"MYT\"",
     hint: "Arbitrum Sepolia RPC: https://sepolia-rollup.arbitrum.io/rpc",
   },
 ]
