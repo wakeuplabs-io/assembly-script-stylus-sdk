@@ -9,14 +9,15 @@ import {
   msg,
 } from "as-stylus";
 
-const ERC721InvalidOwner = ErrorFactory.create<[Address]>();
-const ERC721NonexistentToken = ErrorFactory.create<[U256]>();
-const ERC721IncorrectOwner = ErrorFactory.create<[Address, U256, Address]>();
-const ERC721InvalidSender = ErrorFactory.create<[Address]>();
-const ERC721InvalidReceiver = ErrorFactory.create<[Address]>();
-const ERC721InsufficientApproval = ErrorFactory.create<[Address, U256]>();
-const ERC721InvalidApprover = ErrorFactory.create<[Address]>();
-const ERC721InvalidOperator = ErrorFactory.create<[Address]>();
+const ERC721InvalidOwner = ErrorFactory.create<[owner: Address]>();
+const ERC721NonexistentToken = ErrorFactory.create<[tokenId: U256]>();
+const ERC721IncorrectOwner =
+  ErrorFactory.create<[owner: Address, tokenId: U256, operator: Address]>();
+const ERC721InvalidSender = ErrorFactory.create<[sender: Address]>();
+const ERC721InvalidReceiver = ErrorFactory.create<[receiver: Address]>();
+const ERC721InsufficientApproval = ErrorFactory.create<[approver: Address, tokenId: U256]>();
+const ERC721InvalidApprover = ErrorFactory.create<[approver: Address]>();
+const ERC721InvalidOperator = ErrorFactory.create<[operator: Address]>();
 
 @Contract
 export class RevertContract721 {
