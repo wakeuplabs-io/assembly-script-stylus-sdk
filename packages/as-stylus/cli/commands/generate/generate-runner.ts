@@ -1,4 +1,6 @@
+import { execSync } from "child_process";
 import fs from "fs";
+import path from "path";
 
 import { Logger } from "@/cli/services/logger.js";
 
@@ -34,6 +36,25 @@ export class GenerateRunner {
     return true;
   }
 
+  private runNpmInstall(): void {
+    const projectPath = path.join(this.contractsRoot, this.projectName);
+    const logger = Logger.getInstance();
+
+    try {
+      logger.info("Installing dependencies...");
+      execSync("npm install", {
+        cwd: projectPath,
+        stdio: "inherit",
+      });
+      logger.info("Dependencies installed successfully");
+    } catch (error) {
+      logger.error(
+        "Failed to install dependencies. Please run 'npm install' manually in the project directory.",
+      );
+      logger.error(`Error: ${error}`);
+    }
+  }
+
   validateAndGenerate(): void {
     if (!this.validate()) {
       process.exit(1);
@@ -42,8 +63,13 @@ export class GenerateRunner {
     const generator = new ProjectGenerator(this.contractsRoot, this.projectName);
     generator.generate();
 
+    this.runNpmInstall();
+
     Logger.getInstance().info(
       `Project "${this.projectName}" created successfully at ${this.contractsRoot}/${this.projectName}`,
+    );
+    Logger.getInstance().info(
+      "You can now compile your contract with: as-stylus compile contract.ts",
     );
   }
 }

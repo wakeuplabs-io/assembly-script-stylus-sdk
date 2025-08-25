@@ -32,11 +32,11 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     if (symbol && symbol.type === "function") {
       return (symbol as FunctionSymbol).returnType;
     }
-    
+
     if (symbol && symbol.type === AbiType.UserDefinedFunction) {
       return (symbol as FunctionSymbol).returnType;
     }
-    
+
     const variable = target.split(".")[0];
     const functionCalled = target.includes("(");
 
@@ -44,7 +44,6 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       const type = this.getReturnType(target.split("(")[0]);
       return type;
     }
-
 
     const variableDeclared = this.symbolTable.lookup(variable);
     if (variableDeclared && variableDeclared.type !== "function") {

@@ -57,7 +57,7 @@ export function runDeploy(
   contractPath: string,
   options: {
     privateKey: string;
-    endpoint: string;
+    endpoint?: string;
     output?: string;
     constructorArgs?: string[];
   },
@@ -68,13 +68,16 @@ export function runDeploy(
   const runner = new DeployRunner(contractsRoot, errorManager);
   runner.validate();
   const deploymentOutput = runner.deploy(contractPath, options);
-  const deploymentInfo = saveDeploymentInfo(deploymentOutput, contractPath, options.endpoint);
+
+  const defaultEndpoint = "https://sepolia-rollup.arbitrum.io/rpc";
+  const finalEndpoint = options.endpoint || defaultEndpoint;
+  const deploymentInfo = saveDeploymentInfo(deploymentOutput, contractPath, finalEndpoint);
 
   executeConstructor(
     contractPath,
     deploymentInfo.deployment.contractAddress as Address,
     options.privateKey,
-    options.endpoint,
+    finalEndpoint,
     options.constructorArgs,
   );
 
@@ -85,7 +88,7 @@ export const deployCommand = new Command("deploy")
   .description("Deploy an AssemblyScript Contract")
   .argument("<contract-path>", "Path to the contract file")
   .option("--private-key <private-key>", "Private key to deploy the contract")
-  .option("--endpoint <endpoint>", "Endpoint to deploy the contract")
+  .option("--endpoint <endpoint>", "Endpoint to deploy the contract (defaults to Arbitrum Sepolia)")
   .option("--output <output-file>", "Save deployment information to a JSON file")
   .option("--constructor-args <constructor-args...>", "Constructor arguments")
   .action(
@@ -93,7 +96,7 @@ export const deployCommand = new Command("deploy")
       contractPath: string,
       options: {
         privateKey: string;
-        endpoint: string;
+        endpoint?: string;
         output?: string;
         constructorArgs?: string[];
       },

@@ -22,36 +22,36 @@ function extractMappingTypes(typeText: string): {
   keyType2?: string;
 } {
   const cleanType = typeText.replace(/\s/g, "");
-  
+
   // Handle MappingNested<K1,K2,V>
-  if (cleanType.startsWith('MappingNested<')) {
+  if (cleanType.startsWith("MappingNested<")) {
     const nestedMatch = cleanType.match(/^MappingNested<(.+)>$/);
     if (nestedMatch) {
-      const types = nestedMatch[1].split(',');
+      const types = nestedMatch[1].split(",");
       if (types.length === 3) {
         return {
           keyType1: types[0],
-          keyType2: types[1], 
-          valueType: types[2]
+          keyType2: types[1],
+          valueType: types[2],
         };
       }
     }
   }
-  
+
   // Handle regular Mapping<K,V>
-  if (cleanType.startsWith('Mapping<')) {
+  if (cleanType.startsWith("Mapping<")) {
     const mappingMatch = cleanType.match(/^Mapping<(.+)>$/);
     if (mappingMatch) {
-      const types = mappingMatch[1].split(',');
+      const types = mappingMatch[1].split(",");
       if (types.length === 2) {
         return {
           keyType: types[0],
-          valueType: types[1]
+          valueType: types[1],
         };
       }
     }
   }
-  
+
   return {};
 }
 
@@ -89,7 +89,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
         type: AbiType.MappingNested,
         slot: this.slotManager.getSlotForVariable(name),
         keyType1: mappingTypes.keyType1 || "Address",
-        keyType2: mappingTypes.keyType2 || "Address", 
+        keyType2: mappingTypes.keyType2 || "Address",
         valueType: mappingTypes.valueType || "U256",
         kind: "mapping2",
       };
@@ -103,7 +103,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
         type: AbiType.Mapping,
         slot: this.slotManager.getSlotForVariable(name),
         keyType: mappingTypes.keyType || "Address",
-        valueType: mappingTypes.valueType || "U256", 
+        valueType: mappingTypes.valueType || "U256",
         kind: "mapping",
       };
 
@@ -111,7 +111,6 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     }
 
     const struct = this.symbolTable.getStructTemplateByName(type);
-
 
     return {
       name,

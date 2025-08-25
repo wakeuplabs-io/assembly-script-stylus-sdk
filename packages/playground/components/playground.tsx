@@ -44,7 +44,7 @@ export function Playground() {
                 <CodeBlock
                   code={activeContract === "ERC20" ? ERC20_CONTRACT_CODE : ERC721_CONTRACT_CODE}
                   showCopy
-                  height="600px"
+                  height="45rem"
                 />
               </div>
 
@@ -75,6 +75,9 @@ export function Playground() {
                             )}
                           </button>
                         </div>
+                      )}
+                      {step.hint && (
+                        <p className="text-gray-500 text-xs mt-1 italic">{step.hint}</p>
                       )}
                     </div>
                   ))}

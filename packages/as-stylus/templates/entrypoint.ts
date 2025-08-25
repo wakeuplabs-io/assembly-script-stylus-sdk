@@ -1,18 +1,34 @@
+import fs from "fs";
+import path from "path";
+
+function getPackageName(): string {
+  const cwd = process.cwd();
+  const nodeModulesPath = path.join(cwd, "node_modules", "@wakeuplabs", "as-stylus");
+
+  if (fs.existsSync(nodeModulesPath)) {
+    return "@wakeuplabs/as-stylus";
+  }
+
+  return "as-stylus";
+}
+
 export function getUserEntrypointTemplate(): string {
+  const packageName = getPackageName();
+
   return `
 /* eslint-disable */
 
 // Auto-generated contract template
 import "./assembly/stylus/stylus";
-import { __keep_imports } from "as-stylus/core/modules/keep-imports";
-import { read_args, write_result } from "as-stylus/core/modules/hostio";
-import { initHeap, malloc } from "as-stylus/core/modules/memory";
-import { loadU32BE } from "as-stylus/core/modules/endianness";
-import { Str } from "as-stylus/core/types/str";
-import { Boolean } from "as-stylus/core/types/boolean";
-import { U256 } from "as-stylus/core/types/u256";
-import { createStorageKey } from "as-stylus/core/modules/storage";
-import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "as-stylus/core/modules/hostio";
+import { __keep_imports } from "${packageName}/core/modules/keep-imports";
+import { read_args, write_result } from "${packageName}/core/modules/hostio";
+import { initHeap, malloc } from "${packageName}/core/modules/memory";
+import { loadU32BE } from "${packageName}/core/modules/endianness";
+import { Str } from "${packageName}/core/types/str";
+import { Boolean } from "${packageName}/core/types/boolean";
+import { U256 } from "${packageName}/core/types/u256";
+import { createStorageKey } from "${packageName}/core/modules/storage";
+import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "${packageName}/core/modules/hostio";
 
 // @logic_imports
 

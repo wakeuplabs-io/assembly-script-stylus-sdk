@@ -5,10 +5,10 @@ export interface FlowStep {
 
 export const FLOW_STEPS: FlowStep[] = [
   { title: "TypeScript", desc: "Write contracts" },
-  { title: "Compile", desc: "AssemblyScript" },
-  { title: "Generate", desc: "WASM" },
+  { title: "Generate", desc: "AssemblyScript" },
+  { title: "Compile", desc: "WASM" },
   { title: "Deploy", desc: "To Arbitrum" },
-  { title: "Interact", desc: "Call functions" },
+  { title: "Interact", desc: "Call functions" }, // TODO: add a call to the contract
 ]
 
 export const FLOW_DIAGRAM_TITLE = "From TypeScript to Stylus in seconds"

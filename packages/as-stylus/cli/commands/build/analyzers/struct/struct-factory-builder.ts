@@ -12,7 +12,6 @@ import { SymbolTableStack } from "../shared/symbol-table.js";
  * Handles the creation of struct instances in memory with initialization
  */
 export class StructFactoryBuilder {
-  
   /**
    * Checks if this call expression is a StructFactory.create call
    */
@@ -27,9 +26,11 @@ export class StructFactoryBuilder {
   static buildStructCreateIR(symbolTable: SymbolTableStack, call: CallExpression): IRExpression {
     // Extract the struct type from generic parameter
     const structType = extractStructTypeFromCall(call);
-    
+
     if (!structType) {
-      throw new Error("StructFactory.create requires a type parameter: StructFactory.create<StructType>");
+      throw new Error(
+        "StructFactory.create requires a type parameter: StructFactory.create<StructType>",
+      );
     }
 
     // Verify the struct exists in registry
@@ -75,4 +76,4 @@ export class StructFactoryBuilder {
 
     return result;
   }
-} 
+}
