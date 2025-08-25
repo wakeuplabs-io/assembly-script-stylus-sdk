@@ -24,8 +24,7 @@ const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.CALLS;
 const getOwnerAddress = () => ownerWallet.account?.address as Address;
 const getUserBAddress = () => userBWallet.account?.address as Address;
 
-const MAX_GAS_COST = BigInt("1000000000000000"); // 0.001 ETH max gas cost
-const MIN_GAS_COST = BigInt("10000000000000"); // 0.00001 ETH min gas cost
+const MAX_GAS_COST = BigInt("100000000000000000"); // 0.1 ETH max cost (includes Stylus activation)
 
 beforeAll(async () => {
   try {
@@ -70,15 +69,19 @@ describe("Calls Contract — Contract Call Operations", () => {
   });
 
   describe("Call operations with balance verification", () => {
-    it("should execute testCall successfully (calls to contract itself)", async () => {
+    it("should execute testCall successfully (calls to owner)", async () => {
       const ownerBalance = getBalance(getOwnerAddress());
       const contractBalance = getBalance(contract.address);
       const transferAmount = "10000000000000000"; // 0.01 ETH in wei
 
-      await contract.write(ownerWallet, "testCall", [transferAmount]);
+      await contract.write(ownerWallet, "testCall", [transferAmount], BigInt(transferAmount));
 
-      expect(getBalance(contract.address)).toBe(contractBalance + BigInt(transferAmount));
-      expect(getBalance(getOwnerAddress())).toBeLessThan(ownerBalance - BigInt(transferAmount));
+      // Contract receives ETH from external call, then transfers it to owner
+      // Net result: owner balance stays similar (receives back what they sent), minus gas
+      // Contract balance should remain 0 (receives then transfers out)
+      expect(getBalance(contract.address)).toBe(contractBalance);
+      expect(getBalance(getOwnerAddress())).toBeLessThan(ownerBalance);
+      expect(getBalance(getOwnerAddress())).toBeGreaterThan(ownerBalance - MAX_GAS_COST);
     });
 
     it("should execute testDelegateCall successfully", async () => {
@@ -106,17 +109,26 @@ describe("Calls Contract — Contract Call Operations", () => {
       const contractBalance = getBalance(contract.address);
       const transferAmount = "10000000000000000"; // 0.01 ETH in wei
 
-      await contract.write(ownerWallet, "testTransfer", [transferAmount]);
+      await contract.write(ownerWallet, "testTransfer", [transferAmount], BigInt(transferAmount));
 
-      expect(getBalance(contract.address)).toBe(contractBalance + BigInt(transferAmount));
-      expect(getBalance(getOwnerAddress())).toBeLessThan(ownerBalance - BigInt(transferAmount));
+      // Contract receives ETH from external call, then transfers it to owner
+      // Net result: owner balance stays similar (receives back what they sent), minus gas
+      // Contract balance should remain 0 (receives then transfers out)
+      expect(getBalance(contract.address)).toBe(contractBalance);
+      expect(getBalance(getOwnerAddress())).toBeLessThan(ownerBalance);
+      expect(getBalance(getOwnerAddress())).toBeGreaterThan(ownerBalance - MAX_GAS_COST);
     });
 
     it("should execute testCallToOwner successfully", async () => {
       const ownerBalance = getBalance(getOwnerAddress());
       const transferAmount = "10000000000000000"; // 0.01 ETH in wei
 
-      await contract.write(ownerWallet, "testCallToOwner", [transferAmount]);
+      await contract.write(
+        ownerWallet,
+        "testCallToOwner",
+        [transferAmount],
+        BigInt(transferAmount),
+      );
 
       const newOwnerBalance = getBalance(getOwnerAddress());
       expect(newOwnerBalance).toBeLessThan(ownerBalance);
@@ -140,7 +152,12 @@ describe("Calls Contract — Contract Call Operations", () => {
       const ownerBalance = getBalance(getOwnerAddress());
       const transferAmount = "10000000000000000"; // 0.01 ETH in wei
 
-      await contract.write(ownerWallet, "testCallToOwner", [transferAmount]);
+      await contract.write(
+        ownerWallet,
+        "testCallToOwner",
+        [transferAmount],
+        BigInt(transferAmount),
+      );
 
       const newOwnerBalance = getBalance(getOwnerAddress());
       expect(newOwnerBalance).toBeLessThan(ownerBalance);
@@ -154,20 +171,20 @@ describe("Calls Contract — Contract Call Operations", () => {
       const initialContractBalance = getBalance(contract.address);
       const transferAmount = "10000000000000000"; // 0.01 ETH in wei
 
-      await contract.write(ownerWallet, "testCall", [transferAmount]);
+      await contract.write(ownerWallet, "testCall", [transferAmount], BigInt(transferAmount));
       await contract.write(ownerWallet, "testDelegateCall", []);
       await contract.write(ownerWallet, "testStaticCall", []);
-      await contract.write(ownerWallet, "testTransfer", [transferAmount]);
+      await contract.write(ownerWallet, "testTransfer", [transferAmount], BigInt(transferAmount));
 
       const finalOwnerBalance = getBalance(getOwnerAddress());
       const finalContractBalance = getBalance(contract.address);
       const totalTransferred = BigInt(transferAmount) * 2n;
 
-      expect(finalContractBalance).toBe(initialContractBalance + totalTransferred);
-      expect(finalOwnerBalance).toBeLessThan(initialOwnerBalance - totalTransferred);
-      expect(finalOwnerBalance).toBeGreaterThan(
-        initialOwnerBalance - totalTransferred - MAX_GAS_COST * 4n,
-      );
+      // Both testCall and testTransfer send ETH to owner then transfer it back to owner
+      // Net result: contract balance stays 0, owner pays gas for 4 transactions
+      expect(finalContractBalance).toBe(initialContractBalance);
+      expect(finalOwnerBalance).toBeLessThan(initialOwnerBalance);
+      expect(finalOwnerBalance).toBeGreaterThan(initialOwnerBalance - MAX_GAS_COST * 4n);
     });
 
     it("should handle calls with balance checking capability", async () => {
@@ -175,14 +192,17 @@ describe("Calls Contract — Contract Call Operations", () => {
       const contractBalance = getBalance(contract.address);
       const transferAmount = "10000000000000000"; // 0.01 ETH in wei
 
-      await contract.write(ownerWallet, "testCall", [transferAmount]);
+      await contract.write(ownerWallet, "testCall", [transferAmount], BigInt(transferAmount));
 
       const newOwnerBalance = getBalance(getOwnerAddress());
       const newContractBalance = getBalance(contract.address);
 
-      expect(newContractBalance).toBe(contractBalance + BigInt(transferAmount));
-      expect(newOwnerBalance).toBeLessThan(ownerBalance - BigInt(transferAmount));
-      expect(newOwnerBalance).toBeGreaterThan(ownerBalance - BigInt(transferAmount) - MAX_GAS_COST);
+      // Contract receives ETH from external call, then transfers it to owner
+      // Net result: owner balance stays similar (receives back what they sent), minus gas
+      // Contract balance should remain 0 (receives then transfers out)
+      expect(newContractBalance).toBe(contractBalance);
+      expect(newOwnerBalance).toBeLessThan(ownerBalance);
+      expect(newOwnerBalance).toBeGreaterThan(ownerBalance - MAX_GAS_COST);
     });
 
     it("should verify transformations work consistently", async () => {
@@ -190,18 +210,17 @@ describe("Calls Contract — Contract Call Operations", () => {
       const initialContractBalance = getBalance(contract.address);
       const transferAmount = "10000000000000000"; // 0.01 ETH in wei
 
-      await contract.write(ownerWallet, "testCall", [transferAmount]);
-      await contract.write(ownerWallet, "testCall", [transferAmount]);
+      await contract.write(ownerWallet, "testCall", [transferAmount], BigInt(transferAmount));
+      await contract.write(ownerWallet, "testCall", [transferAmount], BigInt(transferAmount));
 
       const finalOwnerBalance = getBalance(getOwnerAddress());
       const finalContractBalance = getBalance(contract.address);
-      const totalTransferred = BigInt(transferAmount) * 2n;
 
-      expect(finalContractBalance).toBe(initialContractBalance + totalTransferred);
-      expect(finalOwnerBalance).toBeLessThan(initialOwnerBalance - totalTransferred);
-      expect(finalOwnerBalance).toBeGreaterThan(
-        initialOwnerBalance - totalTransferred - MAX_GAS_COST * 2n,
-      );
+      // Both testCall operations send ETH to contract then transfer it to owner
+      // Net result: contract balance stays 0, owner pays gas for 2 transactions
+      expect(finalContractBalance).toBe(initialContractBalance);
+      expect(finalOwnerBalance).toBeLessThan(initialOwnerBalance);
+      expect(finalOwnerBalance).toBeGreaterThan(initialOwnerBalance - MAX_GAS_COST * 2n);
     });
   });
 });

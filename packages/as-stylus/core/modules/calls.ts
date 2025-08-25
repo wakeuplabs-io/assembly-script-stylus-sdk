@@ -1,6 +1,5 @@
 import { call_contract, delegate_call_contract, static_call_contract, read_return_data } from "./hostio";
 import { malloc } from "./memory";
-import { debugLogI32 } from "./console";
 
 const DEFAULT_GAS_LIMIT: u64 = 500_000;
 
@@ -95,7 +94,6 @@ export class Calls {
     if (returnDataLen > 0) {
       returnDataPtr = malloc(<i32>returnDataLen);
       const written = read_return_data(returnDataPtr, 0, <i32>returnDataLen);
-      debugLogI32(<i32>written);
     }
 
     return CallResult.create(status, returnDataPtr, <u32>returnDataLen);
@@ -128,7 +126,6 @@ export class Calls {
     if (returnDataLen > 0) {
       returnDataPtr = malloc(<i32>returnDataLen);
       const written = read_return_data(returnDataPtr, 0, <i32>returnDataLen);
-      debugLogI32(<i32>written);
     }
 
     return CallResult.create(status, returnDataPtr, <u32>returnDataLen);
@@ -160,7 +157,6 @@ export class Calls {
     if (returnDataLen > 0) {
       returnDataPtr = malloc(<i32>returnDataLen);
       const written = read_return_data(returnDataPtr, 0, <i32>returnDataLen);
-      debugLogI32(<i32>written);
     }
 
     return CallResult.create(status, returnDataPtr, <u32>returnDataLen);
@@ -218,7 +214,6 @@ export class Calls {
     if (returnDataLen > 0) {
       const returnDataPtr = malloc(<i32>returnDataLen);
       read_return_data(returnDataPtr, 0, <i32>returnDataLen);
-      debugLogI32(<i32>returnDataLen);
     }
     
     return status == CallStatus.SUCCESS;

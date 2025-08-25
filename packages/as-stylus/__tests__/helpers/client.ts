@@ -54,7 +54,7 @@ export const getWalletClient = (privateKey: string) =>
 export function contractService(contractAddr: Address, abi: Abi, verbose: boolean = false) {
   return {
     address: contractAddr,
-    write: async (walletClient: WalletClient, functionName: string, args: ContractArgs) => {
+    write: async (walletClient: WalletClient, functionName: string, args: ContractArgs, value?: bigint) => {
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ write calldata:", data);
 
@@ -65,6 +65,7 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
         args,
         account: walletClient.account as Account,
         chain,
+        value,
       });
 
       const result = await walletClient.writeContract(request);

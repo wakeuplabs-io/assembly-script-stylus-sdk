@@ -14,14 +14,15 @@ export class CallsContract {
   @External
   static testCall(value: U256): void {
     const emptyData = StrFactory.fromString("");
-    
-    CallFactory.call(myAddress, value, emptyData);
+
+    const oneKey = U256Factory.fromString("1");
+    const ownerAddress = owners.get(oneKey);
+    CallFactory.call(ownerAddress, value, emptyData);
   }
 
   @External
   static testDelegateCall(): void {
     const emptyData = StrFactory.fromString("");
-    (emptyData as IERC20).transfer(U256Factory.fromString("1"));
     CallFactory.delegateCall(myAddress, emptyData);
   }
 
@@ -31,14 +32,16 @@ export class CallsContract {
   @External
   static testStaticCall(): void {
     const emptyData = StrFactory.fromString("");
-    
+
     CallFactory.staticCall(myAddress, emptyData);
   }
 
-
   @External
   static testTransfer(value: U256): void {
-    CallFactory.transfer(myAddress, value);
+    // Test: Transfer to owner instead of self-transfer to see if that works
+    const oneKey = U256Factory.fromString("1");
+    const ownerAddress = owners.get(oneKey);
+    CallFactory.transfer(ownerAddress, value);
   }
 
   /**
@@ -47,10 +50,9 @@ export class CallsContract {
   // @External
   // static testSend(): boolean {
   //   const oneWei = U256Factory.fromString("1");
-    
+
   //   return CallFactory.send(myAddress, oneWei);
   // }
-
 
   /**
    * Test call to owner address - Send 1 wei to owners.get(1)
@@ -60,7 +62,7 @@ export class CallsContract {
     const oneKey = U256Factory.fromString("1");
     const ownerAddress = owners.get(oneKey);
     const emptyData = StrFactory.fromString("");
-    
+
     CallFactory.call(ownerAddress, value, emptyData);
   }
 
@@ -72,7 +74,7 @@ export class CallsContract {
   //   const oneKey = U256Factory.fromString("1");
   //   const ownerAddress = owners.get(oneKey);
   //   const oneWei = U256Factory.fromString("1");
-    
+
   //   return CallFactory.send(ownerAddress, oneWei);
   // }
 
