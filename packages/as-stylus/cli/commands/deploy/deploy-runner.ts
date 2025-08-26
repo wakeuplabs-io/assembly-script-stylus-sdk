@@ -1,9 +1,9 @@
 import { ProjectFinder } from "@/cli/services/project-finder.js";
 import { runCommand } from "@/cli/utils/command-runner.js";
 import { BUILD_WASM_PATH } from "@/cli/utils/constants.js";
-import { ValidationUtils } from "@/cli/utils/validation.js";
+import { findErrorTemplate } from "@/cli/utils/error-messages.js";
 import { ErrorCode, createAStylusError } from "@/cli/utils/global-error-handler.js";
-import { findErrorTemplate, createErrorMessage } from "@/cli/utils/error-messages.js";
+import { ValidationUtils } from "@/cli/utils/validation.js";
 
 import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
 
@@ -30,7 +30,7 @@ export class DeployRunner {
     if (!keyValidation.isValid) {
       const error = createAStylusError(
         keyValidation.code || ErrorCode.INVALID_PRIVATE_KEY_FORMAT,
-        keyValidation.message
+        keyValidation.message,
       );
       throw error;
     }
@@ -49,10 +49,18 @@ export class DeployRunner {
       const template = findErrorTemplate(errorMessage);
 
       if (template) {
-        const enhancedError = createAStylusError(ErrorCode.CARGO_STYLUS_ERROR, errorMessage, error instanceof Error ? error : undefined);
+        const enhancedError = createAStylusError(
+          ErrorCode.CARGO_STYLUS_ERROR,
+          errorMessage,
+          error instanceof Error ? error : undefined,
+        );
         throw enhancedError;
       } else {
-        const deploymentError = createAStylusError(ErrorCode.CONTRACT_DEPLOYMENT_FAILED, errorMessage, error instanceof Error ? error : undefined);
+        const deploymentError = createAStylusError(
+          ErrorCode.CONTRACT_DEPLOYMENT_FAILED,
+          errorMessage,
+          error instanceof Error ? error : undefined,
+        );
         throw deploymentError;
       }
     }

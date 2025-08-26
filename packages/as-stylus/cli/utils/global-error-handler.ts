@@ -4,6 +4,7 @@
  */
 
 import { Logger } from "@/cli/services/logger.js";
+
 import { ErrorCode, ErrorCategory, getErrorCategory } from "./error-codes.js";
 
 // Re-export for external usage
@@ -31,14 +32,14 @@ export const ERROR_TEMPLATES: Record<ErrorCode, ErrorTemplate> = {
   [ErrorCode.INVALID_PRIVATE_KEY_FORMAT]: {
     title: "Invalid Private Key Format",
     description: "Your private key must start with '0x' and be exactly 66 characters long.",
-    solution: "Add '0x' prefix to your private key: --private-key 0xYOUR_KEY_HERE",
+    solution: "Ensure your private key starts with '0x' and is exactly 66 characters total",
     moreInfo: "Export your private key from MetaMask or your wallet and ensure it starts with 0x",
   },
 
   [ErrorCode.MISSING_PRIVATE_KEY]: {
-    title: "Private Key Required", 
+    title: "Private Key Required",
     description: "Contract deployment requires a private key to sign the transaction.",
-    solution: "Add your private key: --private-key 0xYOUR_PRIVATE_KEY_HERE",
+    solution: "Enter your private key when prompted during deployment",
     moreInfo: "Never share your private key or commit it to version control",
   },
 
@@ -58,8 +59,10 @@ export const ERROR_TEMPLATES: Record<ErrorCode, ErrorTemplate> = {
 
   [ErrorCode.INVALID_CONSTRUCTOR_ARGS]: {
     title: "Invalid Constructor Arguments",
-    description: "The provided constructor arguments do not match the contract's constructor signature.",
-    solution: "Check your contract's constructor and provide matching arguments: --constructor-args \"arg1\" \"arg2\"",
+    description:
+      "The provided constructor arguments do not match the contract's constructor signature.",
+    solution:
+      'Check your contract\'s constructor and provide matching arguments: --constructor-args "arg1" "arg2"',
     moreInfo: "Arguments must match the types defined in your contract's constructor",
   },
 
@@ -186,7 +189,7 @@ export const ERROR_TEMPLATES: Record<ErrorCode, ErrorTemplate> = {
   },
 
   [ErrorCode.SCOPE_ERROR]: {
-    title: "Scope Error", 
+    title: "Scope Error",
     description: "A variable or function is accessed outside its scope.",
     solution: "Check variable and function scoping in your code",
   },
@@ -219,7 +222,8 @@ export const ERROR_TEMPLATES: Record<ErrorCode, ErrorTemplate> = {
   [ErrorCode.NETWORK_CONNECTION_FAILED]: {
     title: "Network Connection Failed",
     description: "Unable to connect to the specified RPC endpoint.",
-    solution: "Check your internet connection and RPC endpoint: --endpoint https://sepolia-rollup.arbitrum.io/rpc",
+    solution:
+      "Check your internet connection and RPC endpoint: --endpoint https://sepolia-rollup.arbitrum.io/rpc",
     moreInfo: "Ensure the RPC endpoint is accessible and the network is reachable",
   },
 
@@ -275,7 +279,7 @@ export const ERROR_TEMPLATES: Record<ErrorCode, ErrorTemplate> = {
   },
 
   [ErrorCode.CONTRACT_VERIFICATION_FAILED]: {
-    title: "Contract Verification Failed", 
+    title: "Contract Verification Failed",
     description: "The deployed contract failed verification.",
     solution: "Check contract code and deployment parameters",
   },
@@ -295,7 +299,7 @@ export const ERROR_TEMPLATES: Record<ErrorCode, ErrorTemplate> = {
   },
 
   [ErrorCode.INVALID_FUNCTION_CALL]: {
-    title: "Invalid Function Call", 
+    title: "Invalid Function Call",
     description: "The function call is invalid or malformed.",
     solution: "Check function parameters and call syntax",
   },
@@ -411,18 +415,18 @@ export const ERROR_TEMPLATES: Record<ErrorCode, ErrorTemplate> = {
 export function createAStylusError(
   code: ErrorCode,
   message?: string,
-  originalError?: Error
+  originalError?: Error,
 ): AStylusError {
   const template = ERROR_TEMPLATES[code];
   const category = getErrorCategory(code);
-  
+
   const error: AStylusError = new Error(message || template.description);
   error.code = code;
   error.category = category;
   error.template = template;
   error.originalError = originalError;
   error.name = `AStylusError[${code}]`;
-  
+
   return error;
 }
 
@@ -439,14 +443,14 @@ export function createErrorMessage(template: ErrorTemplate): string {
     bold: "\x1b[1m",
   };
 
-  let message = `\n${COLORS.red}${COLORS.bold}❌ ${template.title}${COLORS.reset}`;
-  message += `\n\n${COLORS.gray}📝 Problem:${COLORS.reset}`;
+  let message = `\n${COLORS.red}${COLORS.bold}[X] ${template.title}${COLORS.reset}`;
+  message += `\n\n${COLORS.gray}Problem:${COLORS.reset}`;
   message += `\n   ${template.description}`;
-  message += `\n\n${COLORS.green}💡 Solution:${COLORS.reset}`;
+  message += `\n\n${COLORS.green}Solution:${COLORS.reset}`;
   message += `\n   ${template.solution}`;
 
   if (template.moreInfo) {
-    message += `\n\n${COLORS.cyan}ℹ️  More Info:${COLORS.reset}`;
+    message += `\n\n${COLORS.cyan}Info:${COLORS.reset}`;
     message += `\n   ${template.moreInfo}`;
   }
   message += "\n";
@@ -458,32 +462,29 @@ export function createErrorMessage(template: ErrorTemplate): string {
  * Handle unknown errors and map them to system errors
  */
 export function handleUnknownError(error: unknown): AStylusError {
-  if (error instanceof Error && 'code' in error && typeof error.code === 'number') {
-    // Already an AS-Stylus error
+  if (error instanceof Error && "code" in error && typeof error.code === "number") {
     return error as AStylusError;
   }
 
   if (error instanceof Error) {
-    // Map common error types to specific codes
-    if (error.message.includes('ENOENT') || error.message.includes('file not found')) {
+    if (error.message.includes("ENOENT") || error.message.includes("file not found")) {
       return createAStylusError(ErrorCode.FILESYSTEM_ERROR, error.message, error);
     }
-    if (error.message.includes('permission denied') || error.message.includes('EACCES')) {
+    if (error.message.includes("permission denied") || error.message.includes("EACCES")) {
       return createAStylusError(ErrorCode.PERMISSION_ERROR, error.message, error);
     }
-    if (error.message.includes('timeout') || error.message.includes('ETIMEDOUT')) {
+    if (error.message.includes("timeout") || error.message.includes("ETIMEDOUT")) {
       return createAStylusError(ErrorCode.TIMEOUT_ERROR, error.message, error);
     }
-    if (error.message.includes('memory') || error.message.includes('ENOMEM')) {
+    if (error.message.includes("memory") || error.message.includes("ENOMEM")) {
       return createAStylusError(ErrorCode.MEMORY_ERROR, error.message, error);
     }
-    
+
     // Generic unknown error
     return createAStylusError(ErrorCode.UNKNOWN_ERROR, error.message, error);
   }
 
-  // Non-Error objects
-  const message = typeof error === 'string' ? error : String(error);
+  const message = typeof error === "string" ? error : String(error);
   return createAStylusError(ErrorCode.UNKNOWN_ERROR, message);
 }
 
@@ -501,7 +502,6 @@ export function handleGlobalError(error: unknown): never {
     logger.error(`[${astylusError.code}] ${astylusError.message}`);
   }
 
-  // Log original error for debugging if available
   if (astylusError.originalError && astylusError.originalError.stack) {
     logger.debug(`Original error stack: ${astylusError.originalError.stack}`);
   }
@@ -514,26 +514,25 @@ export function handleGlobalError(error: unknown): never {
  */
 export function findErrorTemplate(errorMessage: string): ErrorTemplate | null {
   const message = errorMessage.toLowerCase();
-  
-  // Check for specific patterns
-  if (message.includes('private key') && (message.includes('format') || message.includes('0x'))) {
+
+  if (message.includes("private key") && (message.includes("format") || message.includes("0x"))) {
     return ERROR_TEMPLATES[ErrorCode.INVALID_PRIVATE_KEY_FORMAT];
   }
-  if (message.includes('private key') && message.includes('required')) {
+  if (message.includes("private key") && message.includes("required")) {
     return ERROR_TEMPLATES[ErrorCode.MISSING_PRIVATE_KEY];
   }
-  if (message.includes('rpc') || message.includes('endpoint')) {
+  if (message.includes("rpc") || message.includes("endpoint")) {
     return ERROR_TEMPLATES[ErrorCode.INVALID_RPC_URL];
   }
-  if (message.includes('insufficient funds') || message.includes('balance')) {
+  if (message.includes("insufficient funds") || message.includes("balance")) {
     return ERROR_TEMPLATES[ErrorCode.INSUFFICIENT_FUNDS];
   }
-  if (message.includes('network') || message.includes('connection')) {
+  if (message.includes("network") || message.includes("connection")) {
     return ERROR_TEMPLATES[ErrorCode.NETWORK_CONNECTION_FAILED];
   }
-  if (message.includes('cargo stylus')) {
+  if (message.includes("cargo stylus")) {
     return ERROR_TEMPLATES[ErrorCode.CARGO_STYLUS_ERROR];
   }
-  
+
   return null;
 }
