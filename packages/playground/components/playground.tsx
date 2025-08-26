@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { CodeBlock } from "@/components/code-block"
+import { Prerequisites } from "@/components/prerequisites"
 import { ERC20_CONTRACT_CODE, ERC721_CONTRACT_CODE } from "@/lib/constants/code-examples"
 import { ONBOARDING_STEPS } from "@/lib/constants/onboarding"
 import { useContract } from "@/contexts/contract-context"
@@ -36,6 +37,8 @@ export function Playground() {
             <span className="text-stylus-primary-light font-medium">{activeContract} Contract</span>
           </div>
         </div>
+
+        <Prerequisites />
 
         <Card className="bg-gray-900/50 border-gray-700 overflow-hidden">
           <CardContent className="p-0">
