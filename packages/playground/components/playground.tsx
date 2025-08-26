@@ -11,7 +11,7 @@ import { useState } from "react"
 
 export function Playground() {
   const { activeContract } = useContract()
-  const [copiedStates, setCopiedStates] = useState<Record<number, boolean>>({})
+  const [copiedStates, setCopiedStates] = useState<Record<string | number, boolean>>({})
 
   const copyCommand = async (command: string, index: number | string) => {
     try {
