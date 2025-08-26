@@ -1,187 +1,216 @@
 /**
- * Centralized actionable error messages for common CLI issues
+ * Enhanced error messages with unified codes
+ * Migrated from old template system to new unified error handler
  */
 
-export interface ErrorTemplate {
-  title: string;
-  description: string;
-  solution: string;
-  moreInfo?: string;
-}
+import { ErrorCode, ErrorTemplate, ERROR_TEMPLATES, createErrorMessage } from "./global-error-handler.js";
 
-export const ERROR_TEMPLATES = {
-  INVALID_PRIVATE_KEY_FORMAT: {
-    title: "Invalid Private Key Format",
-    description: "Your private key must start with '0x' and be exactly 66 characters long.",
-    solution: "Add '0x' prefix to your private key: --private-key 0xYOUR_KEY_HERE",
-    moreInfo: "Export your private key from MetaMask or your wallet and ensure it starts with 0x",
-  },
+// Re-export types for backward compatibility
+export { ErrorTemplate } from "./global-error-handler.js";
 
-  MISSING_PRIVATE_KEY: {
-    title: "Private Key Required",
-    description: "Contract deployment requires a private key to sign the transaction.",
-    solution: "Add your private key: --private-key 0xYOUR_PRIVATE_KEY_HERE",
-    moreInfo: "Never share your private key or commit it to version control",
-  },
-
-  INVALID_RPC_URL: {
-    title: "Invalid RPC Endpoint",
-    description: "The RPC endpoint URL format is incorrect or unreachable.",
-    solution:
-      "Use the recommended Arbitrum Sepolia RPC: --endpoint https://sepolia-rollup.arbitrum.io/rpc",
-    moreInfo: "You can also try other public Arbitrum Sepolia endpoints from chainlist.org",
-  },
-
-  RPC_CONNECTION_FAILED: {
-    title: "RPC Connection Failed",
-    description: "Unable to connect to the RPC endpoint.",
-    solution:
-      "Check your internet connection and try the recommended RPC: https://sepolia-rollup.arbitrum.io/rpc",
-    moreInfo: "If the issue persists, the RPC endpoint might be experiencing downtime",
-  },
-
-  INSUFFICIENT_FUNDS: {
-    title: "Insufficient Funds",
-    description: "Your wallet doesn't have enough ETH to pay for gas fees.",
-    solution: "Get Arbitrum Sepolia ETH from a faucet: https://faucets.chain.link/arbitrum-sepolia",
-    moreInfo: "You need ETH to pay for deployment gas fees on Arbitrum Sepolia testnet",
-  },
-
-  CONTRACT_SIZE_TOO_LARGE: {
-    title: "Contract Size Exceeds Limit",
-    description: "Your compiled contract is too large to deploy.",
-    solution:
-      "Optimize your contract by removing unused functions or splitting into multiple contracts",
-    moreInfo:
-      "Arbitrum has contract size limits. Consider using libraries or proxy patterns for large contracts",
-  },
-
-  INVALID_CONSTRUCTOR_ARGS: {
-    title: "Invalid Constructor Arguments",
-    description: "The constructor arguments don't match what your contract expects.",
-    solution:
-      'Check your contract constructor and provide matching arguments: --constructor-args "arg1" "arg2"',
-    moreInfo: "Make sure argument count and types match your contract's constructor exactly",
-  },
-
-  COMPILATION_FAILED: {
-    title: "Contract Compilation Failed",
-    description: "There are syntax errors or type issues in your TypeScript contract.",
-    solution: "Fix the compilation errors in your contract.ts file and try again",
-    moreInfo: "Check the error details above for specific lines and issues to fix",
-  },
-
-  MISSING_CONTRACT_FILE: {
-    title: "Contract File Not Found",
-    description: "The specified contract file doesn't exist.",
-    solution: "Ensure your contract file exists: ls contract.ts",
-    moreInfo: "Make sure you're in the correct directory and the file name is spelled correctly",
-  },
-
-  GAS_ESTIMATION_FAILED: {
-    title: "Gas Estimation Failed",
-    description: "Unable to estimate gas for the transaction.",
-    solution: "Check your contract logic and constructor arguments, then retry deployment",
-    moreInfo: "This often happens when constructor arguments are invalid or contract logic reverts",
-  },
-
-  TRANSACTION_REVERTED: {
-    title: "Transaction Reverted",
-    description: "The deployment transaction was reverted by the network.",
-    solution:
-      "Check constructor logic and arguments. Ensure your contract doesn't revert during deployment",
-    moreInfo: "Review your contract's constructor and any initialization code for potential issues",
-  },
-
-  CARGO_STYLUS_NOT_FOUND: {
-    title: "cargo-stylus Not Installed",
-    description: "The cargo-stylus tool is required but not found in your system.",
-    solution: "Install cargo-stylus: cargo install cargo-stylus",
-    moreInfo: "Make sure you have Rust installed and cargo is in your PATH",
-  },
-
-  RUST_VERSION_TOO_OLD: {
-    title: "Rust Version Too Old",
-    description: "cargo-stylus requires Rust 1.81 or newer.",
-    solution: "Update Rust: rustup update && rustup default stable",
-    moreInfo: "Check your Rust version with: rustc --version",
-  },
-
-  WASM_TARGET_MISSING: {
-    title: "WebAssembly Target Missing",
-    description: "The wasm32-unknown-unknown target is required for Stylus contracts.",
-    solution: "Add the WASM target: rustup target add wasm32-unknown-unknown",
-    moreInfo: "This target is required to compile contracts to WebAssembly",
-  },
+/**
+ * Legacy error templates - maintained for backward compatibility
+ * These map to the new unified error codes
+ */
+export const ERROR_TEMPLATES_LEGACY = {
+  INVALID_PRIVATE_KEY_FORMAT: ERROR_TEMPLATES[ErrorCode.INVALID_PRIVATE_KEY_FORMAT as keyof typeof ERROR_TEMPLATES],
+  MISSING_PRIVATE_KEY: ERROR_TEMPLATES[ErrorCode.MISSING_PRIVATE_KEY as keyof typeof ERROR_TEMPLATES],
+  INVALID_RPC_URL: ERROR_TEMPLATES[ErrorCode.INVALID_RPC_URL as keyof typeof ERROR_TEMPLATES],
+  INVALID_CONTRACT_FILE: ERROR_TEMPLATES[ErrorCode.INVALID_CONTRACT_FILE as keyof typeof ERROR_TEMPLATES],
+  INVALID_CONSTRUCTOR_ARGS: ERROR_TEMPLATES[ErrorCode.INVALID_CONSTRUCTOR_ARGS as keyof typeof ERROR_TEMPLATES],
+  NETWORK_CONNECTION_FAILED: ERROR_TEMPLATES[ErrorCode.NETWORK_CONNECTION_FAILED as keyof typeof ERROR_TEMPLATES],
+  INSUFFICIENT_FUNDS: ERROR_TEMPLATES[ErrorCode.INSUFFICIENT_FUNDS as keyof typeof ERROR_TEMPLATES],
+  CONTRACT_DEPLOYMENT_FAILED: ERROR_TEMPLATES[ErrorCode.CONTRACT_DEPLOYMENT_FAILED as keyof typeof ERROR_TEMPLATES],
+  CARGO_STYLUS_ERROR: ERROR_TEMPLATES[ErrorCode.CARGO_STYLUS_ERROR as keyof typeof ERROR_TEMPLATES],
+  CONTRACT_EXECUTION_FAILED: ERROR_TEMPLATES[ErrorCode.CONTRACT_EXECUTION_FAILED as keyof typeof ERROR_TEMPLATES],
+  UNKNOWN_ERROR: ERROR_TEMPLATES[ErrorCode.UNKNOWN_ERROR as keyof typeof ERROR_TEMPLATES],
 };
 
-export const CARGO_ERROR_PATTERNS = [
-  {
-    pattern: /private key must be a 0x-prefixed/i,
-    template: ERROR_TEMPLATES.INVALID_PRIVATE_KEY_FORMAT,
-  },
-  {
-    pattern: /insufficient funds/i,
-    template: ERROR_TEMPLATES.INSUFFICIENT_FUNDS,
-  },
-  {
-    pattern: /connection refused|network unreachable/i,
-    template: ERROR_TEMPLATES.RPC_CONNECTION_FAILED,
-  },
-  {
-    pattern: /contract creation code size exceeds/i,
-    template: ERROR_TEMPLATES.CONTRACT_SIZE_TOO_LARGE,
-  },
-  {
-    pattern: /execution reverted|transaction reverted/i,
-    template: ERROR_TEMPLATES.TRANSACTION_REVERTED,
-  },
-  {
-    pattern: /gas estimation failed/i,
-    template: ERROR_TEMPLATES.GAS_ESTIMATION_FAILED,
-  },
-  {
-    pattern: /cargo-stylus.*not found/i,
-    template: ERROR_TEMPLATES.CARGO_STYLUS_NOT_FOUND,
-  },
-  {
-    pattern: /requires rust.*1\.8[1-9]|requires rust.*1\.[9-9]/i,
-    template: ERROR_TEMPLATES.RUST_VERSION_TOO_OLD,
-  },
-  {
-    pattern: /wasm32-unknown-unknown.*not installed/i,
-    template: ERROR_TEMPLATES.WASM_TARGET_MISSING,
-  },
-];
-
+/**
+ * Find error template by message pattern (enhanced version)
+ * Now returns templates with error codes for better tracking
+ */
 export function findErrorTemplate(errorMessage: string): ErrorTemplate | null {
-  const pattern = CARGO_ERROR_PATTERNS.find((p) => p.pattern.test(errorMessage));
-
-  return pattern ? pattern.template : null;
-}
-
-export function formatActionableError(
-  title: string,
-  description: string,
-  solution: string,
-  moreInfo?: string,
-): string {
-  let formatted = `\n❌ ${title}\n`;
-  formatted += `\n📝 ${description}\n`;
-  formatted += `\n💡 Solution: ${solution}\n`;
-
-  if (moreInfo) {
-    formatted += `\nℹ️  ${moreInfo}\n`;
+  const message = errorMessage.toLowerCase();
+  
+  // Validation errors (1xx)
+  if (message.includes('private key')) {
+    if (message.includes('format') || message.includes('0x') || message.includes('66 characters')) {
+      return ERROR_TEMPLATES[ErrorCode.INVALID_PRIVATE_KEY_FORMAT as keyof typeof ERROR_TEMPLATES];
+    }
+    if (message.includes('required') || message.includes('missing')) {
+      return ERROR_TEMPLATES[ErrorCode.MISSING_PRIVATE_KEY as keyof typeof ERROR_TEMPLATES];
+    }
   }
-
-  return formatted;
+  
+  if (message.includes('rpc') || message.includes('endpoint')) {
+    if (message.includes('invalid') || message.includes('format')) {
+      return ERROR_TEMPLATES[ErrorCode.INVALID_RPC_URL as keyof typeof ERROR_TEMPLATES];
+    }
+    if (message.includes('connection') || message.includes('unreachable')) {
+      return ERROR_TEMPLATES[ErrorCode.RPC_ENDPOINT_ERROR as keyof typeof ERROR_TEMPLATES];
+    }
+  }
+  
+  if (message.includes('contract file') || message.includes('file not found')) {
+    return ERROR_TEMPLATES[ErrorCode.INVALID_CONTRACT_FILE as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('constructor') && message.includes('arg')) {
+    return ERROR_TEMPLATES[ErrorCode.INVALID_CONSTRUCTOR_ARGS as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('address') && message.includes('format')) {
+    return ERROR_TEMPLATES[ErrorCode.INVALID_ADDRESS_FORMAT as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  // Deployment errors (3xx)
+  if (message.includes('insufficient funds') || message.includes('balance')) {
+    return ERROR_TEMPLATES[ErrorCode.INSUFFICIENT_FUNDS as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('network') || message.includes('connection failed')) {
+    return ERROR_TEMPLATES[ErrorCode.NETWORK_CONNECTION_FAILED as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('cargo stylus')) {
+    return ERROR_TEMPLATES[ErrorCode.CARGO_STYLUS_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('deployment') && message.includes('failed')) {
+    return ERROR_TEMPLATES[ErrorCode.CONTRACT_DEPLOYMENT_FAILED as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('transaction failed')) {
+    return ERROR_TEMPLATES[ErrorCode.TRANSACTION_FAILED as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('gas') && (message.includes('estimation') || message.includes('failed'))) {
+    return ERROR_TEMPLATES[ErrorCode.GAS_ESTIMATION_FAILED as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('out of gas')) {
+    return ERROR_TEMPLATES[ErrorCode.OUT_OF_GAS as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  // Runtime errors (4xx)
+  if (message.includes('contract') && message.includes('execution')) {
+    return ERROR_TEMPLATES[ErrorCode.CONTRACT_EXECUTION_FAILED as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('function not found')) {
+    return ERROR_TEMPLATES[ErrorCode.FUNCTION_NOT_FOUND as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('revert')) {
+    return ERROR_TEMPLATES[ErrorCode.REVERT_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('stack overflow') || message.includes('maximum call stack')) {
+    return ERROR_TEMPLATES[ErrorCode.STACK_OVERFLOW as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('assemblyscript') && message.includes('error')) {
+    return ERROR_TEMPLATES[ErrorCode.ASSEMBLY_SCRIPT_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('transformer') && message.includes('error')) {
+    return ERROR_TEMPLATES[ErrorCode.TRANSFORMER_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  // Compilation errors (2xx)
+  if (message.includes('syntax error') || message.includes('syntactic')) {
+    return ERROR_TEMPLATES[ErrorCode.SYNTAX_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('semantic error') || message.includes('semantic')) {
+    return ERROR_TEMPLATES[ErrorCode.SEMANTIC_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('type mismatch') || message.includes('type error')) {
+    return ERROR_TEMPLATES[ErrorCode.TYPE_MISMATCH as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('undefined variable')) {
+    return ERROR_TEMPLATES[ErrorCode.UNDEFINED_VARIABLE as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('undefined function')) {
+    return ERROR_TEMPLATES[ErrorCode.UNDEFINED_FUNCTION as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('parse error') || message.includes('parsing')) {
+    return ERROR_TEMPLATES[ErrorCode.PARSE_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  // System errors (5xx)
+  if (message.includes('enoent') || message.includes('file not found')) {
+    return ERROR_TEMPLATES[ErrorCode.FILESYSTEM_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('permission denied') || message.includes('eacces')) {
+    return ERROR_TEMPLATES[ErrorCode.PERMISSION_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('timeout') || message.includes('etimedout')) {
+    return ERROR_TEMPLATES[ErrorCode.TIMEOUT_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  if (message.includes('memory') || message.includes('enomem')) {
+    return ERROR_TEMPLATES[ErrorCode.MEMORY_ERROR as keyof typeof ERROR_TEMPLATES];
+  }
+  
+  // Default to unknown error for unmatched patterns
+  return ERROR_TEMPLATES[ErrorCode.UNKNOWN_ERROR as keyof typeof ERROR_TEMPLATES];
 }
 
-export function createErrorMessage(template: ErrorTemplate): string {
-  return formatActionableError(
-    template.title,
-    template.description,
-    template.solution,
-    template.moreInfo,
-  );
+/**
+ * Create error message from template (re-export for compatibility)
+ */
+export { createErrorMessage };
+
+/**
+ * Get error code from message pattern
+ */
+export function getErrorCodeFromMessage(errorMessage: string): ErrorCode {
+  const template = findErrorTemplate(errorMessage);
+  
+  if (!template) {
+    return ErrorCode.UNKNOWN_ERROR;
+  }
+  
+  // Find the error code that matches this template
+  for (const [code, tmpl] of Object.entries(ERROR_TEMPLATES)) {
+    if (tmpl === template) {
+      return parseInt(code) as ErrorCode;
+    }
+  }
+  
+  return ErrorCode.UNKNOWN_ERROR;
 }
+
+/**
+ * Enhanced error message creation with code information
+ */
+export function createErrorMessageWithCode(template: ErrorTemplate, code?: ErrorCode): string {
+  const baseMessage = createErrorMessage(template);
+  
+  if (code) {
+    const COLORS = {
+      reset: "\x1b[0m",
+      gray: "\x1b[90m",
+      bold: "\x1b[1m",
+    };
+    
+    return `${COLORS.gray}[Error ${code}]${COLORS.reset} ${baseMessage}`;
+  }
+  
+  return baseMessage;
+}
+
+/**
+ * Legacy function names for backward compatibility
+ */
+export const ERROR_TEMPLATES_OLD = ERROR_TEMPLATES_LEGACY;
+export const findErrorTemplateByMessage = findErrorTemplate;
+export const createActionableError = createErrorMessage;

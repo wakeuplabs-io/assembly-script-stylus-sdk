@@ -1,6 +1,7 @@
 import { execSync } from "child_process";
 
 import { Logger } from "@/cli/services/logger.js";
+import { ErrorCode, createAStylusError } from "@/cli/utils/global-error-handler.js";
 import { findErrorTemplate, createErrorMessage } from "@/cli/utils/error-messages.js";
 
 export interface RunCommandOptions {
@@ -26,16 +27,13 @@ function parseCargoStylusError(rawError: string): string {
     return createErrorMessage(template);
   }
 
-  const enhancedError = createErrorMessage({
-    title: "Cargo Stylus Error",
-    description: errorText.slice(0, 200) + (errorText.length > 200 ? "..." : ""),
-    solution:
-      "Check the error details and fix the issues in your contract or deployment parameters",
-    moreInfo:
-      "Common issues: insufficient funds, invalid private key format, network connectivity, or contract compilation errors",
-  });
+  const enhancedError = createAStylusError(
+    ErrorCode.CARGO_STYLUS_ERROR,
+    errorText.slice(0, 200) + (errorText.length > 200 ? "..." : ""),
+    undefined
+  );
 
-  return enhancedError;
+  return createErrorMessage(enhancedError.template!);
 }
 
 function isCargoStylusCommand(command: string): boolean {
@@ -64,11 +62,13 @@ export function runCommand(command: string, options: RunCommandOptions = {}) {
 
     if (isCargoStylusCommand(command)) {
       const actionableError = parseCargoStylusError(message);
-      throw new Error(actionableError);
+      const cargoError = createAStylusError(ErrorCode.CARGO_STYLUS_ERROR, actionableError, error instanceof Error ? error : undefined);
+      throw cargoError;
     }
 
     const errorPrefix = errorMessage || "Command execution failed";
-    throw new Error(`${errorPrefix}: ${message}`);
+    const commandError = createAStylusError(ErrorCode.INTERNAL_ERROR, `${errorPrefix}: ${message}`, error instanceof Error ? error : undefined);
+    throw commandError;
   }
 }
 
@@ -87,7 +87,8 @@ export function runFunction(func: () => void, options: RunFunctionOptions = {}):
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    const errorPrefix = errorMessage || "Command execution failed";
-    throw new Error(`${errorPrefix}: ${message}`);
+    const errorPrefix = errorMessage || "Function execution failed";
+    const functionError = createAStylusError(ErrorCode.INTERNAL_ERROR, `${errorPrefix}: ${message}`, error instanceof Error ? error : undefined);
+    throw functionError;
   }
 }

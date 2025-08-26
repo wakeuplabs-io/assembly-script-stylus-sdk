@@ -4,9 +4,10 @@ import { Address } from "viem";
 
 import { Logger } from "@/cli/services/logger.js";
 import { DEPLOYMENT_INFO_PATH } from "@/cli/utils/constants.js";
-import { findErrorTemplate, createErrorMessage } from "@/cli/utils/error-messages.js";
 import { writeFile } from "@/cli/utils/fs.js";
 import { ValidationUtils } from "@/cli/utils/validation.js";
+import { ErrorCode, createAStylusError, createErrorMessage } from "@/cli/utils/global-error-handler.js";
+import { findErrorTemplate } from "@/cli/utils/error-messages.js";
 
 import { DeployRunner } from "./deploy-runner.js";
 import { executeConstructor } from "./execute-constructor.js";
@@ -66,7 +67,7 @@ export function runDeploy(
 ) {
   const contractsRoot = path.resolve(process.cwd());
 
-  // Validate inputs before deployment
+  // Validate inputs before deployment using unified validation system
   const validationResults = [
     ValidationUtils.validateContractFile(contractPath),
     ValidationUtils.validatePrivateKey(options.privateKey),
@@ -76,13 +77,18 @@ export function runDeploy(
 
   const combinedValidation = ValidationUtils.combineValidationResults(validationResults);
   if (!combinedValidation.isValid) {
-    const errorMessage = createErrorMessage({
-      title: "Validation Failed",
-      description: combinedValidation.message || "One or more deployment parameters are invalid",
-      solution: combinedValidation.suggestion || "Check the error details above and fix the issues",
-    });
-
-    Logger.getInstance().error(errorMessage);
+    const error = createAStylusError(
+      combinedValidation.code || ErrorCode.INVALID_CONSTRUCTOR_ARGS,
+      combinedValidation.message
+    );
+    
+    if (error.template) {
+      const errorMessage = createErrorMessage(error.template);
+      Logger.getInstance().error(errorMessage);
+    } else {
+      Logger.getInstance().error(`[${error.code}] ${error.message}`);
+    }
+    
     process.exit(1);
   }
 
@@ -114,13 +120,13 @@ export function runDeploy(
       const actionableMessage = createErrorMessage(template);
       Logger.getInstance().error(actionableMessage);
     } else {
-      const genericError = createErrorMessage({
-        title: "Deployment Failed",
-        description: errorMessage,
-        solution: "Check your contract code, network connection, and try again",
-        moreInfo: "Ensure you have sufficient funds and the RPC endpoint is accessible",
-      });
-      Logger.getInstance().error(genericError);
+      const genericError = createAStylusError(
+        ErrorCode.CONTRACT_DEPLOYMENT_FAILED,
+        errorMessage,
+        error instanceof Error ? error : undefined
+      );
+      const errorMsg = createErrorMessage(genericError.template!);
+      Logger.getInstance().error(errorMsg);
     }
 
     process.exit(1);
