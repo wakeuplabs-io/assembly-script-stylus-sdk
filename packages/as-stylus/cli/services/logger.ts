@@ -1,4 +1,5 @@
 import { LevelCode, ValidationError } from "../commands/build/analyzers/shared/validation-error.js";
+import { ErrorTemplate } from "../utils/error-messages.js";
 
 const COLORS = {
   reset: "\x1b[0m",
@@ -7,6 +8,9 @@ const COLORS = {
   blue: "\x1b[34m",
   gray: "\x1b[90m",
   green: "\x1b[32m",
+  cyan: "\x1b[36m",
+  magenta: "\x1b[35m",
+  bold: "\x1b[1m",
 };
 
 const ERROR_TYPES: Record<LevelCode, { color: string; label: string }> = {
@@ -54,10 +58,40 @@ export class Logger {
     }
   }
 
+  public logActionableError(template: ErrorTemplate): void {
+    console.log(`\n${COLORS.red}${COLORS.bold}❌ ${template.title}${COLORS.reset}`);
+    console.log(`\n${COLORS.gray}📝 Problem:${COLORS.reset}`);
+    console.log(`   ${template.description}`);
+    console.log(`\n${COLORS.green}💡 Solution:${COLORS.reset}`);
+    console.log(`   ${template.solution}`);
+
+    if (template.moreInfo) {
+      console.log(`\n${COLORS.cyan}ℹ️  More Info:${COLORS.reset}`);
+      console.log(`   ${template.moreInfo}`);
+    }
+    console.log();
+  }
+
+  public logSuccess(message: string): void {
+    console.log(`${COLORS.green}✅ ${message}${COLORS.reset}`);
+  }
+
+  public logWarning(message: string, suggestion?: string): void {
+    console.log(`${COLORS.yellow}⚠️  Warning: ${message}${COLORS.reset}`);
+    if (suggestion) {
+      console.log(`${COLORS.gray}   Suggestion: ${suggestion}${COLORS.reset}`);
+    }
+  }
+
+  public logProgress(step: string, current: number, total: number): void {
+    const percentage = Math.round((current / total) * 100);
+    console.log(`${COLORS.blue}[${current}/${total}] (${percentage}%) ${step}${COLORS.reset}`);
+  }
+
   public logErrorList(errors: ValidationError[]): void {
     if (errors.length === 0) return;
 
-    console.log("\n"); // Add spacing before errors
+    console.log("\n");
     console.log(`${COLORS.blue}=== Linting Results ===${COLORS.reset}\n`);
 
     errors.forEach((error, index) => {
@@ -86,8 +120,12 @@ export class Logger {
 
     const locationPath = location ? ` [${location}${line ? `:${line}` : ""}]` : "";
 
-    console.log(
-      `${COLORS.gray}[${timestamp}]${COLORS.reset} ${color}${level}${COLORS.reset}${locationPath} ${message}`,
-    );
+    if (level === "error" && message.includes("❌")) {
+      console.log(message);
+    } else {
+      console.log(
+        `${COLORS.gray}[${timestamp}]${COLORS.reset} ${color}${level}${COLORS.reset}${locationPath} ${message}`,
+      );
+    }
   }
 }

@@ -4,7 +4,22 @@ import { Address } from "viem";
 
 import { Logger } from "@/cli/services/logger.js";
 import { DEPLOYMENT_INFO_PATH } from "@/cli/utils/constants.js";
+import { findErrorTemplate } from "@/cli/utils/error-messages.js";
 import { writeFile } from "@/cli/utils/fs.js";
+import {
+  ErrorCode,
+  createAStylusError,
+  createErrorMessage,
+} from "@/cli/utils/global-error-handler.js";
+import {
+  promptPrivateKey,
+  displayDeploymentStart,
+  displayValidationStep,
+  displayDeploymentStep,
+  displaySuccess,
+  clearSensitiveData,
+} from "@/cli/utils/secure-input.js";
+import { ValidationUtils } from "@/cli/utils/validation.js";
 
 import { DeployRunner } from "./deploy-runner.js";
 import { executeConstructor } from "./execute-constructor.js";
@@ -56,46 +71,113 @@ function saveDeploymentInfo(deploymentOutput: string, contractPath: string, endp
 export function runDeploy(
   contractPath: string,
   options: {
-    privateKey: string;
     endpoint?: string;
     output?: string;
     constructorArgs?: string[];
   },
 ) {
   const contractsRoot = path.resolve(process.cwd());
+  const defaultEndpoint = "https://sepolia-rollup.arbitrum.io/rpc";
+  const finalEndpoint = options.endpoint || defaultEndpoint;
+
+  displayDeploymentStart(contractPath, finalEndpoint);
+
+  const privateKey = promptPrivateKey();
+
+  displayValidationStep("Validating deployment parameters...");
+  const validationResults = [
+    ValidationUtils.validateContractFile(contractPath),
+    ValidationUtils.validatePrivateKey(privateKey),
+    ValidationUtils.validateRpcUrl(finalEndpoint),
+    ValidationUtils.validateConstructorArgs(options.constructorArgs || []),
+  ];
+
+  const combinedValidation = ValidationUtils.combineValidationResults(validationResults);
+  if (!combinedValidation.isValid) {
+    const error = createAStylusError(
+      combinedValidation.code || ErrorCode.INVALID_CONSTRUCTOR_ARGS,
+      combinedValidation.message,
+    );
+
+    if (error.template) {
+      const errorMessage = createErrorMessage(error.template);
+      Logger.getInstance().error(errorMessage);
+    } else {
+      Logger.getInstance().error(`[${error.code}] ${error.message}`);
+    }
+
+    process.exit(1);
+  }
 
   const errorManager = new ErrorManager();
   const runner = new DeployRunner(contractsRoot, errorManager);
-  runner.validate();
-  const deploymentOutput = runner.deploy(contractPath, options);
 
-  const defaultEndpoint = "https://sepolia-rollup.arbitrum.io/rpc";
-  const finalEndpoint = options.endpoint || defaultEndpoint;
-  const deploymentInfo = saveDeploymentInfo(deploymentOutput, contractPath, finalEndpoint);
+  try {
+    displayValidationStep("Validating project structure...");
+    runner.validate();
 
-  executeConstructor(
-    contractPath,
-    deploymentInfo.deployment.contractAddress as Address,
-    options.privateKey,
-    finalEndpoint,
-    options.constructorArgs,
-  );
+    displayDeploymentStep("Deploying contract to network...");
+    const deploymentOutput = runner.deploy(contractPath, {
+      privateKey,
+      endpoint: options.endpoint,
+    });
 
-  return deploymentInfo;
+    displayDeploymentStep("Processing deployment information...");
+    const deploymentInfo = saveDeploymentInfo(deploymentOutput, contractPath, finalEndpoint);
+
+    if (options.constructorArgs && options.constructorArgs.length > 0) {
+      displayDeploymentStep("Executing constructor with arguments...");
+      executeConstructor(
+        contractPath,
+        deploymentInfo.deployment.contractAddress as Address,
+        privateKey,
+        finalEndpoint,
+        options.constructorArgs,
+      );
+    }
+
+    displaySuccess("Deployment completed successfully!");
+
+    // Clear private key from memory
+    clearSensitiveData(privateKey);
+
+    return deploymentInfo;
+  } catch (error) {
+    // Clear private key from memory on error
+    clearSensitiveData(privateKey);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const template = findErrorTemplate(errorMessage);
+
+    if (template) {
+      const actionableMessage = createErrorMessage(template);
+      Logger.getInstance().error(actionableMessage);
+    } else {
+      const genericError = createAStylusError(
+        ErrorCode.CONTRACT_DEPLOYMENT_FAILED,
+        errorMessage,
+        error instanceof Error ? error : undefined,
+      );
+      const errorMsg = createErrorMessage(genericError.template!);
+      Logger.getInstance().error(errorMsg);
+    }
+
+    process.exit(1);
+  }
 }
 
 export const deployCommand = new Command("deploy")
-  .description("Deploy an AssemblyScript Contract")
+  .description("Deploy an AssemblyScript Contract (private key will be prompted securely)")
   .argument("<contract-path>", "Path to the contract file")
-  .option("--private-key <private-key>", "Private key to deploy the contract")
-  .option("--endpoint <endpoint>", "Endpoint to deploy the contract (defaults to Arbitrum Sepolia)")
+  .option(
+    "--endpoint <endpoint>",
+    "RPC endpoint to deploy the contract (defaults to Arbitrum Sepolia)",
+  )
   .option("--output <output-file>", "Save deployment information to a JSON file")
   .option("--constructor-args <constructor-args...>", "Constructor arguments")
   .action(
     (
       contractPath: string,
       options: {
-        privateKey: string;
         endpoint?: string;
         output?: string;
         constructorArgs?: string[];

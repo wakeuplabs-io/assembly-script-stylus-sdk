@@ -39,7 +39,33 @@ export function CodeBlock({ code, showCopy = false, height = "400px", language =
 
   return (
     <div className="relative">
-      <div className="border border-gray-700 rounded-lg overflow-hidden bg-[#0D1117]">
+      {showCopy && (
+        <div className="bg-gray-800/90 border-b border-gray-700 px-4 py-2 rounded-t-lg flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+            <span className="text-gray-300 text-sm font-medium">Contract Code</span>
+          </div>
+          <Button
+            onClick={() => copy(code)}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm transition-all duration-200"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                <span className="font-medium">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4 mr-2" />
+                <span className="font-medium">Copy Contract</span>
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+      
+      <div className={`border border-gray-700 ${showCopy ? 'rounded-b-lg border-t-0' : 'rounded-lg'} overflow-hidden bg-[#0D1117]`}>
         {mounted && (
           <MonacoEditor
             value={code}
@@ -64,27 +90,6 @@ export function CodeBlock({ code, showCopy = false, height = "400px", language =
           />
         )}
       </div>
-
-      {showCopy && (
-        <Button
-          onClick={() => copy(code)}
-          size="sm"
-          variant="outline"
-          className="absolute top-3 right-3 bg-gray-800/90 border-gray-600 hover:bg-gray-700/90 backdrop-blur-sm z-10 transition-all duration-200"
-        >
-          {copied ? (
-            <>
-              <Check className="w-4 h-4 text-green-400 mr-1" />
-              <span className="text-green-400 text-xs">Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-4 h-4 mr-1" />
-              <span className="text-xs">Copy</span>
-            </>
-          )}
-        </Button>
-      )}
     </div>
   )
 }
