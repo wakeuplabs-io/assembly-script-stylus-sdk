@@ -1,116 +1,123 @@
-/* eslint-disable no-global-assign */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import {
+  Address,
+  Contract,
+  Mapping,
+  MappingNested,
+  Str,
+  U256,
+  View,
+  External,
+  msg,
+  AddressFactory,
+  U256Factory,
+  StrFactory,
+  EventFactory,
+} from "as-stylus";
 
-@Event
-export class Transfer {
-  @Indexed from: Address;
-  @Indexed to: Address;
-  value: U256;
-}
+const Transfer = EventFactory.create<[Address, Address, U256]>({
+  indexed: [true, true, false],
+});
 
-@Event
-export class Approval {
-  @Indexed owner: Address;
-  @Indexed spender: Address;
-  value: U256;
-}
+const Approval = EventFactory.create<[Address, Address, U256]>({
+  indexed: [true, true, false],
+});
 
 @Contract
 export class ERC20Full {
-  static balances: Mapping<Address, U256>;
-  static allowances: MappingNested<Address, Address, U256>;
-  static totalSupply: U256;
-  static name: Str;
-  static symbol: Str;
+  balances: Mapping<Address, U256> = new Mapping<Address, U256>();
+  allowances: MappingNested<Address, Address, U256> = new MappingNested<Address, Address, U256>();
+  totalSupplyValue: U256;
+  nameValue: Str;
+  symbolValue: Str;
 
   constructor(_name: string, _symbol: string) {
     const nameStr = StrFactory.fromString(_name);
     const symbolStr = StrFactory.fromString(_symbol);
-    name = nameStr;
-    symbol = symbolStr;
+    this.nameValue = nameStr;
+    this.symbolValue = symbolStr;
+    this.totalSupplyValue = U256Factory.fromString("0");
   }
 
   @View
   @External
-  static name(): string {
-    return name;
+  name(): Str {
+    return this.nameValue;
   }
 
   @View
   @External
-  static symbol(): string {
-    return symbol;
+  symbol(): Str {
+    return this.symbolValue;
   }
 
   @View
   @External
-  static decimals(): U256 {
+  decimals(): U256 {
     return U256Factory.fromString("18");
   }
 
   @View
   @External
-  static totalSupply(): U256 {
-    return totalSupply;
+  totalSupply(): U256 {
+    return this.totalSupplyValue;
   }
 
   @View
   @External
-  static balanceOf(account: Address): U256 {
-    return balances.get(account);
+  balanceOf(account: Address): U256 {
+    return this.balances.get(account);
   }
 
   @View
   @External
-  static allowance(owner: Address, spender: Address): U256 {
-    return allowances.get(owner, spender);
+  allowance(owner: Address, spender: Address): U256 {
+    return this.allowances.get(owner, spender);
   }
 
   @External
-  static transfer(to: Address, amount: U256): boolean {
+  transfer(to: Address, amount: U256): boolean {
     const sender = msg.sender;
-    const senderBal = balances.get(sender);
+    const senderBal = this.balances.get(sender);
     if (senderBal < amount) {
       return false;
     }
 
-    balances.set(sender, senderBal.sub(amount));
+    this.balances.set(sender, senderBal.sub(amount));
 
-    const recvBal = balances.get(to);
-    balances.set(to, recvBal.add(amount));
+    const recvBal = this.balances.get(to);
+    this.balances.set(to, recvBal.add(amount));
 
     Transfer.emit(sender, to, amount);
     return true;
   }
 
   @External
-  static approve(spender: Address, amount: U256): boolean {
+  approve(spender: Address, amount: U256): boolean {
     const owner = msg.sender;
-    allowances.set(owner, spender, amount);
+    this.allowances.set(owner, spender, amount);
 
     Approval.emit(owner, spender, amount);
     return true;
   }
 
   @External
-  static transferFrom(from: Address, to: Address, amount: U256): boolean {
+  transferFrom(from: Address, to: Address, amount: U256): boolean {
     const spender = msg.sender;
-    const allowed = allowances.get(from, spender);
+    const allowed = this.allowances.get(from, spender);
     if (allowed < amount) {
       return false;
     }
 
-    const fromBal = balances.get(from);
+    const fromBal = this.balances.get(from);
     if (fromBal < amount) {
       return false;
     }
     const newAllowed = allowed.sub(amount);
-    balances.set(from, fromBal.sub(amount));
-    const toBal = balances.get(to);
-    balances.set(to, toBal.add(amount));
+    this.balances.set(from, fromBal.sub(amount));
+    const toBal = this.balances.get(to);
+    this.balances.set(to, toBal.add(amount));
 
-    allowances.set(from, spender, newAllowed);
+    this.allowances.set(from, spender, newAllowed);
 
     Transfer.emit(from, to, amount);
     Approval.emit(from, spender, newAllowed);
@@ -118,25 +125,25 @@ export class ERC20Full {
   }
 
   @External
-  static mint(to: Address, amount: U256): void {
-    totalSupply = totalSupply.add(amount);
-    const toAmount = balances.get(to);
+  mint(to: Address, amount: U256): void {
+    this.totalSupplyValue = this.totalSupplyValue.add(amount);
+    const toAmount = this.balances.get(to);
     const newAmount = toAmount.add(amount);
-    balances.set(to, newAmount);
-    const AddressZero = AddressFactory.create();
+    this.balances.set(to, newAmount);
+    const AddressZero = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     Transfer.emit(AddressZero, to, amount);
   }
 
   @External
-  static burn(amount: U256): void {
+  burn(amount: U256): void {
     const sender = msg.sender;
-    const senderBal = balances.get(sender);
+    const senderBal = this.balances.get(sender);
     if (senderBal < amount) {
       return;
     }
-    balances.set(sender, senderBal.sub(amount));
-    totalSupply = totalSupply.sub(amount);
-    const AddressZero = AddressFactory.create();
+    this.balances.set(sender, senderBal.sub(amount));
+    this.totalSupplyValue = this.totalSupplyValue.sub(amount);
+    const AddressZero = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     Transfer.emit(sender, AddressZero, amount);
   }
 }

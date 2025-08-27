@@ -1,11 +1,11 @@
 import path from "path";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiItem, AbiInput, AbiOutput, AbiType, StateMutability , AbiComponent, Visibility } from "@/cli/types/abi.types.js";
-import { IRContract } from "@/cli/types/ir.types.js";
+import { IRContract, IRStruct } from "@/cli/types/ir.types.js";
 import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
 
+import { SymbolTableStack } from "../analyzers/shared/symbol-table.js";
 import { extractStructName, convertBasicType } from "../analyzers/struct/struct-utils.js";
 import { generateErrorABI } from "../transformers/error/error-transformer.js";
 
@@ -17,7 +17,7 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
 
     const inputs: AbiInput[] = method.inputs.map((param) => {
       const typeToConvert = param.originalType || param.type;
-      const converted = convertTypeWithComponents(typeToConvert as string);
+      const converted = convertTypeWithComponents(contract.symbolTable, typeToConvert as string);
       return {
         name: param.name,
         type: converted.type,
@@ -27,7 +27,7 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
 
     const outputs: AbiOutput[] = method.outputs.map((param) => {
       const typeToConvert = param.originalType || param.type;
-      const converted = convertTypeWithComponents(typeToConvert as string);
+      const converted = convertTypeWithComponents(contract.symbolTable, typeToConvert as string);
       return {
         name: param.name || undefined,
         type: converted.type,
@@ -50,7 +50,7 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
       stateMutability: StateMutability.NONPAYABLE,
       inputs: contract.constructor.inputs.map((param) => {
         const typeToConvert = param.originalType || param.type;
-        const converted = convertTypeWithComponents(typeToConvert as string);
+        const converted = convertTypeWithComponents(contract.symbolTable, typeToConvert as string);
         return {
           name: param.name,
           type: converted.type,
@@ -80,14 +80,13 @@ export function buildAbi(targetPath: string, contract: IRContract) {
 /**
  * Converts a struct to its ABI tuple representation with components
  */
-function convertStructToTuple(structName: string): { type: AbiType; components: AbiComponent[] } | null {
-  const struct = ctx.structRegistry.get(structName);
-  if (!struct) {
+function convertStructToTuple(symbolTable: SymbolTableStack, structName: string | null, struct: IRStruct): { type: AbiType; components: AbiComponent[] } | null {
+  if (!structName) {
     return null;
   }
 
   const components: AbiComponent[] = struct.fields.map(field => {
-    const convertedField = convertTypeWithComponents(field.type);
+    const convertedField = convertTypeWithComponents(symbolTable, field.type);
     return {
       name: field.name,
       type: convertedField.type,
@@ -104,13 +103,23 @@ function convertStructToTuple(structName: string): { type: AbiType; components: 
 /**
  * Converts a type to ABI format, handling structs as tuples with components
  */
-function convertTypeWithComponents(type: string): { type: AbiType; components?: AbiComponent[] } {
+function convertTypeWithComponents(symbolTable: SymbolTableStack, type: string): { type: AbiType; components?: AbiComponent[] } {
   const basicType = convertBasicType(type);
   if (basicType) {
     return { type: basicType };
   }
+
   const structName = extractStructName(type);
-  const structTuple = convertStructToTuple(structName);
+  if (!structName) {
+    return { type: AbiType.Unknown };
+  }
+
+  const struct = symbolTable.getStructTemplateByName(structName);
+  if (!struct) {
+    return { type: AbiType.Unknown };
+  }
+
+  const structTuple = convertStructToTuple(symbolTable, structName, struct);
   
   if (structTuple) {
     return structTuple;
@@ -118,12 +127,17 @@ function convertTypeWithComponents(type: string): { type: AbiType; components?: 
   return { type: AbiType.Unknown };
 }
 
-export function convertType(type: string): AbiType {
+export function convertType(symbolTable: SymbolTableStack, type: string): AbiType {
   let input = type;
   if (type.startsWith("import(")) {
     const match = type.match(/(?<=\)\.)\w+/);
     input = match?.[0] || "";
   }
-  const result = convertTypeWithComponents(input);
+
+  const result = convertTypeWithComponents(symbolTable, input);
+
+  if (result.type === AbiType.Tuple) {
+    return AbiType.Struct;
+  }
   return result.type as AbiType;
 }

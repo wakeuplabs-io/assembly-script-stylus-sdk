@@ -27,7 +27,7 @@ export class ArgumentIRBuilder extends IRBuilder<IRArgument> {
 
   buildIR(): IRArgument {
     const typeString = this.argument.getType().getText();
-    const convertedType = convertTypeForIR(typeString);
+    const convertedType = convertTypeForIR(this.symbolTable, typeString);
     
     const variable: VariableSymbol = {
       name: this.argument.getName(),

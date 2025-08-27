@@ -1,6 +1,5 @@
 import { PropertyDeclaration } from "ts-morph";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRVariable } from "@/cli/types/ir.types.js";
 import { inferType } from "@/cli/utils/inferType.js";
@@ -8,6 +7,7 @@ import { inferType } from "@/cli/utils/inferType.js";
 import { PropertySyntaxValidator } from "./syntax-validator.js";
 import { convertType } from "../../builder/build-abi.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { parseName } from "../shared/utils/parse-this.js";
 
 /**
  * Extracts generic types from mapping declarations
@@ -57,12 +57,10 @@ function extractMappingTypes(typeText: string): {
 
 export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   private property: PropertyDeclaration;
-  private slot: number;
 
-  constructor(property: PropertyDeclaration, slot: number) {
+  constructor(property: PropertyDeclaration) {
     super(property);
     this.property = property;
-    this.slot = slot;
   }
 
   validate(): boolean {
@@ -70,72 +68,55 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     return syntaxValidator.validate();
   }
 
+
+
   buildIR(): IRVariable {
-    const [name, typeDefined] = this.property.getName().split(":");
-    const type = typeDefined ? typeDefined : inferType(this.property.getType().getText());
+    const typeInferred = inferType(this.symbolTable, this.property.getType().getText());
+    const { name, type } = parseName(this.property.getText(), typeInferred);
     this.symbolTable.declareVariable(name, {
       name,
-      type: convertType(type),
+      type: convertType(this.symbolTable, type),
       scope: "storage",
-      dynamicType: type,
+      dynamicType: type
     });
-
+  
     const fullTypeText = this.property.getType().getText();
     const mappingTypes = extractMappingTypes(fullTypeText);
-
-    if (type === AbiType.MappingNested) {
+    
+    if (type === AbiType.MappingNested || type.startsWith("MappingNested")) {
       const variable: IRVariable = {
         name,
         type: AbiType.MappingNested,
-        slot: this.slot,
+        slot: this.slotManager.getSlotForVariable(name),
         keyType1: mappingTypes.keyType1 || "Address",
         keyType2: mappingTypes.keyType2 || "Address",
         valueType: mappingTypes.valueType || "U256",
         kind: "mapping2",
       };
-
-      ctx.mappingTypes.set(name, {
-        keyType1: variable.keyType1,
-        keyType2: variable.keyType2,
-        valueType: variable.valueType,
-      });
-
+      
       return variable;
     }
 
-    if (type === AbiType.Mapping) {
+    if (type === AbiType.Mapping || type.startsWith("Mapping")) {
       const variable: IRVariable = {
         name,
         type: AbiType.Mapping,
-        slot: this.slot,
+        slot: this.slotManager.getSlotForVariable(name),
         keyType: mappingTypes.keyType || "Address",
         valueType: mappingTypes.valueType || "U256",
         kind: "mapping",
       };
 
-      ctx.mappingTypes.set(name, {
-        keyType: variable.keyType,
-        valueType: variable.valueType,
-      });
-
       return variable;
     }
 
-    const isStructType = ctx.structRegistry.has(type);
-
-    if (isStructType) {
-      ctx.variableTypes.set(`${ctx.contractName}.${name}`, type);
-      ctx.variableTypes.set(name, "struct");
-    } else {
-      ctx.variableTypes.set(`${ctx.contractName}.${name}`, type);
-      ctx.variableTypes.set(name, type);
-    }
+    const struct = this.symbolTable.getStructTemplateByName(type);
 
     return {
       name,
-      type: isStructType ? AbiType.Struct : convertType(type),
-      originalType: isStructType ? type : undefined,
-      slot: this.slot,
+      type: struct ? AbiType.Struct : convertType(this.symbolTable, type),
+      originalType: struct ? type : undefined,
+      slot: this.slotManager.getSlotForVariable(name),
       kind: "simple",
     };
   }

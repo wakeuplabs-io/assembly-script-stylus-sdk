@@ -81,13 +81,12 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ calldata:", data);
 
-      const callParams: any = { to: contractAddr, data };
-      if (gasLimit) {
-        callParams.gas = gasLimit;
-        if (verbose) console.log("→ using custom gas limit:", gasLimit);
-      }
+      const { data: raw } = await publicClient.call({
+        to: contractAddr,
+        data,
+        gas: gasLimit,
+      } as const);
 
-      const { data: raw } = await publicClient.call(callParams);
       if (verbose) console.log("← raw:", raw);
       const decoded = decodeFunctionResult({ abi, functionName, data: raw || "0x" });
       if (verbose) console.log("← decoded:", decoded);
@@ -95,7 +94,7 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
       return decoded;
     },
 
-    readRaw: async (functionName: string, args: (string | boolean | Address | bigint)[] = []) => {
+    readRaw: async (functionName: string, args: ContractArgs = []) => {
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ calldata:", data);
 
@@ -121,13 +120,13 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
           if (revertError instanceof ContractFunctionRevertedError) {
             const errorData = revertError.data;
             if (errorData && typeof errorData === "object" && "data" in errorData) {
-              revertData = (errorData as any).data as Hex;
+              revertData = (errorData as { data: Hex }).data;
             }
           }
         }
 
         if (!revertData && err.cause && typeof err.cause === "object") {
-          const cause = err.cause as any;
+          const cause = err.cause as { cause: { data: Hex } };
 
           if (cause.cause && typeof cause.cause === "object" && "data" in cause.cause) {
             const deepCauseData = cause.cause.data;
@@ -145,8 +144,8 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
         }
         if (!revertData && err.details) {
           const detailsMatch = err.details.match(/0x[a-fA-F0-9]+/);
-          if (detailsMatch) {
-            revertData = detailsMatch[0] as Hex;
+          if (detailsMatch?.[0]) {
+            revertData = detailsMatch[0] as `0x${string}`;
           }
         }
 
@@ -197,12 +196,14 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
         if (verbose) console.log("← txHash:", txHash);
 
         return { success: true, txHash };
-      } catch (err) {
+        //TODO: revise catch because typing is not correct
+      } catch (err: any) {
         if (verbose) console.log("← write error caught:", err);
 
         if (!(err instanceof ContractFunctionExecutionError)) throw err;
 
         const errAny = err as any;
+        // this if statement cannot be accessed
         if (errAny.data && typeof errAny.data === "object" && "errorName" in errAny.data) {
           const errorData = errAny.data;
           if (verbose) console.log("← error data from ContractFunctionExecutionError:", errorData);

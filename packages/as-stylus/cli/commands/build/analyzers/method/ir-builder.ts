@@ -58,7 +58,7 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       returnType === AbiType.Void
         ? []
         : (() => {
-            const convertedType = convertTypeForIR(returnType);
+            const convertedType = convertTypeForIR(this.symbolTable, returnType);
             return [
               {
                 type: convertedType.type,

@@ -1,26 +1,25 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import { Contract, External, Internal, U256, U256Factory } from "as-stylus";
 
 @Contract
 export class Parent {
-  static sum: U256;
+  sum: U256;
 
   constructor(init: U256) {
-    sum = init;
+    this.sum = init;
   }
 
   @External
-  static setValue(a: U256, b: U256): void {
-    sum = a.add(b);
+  setValue(a: U256, b: U256): void {
+    this.sum = a.add(b);
   }
 
   @External
-  static overrideMethod(): U256 {
+  overrideMethod(): U256 {
     return U256Factory.fromString("50");
   }
 
   @Internal
-  static getSumByParams(a: U256, b: U256): U256 {
+  getSumByParams(a: U256, b: U256): U256 {
     return a.add(b);
   }
 }

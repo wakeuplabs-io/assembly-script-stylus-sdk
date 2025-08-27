@@ -8,6 +8,7 @@ import { getReturnSize } from "@/cli/utils/type-utils.js";
 import { getUserEntrypointTemplate } from "@/templates/entrypoint.js";
 
 import { convertType } from "./build-abi.js";
+import { SymbolTableStack } from "../analyzers/shared/symbol-table.js";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
 
 // Constants
@@ -66,7 +67,7 @@ function validateContract(contract: IRContract): void {
   contract.methods.forEach(validateMethod);
 }
 
-function getFunctionSelector(method: IRMethod): string {
+function getFunctionSelector(symbolTable: SymbolTableStack, method: IRMethod): string {
   const { name, inputs, outputs = [] } = method;
 
   const signature = toFunctionSignature({
@@ -75,11 +76,11 @@ function getFunctionSelector(method: IRMethod): string {
     stateMutability: method.stateMutability as AbiStateMutability,
     inputs: inputs.map((input) => ({
       name: input.name,
-      type: convertType(input.type),
+      type: convertType(symbolTable, input.type),
     })),
     outputs: outputs.map((output) => ({
       name: output.name,
-      type: convertType(output.type),
+      type: convertType(symbolTable, output.type),
     })),
   });
 
@@ -185,7 +186,7 @@ function generateMethodEntry(
     throw new Error(`Method ${name} has invalid visibility: ${visibility}`);
   }
 
-  const selector = getFunctionSelector(method);
+  const selector = getFunctionSelector(contract.symbolTable, method);
   const importStatement = `import { ${name} } from "./${contract.path}.transformed";`;
 
   const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
@@ -202,6 +203,7 @@ function generateConstructorEntry(
   contractName: string,
   constructor: { inputs: AbiInput[] },
   contractPath: string,
+  symbolTable: SymbolTableStack,
 ): { imports: string[]; entry: string } {
   const { inputs } = constructor;
 
@@ -213,13 +215,13 @@ function generateConstructorEntry(
     stateMutability: StateMutability.NONPAYABLE,
     inputs: inputs.map((input) => ({
       name: input.name,
-      type: convertType(input.type),
+    type: convertType(symbolTable, input.type),
     })),
     outputs: [],
     ir: [],
   };
 
-  const deploySig = getFunctionSelector(deployMethod);
+  const deploySig = getFunctionSelector(symbolTable, deployMethod);
   const imports = [`import { ${contractName}_constructor } from "./${contractPath}.transformed";`];
 
   const callLine = `${contractName}_constructor(${callArgs.map((arg) => arg.name).join(", ")}); return 0;`;
@@ -266,6 +268,7 @@ function processConstructor(contract: IRContract): CodeBlock {
       contract.name,
       contract.constructor,
       contract.path,
+      contract.symbolTable,
     );
     return { imports, entries: [entry] };
   } catch (error) {

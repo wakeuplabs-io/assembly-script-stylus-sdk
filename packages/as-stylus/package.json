@@ -1,6 +1,6 @@
 {
   "name": "@wakeuplabs/as-stylus",
-  "version": "0.1.9",
+  "version": "0.1.12",
   "description": "SDK to build AssemblyScript contracts for Stylus",
   "main": "dist/index.js",
   "type": "module",
@@ -19,7 +19,7 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "test:unit": "jest --testPathPattern=__tests__/unit",
     "test:e2e": "jest --runInBand --testPathPattern=__tests__/e2e",
-    "test": "jest --runInBand --testPathPattern=__tests__/e2e",
+    "test": "npm run pre:build && jest --runInBand --testPathPattern=__tests__/e2e",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
