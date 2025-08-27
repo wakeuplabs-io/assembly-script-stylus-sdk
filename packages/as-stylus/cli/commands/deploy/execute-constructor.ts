@@ -12,7 +12,7 @@ export async function executeConstructor(
   constructorArgs?: string[],
 ) {
   const abi = getAbi(contractPath);
-  const contractService = new ContractService(contractAddress, abi, privateKey, endpoint);
+  const contractService = await ContractService.create(contractAddress, abi, privateKey, endpoint);
 
   const constructor = abi.find((method: { name: string }) => method.name.includes("_constructor"));
   if (!constructor) {
