@@ -85,7 +85,7 @@ export class Address {
    * @param ptr_address - Pointer to the address
    * @returns true if address is zero, false otherwise
    */
-  static isZero(ptr_address: usize): bool {
+  static isZero(ptr_address: usize): boolean {
     for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
       if (load<u8>(ptr_address + i) != 0) {
         return false;

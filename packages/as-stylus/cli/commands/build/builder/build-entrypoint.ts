@@ -11,13 +11,6 @@ import { convertType } from "./build-abi.js";
 import { SymbolTableStack } from "../analyzers/shared/symbol-table.js";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
 
-// Constants
-const MEMORY_OFFSETS = {
-  STRING_LENGTH_OFFSET: 0x20 + 28,
-  STRING_DATA_OFFSET: 0x40,
-  PADDING_MASK: 31,
-} as const;
-
 const INDENTATION = {
   BODY: "    ",
   BLOCK: "  ",
@@ -91,10 +84,9 @@ function generateStringReturnLogic(methodName: string, callArgs: Array<{ name: s
   const argsList = callArgs.map((arg) => arg.name).join(", ");
 
   return [
-    `const buf = ${methodName}(${argsList});`,
-    `const len = loadU32BE(buf + ${MEMORY_OFFSETS.STRING_LENGTH_OFFSET});`,
-    `const padded = ((len + ${MEMORY_OFFSETS.PADDING_MASK}) & ~${MEMORY_OFFSETS.PADDING_MASK});`,
-    `write_result(buf, ${MEMORY_OFFSETS.STRING_DATA_OFFSET} + padded);`,
+    `const buf = Str.toABI(${methodName}(${argsList}));`,
+    `const size = Str.getABISize(buf);`,
+    `write_result(buf, size);`,
     `return 0;`,
   ].join(`\n${INDENTATION.BODY}`);
 }
@@ -146,9 +138,11 @@ function generateReturnLogic(
   const structName = extractStructName(outputType);
   const structInfo = contract.structs?.find((s) => s.name === structName);
 
-  // if (outputType === AbiType.Struct) {
   if (structInfo) {
     return generateStructReturnLogic(methodName, callArgs, structInfo);
+  }
+  if (outputType === AbiType.Bool) {
+    return `let ptr = Boolean.create(${methodName}(${argsList})); write_result(ptr, 32); return 0;`;
   }
 
   const size = getReturnSize(outputType as AbiType);

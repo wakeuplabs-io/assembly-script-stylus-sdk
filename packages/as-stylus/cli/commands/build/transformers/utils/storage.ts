@@ -23,16 +23,20 @@ export function slotConst(slot: number): string {
   return `const ${formatSlotName(slot)}: u64 = ${slot};`;
 }
 
-export function loadSimple(name: string, slot: number): string {
+export function loadSimple(name: string, type: AbiType, slot: number): string {
+  const returnSentence = type === AbiType.Bool ? "return Boolean.fromABI(ptr);" : "return ptr;";
+  const returnType = type === AbiType.Bool ? "boolean" : "usize";
+
   return `
-function load_${name}(): usize {
+function load_${name}(): ${returnType} {
   const ptr = U256.create();
   storage_load_bytes32(createStorageKey(${formatSlotName(slot)}), ptr);
-  return ptr;
+  ${returnSentence}
 }`;
 }
 
 export function storeSimple(name: string, slot: number): string {
+
   return `
 function store_${name}(ptr: usize): void {
   storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), ptr);
@@ -181,13 +185,13 @@ function store_${variable.name}(strPtr: usize): void {
               lines.push(...generateStructStorageFunctions(variable, struct));
             }
           } else {
-            lines.push(loadSimple(variable.name, variable.slot));
+            lines.push(loadSimple(variable.name, variable.type, variable.slot));
             lines.push(storeSimple(variable.name, variable.slot));
           }
           break;
 
         default:
-          lines.push(loadSimple(variable.name, variable.slot));
+          lines.push(loadSimple(variable.name, variable.type as AbiType, variable.slot));
           lines.push(storeSimple(variable.name, variable.slot));
           break;
       }

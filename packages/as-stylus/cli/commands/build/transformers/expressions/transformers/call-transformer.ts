@@ -44,34 +44,7 @@ export class CallTransformer extends Handler {
     const argValues = argResults.map(r => r.valueExpr).join(", ");
     
     const baseCall = `${call.target}(${argValues})`;
-    const isStruct = call.args.length > 0 && call.args[0].type === AbiType.Struct;
-    if (isStruct) {
-      return {
-        setupLines: allSetupLines,
-        valueExpr: baseCall
-      };
-    }
 
-    if (call.returnType === AbiType.Bool) {
-      return {
-        setupLines: allSetupLines,
-        valueExpr: `Boolean.fromABI(${baseCall})`
-      };
-    }
-    
-    if (call.returnType === AbiType.String) {
-      return {
-        setupLines: allSetupLines,
-        valueExpr: `Str.fromABI(${baseCall})`
-      };
-    }
-
-    if (call.type === AbiType.UserDefinedFunction) {
-      return {
-        setupLines: allSetupLines,
-        valueExpr: baseCall
-      };
-    }
 
     // Fallback: return the base call without re-delegating to avoid infinite loops
     return {
@@ -106,21 +79,6 @@ export class CallTransformer extends Handler {
       ? `${receiverResult.valueExpr}.${call.target}(${argValues})`
       : `${receiverResult.valueExpr}.${call.target}()`;
     
-    // Handle return type conversions for chained calls
-    if (call.returnType === AbiType.Bool) {
-      return {
-        setupLines: allSetupLines,
-        valueExpr: `Boolean.fromABI(${chainedCall})`
-      };
-    }
-    
-    if (call.returnType === AbiType.String) {
-      return {
-        setupLines: allSetupLines,
-        valueExpr: `Str.fromABI(${chainedCall})`
-      };
-    }
-
     return {
       setupLines: allSetupLines,
       valueExpr: chainedCall

@@ -68,15 +68,14 @@ export class U256ComparisonHandler extends Handler {
 
       return {
         setupLines: allSetupLines,
-        valueExpr: `Boolean.fromABI(U256.${staticMethod}(load_${propName}(), ${argRes.valueExpr}))`,
+        valueExpr: `U256.${staticMethod}(load_${propName}(), ${argRes.valueExpr})`,
         valueType: "boolean",
       };
     }
 
-    // Regular object case (e.g., `value.lessThan(x)`) - MUST wrap in Boolean.fromABI
     return {
       setupLines: allSetupLines,
-      valueExpr: `Boolean.fromABI(U256.${staticMethod}(${receiverExpr}, ${argRes.valueExpr}))`,
+      valueExpr: `U256.${staticMethod}(${receiverExpr}, ${argRes.valueExpr})`,
       valueType: "boolean",
     };
   }

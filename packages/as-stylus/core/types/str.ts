@@ -298,4 +298,19 @@ export class Str {
 
     return out;
   }
+
+  /**
+   * Returns the length of the ABI-encoded string
+   * @param ptr - Pointer to the ABI-encoded string
+   * @returns Length of the ABI-encoded string
+   */
+  static getABISize(ptr: usize): usize {
+    const STRING_LENGTH_OFFSET = 0x20 + 28;
+    const STRING_DATA_OFFSET = 0x40;
+    const PADDING_MASK = 31;
+
+    const len = loadU32BE(ptr + STRING_LENGTH_OFFSET);
+    const padded = (len + PADDING_MASK) & ~PADDING_MASK;
+    return STRING_DATA_OFFSET + padded;
+  }
 }

@@ -6,7 +6,7 @@ export class Boolean {
    * @param value - The boolean value to encode (defaults to false)
    * @returns Pointer to the newly allocated 32-byte boolean
    */
-  static create(value: bool = false): usize {
+  static create(value: boolean = false): usize {
     const ptr = malloc(32);
     for (let i = 0; i < 32; ++i) store<u8>(ptr + i, 0 as u8);
     store<u8>(ptr + 31, value ? (1 as u8) : (0 as u8));
@@ -18,7 +18,7 @@ export class Boolean {
    * @param value - The boolean value to negate
    * @returns The negated boolean value
    */
-  static not(value: bool): bool {
+  static not(value: boolean): boolean {
     return !value;
   }
 
@@ -27,7 +27,7 @@ export class Boolean {
    * @param pointer - Pointer to 32-byte ABI-encoded boolean data or boolean value
    * @returns The boolean value
    */
-  static fromABI(pointer: usize): bool {
+  static fromABI(pointer: usize): boolean {
     // Only 0 and 1 are valid boolean primitive values
     // Storage pointers are always > 1 (malloc never returns 0 or 1)
     // This prevents confusion with storage slot 0 while maintaining security

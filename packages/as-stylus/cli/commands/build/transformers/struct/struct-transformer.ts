@@ -242,7 +242,9 @@ export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
   struct.fields.forEach((field) => {
     helpers.push(`
 export function ${structName}_memory_set_${field.name}(ptr: usize, v: usize): void {
-  store<usize>(ptr + ${field.offset}, v);
+  for (let i = 0; i < 32; i++) {
+    store<u8>(ptr + ${field.offset} + i, load<u8>(v + i));
+  }
 }`);
   });
 

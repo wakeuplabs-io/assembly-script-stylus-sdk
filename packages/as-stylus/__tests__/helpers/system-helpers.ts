@@ -15,7 +15,6 @@ if (!USER_B_PRIVATE_KEY) throw new Error("⚠️  Set USER_B_PRIVATE_KEY in .env
 
 export function run(cmd: string, cwd: string = ROOT, allowErr = false): string {
   try {
-    console.log(`🔍 Run: ${cmd}`);
     return execSync(cmd, { cwd, stdio: "pipe", encoding: "utf8" }).trim();
   } catch (e: unknown) {
     if (!allowErr) throw e;

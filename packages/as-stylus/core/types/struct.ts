@@ -72,8 +72,9 @@ export class Struct {
    * @param slot - Storage slot identifier
    */
   static setAddress(p: usize, v: usize, slot: u64): void {
-    for (let i = 0; i < 32; i++) store<u8>(p + i, load<u8>(v + i));
+    for (let i = 0; i < 43; i++) store<u8>(p + i, load<u8>(v + i));
     storage_cache_bytes32(createStorageKey(slot), p);
+    storage_flush_cache(0);
   }
 
   /**

@@ -48,13 +48,13 @@ export class U256 {
    */
   static fromString(str: usize, len: u32): usize {
     const result = this.create();
-    
+
     for (let i: u32 = 0; i < len; ++i) {
       const digit: u8 = load<u8>(str + i) - ASCII_0;
       this.mul10InPlace(result);
       this.addSmallInPlace(result, digit);
     }
-    
+
     return result;
   }
 
@@ -66,7 +66,7 @@ export class U256 {
    */
   static fromStringHex(str: usize, len: u32): usize {
     const result = this.create();
-    
+
     let off: u32 = 0;
     if (
       len >= 2 &&
@@ -91,7 +91,7 @@ export class U256 {
       store<u8>(result + d--, (high << 4) | low);
       s -= 2;
     }
-    
+
     return result;
   }
 
@@ -104,7 +104,7 @@ export class U256 {
   static add(a: usize, b: usize): usize {
     const result = this.create();
     let carry: u16 = 0;
-    
+
     for (let i: i32 = 31; i >= 0; --i) {
       const sum: u16 = load<u8>(a + i) + load<u8>(b + i) + carry;
       store<u8>(result + i, <u8>sum);
@@ -155,29 +155,29 @@ export class U256 {
     const BYTES = 32;
     const result = this.create();
     let overflow = false;
-  
+
     for (let s = 0; s < BYTES; ++s) {
       const sb = load<u8>(b + (BYTES - 1 - s));
       if (!sb) continue;
-  
+
       let carry: u32 = 0;
-  
+
       for (let d = 0; d < BYTES; ++d) {
-        const db  = load<u8>(a + (BYTES - 1 - d));
+        const db = load<u8>(a + (BYTES - 1 - d));
         const idx = BYTES - 1 - (s + d);
         const prod = <u32>db * sb + carry;
-  
+
         if (idx < 0) {
           if (prod) overflow = true;
           carry = prod >> 8;
           continue;
         }
-  
-        const sum = (<u32>load<u8>(result + idx)) + prod;
+
+        const sum = <u32>load<u8>(result + idx) + prod;
         store<u8>(result + idx, <u8>sum);
         carry = sum >> 8;
       }
-  
+
       for (let c = BYTES - 1 - (s + BYTES); carry && c >= 0; --c) {
         const sum = <u32>load<u8>(result + c) + carry;
         store<u8>(result + c, <u8>sum);
@@ -185,11 +185,11 @@ export class U256 {
       }
       if (carry) overflow = true;
     }
-  
+
     if (overflow) {
       panicArithmeticOverflow();
     }
-  
+
     return result;
   }
 
@@ -209,7 +209,7 @@ export class U256 {
     if (this.lessThan(dividend, divisor)) {
       return zero;
     }
-    
+
     if (this.equals(dividend, divisor)) {
       return this.fromU64(1);
     }
@@ -217,7 +217,7 @@ export class U256 {
     // Simple repeated subtraction for now (can be optimized later)
     const result = this.create();
     const temp = this.copy(dividend);
-    
+
     while (!this.lessThan(temp, divisor)) {
       this.subInPlace(temp, divisor);
       this.addInPlace(result, this.fromU64(1));
@@ -243,11 +243,11 @@ export class U256 {
     }
 
     const result = this.copy(dividend);
-    
+
     while (!this.lessThan(result, divisor)) {
       this.subInPlace(result, divisor);
     }
-    
+
     return result;
   }
 
@@ -289,13 +289,13 @@ export class U256 {
   static addUnchecked(a: usize, b: usize): usize {
     const result = this.create();
     let carry: u16 = 0;
-    
+
     for (let i: i32 = 31; i >= 0; --i) {
       const sum: u16 = load<u8>(a + i) + load<u8>(b + i) + carry;
       store<u8>(result + i, <u8>sum);
       carry = sum > 0xff ? 1 : 0;
     }
-    
+
     return result;
   }
 
@@ -308,7 +308,7 @@ export class U256 {
   static subUnchecked(a: usize, b: usize): usize {
     const result = this.create();
     let borrow: u8 = 0;
-    
+
     for (let i: i32 = 31; i >= 0; --i) {
       const d: u16 = load<u8>(a + i);
       const s: u16 = load<u8>(b + i) + borrow;
@@ -320,7 +320,7 @@ export class U256 {
         borrow = 0;
       }
     }
-    
+
     return result;
   }
 
@@ -333,35 +333,35 @@ export class U256 {
   static mulUnchecked(a: usize, b: usize): usize {
     const BYTES = 32;
     const result = this.create();
-  
+
     for (let s = 0; s < BYTES; ++s) {
       const sb = load<u8>(b + (BYTES - 1 - s));
       if (!sb) continue;
-  
+
       let carry: u32 = 0;
-  
+
       for (let d = 0; d < BYTES; ++d) {
-        const db  = load<u8>(a + (BYTES - 1 - d));
+        const db = load<u8>(a + (BYTES - 1 - d));
         const idx = BYTES - 1 - (s + d);
         const prod = <u32>db * sb + carry;
-  
+
         if (idx < 0) {
           carry = prod >> 8;
           continue;
         }
-  
-        const sum = (<u32>load<u8>(result + idx)) + prod;
+
+        const sum = <u32>load<u8>(result + idx) + prod;
         store<u8>(result + idx, <u8>sum);
         carry = sum >> 8;
       }
-  
+
       for (let c = BYTES - 1 - (s + BYTES); carry && c >= 0; --c) {
         const sum = <u32>load<u8>(result + c) + carry;
         store<u8>(result + c, <u8>sum);
         carry = sum >> 8;
       }
     }
-  
+
     return result;
   }
 
@@ -430,7 +430,7 @@ export class U256 {
    * @param b - Second operand pointer
    * @returns true if a < b, false otherwise
    */
-  static lessThan(a: usize, b: usize): bool {
+  static lessThan(a: usize, b: usize): boolean {
     for (let i: i32 = 0; i < 32; ++i) {
       const av = load<u8>(a + i);
       const bv = load<u8>(b + i);
@@ -446,7 +446,7 @@ export class U256 {
    * @param b - Second operand pointer
    * @returns true if a > b, false otherwise
    */
-  static greaterThan(a: usize, b: usize): bool {
+  static greaterThan(a: usize, b: usize): boolean {
     for (let i: i32 = 0; i < 32; ++i) {
       const av = load<u8>(a + i);
       const bv = load<u8>(b + i);
@@ -462,7 +462,7 @@ export class U256 {
    * @param b - Second operand pointer
    * @returns true if a == b, false otherwise
    */
-  static equals(a: usize, b: usize): bool {
+  static equals(a: usize, b: usize): boolean {
     for (let i: i32 = 0; i < 32; ++i) {
       if (load<u8>(a + i) != load<u8>(b + i)) return false;
     }
@@ -475,7 +475,7 @@ export class U256 {
    * @param b - Second operand pointer
    * @returns true if a <= b, false otherwise
    */
-  static lessThanOrEqual(a: usize, b: usize): bool {
+  static lessThanOrEqual(a: usize, b: usize): boolean {
     return this.lessThan(a, b) || this.equals(a, b);
   }
 
@@ -485,7 +485,7 @@ export class U256 {
    * @param b - Second operand pointer
    * @returns true if a >= b, false otherwise
    */
-  static greaterThanOrEqual(a: usize, b: usize): bool {
+  static greaterThanOrEqual(a: usize, b: usize): boolean {
     return this.greaterThan(a, b) || this.equals(a, b);
   }
 
