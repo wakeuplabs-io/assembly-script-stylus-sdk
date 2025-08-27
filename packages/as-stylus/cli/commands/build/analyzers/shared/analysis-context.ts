@@ -1,6 +1,7 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 
 import { ErrorManager } from "./error-manager.js";
+import { SlotManager } from "./slot-manager.js";
 import { SymbolTableStack } from "./symbol-table.js";
 
 /**
@@ -10,10 +11,13 @@ import { SymbolTableStack } from "./symbol-table.js";
 export class AnalysisContext {
   private errorManager: ErrorManager;
   private symbolTable: SymbolTableStack;
+  private slotManager: SlotManager;
 
   constructor() {
     this.errorManager = new ErrorManager();
-    this.symbolTable = new SymbolTableStack();
+    const slotManager = new SlotManager();
+    this.symbolTable = new SymbolTableStack(slotManager);
+    this.slotManager = slotManager;
     this.populatedSymbolTable();
   }
 
@@ -49,5 +53,9 @@ export class AnalysisContext {
 
   getSymbolTable(): SymbolTableStack {
     return this.symbolTable;
+  }
+
+  getSlotManager(): SlotManager {
+    return this.slotManager;
   }
 }

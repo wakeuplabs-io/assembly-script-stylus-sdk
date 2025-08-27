@@ -1,8 +1,10 @@
 import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
-import { Call, IRExpression } from "@/cli/types/ir.types.js";
+import { Call } from "@/cli/types/ir.types.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
+
+import { convertVariableInParams } from "../../utils/convert-variable-in-params.js";
 
 /** a.equals(b)  →  Address.equals(a,b)  */
 export class AddressEqualsHandler extends Handler {
@@ -16,23 +18,12 @@ export class AddressEqualsHandler extends Handler {
     return target.endsWith(".equals");
   }
 
-  private makeReceiver(chain: string): IRExpression {
-    if (chain.indexOf(".") === -1) {
-      return { kind: "var" as const, name: chain, type: AbiType.Address, scope: "memory" };
-    }
-    const [head, ...rest] = chain.split(".");
-    let node: IRExpression = { kind: "var" as const, name: head, type: AbiType.Address, scope: "memory" };
-    for (const prop of rest) {
-      node = { kind: "member" as const, object: node, property: prop, type: AbiType.Address };
-    }
-    return node;
-  }
-
   handle(expr: Call): EmitResult {
     if (!expr.receiver && expr.target.endsWith(".equals")) {
+      
       if (!expr.receiver) {
         const chain = expr.target.slice(0, -".equals".length);
-        expr.receiver = this.makeReceiver(chain);
+        expr.receiver = convertVariableInParams(chain, AbiType.Address);
       }
       expr.target = "Address.equals";
     }

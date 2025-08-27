@@ -1,51 +1,53 @@
-import { ClassDeclaration } from "ts-morph";
+import { VariableDeclaration, CallExpression, ObjectLiteralExpression, ArrayLiteralExpression, PropertyAssignment } from "ts-morph";
 
 import { IREvent, IREventField } from "../../../../types/ir.types.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 
 export class EventIRBuilder extends IRBuilder<IREvent> {
-  private eventClass: ClassDeclaration;
+  private eventVariable: VariableDeclaration;
 
-  constructor(eventClass: ClassDeclaration) {
-    super(eventClass);
-    this.eventClass = eventClass; 
+  constructor(eventVariable: VariableDeclaration) {
+    super(eventVariable);
+    this.eventVariable = eventVariable; 
   }
 
-  validate(): boolean {
-    const properties = this.eventClass.getProperties();
-    
-    if (properties.length === 0) {
-      this.errorManager.addSemanticError(
-        "EVENT_NO_FIELDS",
-        this.eventClass.getSourceFile().getFilePath(),
-        this.eventClass.getStartLineNumber(),
-        [`El evento ${this.eventClass.getName()} debe tener al menos un campo`]
-      );
-      return false;
-    }
+  validate(): boolean { 
 
     return true;
   }
+
+  private parseEventConfig(configArg: ObjectLiteralExpression) {
+      const getPropValue = (propName: string) => {
+        const prop = configArg.getProperty(propName) as PropertyAssignment;
+        return prop?.getInitializer();
+      };
+    
+      const indexedInit = getPropValue("indexed") as ArrayLiteralExpression;
+      const indexed = indexedInit
+        ? indexedInit.getElements().map(e => e.getText() === "true")
+        : [];
+    
+      return { indexed };
+    }
+
   buildIR(): IREvent {
-    const name = this.eventClass.getName() || "AnonymousEvent";
+    const initializer = this.eventVariable.getInitializer() as CallExpression;
+    const args = initializer.getArguments();
+    const { indexed } = this.parseEventConfig(args[0] as ObjectLiteralExpression);
+    
     const fields: IREventField[] = [];
-
-    this.eventClass.getProperties().forEach(property => {
-      const propertyName = property.getName();
-      const propertyType = property.getType().getText();
-      
-      const decorators = property.getDecorators();
-      const isIndexed = decorators.some(decorator => decorator.getName() === 'Indexed');
-
+    
+    indexed.forEach((isIndexed, index) => {
       fields.push({
-        name: propertyName,
-        type: propertyType,
-        indexed: isIndexed
+        name: `arg${index}`,
+        type: "any",
+        indexed: isIndexed || false
       });
     });
 
+    //TODO: see if the name should be a parameter of the constructor instead
     return {
-      name,
+      name: this.eventVariable.getName(),
       fields
     };
   }

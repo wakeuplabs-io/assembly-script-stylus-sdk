@@ -87,8 +87,8 @@ export function generateErrorABI(contract: IRContract): any[] {
         name: error.name,
         inputs: error.fields.map(field => ({
           name: field.name,
-          type: convertType(field.type),
-          internalType: convertType(field.type),
+          type: convertType(contract.symbolTable, field.type),
+          internalType: convertType(contract.symbolTable, field.type),
         })),
       });
     }

@@ -4,6 +4,7 @@ import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression, IRStatement } from "@/cli/types/ir.types.js";
 
 import { ReturnSyntaxValidator } from "./syntax-validator.js";
+import { convertType } from "../../builder/build-abi.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { SupportedType } from "../shared/supported-types.js";
@@ -23,7 +24,7 @@ export class ReturnIRBuilder extends IRBuilder<IRStatement> {
 
   private getType(expr: IRExpression): SupportedType {
     if (expr.kind === "call") {
-      return expr.returnType;
+      return convertType(this.symbolTable, expr.returnType);
     }
 
     return expr.type;

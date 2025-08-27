@@ -105,9 +105,14 @@ export type IRCondition = {
   type: AbiType.Bool;
 };
 
+export type IRThis = {
+  kind: "this";
+  type: SupportedType;
+};
+
 export type ChainedCall = {
   kind: "call";
-  target: string; // Will be "chainedCall_methodName"
+  target: string;
   baseExpression: IRExpression;
   methodName: string;
   args: IRExpression[];
@@ -135,6 +140,7 @@ export type IRExpression =
   | IRMapSet
   | IRMapGet2
   | IRMapSet2
+  | IRThis
   | ChainedCall;
 
 // ───────────────────────

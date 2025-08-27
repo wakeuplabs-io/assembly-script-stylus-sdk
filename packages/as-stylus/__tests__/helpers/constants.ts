@@ -83,4 +83,8 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/expert-counter"),
     abi: path.join(ROOT_PATH, "/expert-counter/artifacts/abi/contract-abi.json"),
   },
+  WHILE: {
+    contract: path.join(ROOT_PATH, "/while"),
+    abi: path.join(ROOT_PATH, "/while/artifacts/abi/contract-abi.json"),
+  },
 } as const;

@@ -3,6 +3,8 @@
 // ---------------------------------------------------------------
 import { readFileSync } from "fs";
 
+import { ContractService } from "./client.js";
+import { ContractArgs } from "./setup.js";
 import { DecodedError } from "./types.js";
 
 export {
@@ -52,32 +54,11 @@ export function handleDeploymentError(error: unknown): never {
 }
 
 export async function expectRevert(
-  contract: any,
+  contract: ContractService,
   functionName: string,
-  args: any[] = [],
+  args: ContractArgs = [],
 ): Promise<DecodedError> {
   const result = await contract.readRaw(functionName, args);
-
-  if (result.success) {
-    throw new Error("Expected revert but call succeeded");
-  }
-
-  if (!result.error) {
-    throw new Error("Expected error but none found");
-  }
-
-  return {
-    errorName: result.error.name,
-    args: result.error.args,
-  };
-}
-
-export async function expectWriteRevert(
-  contract: any,
-  functionName: string,
-  args: any[] = [],
-): Promise<DecodedError> {
-  const result = await contract.writeRaw(functionName, args);
 
   if (result.success) {
     throw new Error("Expected revert but call succeeded");
