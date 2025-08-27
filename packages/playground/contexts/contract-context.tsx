@@ -7,6 +7,10 @@ type ContractType = "ERC20" | "ERC721"
 interface ContractContextType {
   activeContract: ContractType
   setActiveContract: (contract: ContractType) => void
+  rpcEndpoint: string
+  setRpcEndpoint: (endpoint: string) => void
+  blockExplorerUrl: string
+  setBlockExplorerUrl: (url: string) => void
 }
 
 const ContractContext = createContext<ContractContextType | undefined>(undefined)
@@ -25,9 +29,18 @@ interface ContractProviderProps {
 
 export function ContractProvider({ children }: ContractProviderProps) {
   const [activeContract, setActiveContract] = useState<ContractType>("ERC20")
+  const [rpcEndpoint, setRpcEndpoint] = useState<string>("https://sepolia-rollup.arbitrum.io/rpc")
+  const [blockExplorerUrl, setBlockExplorerUrl] = useState<string>("https://sepolia.arbiscan.io/")
 
   return (
-    <ContractContext.Provider value={{ activeContract, setActiveContract }}>
+    <ContractContext.Provider value={{ 
+      activeContract, 
+      setActiveContract, 
+      rpcEndpoint, 
+      setRpcEndpoint, 
+      blockExplorerUrl, 
+      setBlockExplorerUrl 
+    }}>
       {children}
     </ContractContext.Provider>
   )
