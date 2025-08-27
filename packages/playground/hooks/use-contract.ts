@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useWalletClient, useAccount } from 'wagmi'
 import type { Address, Abi } from 'viem'
 import { createContractService, type ContractArgs } from '@/lib/contract-service'
+import { useContract as useContractContext } from '@/contexts/contract-context'
 
 interface UseContractProps {
   address?: Address
@@ -12,12 +13,38 @@ interface UseContractProps {
 export function useContract({ address, abi, enabled = true }: UseContractProps) {
   const { data: walletClient } = useWalletClient()
   const { isConnected } = useAccount()
+  const { rpcEndpoint } = useContractContext()
   const [isLoading, setIsLoading] = useState(false)
+  const [contractService, setContractService] = useState<Awaited<ReturnType<typeof createContractService>> | null>(null)
 
-  const contractService = useMemo(() => {
-    if (!address || !enabled) return null
-    return createContractService(address, abi, true)
-  }, [address, abi, enabled])
+  useEffect(() => {
+    if (!address || !enabled) {
+      setContractService(null)
+      return
+    }
+
+    let isCancelled = false
+
+    const initializeContractService = async () => {
+      try {
+        const service = await createContractService(address, abi, rpcEndpoint, true)
+        if (!isCancelled) {
+          setContractService(service)
+        }
+      } catch (error) {
+        console.error('Failed to initialize contract service:', error)
+        if (!isCancelled) {
+          setContractService(null)
+        }
+      }
+    }
+
+    initializeContractService()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [address, abi, rpcEndpoint, enabled])
 
   const read = async (functionName: string, args: ContractArgs = []) => {
     if (!contractService) {

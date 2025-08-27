@@ -14,13 +14,64 @@ import {
   ContractFunctionRevertedError,
   ContractFunctionExecutionError,
 } from "viem"
-import { arbitrumSepolia } from "viem/chains"
 
-// Configuración del cliente público para Arbitrum Sepolia
-const publicClient = createPublicClient({
-  chain: arbitrumSepolia,
-  transport: http("https://sepolia-rollup.arbitrum.io/rpc"),
-})
+async function getChainIdFromRpc(url: string): Promise<number> {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "eth_chainId",
+        params: [],
+        id: 1,
+      }),
+    });
+
+    const data = await response.json();
+    return parseInt(data.result, 16);
+  } catch (error) {
+    console.warn(`Failed to get chain ID from ${url}, falling back to Arbitrum Sepolia`);
+    return 421614; // Fallback to Arbitrum Sepolia
+  }
+}
+
+async function getChainForRpc(url: string) {
+  if (url.includes("localhost")) {
+    return {
+      id: 412346,
+      name: "Local Arbitrum Sepolia",
+      network: "localhost",
+      nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+      rpcUrls: { default: { http: [url] }, public: { http: [url] } },
+    } as const;
+  }
+
+  const chainId = await getChainIdFromRpc(url);
+
+  const chainConfig = {
+    id: chainId,
+    name: `Custom Network (${chainId})`,
+    network: `custom-${chainId}`,
+    nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+    rpcUrls: {
+      default: { http: [url] },
+      public: { http: [url] },
+    },
+  } as const;
+
+  return chainConfig;
+}
+
+const createPublicClientWithRpc = async (rpcEndpoint: string) => {
+  const chain = await getChainForRpc(rpcEndpoint);
+  return createPublicClient({
+    chain,
+    transport: http(rpcEndpoint),
+  });
+}
 
 export type ContractArgs = (string | boolean | Address | bigint | number)[]
 
@@ -42,14 +93,9 @@ export interface ContractWriteResult {
   }
 }
 
-/**
- * Servicio de contrato para interactuar con contratos Stylus
- */
-export function createContractService(contractAddress: Address, abi: Abi, verbose: boolean = false) {
+export async function createContractService(contractAddress: Address, abi: Abi, rpcEndpoint: string = "https://sepolia-rollup.arbitrum.io/rpc", verbose: boolean = false) {
+  const publicClient = await createPublicClientWithRpc(rpcEndpoint)
   
-  /**
-   * Función para leer datos del contrato (view/pure functions)
-   */
   const read = async (functionName: string, args: ContractArgs = []): Promise<ContractCallResult> => {
     try {
       const data = encodeFunctionData({ abi, functionName, args })
@@ -76,7 +122,6 @@ export function createContractService(contractAddress: Address, abi: Abi, verbos
         return { success: false, error: { name: "UnknownError", args: [String(err)] } }
       }
 
-      // Intentar extraer datos de revert
       const revertData = extractRevertData(err)
       if (!revertData) {
         return { success: false, error: { name: "NoRevertData", args: [] } }
@@ -102,9 +147,6 @@ export function createContractService(contractAddress: Address, abi: Abi, verbos
     }
   }
 
-  /**
-   * Función para escribir al contrato (transacciones)
-   */
   const write = async (
     walletClient: WalletClient, 
     functionName: string, 
@@ -118,17 +160,22 @@ export function createContractService(contractAddress: Address, abi: Abi, verbos
       const data = encodeFunctionData({ abi, functionName, args })
       if (verbose) console.log("→ write calldata:", data)
 
-      // Simular la transacción primero
       const { request } = await publicClient.simulateContract({
         address: contractAddress,
         abi,
         functionName,
         args,
         account: walletClient.account,
+        chain: publicClient.chain,
       })
 
-      // Ejecutar la transacción
-      const txHash = await walletClient.writeContract(request)
+      // Ensure the request uses the correct chain
+      const correctedRequest = {
+        ...request,
+        chain: publicClient.chain,
+      };
+
+      const txHash = await walletClient.writeContract(correctedRequest)
       if (verbose) console.log("← transaction hash:", txHash)
 
       return { success: true, txHash }
@@ -139,7 +186,6 @@ export function createContractService(contractAddress: Address, abi: Abi, verbos
         return { success: false, error: { name: "UnknownWriteError", args: [String(err)] } }
       }
 
-      // Intentar extraer información del error
       const errAny = err as any
       if (errAny.data && typeof errAny.data === "object" && "errorName" in errAny.data) {
         const errorData = errAny.data
@@ -152,7 +198,6 @@ export function createContractService(contractAddress: Address, abi: Abi, verbos
         }
       }
 
-      // Intentar extraer datos de revert
       const revertData = extractRevertData(err)
       if (!revertData) {
         return { success: false, error: { name: "NoRevertData", args: [] } }
@@ -178,9 +223,6 @@ export function createContractService(contractAddress: Address, abi: Abi, verbos
     }
   }
 
-  /**
-   * Función para obtener información básica del contrato
-   */
   const getContractInfo = async () => {
     try {
       const code = await publicClient.getBytecode({ address: contractAddress })
@@ -206,11 +248,7 @@ export function createContractService(contractAddress: Address, abi: Abi, verbos
   }
 }
 
-/**
- * Función helper para extraer datos de revert de errores
- */
 function extractRevertData(err: any): Hex | undefined {
-  // Intentar extraer de BaseError
   if (err instanceof BaseError) {
     const revertError = err.walk((e) => e instanceof ContractFunctionRevertedError)
     if (revertError instanceof ContractFunctionRevertedError) {
@@ -221,7 +259,6 @@ function extractRevertData(err: any): Hex | undefined {
     }
   }
 
-  // Intentar extraer del cause
   if (err.cause && typeof err.cause === "object") {
     const cause = err.cause as any
 
@@ -240,7 +277,6 @@ function extractRevertData(err: any): Hex | undefined {
     }
   }
 
-  // Intentar extraer de details
   if (err.details) {
     const detailsMatch = err.details.match(/0x[a-fA-F0-9]+/)
     if (detailsMatch) {
