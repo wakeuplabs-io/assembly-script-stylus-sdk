@@ -91,7 +91,7 @@ export async function validateBlockExplorer(url: string, timeoutMs: number = 500
 
     const testTxUrl = `${url.replace(/\/$/, '')}/tx/0x0000000000000000000000000000000000000000000000000000000000000000`
     
-    const response = await fetch(testTxUrl, {
+    await fetch(testTxUrl, {
       method: 'HEAD',
       mode: 'no-cors',
       signal: controller.signal,
@@ -99,16 +99,9 @@ export async function validateBlockExplorer(url: string, timeoutMs: number = 500
 
     clearTimeout(timeoutId)
 
-    if (response.status === 404 || response.status === 200) {
-      return {
-        isValid: true,
-        message: 'Block explorer URL is valid',
-      }
-    }
-
     return {
-      isValid: false,
-      message: `Unexpected response status: ${response.status}`,
+      isValid: true,
+      message: 'Block explorer URL is valid',
     }
   } catch (error) {
     clearTimeout(timeoutId)
