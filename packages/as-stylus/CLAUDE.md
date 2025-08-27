@@ -27,7 +27,7 @@ AS-Stylus SDK - A comprehensive SDK that enables developers to write Arbitrum St
 1. `@wakeuplabs/as-stylus generate <project-name>` - Create new contract project
 2. `@wakeuplabs/as-stylus compile <contract-file>` - Compile TypeScript to WASM via AssemblyScript
 3. From contract directory: `cargo stylus check --endpoint <RPC_URL>` - Validate WASM
-4. From contract directory: `cargo stylus deploy --private-key <KEY> --endpoint <RPC_URL>` - Deploy
+4. `as-stylus deploy <contract-file> --endpoint <RPC_URL> --constructor-args "arg1" "arg2"` - Deploy (will prompt for private key securely)
 
 ### Testing Specific Contracts
 - `npm test -- --testNamePattern="Expert Counter" --testPathPattern="e2e.expert-counter.test.ts" --verbose`
@@ -208,7 +208,7 @@ interface CompilationContext {
 
 4. **Validation & Deployment** (from contract directory)
    - Validate WASM: `cargo stylus check --endpoint <RPC_URL>`
-   - Deploy: `cargo stylus deploy --private-key <KEY> --endpoint <RPC_URL>`
+   - Deploy: Use `as-stylus deploy contract.ts --endpoint <RPC_URL>` (prompts for private key securely)
    - Store deployment info in `artifacts/deployments/`
 
 ### Type System Architecture
@@ -284,7 +284,7 @@ contracts/expert-counter/
 1. Navigate to specific contract: `cd __tests__/contracts/expert-counter`
 2. Compile from SDK root: `npm run pre:build` then `as-stylus compile contract.ts --endpoint <RPC>`
 3. Check WASM from contract dir: `cargo stylus check --endpoint <RPC>`
-4. Deploy from contract dir: `cargo stylus deploy --private-key <KEY> --endpoint <RPC>`
+4. Deploy: `as-stylus deploy contract.ts --endpoint <RPC>` (prompts for private key securely)
 
 #### Adding New Type Transformers
 1. Create transformer class extending `BaseTypeTransformer` in `cli/commands/build/transformers/`

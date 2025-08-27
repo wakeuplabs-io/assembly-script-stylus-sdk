@@ -1,12 +1,10 @@
 # Stylus AssemblyScript SDK
 
-
 > ⚠️ **ALPHA VERSION NOTICE**
 >
-> This SDK is **not intended for use** at this stage.
-> It is in **early alpha development**, unstable, and subject to **major breaking changes**.
-> **Do not use** this SDK in any production, staging, or testnet environments.
-> We **strongly advise against integrating or deploying** this code until a stable release is announced.
+> This SDK is currently in **alpha development** and is actively being worked on.
+> It is **not production-ready** and may contain bugs, breaking changes, or incomplete features.
+> Use at your own risk and avoid deploying to mainnet without thorough testing.
 
 A comprehensive SDK that enables developers to write **Arbitrum Stylus smart contracts** using Typescript and transpiled to **AssemblyScript**. This project provides a familiar development environment for JavaScript/TypeScript developers who want to build high-performance smart contracts that compile to WebAssembly.
 
@@ -17,10 +15,13 @@ The Stylus AssemblyScript SDK is a complete development toolkit for creating Arb
 This monorepo contains three main components:
 
 ### [SDK Core](./packages/as-stylus/) | [NPM Package](https://www.npmjs.com/package/@wakeuplabs/as-stylus)
+
 - Learn the SDK through interactive examples
 
 ### [SDK Core](./packages/as-stylus/)
+
 The main SDK package that provides:
+
 - AssemblyScript bindings for Stylus host functions
 - Type-safe storage and memory management
 - Event emission and error handling
@@ -28,22 +29,26 @@ The main SDK package that provides:
 - Built-in support for common standards such as ERC20, ERC721
 
 ### [Interactive Playground](./packages/playground/) | [Live Playground](https://as-stylus-playground.wakeuplabs.link/)
+
 A web-based playground that allows developers to:
+
 - Try out ERC20 and ERC721 contract examples in the browser
 - Interact with own contracts
 - Learn the SDK through interactive examples
 
 ### [Documentation Website](./packages/website-docs/) | [Live Docs](https://as-stylus.wakeuplabs.io/)
+
 Comprehensive documentation that covers:
+
 - Getting started guides
 - API reference
 - Contract examples and patterns
 
 ## Key Features
 
-- **Type Safety**: Full ***TypeScript/AssemblyScript*** type safety for smart contract development
+- **Type Safety**: Full **_TypeScript/AssemblyScript_** type safety for smart contract development
 - **Performance**: Compile to WebAssembly for near-native execution speeds
-- **Developer Experience**: Familiar syntax for ***JavaScript/TypeScript developers***
+- **Developer Experience**: Familiar syntax for **_JavaScript/TypeScript developers_**
 - **Comprehensive Tooling**: Complete CLI for scaffolding, building, testing, and deploying
 - **Standard Library**: Built-in implementations of common contract patterns
 - **Testing Framework**: Integrated testing utilities for contract validation

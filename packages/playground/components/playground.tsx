@@ -2,17 +2,18 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { CodeBlock } from "@/components/code-block"
+import { Prerequisites } from "@/components/prerequisites"
 import { ERC20_CONTRACT_CODE, ERC721_CONTRACT_CODE } from "@/lib/constants/code-examples"
 import { ONBOARDING_STEPS } from "@/lib/constants/onboarding"
 import { useContract } from "@/contexts/contract-context"
-import { Copy, Check } from "lucide-react"
+import { Copy, Check, ArrowRight } from "lucide-react"
 import { useState } from "react"
 
 export function Playground() {
   const { activeContract } = useContract()
-  const [copiedStates, setCopiedStates] = useState<Record<number, boolean>>({})
+  const [copiedStates, setCopiedStates] = useState<Record<string | number, boolean>>({})
 
-  const copyCommand = async (command: string, index: number) => {
+  const copyCommand = async (command: string, index: number | string) => {
     try {
       await navigator.clipboard.writeText(command)
       setCopiedStates(prev => ({ ...prev, [index]: true }))
@@ -37,6 +38,8 @@ export function Playground() {
           </div>
         </div>
 
+        <Prerequisites />
+
         <Card className="bg-gray-900/50 border-gray-700 overflow-hidden">
           <CardContent className="p-0">
             <div className="grid lg:grid-cols-2">
@@ -44,7 +47,7 @@ export function Playground() {
                 <CodeBlock
                   code={activeContract === "ERC20" ? ERC20_CONTRACT_CODE : ERC721_CONTRACT_CODE}
                   showCopy
-                  height="45rem"
+                  height="54rem"
                 />
               </div>
 
@@ -54,6 +57,21 @@ export function Playground() {
                     <div key={index} className="space-y-2">
                       <h3 className="text-lg font-semibold text-white">{step.step}</h3>
                       {step.description && <p className="text-gray-400 text-sm">{step.description}</p>}
+                      
+                      {index === 1 && (
+                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-3">
+                          <div className="flex items-start gap-2">
+                            <ArrowRight className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-blue-100 text-sm font-medium mb-1">Important Step</p>
+                              <p className="text-blue-200 text-xs leading-relaxed">
+                                After opening your project, copy the contract code from the left panel and replace the entire contents of <code className="bg-blue-400/20 px-1 rounded">contract.ts</code>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       {step.command && (
                         <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 mt-2 flex items-center">
                           <code className="text-white font-mono text-sm flex-1">{step.command}</code>
@@ -76,8 +94,31 @@ export function Playground() {
                           </button>
                         </div>
                       )}
+                      
+                      {/* Enhanced RPC hint for Step 4 */}
                       {step.hint && (
-                        <p className="text-gray-500 text-xs mt-1 italic">{step.hint}</p>
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 mt-2">
+                          <div className="flex items-start gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                              <p className="text-green-100 text-sm font-medium mb-1">Recommended RPC Endpoint</p>
+                              <div className="flex items-center gap-2 bg-green-500/20 rounded px-2 py-1">
+                                <code className="text-green-100 text-xs font-mono">{step.hint?.replace('Arbitrum Sepolia RPC: ', '') || ''}</code>
+                                <button
+                                  onClick={() => copyCommand(step.hint?.replace('Arbitrum Sepolia RPC: ', '') || '', `rpc-${index}`)}
+                                  className="p-1 rounded hover:bg-green-500/30 transition"
+                                  aria-label="Copy RPC URL"
+                                >
+                                  {copiedStates[`rpc-${index}`] ? (
+                                    <Check className="w-3 h-3 text-green-400" />
+                                  ) : (
+                                    <Copy className="w-3 h-3 text-green-200" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   ))}

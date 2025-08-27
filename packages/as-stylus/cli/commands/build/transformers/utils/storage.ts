@@ -10,10 +10,45 @@ function formatSlotName(slot: number): string {
 
 function getPackageName(): string {
   const cwd = process.cwd();
+  
+  const sdkCorePath = path.join(cwd, "core");
+  const packageJsonPath = path.join(cwd, "package.json");
+  
+  if (fs.existsSync(sdkCorePath) && fs.existsSync(packageJsonPath)) {
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+      if (packageJson.name === "@wakeuplabs/as-stylus") {
+        return ".";
+      }
+    } catch (e) {
+      // Fall through to other checks if package.json can't be read
+    }
+  }
+  
   const nodeModulesPath = path.join(cwd, "node_modules", "@wakeuplabs", "as-stylus");
-
   if (fs.existsSync(nodeModulesPath)) {
     return "@wakeuplabs/as-stylus";
+  }
+  
+  let currentDir = cwd;
+  for (let i = 0; i < 5; i++) {
+    const parentSdkCore = path.join(currentDir, "packages", "as-stylus", "core");
+    const parentPackageJson = path.join(currentDir, "packages", "as-stylus", "package.json");
+    
+    if (fs.existsSync(parentSdkCore) && fs.existsSync(parentPackageJson)) {
+      try {
+        const packageJson = JSON.parse(fs.readFileSync(parentPackageJson, 'utf-8'));
+        if (packageJson.name === "@wakeuplabs/as-stylus") {
+          return path.relative(cwd, path.join(currentDir, "packages", "as-stylus"));
+        }
+      } catch (e) {
+        // Continue searching
+      }
+    }
+    
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) break; // Reached root
+    currentDir = parentDir;
   }
 
   return "as-stylus";
