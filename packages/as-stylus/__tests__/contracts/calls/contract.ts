@@ -1,46 +1,57 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+
+import {
+  Address,
+  Contract,
+  Mapping,
+  U256,
+  View,
+  External,
+  U256Factory,
+  StrFactory,
+  CallFactory,
+} from "as-stylus";
 
 @Contract
 export class CallsContract {
-  static owners: Mapping<U256, Address>;
-  static myAddress: Address;
+  owners: Mapping<U256, Address> = new Mapping<U256, Address>();
+  contractAddress: Address;
 
   constructor(address: Address) {
-    myAddress = address;
-    owners.set(U256Factory.fromString("1"), address);
+    this.contractAddress = address;
+    this.owners.set(U256Factory.fromString("1"), address);
   }
 
   @External
-  static testCall(value: U256): void {
+  testCall(value: U256): void {
     const emptyData = StrFactory.fromString("");
 
     const oneKey = U256Factory.fromString("1");
-    const ownerAddress = owners.get(oneKey);
+    const ownerAddress = this.owners.get(oneKey);
     CallFactory.call(ownerAddress, value, emptyData);
   }
 
   @External
-  static testDelegateCall(): void {
+  testDelegateCall(): void {
     const emptyData = StrFactory.fromString("");
-    CallFactory.delegateCall(myAddress, emptyData);
+    CallFactory.delegateCall(this.contractAddress, emptyData);
   }
 
   /**
    * Test static call (read-only)
    */
   @External
-  static testStaticCall(): void {
+  testStaticCall(): void {
     const emptyData = StrFactory.fromString("");
 
-    CallFactory.staticCall(myAddress, emptyData);
+    CallFactory.staticCall(this.contractAddress, emptyData);
   }
 
   @External
-  static testTransfer(value: U256): void {
+  testTransfer(value: U256): void {
     // Test: Transfer to owner instead of self-transfer to see if that works
     const oneKey = U256Factory.fromString("1");
-    const ownerAddress = owners.get(oneKey);
+    const ownerAddress = this.owners.get(oneKey);
     CallFactory.transfer(ownerAddress, value);
   }
 
@@ -58,9 +69,9 @@ export class CallsContract {
    * Test call to owner address - Send 1 wei to owners.get(1)
    */
   @External
-  static testCallToOwner(value: U256): void {
+  testCallToOwner(value: U256): void {
     const oneKey = U256Factory.fromString("1");
-    const ownerAddress = owners.get(oneKey);
+    const ownerAddress = this.owners.get(oneKey);
     const emptyData = StrFactory.fromString("");
 
     CallFactory.call(ownerAddress, value, emptyData);
@@ -79,17 +90,17 @@ export class CallsContract {
   // }
 
   @External
-  static setOwner(key: U256, owner: Address): void {
-    owners.set(key, owner);
+  setOwner(key: U256, owner: Address): void {
+    this.owners.set(key, owner);
   }
 
   @View
-  static getOwner(key: U256): Address {
-    return owners.get(key);
+  getOwner(key: U256): Address {
+    return this.owners.get(key);
   }
 
   @View
-  static getMyAddress(): Address {
-    return myAddress;
+  getMyAddress(): Address {
+    return this.contractAddress;
   }
 }

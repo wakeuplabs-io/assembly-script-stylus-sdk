@@ -178,7 +178,6 @@ describe("Calls Contract — Contract Call Operations", () => {
 
       const finalOwnerBalance = getBalance(getOwnerAddress());
       const finalContractBalance = getBalance(contract.address);
-      const totalTransferred = BigInt(transferAmount) * 2n;
 
       // Both testCall and testTransfer send ETH to owner then transfer it back to owner
       // Net result: contract balance stays 0, owner pays gas for 4 transactions

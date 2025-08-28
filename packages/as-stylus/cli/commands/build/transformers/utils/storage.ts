@@ -10,13 +10,13 @@ function formatSlotName(slot: number): string {
 
 function getPackageName(): string {
   const cwd = process.cwd();
-  
+
   const sdkCorePath = path.join(cwd, "core");
   const packageJsonPath = path.join(cwd, "package.json");
-  
+
   if (fs.existsSync(sdkCorePath) && fs.existsSync(packageJsonPath)) {
     try {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
       if (packageJson.name === "@wakeuplabs/as-stylus") {
         return ".";
       }
@@ -24,20 +24,20 @@ function getPackageName(): string {
       // Fall through to other checks if package.json can't be read
     }
   }
-  
+
   const nodeModulesPath = path.join(cwd, "node_modules", "@wakeuplabs", "as-stylus");
   if (fs.existsSync(nodeModulesPath)) {
     return "@wakeuplabs/as-stylus";
   }
-  
+
   let currentDir = cwd;
   for (let i = 0; i < 5; i++) {
     const parentSdkCore = path.join(currentDir, "packages", "as-stylus", "core");
     const parentPackageJson = path.join(currentDir, "packages", "as-stylus", "package.json");
-    
+
     if (fs.existsSync(parentSdkCore) && fs.existsSync(parentPackageJson)) {
       try {
-        const packageJson = JSON.parse(fs.readFileSync(parentPackageJson, 'utf-8'));
+        const packageJson = JSON.parse(fs.readFileSync(parentPackageJson, "utf-8"));
         if (packageJson.name === "@wakeuplabs/as-stylus") {
           return path.relative(cwd, path.join(currentDir, "packages", "as-stylus"));
         }
@@ -45,7 +45,7 @@ function getPackageName(): string {
         // Continue searching
       }
     }
-    
+
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir) break; // Reached root
     currentDir = parentDir;
@@ -58,10 +58,32 @@ export function slotConst(slot: number): string {
   return `const ${formatSlotName(slot)}: u64 = ${slot};`;
 }
 
-export function loadSimple(name: string, slot: number): string {
+export function loadSimple(name: string, slot: number, type?: AbiType): string {
+  // Determine the correct type factory based on ABI type
+  let createCall = "U256.create()"; // Default fallback
+
+  switch (type) {
+    case AbiType.Address:
+      createCall = "Address.create()";
+      break;
+    case AbiType.Bool:
+      createCall = "Boolean.create()";
+      break;
+    case AbiType.Uint256:
+      createCall = "U256.create()";
+      break;
+    case AbiType.Int256:
+      createCall = "I256.create()";
+      break;
+    default:
+      // For unknown types or legacy calls, default to U256
+      createCall = "U256.create()";
+      break;
+  }
+
   return `
 function load_${name}(): usize {
-  const ptr = U256.create();
+  const ptr = ${createCall};
   storage_load_bytes32(createStorageKey(${formatSlotName(slot)}), ptr);
   return ptr;
 }`;
@@ -141,10 +163,8 @@ export function generateImports(contract: IRContract): string {
     lines.push(`import { loadU32BE } from "${packageName}/core/modules/endianness";`);
   }
 
-  const hasCallFactory = contract.methods.some(method => 
-    method.ir.some((statement: any) => 
-      JSON.stringify(statement).includes("CallFactory")
-    )
+  const hasCallFactory = contract.methods.some((method) =>
+    method.ir.some((statement: any) => JSON.stringify(statement).includes("CallFactory")),
   );
 
   if (hasCallFactory) {
@@ -220,6 +240,14 @@ function store_${variable.name}(strPtr: usize): void {
           );
           break;
 
+        case AbiType.Address:
+        case AbiType.Bool:
+        case AbiType.Uint256:
+        case AbiType.Int256:
+          lines.push(loadSimple(variable.name, variable.slot, variable.type));
+          lines.push(storeSimple(variable.name, variable.slot));
+          break;
+
         case AbiType.Struct:
           if (variable.originalType && structMap.has(variable.originalType)) {
             const struct = structMap.get(variable.originalType);
@@ -227,13 +255,14 @@ function store_${variable.name}(strPtr: usize): void {
               lines.push(...generateStructStorageFunctions(variable, struct));
             }
           } else {
-            lines.push(loadSimple(variable.name, variable.slot));
+            lines.push(loadSimple(variable.name, variable.slot, variable.type));
             lines.push(storeSimple(variable.name, variable.slot));
           }
           break;
 
         default:
-          lines.push(loadSimple(variable.name, variable.slot));
+          // For unknown types, fallback to U256 (but this should be rare)
+          lines.push(loadSimple(variable.name, variable.slot, AbiType.Uint256));
           lines.push(storeSimple(variable.name, variable.slot));
           break;
       }
