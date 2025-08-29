@@ -8,7 +8,7 @@ export class Boolean {
    */
   static create(value: boolean = false): usize {
     const ptr = malloc(32);
-    for (let i = 0; i < 32; ++i) store<u8>(ptr + i, 0 as u8);
+    memory.fill(ptr, 0, 32);
     store<u8>(ptr + 31, value ? (1 as u8) : (0 as u8));
     return ptr;
   }
@@ -28,7 +28,6 @@ export class Boolean {
    * @returns The boolean value
    */
   static fromABI(pointer: usize): boolean {
-    // Only 0 and 1 are valid boolean primitive values
     // Storage pointers are always > 1 (malloc never returns 0 or 1)
     // This prevents confusion with storage slot 0 while maintaining security
     if (pointer <= 1) return pointer == 1;

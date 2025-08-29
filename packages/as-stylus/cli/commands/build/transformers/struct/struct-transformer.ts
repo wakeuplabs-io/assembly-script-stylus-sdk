@@ -164,7 +164,7 @@ export function ${structName}_copy(dst: usize, src: usize): void {
   Struct.copy(dst, src, ${struct.size});
 }`);
 
-  // Storage getters - for contract storage variables (like myStruct)
+  // Storage getters - for contract storage variables
   struct.fields.forEach((field) => {
     const slotForField = baseSlot + Math.floor(field.offset / 32);
     const slotNumber = slotForField.toString(16).padStart(2, "0");
@@ -178,7 +178,7 @@ export function ${structName}_get_${field.name}(ptr: usize): usize {
     } else if (field.type === AbiType.Bool) {
       // Special handling for booleans - read directly from storage
       helpers.push(`
-export function ${structName}_get_${field.name}(ptr: usize): usize {
+export function ${structName}_get_${field.name}(ptr: usize): boolean {
   return Struct.getBoolean(__SLOT${slotNumber});
 }`);
     } else if (field.type === AbiType.Uint256) {
@@ -198,10 +198,21 @@ export function ${structName}_get_${field.name}(ptr: usize): usize {
 
   // Memory getters - for temporary structs in memory
   struct.fields.forEach((field) => {
-    helpers.push(`
-export function ${structName}_memory_get_${field.name}(ptr: usize): usize {
-  return load<usize>(ptr + ${field.offset});
+    if (field.type === AbiType.Bool) {
+      helpers.push(`
+export function ${structName}_memory_get_${field.name}(ptr: usize): boolean {
+  return Boolean.fromABI(ptr + ${field.offset});
 }`);
+    } else {
+      helpers.push(`
+export function ${structName}_memory_get_${field.name}(ptr: usize): usize {
+  const pointer = malloc(32);
+  for (let i = 0; i < 32; i++) {
+    store<u8>(pointer + i, load<u8>(ptr + ${field.offset} + i));
+  }
+  return pointer;
+}`);
+    }
   });
 
   // Storage setters - for contract storage variables (like myStruct)
@@ -240,12 +251,20 @@ export function ${structName}_set_${field.name}(ptr: usize, v: usize): void {
 
   // Memory setters - for temporary structs in memory
   struct.fields.forEach((field) => {
+    if (field.type === AbiType.String) {
+      helpers.push(`
+        export function ${structName}_memory_set_${field.name}(ptr: usize, v: usize): void {
+          Struct.setMemoryString(ptr + ${field.offset}, v);
+        }
+      `);
+    } else {
     helpers.push(`
 export function ${structName}_memory_set_${field.name}(ptr: usize, v: usize): void {
   for (let i = 0; i < 32; i++) {
     store<u8>(ptr + ${field.offset} + i, load<u8>(v + i));
   }
 }`);
+    }
   });
 
   return helpers;

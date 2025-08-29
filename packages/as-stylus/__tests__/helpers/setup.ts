@@ -40,6 +40,7 @@ export async function setupE2EContract(
     constructorName?: string;
     deployArgs?: ContractArgs;
     walletClient?: WalletClient;
+    verbose?: boolean;
   } = {},
 ): Promise<ContractService> {
   // Build and compile the contract
@@ -52,7 +53,7 @@ export async function setupE2EContract(
 
   console.log("📍 Contract deployed at:", contractAddr);
 
-  return contractService(contractAddr as Address, abi, false);
+  return contractService(contractAddr as Address, abi, options.verbose ?? false);
 }
 
 /**

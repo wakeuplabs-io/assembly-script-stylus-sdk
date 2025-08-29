@@ -74,10 +74,6 @@ export class StructContract {
       flag,
       value2Memory,
     ]);
-    const tempValue = structTemp.value;
-    structTemp.value2 = tempValue;
-    const delta: U256 = U256Factory.fromString("1");
-    structTemp.value = tempValue.add(delta);
     return structTemp;
   }
 

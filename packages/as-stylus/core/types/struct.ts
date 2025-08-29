@@ -1,3 +1,4 @@
+import { Boolean } from "./boolean";
 import { Str } from "./str";
 import { storeU32BE, loadU32BE } from "../modules/endianness";
 import {
@@ -90,6 +91,16 @@ export class Struct {
   }
 
   /**
+   * Sets a string field in a struct and stores to storage
+   * @param ptr - Struct pointer
+   * @param strObj - String object pointer
+   * @param slot - Storage slot identifier
+   */
+  static setMemoryString(ptr: usize, strObj: usize): void {
+    memory.copy(ptr, strObj, 32);
+  }
+
+  /**
    * Sets a U256 field and stores to storage
    * @param slot - Storage slot identifier
    * @param v - U256 value pointer
@@ -143,8 +154,7 @@ export class Struct {
    * @returns Pointer to ABI-encoded string data
    */
   static getString(slot: u64): usize {
-    const strObj = Str.loadFrom(slot);
-    return Str.toABI(strObj);
+    return Str.loadFrom(slot);
   }
 
   /**
@@ -177,9 +187,9 @@ export class Struct {
    * @param slot - Storage slot identifier
    * @returns Pointer to the retrieved boolean value
    */
-  static getBoolean(slot: u64): usize {
+  static getBoolean(slot: u64): boolean {
     const out = malloc(32);
     storage_load_bytes32(createStorageKey(slot), out);
-    return out;
+    return Boolean.fromABI(out);
   }
 }

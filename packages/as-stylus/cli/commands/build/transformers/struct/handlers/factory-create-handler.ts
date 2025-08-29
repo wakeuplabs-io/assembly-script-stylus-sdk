@@ -52,7 +52,7 @@ export class StructFactoryCreateHandler extends Handler {
     const lines = [...valueResult.setupLines];
 
     if (field.type === AbiType.Bool) {
-      lines.push(`${structType}_memory_set_${field.name}(${structPtr}, Boolean.toABI(${valueResult.valueExpr}));`);
+      lines.push(`${structType}_memory_set_${field.name}(${structPtr}, Boolean.create(${valueResult.valueExpr}));`);
     } else {
       lines.push(`${structType}_memory_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
     }
@@ -60,19 +60,6 @@ export class StructFactoryCreateHandler extends Handler {
     return lines;
   }
 
-  /**
-   * Separates arguments by type for different processing strategies
-   */
-  private separateArgumentsByType(args: IRVariable[]): [IRVariable[], IRVariable[]] {
-    return args.reduce((acc, arg) => {
-      if (arg.type === AbiType.String) {
-        acc[0].push(arg);
-      } else {
-        acc[1].push(arg);
-      }
-      return acc;
-    }, [[], []] as [IRVariable[], IRVariable[]]);
-  }
 
   /**
    * Processes all fields of a specific type
@@ -87,9 +74,11 @@ export class StructFactoryCreateHandler extends Handler {
     
     for (let i = 0; i < Math.min(args.length, struct.fields.length); i++) {
       const field = struct.fields[i];
-      const valueArg = args.find(arg => arg.name === field.name);
+      const valueArg = args[i];
       if (valueArg) {
         setup.push(...this.processField(field, valueArg, structType, structPtr));
+      } else {  
+        throw new Error(`Missing value for field ${field.name} in StructFactory.create`);
       }
     }
     
@@ -124,10 +113,8 @@ export class StructFactoryCreateHandler extends Handler {
     ];
 
     const args = (expr.args || []) as unknown as IRVariable[];
-    const [stringArgs, otherArgs] = this.separateArgumentsByType(args);
 
-    setup.push(...this.processFieldsByType(otherArgs, struct, structType, structPtr));
-    setup.push(...this.processFieldsByType(stringArgs, struct, structType, structPtr));
+    setup.push(...this.processFieldsByType(args, struct, structType, structPtr));
 
     return {
       setupLines: setup,
