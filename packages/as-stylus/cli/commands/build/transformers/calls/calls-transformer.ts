@@ -11,7 +11,7 @@ import { TransferHandler } from "./handlers/transfer-handler.js";
 export class CallsTransformer extends BaseTypeTransformer {
   constructor(contractContext: ContractContext) {
     super(contractContext, "CallFactory");
-    
+
     this.registerHandler(new CallHandler(contractContext));
     this.registerHandler(new DelegateCallHandler(contractContext));
     this.registerHandler(new StaticCallHandler(contractContext));

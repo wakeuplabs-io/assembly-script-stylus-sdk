@@ -99,6 +99,22 @@ function generateStringReturnLogic(methodName: string, callArgs: Array<{ name: s
   ].join(`\n${INDENTATION.BODY}`);
 }
 
+function generateBytesReturnLogic(methodName: string, callArgs: Array<{ name: string }>): string {
+  const argsList = callArgs.map((arg) => arg.name).join(", ");
+
+  return [
+    `const rawPtr = ${methodName}(${argsList});`,
+    `const len = 32;`, // For now, assume fixed 32 bytes for msg.data/msg.sig
+    `const padded = ((len + ${MEMORY_OFFSETS.PADDING_MASK}) & ~${MEMORY_OFFSETS.PADDING_MASK});`,
+    `const resultPtr = malloc(${MEMORY_OFFSETS.STRING_DATA_OFFSET} + padded);`,
+    `store<u8>(resultPtr + 31, 0x20);`, // Store offset pointer (0x20 = 32) 
+    `store<u32>(resultPtr + 32 + 28, len);`, // Store length in big-endian format at byte 60
+    `memory.copy(resultPtr + ${MEMORY_OFFSETS.STRING_DATA_OFFSET}, rawPtr, len);`,
+    `write_result(resultPtr, ${MEMORY_OFFSETS.STRING_DATA_OFFSET} + padded);`,
+    `return 0;`,
+  ].join(`\n${INDENTATION.BODY}`);
+}
+
 function generateStructReturnLogic(
   methodName: string,
   callArgs: Array<{ name: string }>,
@@ -141,6 +157,10 @@ function generateReturnLogic(
 
   if (outputType === AbiType.String) {
     return generateStringReturnLogic(methodName, callArgs);
+  }
+
+  if (outputType === AbiType.Bytes) {
+    return generateBytesReturnLogic(methodName, callArgs);
   }
 
   const structName = extractStructName(outputType);

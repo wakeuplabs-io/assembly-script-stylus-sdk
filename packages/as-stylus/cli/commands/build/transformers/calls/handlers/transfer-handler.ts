@@ -16,12 +16,11 @@ export class TransferHandler extends Handler {
   }
 
   handle(expr: IRExpression): EmitResult {
-    
     if (expr.kind !== "call") {
       return {
         setupLines: [],
         valueExpr: "/* Error: Not a call expression */",
-        valueType: "usize"
+        valueType: "usize",
       };
     }
 
@@ -30,29 +29,24 @@ export class TransferHandler extends Handler {
       return {
         setupLines: [],
         valueExpr: "/* Error: CallFactory.transfer requires at least 2 arguments: to, value */",
-        valueType: "usize"
+        valueType: "usize",
       };
     }
 
-    
     const argResults = args.map((arg: IRExpression) => this.contractContext.emitExpression(arg));
     const [toResult, valueResult] = argResults;
-    
-    
+
     const setupLines = argResults.flatMap((result: EmitResult) => result.setupLines);
 
     // Handle optional gasLimit (3rd argument)
-    const gasLimitExpr = args.length > 2 
-      ? `${argResults[2].valueExpr}.toU64()` 
-      : "500000"; // Default gas limit
+    const gasLimitExpr = args.length > 2 ? `${argResults[2].valueExpr}.toU64()` : "500000"; // Default gas limit
 
-    
     const callExpr = `Calls.transfer(${toResult.valueExpr}, ${valueResult.valueExpr}, ${gasLimitExpr})`;
 
     return {
       setupLines,
       valueExpr: callExpr,
-      valueType: "usize"
+      valueType: "usize",
     };
   }
 }

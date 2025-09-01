@@ -1,5 +1,4 @@
-import { Address, WalletClient } from "viem";
-import { createWalletClient, http } from "viem";
+import { Address, WalletClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { contractService, ContractService } from "./client.js";
@@ -56,7 +55,7 @@ export async function setupE2EContract(
   // Execute constructor if args provided
   if (_options.deployArgs && _options.deployArgs.length > 0) {
     console.log("🔧 Executing constructor with args:", _options.deployArgs);
-    
+
     // Look for constructor in ABI (usually named "contract_constructor")
     const constructor = abi.find(
       (method: { name: string }) =>
@@ -65,15 +64,19 @@ export async function setupE2EContract(
 
     if (constructor) {
       console.log("🔍 Found constructor:", constructor.name);
-      
-      // Create wallet client for constructor execution
-      const account = privateKeyToAccount(`0x${PRIVATE_KEY.replace('0x', '')}`);
+
+      const account = privateKeyToAccount(`0x${PRIVATE_KEY.replace("0x", "")}`);
       const walletClient = createWalletClient({
         account,
-        chain: { id: 412346, name: 'Arbitrum Local', rpcUrls: { default: { http: [RPC_URL] } }, nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 } },
+        chain: {
+          id: 412346,
+          name: "Arbitrum Local",
+          rpcUrls: { default: { http: [RPC_URL] } },
+          nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+        },
         transport: http(RPC_URL),
       });
-      
+
       await contract.write(walletClient, constructor.name, _options.deployArgs);
       console.log("✅ Constructor executed successfully");
     } else {

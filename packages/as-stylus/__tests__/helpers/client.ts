@@ -54,7 +54,12 @@ export const getWalletClient = (privateKey: string) =>
 export function contractService(contractAddr: Address, abi: Abi, verbose: boolean = false) {
   return {
     address: contractAddr,
-    write: async (walletClient: WalletClient, functionName: string, args: ContractArgs, value?: bigint) => {
+    write: async (
+      walletClient: WalletClient,
+      functionName: string,
+      args: ContractArgs,
+      value?: bigint,
+    ) => {
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ write calldata:", data);
 
@@ -90,6 +95,31 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
       if (verbose) console.log("← raw:", raw);
       const decoded = decodeFunctionResult({ abi, functionName, data: raw || "0x" });
       if (verbose) console.log("← decoded:", decoded);
+
+      return decoded;
+    },
+
+    readWithAccount: async (
+      walletClient: WalletClient,
+      functionName: string, 
+      args: (string | boolean | Address | bigint)[] = [],
+      value?: bigint,
+      gasLimit?: bigint,
+    ) => {
+      const data = encodeFunctionData({ abi, functionName, args });
+      if (verbose) console.log("→ calldata with account:", data);
+
+      const { data: raw } = await publicClient.call({
+        to: contractAddr,
+        data,
+        account: walletClient.account as Account,
+        value,
+        gas: gasLimit,
+      } as const);
+
+      if (verbose) console.log("← raw with account:", raw);
+      const decoded = decodeFunctionResult({ abi, functionName, data: raw || "0x" });
+      if (verbose) console.log("← decoded with account:", decoded);
 
       return decoded;
     },

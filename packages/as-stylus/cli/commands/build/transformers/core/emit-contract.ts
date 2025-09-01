@@ -2,6 +2,7 @@ import { ContractContext } from "./contract-context.js";
 import { TransformerRegistry } from "./transformer-registry.js";
 import { IRContract, IRMethod } from "../../../../types/ir.types.js";
 import { AddressTransformer } from "../address/address-transformer.js";
+import { BlockTransformer } from "../block/block-transformer.js";
 import { BooleanTransformer } from "../boolean/boolean-transformer.js";
 import { ErrorTransformer, registerErrorTransformer } from "../error/error-transformer.js";
 import { EventTransformer } from "../event/event-transformer.js";
@@ -84,6 +85,7 @@ export function emitContract(contract: IRContract): string {
   transformerRegistry.register(new StrTransformer(contractContext));
   transformerRegistry.register(new BooleanTransformer(contractContext));
   transformerRegistry.register(new MsgTransformer(contractContext));
+  transformerRegistry.register(new BlockTransformer(contractContext));
   transformerRegistry.register(new CallsTransformer(contractContext));
   transformerRegistry.register(new ErrorTransformer(contractContext, contract.errors || []));
   transformerRegistry.register(new EventTransformer(contractContext, contract.events || []));

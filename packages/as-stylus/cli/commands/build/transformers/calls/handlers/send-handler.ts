@@ -16,12 +16,11 @@ export class SendHandler extends Handler {
   }
 
   handle(expr: IRExpression): EmitResult {
-    
     if (expr.kind !== "call") {
       return {
         setupLines: [],
         valueExpr: "/* Error: Not a call expression */",
-        valueType: "bool"
+        valueType: "bool",
       };
     }
 
@@ -30,23 +29,21 @@ export class SendHandler extends Handler {
       return {
         setupLines: [],
         valueExpr: "/* Error: CallFactory.send requires 2 arguments: to, value */",
-        valueType: "bool"
+        valueType: "bool",
       };
     }
 
-    
     const argResults = args.map((arg: IRExpression) => this.contractContext.emitExpression(arg));
     const [toResult, valueResult] = argResults;
-    
-    
+
     const setupLines = argResults.flatMap((result: EmitResult) => result.setupLines);
 
-    const callExpr = `Calls.send(${toResult.valueExpr}, ${valueResult.valueExpr})`;
+    const callExpr = `Boolean.create(Calls.send(${toResult.valueExpr}, ${valueResult.valueExpr}))`;
 
     return {
       setupLines,
       valueExpr: callExpr,
-      valueType: "bool" // Returns boolean directly (not CallResult)
+      valueType: "boolean", // Returns ABI-encoded boolean (32 bytes)
     };
   }
 }

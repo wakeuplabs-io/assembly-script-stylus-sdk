@@ -10,6 +10,8 @@ import {
   U256Factory,
   StrFactory,
   CallFactory,
+  msg,
+  block,
 } from "as-stylus";
 
 @Contract
@@ -58,11 +60,12 @@ export class CallsContract {
   /**
    * Test send helper - Send 1 wei to myAddress (returns bool directly)
    */
+  // TODO: Implement when boolean to entyrpoint conversion is implemented
   // @External
-  // static testSend(): boolean {
+  // testSend(): boolean {
   //   const oneWei = U256Factory.fromString("1");
 
-  //   return CallFactory.send(myAddress, oneWei);
+  //   return CallFactory.send(this.contractAddress, oneWei);
   // }
 
   /**
@@ -80,10 +83,11 @@ export class CallsContract {
   /**
    * Test send to owner address - Send 1 wei to owners.get(1)
    */
+  // TODO: Implement when boolean to entyrpoint conversion is implemented
   // @External
-  // static testSendToOwner(): boolean {
+  // testSendToOwner(): boolean {
   //   const oneKey = U256Factory.fromString("1");
-  //   const ownerAddress = owners.get(oneKey);
+  //   const ownerAddress = this.owners.get(oneKey);
   //   const oneWei = U256Factory.fromString("1");
 
   //   return CallFactory.send(ownerAddress, oneWei);
@@ -102,5 +106,73 @@ export class CallsContract {
   @View
   getMyAddress(): Address {
     return this.contractAddress;
+  }
+
+  // ================================
+  // MSG (Message/Transaction Context) View Functions
+  // ================================
+
+  @External
+  getMsgSender(): Address {
+    return msg.sender;
+  }
+
+  @External
+  getMsgValue(): U256 {
+    return msg.value;
+  }
+
+  @External
+  getMsgData(): Uint8Array {
+    return msg.data;
+  }
+
+  @External
+  getMsgSig(): Uint8Array {
+    return msg.sig;
+  }
+
+  @View
+  getMsgReentrant(): U256 {
+    return msg.reentrant;
+  }
+
+  @View
+  getMsgHasValue(): boolean {
+    return msg.hasValue;
+  }
+
+  // ================================
+  // BLOCK (Blockchain Context) View Functions
+  // ================================
+
+  @View
+  getBlockTimestamp(): U256 {
+    return block.timestamp;
+  }
+
+  @View
+  getBlockNumber(): U256 {
+    return block.number;
+  }
+
+  @View
+  getBlockCoinbase(): Address {
+    return block.coinbase;
+  }
+
+  @View
+  getBlockBasefee(): U256 {
+    return block.basefee;
+  }
+
+  @View
+  getBlockGaslimit(): U256 {
+    return block.gaslimit;
+  }
+
+  @View
+  getBlockHasBasefee(): boolean {
+    return block.hasBasefee;
   }
 }
