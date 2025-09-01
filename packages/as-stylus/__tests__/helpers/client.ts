@@ -101,7 +101,7 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
 
     readWithAccount: async (
       walletClient: WalletClient,
-      functionName: string, 
+      functionName: string,
       args: (string | boolean | Address | bigint)[] = [],
       value?: bigint,
       gasLimit?: bigint,
