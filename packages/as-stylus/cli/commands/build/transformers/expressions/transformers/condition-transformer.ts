@@ -4,7 +4,7 @@ import { EmitResult } from "@/cli/types/emit.types.js";
 import { IRExpression, IRCondition } from "@/cli/types/ir.types.js";
 
 const RELATIONAL_OPERATORS = ["<", ">", "<=", ">=", "==", "!="] as const;
-type RelationalOperator = typeof RELATIONAL_OPERATORS[number];
+type RelationalOperator = (typeof RELATIONAL_OPERATORS)[number];
 
 /**
  * Transformer for condition expressions.
@@ -20,42 +20,65 @@ export class ConditionTransformer extends Handler {
   }
 
   handle(condition: IRCondition): EmitResult {
-    if (condition.op && this.isRelationalOperator(condition.op)) {
-      return this.handleRelationalComparison(condition);
-    }
-    
-    // Handle single expression conditions
+    // Handle single expression conditions (like boolean-returning method calls)
     if (!condition.right) {
       const leftResult = this.contractContext.emitExpression(condition.left);
       return {
         setupLines: leftResult.setupLines,
-        valueExpr: leftResult.valueExpr
+        valueExpr: leftResult.valueExpr,
       };
     }
-    
+
+    // Special handling for Address.equals calls to prevent mangling
+    if (condition.left.kind === "call" && condition.left.target === "Address.equals") {
+      // Directly handle Address.equals calls
+      const argResults =
+        condition.left.args?.map((arg) => this.contractContext.emitExpression(arg)) || [];
+      if (argResults.length >= 2) {
+        const allSetupLines = argResults.flatMap((result) => result.setupLines);
+        return {
+          setupLines: allSetupLines,
+          valueExpr: `Address.equals(${argResults[0].valueExpr}, ${argResults[1].valueExpr})`,
+        };
+      }
+    }
+
+    // Don't apply relational comparison logic to method calls that already return boolean
+    if (condition.left.kind === "call" && condition.left.returnType === "bool") {
+      const leftResult = this.contractContext.emitExpression(condition.left);
+      return {
+        setupLines: leftResult.setupLines,
+        valueExpr: leftResult.valueExpr,
+      };
+    }
+
+    if (condition.op && this.isRelationalOperator(condition.op)) {
+      return this.handleRelationalComparison(condition);
+    }
+
     // Handle other binary conditions
     const leftResult = this.contractContext.emitExpression(condition.left);
     const rightResult = this.contractContext.emitExpression(condition.right!);
-    
+
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
-      valueExpr: `${leftResult.valueExpr} ${condition.op} ${rightResult.valueExpr}`
+      valueExpr: `${leftResult.valueExpr} ${condition.op} ${rightResult.valueExpr}`,
     };
   }
 
-  private handleRelationalComparison(
-    condition: IRCondition,
-  ): EmitResult {
+  private handleRelationalComparison(condition: IRCondition): EmitResult {
     const leftResult = this.contractContext.emitExpression(condition.left);
     const rightResult = this.contractContext.emitExpression(condition.right!);
-    
+
     // Detect type class (I256 vs U256)
     const typeClass = this.detectTypeClass(condition.left);
     const method = this.getComparisonMethod(condition.op!, typeClass);
-    
+
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
-      valueExpr: method.replace("${left}", leftResult.valueExpr).replace("${right}", rightResult.valueExpr)
+      valueExpr: method
+        .replace("${left}", leftResult.valueExpr)
+        .replace("${right}", rightResult.valueExpr),
     };
   }
 

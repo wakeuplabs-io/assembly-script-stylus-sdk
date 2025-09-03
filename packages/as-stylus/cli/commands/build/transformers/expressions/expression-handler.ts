@@ -8,6 +8,7 @@ import { BinaryTransformer } from "./transformers/binary-transformer.js";
 import { CallTransformer } from "./transformers/call-transformer.js";
 import { ConditionTransformer } from "./transformers/condition-transformer.js";
 import { FallbackTransformer } from "./transformers/fallback-transformer.js";
+import { InterfaceCastTransformer } from "./transformers/interface-cast-transformer.js";
 import { LiteralTransformer } from "./transformers/literal-transformer.js";
 import { MappingTransformer } from "./transformers/mapping-transformer.js";
 import { MemberTransformer } from "./transformers/member-transformer.js";
@@ -28,6 +29,7 @@ type TransformerKind =
   | "map_set"
   | "map_get2"
   | "map_set2"
+  | "interface_cast"
   | "fallback";
 
 /**
@@ -42,7 +44,7 @@ export class ExpressionHandler extends BaseTypeTransformer {
   private createTransformers(): Record<TransformerKind, Handler> {
     return {
       member: new MemberTransformer(this.contractContext),
-      "this": new ThisTransformer(this.contractContext),
+      this: new ThisTransformer(this.contractContext),
       call: new CallTransformer(this.contractContext),
       binary: new BinaryTransformer(this.contractContext),
       condition: new ConditionTransformer(this.contractContext),
@@ -53,6 +55,7 @@ export class ExpressionHandler extends BaseTypeTransformer {
       map_set: new MappingTransformer(this.contractContext),
       map_get2: new MappingTransformer(this.contractContext),
       map_set2: new MappingTransformer(this.contractContext),
+      interface_cast: new InterfaceCastTransformer(this.contractContext),
       fallback: new FallbackTransformer(this.contractContext),
     };
   }
@@ -73,6 +76,7 @@ export class ExpressionHandler extends BaseTypeTransformer {
       "map_set",
       "map_get2",
       "map_set2",
+      "interface_cast",
     ];
     return expressions.includes(expr.kind);
   }

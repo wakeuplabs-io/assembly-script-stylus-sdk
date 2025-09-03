@@ -21,19 +21,19 @@ export class VariableTransformer extends Handler {
       if (variable.type === AbiType.Bool) {
         return {
           setupLines: [],
-          valueExpr: `Boolean.fromABI(load_${variable.name}())`
+          valueExpr: `Boolean.fromABI(load_${variable.name}())`,
         };
       }
 
       return {
         setupLines: [],
-        valueExpr: `load_${variable.name}()`
+        valueExpr: `load_${variable.name}()`,
       };
     }
-    
+
     return {
       setupLines: [],
-      valueExpr: variable.name
+      valueExpr: variable.name,
     };
   }
 }

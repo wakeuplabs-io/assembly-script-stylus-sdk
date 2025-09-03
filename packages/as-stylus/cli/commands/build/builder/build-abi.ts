@@ -128,6 +128,11 @@ function convertTypeWithComponents(symbolTable: SymbolTableStack, type: string):
 }
 
 export function convertType(symbolTable: SymbolTableStack, type: string): AbiType {
+  // Handle undefined type (interface casting may return undefined types)
+  if (!type || typeof type !== 'string') {
+    return AbiType.Unknown;
+  }
+  
   let input = type;
   if (type.startsWith("import(")) {
     const match = type.match(/(?<=\)\.)\w+/);

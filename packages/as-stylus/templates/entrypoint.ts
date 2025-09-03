@@ -1,15 +1,177 @@
 import fs from "fs";
 import path from "path";
 
+/**
+ * Detects if we're working within the AS-Stylus monorepo
+ */
+function isWithinMonorepo(cwd: string): boolean {
+  let currentDir = cwd;
+  
+  for (let i = 0; i < 5; i++) {
+    const potentialSdkPath = path.join(currentDir, "packages", "as-stylus", "core");
+    const potentialPackageJson = path.join(currentDir, "packages", "as-stylus", "package.json");
+    
+    if (fs.existsSync(potentialSdkPath) && fs.existsSync(potentialPackageJson)) {
+      try {
+        const packageJson = JSON.parse(fs.readFileSync(potentialPackageJson, "utf-8"));
+        if (packageJson.name === "@wakeuplabs/as-stylus") {
+          return true;
+        }
+      } catch (e) {
+        // Continue searching if package.json can't be read
+      }
+    }
+    
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) break; // Reached filesystem root
+    currentDir = parentDir;
+  }
+  
+  return false;
+}
+
+/**
+ * Finds the AS-Stylus SDK root directory when within monorepo
+ */
+function findSdkRoot(cwd: string): string | null {
+  let currentDir = cwd;
+  
+  // First, find the monorepo root (directory containing packages/as-stylus)
+  for (let i = 0; i < 5; i++) {
+    const potentialSdkPath = path.join(currentDir, "packages", "as-stylus");
+    const potentialPackageJson = path.join(potentialSdkPath, "package.json");
+    
+    if (fs.existsSync(potentialPackageJson)) {
+      try {
+        const packageJson = JSON.parse(fs.readFileSync(potentialPackageJson, "utf-8"));
+        if (packageJson.name === "@wakeuplabs/as-stylus") {
+          return potentialSdkPath;
+        }
+      } catch (e) {
+        // Continue searching
+      }
+    }
+    
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) break;
+    currentDir = parentDir;
+  }
+  
+  // If not found above, check if we're already inside as-stylus directory
+  currentDir = cwd;
+  for (let i = 0; i < 5; i++) {
+    const potentialPackageJson = path.join(currentDir, "package.json");
+    
+    if (fs.existsSync(potentialPackageJson)) {
+      try {
+        const packageJson = JSON.parse(fs.readFileSync(potentialPackageJson, "utf-8"));
+        if (packageJson.name === "@wakeuplabs/as-stylus") {
+          return currentDir;
+        }
+      } catch (e) {
+        // Continue searching
+      }
+    }
+    
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) break;
+    currentDir = parentDir;
+  }
+  
+  // If not found above, check if we're already inside as-stylus directory
+  currentDir = cwd;
+  for (let i = 0; i < 5; i++) {
+    const potentialPackageJson = path.join(currentDir, "package.json");
+    
+    if (fs.existsSync(potentialPackageJson)) {
+      try {
+        const packageJson = JSON.parse(fs.readFileSync(potentialPackageJson, "utf-8"));
+        if (packageJson.name === "@wakeuplabs/as-stylus") {
+          return currentDir;
+        }
+      } catch (e) {
+        // Continue searching
+      }
+    }
+    
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) break;
+    currentDir = parentDir;
+  }
+  
+  return null;
+}
+
+/**
+ * Ensures symlink exists for development when within monorepo
+ */
+function ensureSymlinkExists(cwd: string): void {
+  if (!isWithinMonorepo(cwd)) {
+    return; // Not in monorepo, nothing to do
+  }
+  
+  const nodeModulesPath = path.join(cwd, "node_modules");
+  const wakeupLabsPath = path.join(nodeModulesPath, "@wakeuplabs");
+  const symlinkPath = path.join(wakeupLabsPath, "as-stylus");
+  
+  // If symlink already exists and is valid, we're good
+  if (fs.existsSync(symlinkPath)) {
+    try {
+      const stats = fs.lstatSync(symlinkPath);
+      if (stats.isSymbolicLink()) {
+        const target = fs.readlinkSync(symlinkPath);
+        const absoluteTarget = path.resolve(path.dirname(symlinkPath), target);
+        if (fs.existsSync(path.join(absoluteTarget, "core"))) {
+          return; // Valid symlink exists
+        }
+      }
+    } catch (e) {
+      // Symlink is broken, we'll recreate it
+    }
+  }
+  
+  const sdkRoot = findSdkRoot(cwd);
+  if (!sdkRoot) {
+    return; // Can't find SDK root
+  }
+  
+  try {
+    // Ensure @wakeuplabs directory exists
+    if (!fs.existsSync(nodeModulesPath)) {
+      fs.mkdirSync(nodeModulesPath, { recursive: true });
+    }
+    if (!fs.existsSync(wakeupLabsPath)) {
+      fs.mkdirSync(wakeupLabsPath, { recursive: true });
+    }
+    
+    // Remove existing symlink if it exists and is broken
+    if (fs.existsSync(symlinkPath)) {
+      fs.unlinkSync(symlinkPath);
+    }
+    
+    // Create relative symlink to SDK root
+    const relativePath = path.relative(wakeupLabsPath, sdkRoot);
+    fs.symlinkSync(relativePath, symlinkPath);
+    
+  } catch (error) {
+    // Symlink creation failed, but we'll continue anyway
+    console.warn(`Warning: Could not create symlink for local AS-Stylus development: ${error}`);
+  }
+}
+
+/**
+ * Gets the package name for AS-Stylus imports
+ * Always returns "@wakeuplabs/as-stylus" but ensures proper symlink resolution in development
+ */
 function getPackageName(): string {
   const cwd = process.cwd();
-  const nodeModulesPath = path.join(cwd, "node_modules", "@wakeuplabs", "as-stylus");
-
-  if (fs.existsSync(nodeModulesPath)) {
-    return "@wakeuplabs/as-stylus";
-  }
-
-  return "as-stylus";
+  
+  // Ensure symlink exists when in monorepo development
+  ensureSymlinkExists(cwd);
+  
+  // Always return the npm package name
+  // Node.js will automatically resolve to symlink (development) or npm package (production)
+  return "@wakeuplabs/as-stylus";
 }
 
 export function getUserEntrypointTemplate(): string {

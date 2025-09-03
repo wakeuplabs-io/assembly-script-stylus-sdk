@@ -66,4 +66,8 @@ export interface EmitContext {
    * let __ptr1 = 3; // ptrCounter is 1
    */
   ptrCounter: number;
+  /**
+   * Generate a unique ID for temporary variables
+   */
+  getUniqueId?(): number;
 }

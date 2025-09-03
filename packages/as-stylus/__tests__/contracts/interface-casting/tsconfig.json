@@ -1,0 +1,19 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@wakeuplabs/as-stylus": ["../../../cli/sdk-interface"]
+    }
+  },
+  "include": [
+    "contract.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "artifacts",
+    "dist"
+  ]
+}

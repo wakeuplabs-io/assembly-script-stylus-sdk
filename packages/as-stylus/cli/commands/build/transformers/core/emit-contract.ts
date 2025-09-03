@@ -44,20 +44,23 @@ function generateMethodSignature(method: IRMethod): ArgumentSignature {
   };
 }
 
-/**
- * Generates a single method's AssemblyScript code
- * @param method Method to generate code for
- * @returns Generated method code
- */
+/** Generates AssemblyScript code for a contract method */
 function generateMethod(method: IRMethod, contractContext: ContractContext): string {
   const statementHandler = new StatementHandler(contractContext);
   let returnType = "void";
+  let functionReturnType = "void";
+  
   if (method.outputs && method.outputs.length > 0 && method.outputs[0].type !== "void") {
     returnType = "usize";
+    functionReturnType = method.outputs[0].type;
   }
+  
+  contractContext.currentFunctionReturnType = functionReturnType;
+  
   const { argsSignature, aliasLines } = generateMethodSignature(method);
   const body = statementHandler.handleStatements(method.ir);
-
+  
+  contractContext.currentFunctionReturnType = undefined;
   const methodLines = [
     `export function ${method.name}(${argsSignature}): ${returnType} {`,
     ...aliasLines.map(line => line),
@@ -73,10 +76,11 @@ function generateMethod(method: IRMethod, contractContext: ContractContext): str
  * @param contract IR representation of the contract
  * @returns Generated AssemblyScript code
  */
-export function emitContract(contract: IRContract): string {
+export function emitContract(contract: IRContract, contractFilePath?: string): string {
   // Initialize context-aware expression handler with contract information
   const transformerRegistry = new TransformerRegistry();
   const contractContext = new ContractContext(transformerRegistry, contract.name, contract.parent?.name);
+  
   
   // Register type-specific transformers FIRST (highest priority)
   transformerRegistry.register(new U256Transformer(contractContext));
@@ -90,6 +94,8 @@ export function emitContract(contract: IRContract): string {
   transformerRegistry.register(new ErrorTransformer(contractContext, contract.errors || []));
   transformerRegistry.register(new EventTransformer(contractContext, contract.events || []));
   transformerRegistry.register(new StructTransformer(contractContext, contract.structs || []));
+  
+  // Interface casting is handled by InterfaceCastTransformer in ExpressionHandler
   
   // Register ExpressionHandler LAST as fallback
   transformerRegistry.register(new ExpressionHandler(contractContext));

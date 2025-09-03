@@ -47,7 +47,15 @@ export class ReturnHandler extends StatementHandler {
     
     // Handle string return types
     if (type === AbiType.String) {
-      baseExpr = `Str.toABI(${exprResult.valueExpr})`;
+      let valueExpr = exprResult.valueExpr;
+      
+      // Check if the value is a string literal (quoted string)
+      if (valueExpr.startsWith('"') && valueExpr.endsWith('"')) {
+        // Convert string literal to usize pointer using Str.fromString()
+        valueExpr = `Str.fromString(${valueExpr})`;
+      }
+      
+      baseExpr = `Str.toABI(${valueExpr})`;
     }
 
     // Handle boolean mappings and regular booleans

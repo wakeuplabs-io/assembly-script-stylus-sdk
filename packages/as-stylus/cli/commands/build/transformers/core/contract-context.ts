@@ -1,19 +1,16 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { IRExpression, IRStatement } from "@/cli/types/ir.types.js";
 
-import { TypeTransformer } from "./base-abstract-handlers.js";
 import { TransformerRegistry } from "./transformer-registry.js";
 import { StatementHandler } from "../statements/statement-handler.js";
 
-
-/**
- * Context manager for expression transformations.
- * Handles creation and management of emit contexts independently from the expression handler.
- */
+/** Context manager for expression transformations */
 export class ContractContext {
   private contractName: string;
   private parentName: string;
   private transformerRegistry: TransformerRegistry;
+  /** Current function return type for context-aware interface call handling */
+  public currentFunctionReturnType?: string;
 
   constructor(transformerRegistry: TransformerRegistry, contractName: string = "", parentName: string = "") {
     this.contractName = contractName;
@@ -31,11 +28,7 @@ export class ContractContext {
 
   emitExpression(expr: IRExpression): EmitResult {
     const transformer = this.transformerRegistry.detectExpressionType(expr);
-    if (transformer) {
-      return transformer.handle(expr);
-    }
-
-    return {
+    return transformer ? transformer.handle(expr) : {
       setupLines: [],
       valueExpr: expr.toString()
     };
@@ -45,25 +38,4 @@ export class ContractContext {
     const statementHandler = new StatementHandler(this);
     return statementHandler.handleStatements(statements);
   }
-}
-
-
-/**
- * Detects the most probable type of an expression by consulting all registered transformers.
- * If no transformer matches, applies a fallback logic for certain "call" expressions:
- *   - If the expression is a factory call (e.g., "U256Factory.create"), it infers the type from the factory name.
- *   - If any transformer can handle the method call (via canHandleMethodCall), it returns that type.
- * If neither the transformers nor the fallback logic match, returns null (default case).
- *
- * @param expr - The IR expression to analyze.
- * @returns The type name if detected, or null if no transformer or fallback matches.
- */
-export function detectExpressionType(expr: IRExpression, typeTransformers: Record<string, TypeTransformer>): string | null {
-  for (const typeName in typeTransformers) {
-    if (typeTransformers[typeName].canHandle(expr)) {
-      return typeName;
-    }
-  }
-
-  return null;
 }

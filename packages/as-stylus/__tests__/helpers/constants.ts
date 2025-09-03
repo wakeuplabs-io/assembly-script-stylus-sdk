@@ -91,4 +91,8 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/while"),
     abi: path.join(ROOT_PATH, "/while/artifacts/abi/contract-abi.json"),
   },
+  INTERFACE_CASTING: {
+    contract: path.join(ROOT_PATH, "/interface-casting"),
+    abi: path.join(ROOT_PATH, "/interface-casting/artifacts/abi/contract-abi.json"),
+  },
 } as const;

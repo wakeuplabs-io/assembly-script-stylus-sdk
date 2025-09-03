@@ -110,6 +110,13 @@ export type IRThis = {
   type: SupportedType;
 };
 
+export type IRInterfaceCast = {
+  kind: "interface_cast";
+  expression: IRExpression;
+  interfaceName: string;
+  type: SupportedType;
+};
+
 export type ChainedCall = {
   kind: "call";
   target: string;
@@ -141,6 +148,7 @@ export type IRExpression =
   | IRMapGet2
   | IRMapSet2
   | IRThis
+  | IRInterfaceCast
   | ChainedCall;
 
 // ───────────────────────

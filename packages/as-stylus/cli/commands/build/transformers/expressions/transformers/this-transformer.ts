@@ -13,12 +13,12 @@ export class ThisTransformer extends Handler {
 
   canHandle(expr: IRExpression): boolean {
     return expr.kind === "this";
-  } 
+  }
 
   handle(): EmitResult {
     return {
       setupLines: [],
-      valueExpr: ""
+      valueExpr: "",
     };
   }
 }

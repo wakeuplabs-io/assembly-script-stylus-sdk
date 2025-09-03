@@ -1,0 +1,26 @@
+{
+  "name": "interface-casting-test-contract",
+  "version": "1.0.0",
+  "description": "Test contract for interface casting functionality in AS-Stylus",
+  "main": "contract.ts",
+  "scripts": {
+    "compile": "cd artifacts && npm run compile",
+    "check": "cd artifacts && npm run check", 
+    "deploy": "cd artifacts && npm run deploy",
+    "build": "as-stylus compile contract.ts",
+    "test": "npm run build"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./build/release.js",
+      "types": "./build/release.d.ts"
+    }
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.27.35",
+    "typescript": "^5.0.0"
+  }
+}

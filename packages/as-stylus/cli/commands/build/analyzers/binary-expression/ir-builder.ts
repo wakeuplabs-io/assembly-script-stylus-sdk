@@ -26,7 +26,10 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
   }
 
   validate(): boolean {
-    const syntaxValidator = new BinaryExpressionSyntaxValidator(this.expression, this.isConditional);
+    const syntaxValidator = new BinaryExpressionSyntaxValidator(
+      this.expression,
+      this.isConditional,
+    );
     return syntaxValidator.validate();
   }
 
@@ -44,7 +47,7 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
 
     if (leftType !== rightType) {
       Logger.getInstance().warn(`TODO: implement conversion from ${rightType} to ${leftType}`);
-      return leftType;  
+      return leftType;
     }
 
     return leftType;
@@ -54,7 +57,7 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
     const left = new ExpressionIRBuilder(this.left).validateAndBuildIR();
     const right = new ExpressionIRBuilder(this.right).validateAndBuildIR();
     const type = this.getConversionType(left, right);
-    
+
     if (this.isConditional) {
       return {
         kind: "condition",

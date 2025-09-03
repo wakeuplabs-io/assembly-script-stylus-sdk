@@ -1,9 +1,11 @@
 import {
+  AsExpression,
   BinaryExpression,
   CallExpression,
   ConditionalExpression,
   Expression,
   Identifier,
+  ParenthesizedExpression,
   PrefixUnaryExpression,
   PropertyAccessExpression,
   SyntaxKind,
@@ -115,6 +117,30 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
           returnType: AbiType.Bool,
           scope: "memory",
         };
+      }
+
+      /* ---------- Parenthesized expressions ---------- */
+      // Example: (expression), (address as IERC20)
+      case SyntaxKind.ParenthesizedExpression: {
+        const parenExpr = this.expression as ParenthesizedExpression;
+        const innerExpr = parenExpr.getExpression();
+
+        // Check if this is interface casting: (address as Interface)
+        if (innerExpr.getKind() === SyntaxKind.AsExpression) {
+          const asExpr = innerExpr as AsExpression;
+          const targetType = asExpr.getType().getText();
+
+          // For now, create a placeholder - will be processed by InterfaceCastIRBuilder
+          return {
+            kind: "interface_cast",
+            expression: new ExpressionIRBuilder(asExpr.getExpression()).validateAndBuildIR(),
+            interfaceName: targetType,
+            type: AbiType.Address, // Interface cast results in an address-like object
+          };
+        }
+
+        // Regular parenthesized expression - just unwrap
+        return new ExpressionIRBuilder(innerExpr).validateAndBuildIR();
       }
 
       default: {

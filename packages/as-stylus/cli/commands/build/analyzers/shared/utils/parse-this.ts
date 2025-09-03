@@ -14,7 +14,12 @@ export function parseThis(name: string): string {
  */
 export function parseName(definition: string, defaultType: string): { name: string, type: string } {
   const [nameDefinition, typeDefined = defaultType] = definition.split(":");
-  const name = nameDefinition.replace(/^this\./, '');
+  // Remove "this." prefix and any modifiers (private, public, static, readonly)
+  const name = nameDefinition
+    .replace(/^this\./, '')
+    .replace(/^(private|public|static|readonly)\s+/g, '')
+    .replace(/\s*(private|public|static|readonly)\s*/g, ' ')
+    .trim();
   const typeParsed = typeDefined.replace(/[\s;]/g, '');
 
   if (typeParsed.startsWith("Struct")) {
