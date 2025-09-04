@@ -25,7 +25,6 @@ export class DeployRunner {
     const defaultEndpoint = "https://sepolia-rollup.arbitrum.io/rpc";
     const rpcEndpoint = options.endpoint || defaultEndpoint;
 
-    // Validate deployment parameters with unified validation
     const keyValidation = ValidationUtils.validatePrivateKey(options.privateKey);
     if (!keyValidation.isValid) {
       const error = createAStylusError(

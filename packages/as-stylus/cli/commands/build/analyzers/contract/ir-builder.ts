@@ -1,7 +1,6 @@
-import { SourceFile, ConstructorDeclaration, ClassDeclaration } from "ts-morph";
+import { SourceFile, ConstructorDeclaration, ClassDeclaration, SyntaxKind, CallExpression, VariableDeclaration } from "ts-morph";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
-import { IRContract } from "@/cli/types/ir.types.js";
+import { IRContract, IRErrorDecl, IREvent } from "@/cli/types/ir.types.js";
 
 import { ContractSemanticValidator } from "./semantic-validator.js";
 import { ContractSyntaxValidator } from "./syntax-validator.js";
@@ -31,7 +30,6 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     super(sourceFile);
     this.sourceFile = sourceFile;
     this.contractName = contractName;
-    ctx.contractName = contractName;
   }
 
   validate(): boolean {
@@ -59,11 +57,11 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
     // Process inheritance
     const parent = this.processInheritance(contractClass);
-    this.symbolTable.merge(parent?.symbolTable ?? new SymbolTableStack());
+    this.symbolTable.merge(parent?.symbolTable ?? new SymbolTableStack(this.slotManager));
 
     // Process all class-based components
     const structs = this.processStructs(classes);
-    const events = this.processEvents(classes);
+    const events = this.processEvents();
     const errors = this.processErrors(classes);
     const storage = this.processStorage(contractClass);
     const constructor = this.processConstructor(contractClass);
@@ -91,7 +89,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       constructor: undefined,
       methods: [],
       storage: [],
-      symbolTable: new SymbolTableStack(),
+      symbolTable: new SymbolTableStack(this.slotManager),
     };
   }
 
@@ -139,39 +137,106 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     structs.forEach(struct => {
-      ctx.structRegistry.set(struct.name, struct);
+      this.symbolTable.declareStruct(struct.name, struct);
     });
 
     return structs;
   }
 
-  private processEvents(classes: ClassDeclaration[]) {
-    const eventClasses = this.filterClassesByDecorator(classes, DECORATORS.EVENT);
+  private processEvents(): IREvent[] {
+    const events: IREvent[] = [];
+    const sourceFile = this.sourceFile;
     
-    return eventClasses.map(eventClass => {
-      const eventIRBuilder = new EventIRBuilder(eventClass);
-      return eventIRBuilder.validateAndBuildIR();
-    });
+    // Find all EventFactory.create<T>() calls
+    const eventFactoryCalls = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
+    
+    for (const call of eventFactoryCalls) {
+      const expr = call.getExpression();
+      
+      if (expr.getText() === "EventFactory.create") {
+        const parent = call.getParent();
+        
+        if (parent && parent.getKind() === SyntaxKind.VariableDeclaration) {
+          const varDecl = parent as VariableDeclaration;
+          
+          const eventIRBuilder = new EventIRBuilder(varDecl);
+          const eventIR = eventIRBuilder.validateAndBuildIR();
+          
+          events.push(eventIR);
+        }
+      }
+    }
+    
+    return events;
   }
 
   private processErrors(classes: ClassDeclaration[]) {
-    const errorClasses = this.filterClassesByDecorator(classes, DECORATORS.ERROR);
+    const errors: IRErrorDecl[] = [];
     
-    return errorClasses.map(errorClass => {
+    // TODO: Remove this once we have a proper way to handle ErrorFactory.create<T>() calls
+    const errorClasses = this.filterClassesByDecorator(classes, DECORATORS.ERROR);
+    errorClasses.forEach(errorClass => {
       const errorIRBuilder = new ErrorIRBuilder(errorClass);
-      return errorIRBuilder.validateAndBuildIR();
+      errors.push(errorIRBuilder.validateAndBuildIR());
     });
+    
+    // Process ErrorFactory.create<T>() calls
+    const errorFactoryErrors = this.processErrorFactoryCalls();
+    errors.push(...errorFactoryErrors);
+    
+    return errors;
+  }
+
+  private processErrorFactoryCalls(): IRErrorDecl[] {
+    const errors: IRErrorDecl[] = [];
+    const sourceFile = this.sourceFile;
+    
+    // Find all ErrorFactory.create<T>() calls
+    const errorFactoryCalls = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
+    
+    for (const call of errorFactoryCalls) {
+      const expr = call.getExpression();
+      
+      if (expr.getText() === "ErrorFactory.create") {
+        
+        // Create a synthetic class declaration for the error
+        const parent = call.getParent();
+        
+        if (parent && parent.getKind() === SyntaxKind.VariableDeclaration) {
+          const varDecl = parent as VariableDeclaration;
+          const errorName = varDecl.getName();
+          
+          const syntheticClass = this.createSyntheticErrorClass(errorName, call);
+          
+          const errorIRBuilder = new ErrorIRBuilder(syntheticClass);
+          const errorIR = errorIRBuilder.validateAndBuildIR();
+          
+          errors.push(errorIR);
+        }
+      }
+    }
+    
+    return errors;
+  }
+
+  private createSyntheticErrorClass(errorName: string, errorFactoryCall: CallExpression): ClassDeclaration {
+    const sourceFile = this.sourceFile;
+    
+    const tempClass = sourceFile.addClass({
+      name: errorName,
+      isExported: false,
+      decorators: []
+    });
+    
+    (tempClass as any).errorFactoryCall = errorFactoryCall;
+    
+    return tempClass;
   }
 
   private processStorage(contractClass: ClassDeclaration) {
-    const storage = contractClass.getProperties().map((property, index) => {
-      const propertyIRBuilder = new PropertyIRBuilder(property, index + 1);
+    const storage = contractClass.getProperties().map((property) => {
+      const propertyIRBuilder = new PropertyIRBuilder(property);
       return propertyIRBuilder.validateAndBuildIR();
-    });
-
-    storage.forEach(variable => {
-      ctx.slotMap.set(variable.name, variable.slot);
-      ctx.variableTypes.set(variable.name, variable.type);
     });
 
     return storage;
@@ -195,12 +260,12 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     const methodNames = methods.map(method => {
       const name = method.getName();
       this.symbolTable.declareFunction(name, {
-        returnType: convertType(method.getReturnType().getText()),
+        returnType: convertType(this.symbolTable, method.getReturnType().getText()),
         isDeclaredByUser: true,
         name: name,
         parameters: method.getParameters().map(param => ({
           name: param.getName(),
-          type: convertType(param.getType().getText()),
+          type: convertType(this.symbolTable, param.getType().getText()),
         })),
       });
       return name;

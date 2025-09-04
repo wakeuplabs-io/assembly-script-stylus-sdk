@@ -55,7 +55,7 @@ function findSdkRoot(cwd: string): string | null {
         // Continue searching
       }
     }
-    
+
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir) break;
     currentDir = parentDir;
@@ -287,6 +287,7 @@ export function generateImports(contract: IRContract): string {
 
   lines.push(`import { Struct } from "${packageName}/core/types/struct";`);
   lines.push(`import { Msg } from "${packageName}/core/types/msg";`);
+  lines.push(`import { Block } from "${packageName}/core/types/block";`);
   lines.push(`import { malloc } from "${packageName}/core/modules/memory";`);
 
   lines.push("");
@@ -351,6 +352,14 @@ function store_${variable.name}(strPtr: usize): void {
   Str.storeTo(${formatSlotName(variable.slot)}, strPtr);
 }`.trim(),
           );
+          break;
+
+        case AbiType.Address:
+        case AbiType.Bool:
+        case AbiType.Uint256:
+        case AbiType.Int256:
+          lines.push(loadSimple(variable.name, variable.slot, variable.type));
+          lines.push(storeSimple(variable.name, variable.slot));
           break;
 
         case AbiType.Struct:

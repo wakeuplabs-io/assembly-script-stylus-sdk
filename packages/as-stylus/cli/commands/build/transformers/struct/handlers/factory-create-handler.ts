@@ -36,7 +36,7 @@ export class StructFactoryCreateHandler extends Handler {
     if (!struct) {
       return {
         setupLines: [],
-        valueExpr: `/* Unknown struct type: ${structType} */`,
+        valueExpr: `/* Unknown struct type struct creation: ${structType} */`,
         valueType: "usize",
       };
     }

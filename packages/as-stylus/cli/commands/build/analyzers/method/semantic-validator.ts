@@ -35,7 +35,7 @@ export class MethodSemanticValidator extends BaseValidator {
     }
 
     const returnType = this.method.getReturnType();
-    if (returnType && !SUPPORTED_TYPES.includes(convertType(returnType.getText()))) {
+    if (returnType && !SUPPORTED_TYPES.includes(convertType(this.symbolTable, returnType.getText()))) {
       this.addSemanticError(ERROR_CODES.INVALID_RETURN_TYPE, [this.method.getName()]);
       hasErrors = true;
     }
