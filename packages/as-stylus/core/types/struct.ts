@@ -1,3 +1,4 @@
+import { Address } from "./address";
 import { Boolean } from "./boolean";
 import { Str } from "./str";
 import { storeU32BE, loadU32BE } from "../modules/endianness";
@@ -73,9 +74,15 @@ export class Struct {
    * @param slot - Storage slot identifier
    */
   static setAddress(p: usize, v: usize, slot: u64): void {
-    for (let i = 0; i < 43; i++) store<u8>(p + i, load<u8>(v + i));
+    for (let i = 0; i < 32; i++) store<u8>(p + i, load<u8>(v + i));
     storage_cache_bytes32(createStorageKey(slot), p);
     storage_flush_cache(0);
+  }
+
+  static getAddress(slot: u64): usize {
+    const out = malloc(32);
+    storage_load_bytes32(createStorageKey(slot), out);
+    return Address.copyNew(out);
   }
 
   /**
@@ -86,18 +93,40 @@ export class Struct {
    */
   static setString(ptr: usize, strObj: usize, slot: u64): void {
     Str.storeTo(slot, strObj);
-    for (let i = 0; i < 32; i++) store<u8>(ptr + i, 0);
-    storeU32BE(ptr + 28, strObj as u32);
+  }
+
+  static getMemoryString(base: usize, field: usize): usize {
+    const offset: u32 = loadU32BE(field + 28);
+    const len = loadU32BE(base + offset + 28);
+    const dataPtr = base + offset + 32;
+    return Str.fromBytes(dataPtr, len);
   }
 
   /**
-   * Sets a string field in a struct and stores to storage
-   * @param ptr - Struct pointer
-   * @param strObj - String object pointer
-   * @param slot - Storage slot identifier
+   * Sets a string field in a struct memory with ABI format
+   * @param ptr - Struct pointer (where to write the offset)
+   * @param strObj - String object pointer (AssemblyScript string format)
    */
-  static setMemoryString(ptr: usize, strObj: usize): void {
-    memory.copy(ptr, strObj, 32);
+  static setMemoryString(ptr: usize, strObj: usize, offset: u32): void {
+    const strLen: u32 = load<u32>(strObj);
+    const baseSize: u32 = offset;
+
+    // Set offset pointer in the struct field (points to where string data starts)
+    for (let i = 0; i < 32; i++) store<u8>(ptr + i, 0);
+    storeU32BE(ptr + 28, baseSize);
+
+    // Get pointer to where string data will be written (after the base struct)
+    const stringDataPtr = ptr - 32 + baseSize; // ptr - 32 because ptr already points to the string field offset
+
+    // Write string length at the beginning of string data area
+    for (let i = 0; i < 32; i++) store<u8>(stringDataPtr + i, 0);
+    storeU32BE(stringDataPtr + 28, strLen);
+
+    // Write actual string content after the length
+    const stringContentPtr = stringDataPtr + 32;
+    for (let i: u32 = 0; i < strLen; i++) {
+      store<u8>(stringContentPtr + i, load<u8>(strObj + 4 + i)); // +4 to skip AS string length header
+    }
   }
 
   /**

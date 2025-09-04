@@ -208,7 +208,7 @@ describe("Struct Contract Tests", () => {
       expect(contents.length).toBe(0);
     });
 
-    it.only("should handle long string in memory operations", async () => {
+    it("should handle long string in memory operations", async () => {
       const long =
         "This is a very long string that exceeds thirty-two characters and should test padding";
       await contract.write(walletClient, "setStruct", [TEST_ADDRESS, long, 123n, true, 456n]);

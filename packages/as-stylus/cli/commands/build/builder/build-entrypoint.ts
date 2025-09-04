@@ -1,5 +1,5 @@
 import path from "path";
-import { AbiStateMutability, toFunctionSelector, toFunctionSignature, toHex } from "viem";
+import { AbiStateMutability, toFunctionSelector, toFunctionSignature } from "viem";
 
 import { AbiType, AbiInput, Visibility, StateMutability } from "@/cli/types/abi.types.js";
 import { IRContract, IRMethod, IRStruct } from "@/cli/types/ir.types.js";
@@ -97,17 +97,14 @@ function generateStructReturnLogic(
   callArgs: Array<{ name: string }>,
   structInfo: IRStruct,
 ): string {
-  const { fields, size } = structInfo;
-  const stringFields = fields.filter((field) => field.type === AbiType.String);
-  const sizeWithStrings = size + stringFields.length * 2 * 32;
+  const { memorySize } = structInfo;
   let callLine = "";
 
   const argsList = callArgs.map((arg) => arg.name).join(", ");
 
   callLine = [
     `const ptr = ${methodName}(${argsList});`,
-    `const resultPointer = ${structInfo.name}_toABI(ptr);`,
-    `write_result(resultPointer, ${size + sizeWithStrings});`,
+    `write_result(ptr, ${memorySize});`,
     `return 0;`,
   ].join("\n    ");
 
@@ -159,54 +156,10 @@ function generateMethodCallLogic(
   return generateReturnLogic(name, callArgs, outputType, contract);
 }
 
-function generateAssemblyString(src: string, dest: string, newOffset: string, name: string): string {
-  return [
-    // Copy the offset of the field to the ABI
-    `const value_${name} = Str.toABI(${src});`,
-    `const strLen_${name} = Str.getABISize(value_${name});`,
-    `memory.fill(${dest}, 0, 32);`,
-    `memory.copy(${dest}, ${toHex(newOffset)}, 32);`,
-    `memory.fill(${newOffset}, 0, 32);`,
-    `memory.copy(${newOffset}, strLen_${name}, 32);`,
-    `memory.fill(${newOffset + 32}, 0, 32);`,
-    `memory.copy(${newOffset + 32}, value_${name}, 32);`,
-  ].join("\n");
-}
-
-function generateStructToABI(method: IRMethod, contract: IRContract): string | undefined {
-  if (method.outputs?.[0]?.type !== AbiType.Struct) {
-    return undefined;
-  }
-  const structName = extractStructName(method.outputs?.[0]?.originalType as string);
-  const structInfo = contract.structs?.find((s) => s.name === structName);
-  if (!structInfo) {
-    return undefined;
-  }
-  const stringCount = structInfo.fields.filter((field) => field.type === AbiType.String).length;
-  let currentOffset = structInfo.size;
-  const totalSize = structInfo.size + stringCount * 2 * 32;
-
-  return `function ${structName}_toABI(ptr: usize): usize {
-    const struct = malloc(${totalSize});
-    ${structInfo.fields.map((field) => {
-      const pointer = `ptr + ${field.offset}`;
-      if (field.type === AbiType.String) {
-        const newOffset = currentOffset;
-        currentOffset += 32;
-        const newOffsetHex = toHex(newOffset);
-        return generateAssemblyString(pointer, `struct + ${field.offset}`, newOffsetHex, field.name);
-      }
-
-      return `memory.copy(struct + ${field.offset}, ${pointer}, ${field.size});`;
-    }).join("")}
-    return ptr;
-  }`;
-}
-
 function generateMethodEntry(
   method: IRMethod,
   contract: IRContract,
-): { import: string; functions: string | undefined; entry: string } {
+): { import: string; entry: string } {
   validateMethod(method);
 
   const { name, visibility } = method;
@@ -220,13 +173,12 @@ function generateMethodEntry(
 
   const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
   const callLogic = generateMethodCallLogic(method, callArgs, contract);
-  const functions = generateStructToABI(method, contract);
 
   const bodyLines = [...argLines, callLogic].map((line) => `${INDENTATION.BODY}${line}`).join("\n");
 
   const entry = `${INDENTATION.BLOCK}if (selector == ${selector}) {\n${bodyLines}\n${INDENTATION.BLOCK}}`;
 
-  return { import: importStatement, functions,  entry };
+  return { import: importStatement, entry };
 }
 
 function generateConstructorEntry(
@@ -245,7 +197,7 @@ function generateConstructorEntry(
     stateMutability: StateMutability.NONPAYABLE,
     inputs: inputs.map((input) => ({
       name: input.name,
-    type: convertType(symbolTable, input.type),
+      type: convertType(symbolTable, input.type),
     })),
     outputs: [],
     ir: [],
@@ -276,11 +228,8 @@ function processContractMethods(contract: IRContract): CodeBlock {
       )
     ) {
       try {
-        const { import: methodImport, functions: utils, entry } = generateMethodEntry(method, contract);
+        const { import: methodImport, entry } = generateMethodEntry(method, contract);
         imports.push(methodImport);
-        if (utils) {
-          functions.push(utils);
-        }
         entries.push(entry);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

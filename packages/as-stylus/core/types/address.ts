@@ -125,7 +125,7 @@ export class Address {
    */
   static copyNew(src: usize): usize {
     const dst = Address.create();
-    for (let i: u32 = 0; i < Address.ADDRESS_SIZE; ++i) {
+    for (let i: u32 = 0; i < Address.ADDRESS_SIZE; i++) {
       store<u8>(dst + i, load<u8>(src + i));
     }
     return dst;

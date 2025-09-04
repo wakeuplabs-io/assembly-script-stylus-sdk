@@ -49,9 +49,12 @@ export class Str {
    * @returns Pointer to the newly created string
    */
   static fromString(str: string): usize {
-    const ptr = malloc(str.length);
-    for (let i: i32 = 0; i < str.length; ++i) store<u8>(ptr + i, str.charCodeAt(i));
-    return Str.fromBytes(ptr, str.length);
+    const ptr = malloc(4 + str.length);
+    store<u32>(ptr, str.length);
+    for (let i: i32 = 0; i < str.length; ++i) {
+      store<u8>(ptr + 4 + i, str.charCodeAt(i));
+    }
+    return ptr;
   }
 
   /**
@@ -106,9 +109,8 @@ export class Str {
    * @returns Pointer to 32-byte length representation
    */
   static length(ptr: usize): usize {
-    const out = malloc(32);
-    zero(out, 32);
-    store<u32>(out + 28, load<u32>(ptr));
+    const out = malloc(4);
+    store<u32>(out, ptr);
     return out;
   }
 

@@ -16,7 +16,7 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
 
   validate(): boolean {
     const properties = this.structClass.getProperties();
-    
+
     if (properties.length === 0) {
       this.errorManager.addSemanticError(
         "STRUCT_NO_FIELDS",
@@ -44,11 +44,12 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
     }));
 
     const layout = calculateFieldLayout(basicFields);
-    
+
     const fields: IRStructField[] = layout.fields.map((field) => ({
       name: field.name,
       type: field.type,
       offset: field.offset,
+      memoryOffset: field.memoryOffset,
       size: field.size,
       dynamic: field.dynamic,
     }));
@@ -57,6 +58,7 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
       name,
       fields,
       size: layout.totalSize,
+      memorySize: layout.memorySize,
       dynamic: layout.dynamic,
       alignment: layout.alignment,
     };
@@ -69,7 +71,7 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
   private hasRecursiveTypes(structName: string, properties: any[]): boolean {
     for (const property of properties) {
       const propertyType = property.getType().getText();
-      
+
       if (propertyType === structName) {
         this.errorManager.addSemanticError(
           "STRUCT_RECURSIVE_TYPE",
@@ -79,11 +81,11 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
         );
         return true;
       }
-      
+
       // TODO: Detect indirect cycles (A -> B -> A)
       // This would require a deeper analysis of the dependency graph
     }
-    
+
     return false;
   }
 

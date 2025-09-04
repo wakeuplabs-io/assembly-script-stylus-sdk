@@ -27,7 +27,7 @@ export function getTypeSize(type: AbiType): number {
   if (isDynamicType(type)) {
     return 32;
   }
-  
+
   return TYPE_SIZES[type] || 32;
 }
 
@@ -35,33 +35,33 @@ export function getTypeSize(type: AbiType): number {
  * Calculates the field layout in a struct
  */
 export function calculateFieldLayout(fields: Array<{ name: string; type: AbiType }>) {
+  const countString = fields.filter(field => field.type === AbiType.String).length;
   let currentOffset = 0;
-  let isDynamic = false;
-  
+  const isDynamic = countString > 0;
+
   const layoutFields = fields.map(field => {
     const fieldSize = getTypeSize(field.type);
     const fieldDynamic = isDynamicType(field.type);
-    
-    if (fieldDynamic) {
-      isDynamic = true;
-    }
-    
+
     const layoutField = {
       name: field.name,
       type: field.type,
       offset: currentOffset,
+      memoryOffset: isDynamic ? currentOffset + 32 : currentOffset,
       size: fieldSize,
       dynamic: fieldDynamic,
     };
-    
+
     currentOffset += fieldSize;
     return layoutField;
   });
-  
+
+  const memorySize = 32 + currentOffset + (countString * 32 * 2);
   return {
     fields: layoutFields,
     totalSize: currentOffset,
     dynamic: isDynamic,
+    memorySize: countString === 0 ? currentOffset : memorySize,
     alignment: 32, // EVM alignment (32 bytes)
   };
 } 

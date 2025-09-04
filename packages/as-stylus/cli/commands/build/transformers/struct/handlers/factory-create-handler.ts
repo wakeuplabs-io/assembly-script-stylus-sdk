@@ -12,7 +12,7 @@ import { makeTemp } from "@/transformers/utils/temp-factory.js";
 export class StructFactoryCreateHandler extends Handler {
   private static readonly STRUCT_FACTORY_TARGET = "StructFactory.create";
   private static readonly DEFAULT_ERROR_TYPE = "usize";
-  
+
   private structs: Map<string, IRStruct>;
 
   constructor(contractContext: ContractContext, structs: Map<string, IRStruct>) {
@@ -65,23 +65,23 @@ export class StructFactoryCreateHandler extends Handler {
    * Processes all fields of a specific type
    */
   private processFieldsByType(
-    args: IRVariable[], 
-    struct: IRStruct, 
-    structType: string, 
+    args: IRVariable[],
+    struct: IRStruct,
+    structType: string,
     structPtr: string
   ): string[] {
     const setup: string[] = [];
-    
+
     for (let i = 0; i < Math.min(args.length, struct.fields.length); i++) {
       const field = struct.fields[i];
       const valueArg = args[i];
       if (valueArg) {
         setup.push(...this.processField(field, valueArg, structType, structPtr));
-      } else {  
+      } else {
         throw new Error(`Missing value for field ${field.name} in StructFactory.create`);
       }
     }
-    
+
     return setup;
   }
 
@@ -109,7 +109,7 @@ export class StructFactoryCreateHandler extends Handler {
     const structPtr = makeTemp("structPtr");
     const setup = [
       `// Allocate memory for ${structType} with extra space for string data`,
-      `const ${structPtr}: usize = ${structType}_alloc();`,
+      `const ${structPtr}: usize = ${structType}_memory_alloc();`,
     ];
 
     const args = (expr.args || []) as unknown as IRVariable[];
