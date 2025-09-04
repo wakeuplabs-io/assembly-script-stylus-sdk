@@ -95,27 +95,16 @@ export function Playground() {
                         </div>
                       )}
                       
-                      {/* Enhanced RPC hint for Step 4 */}
+                      {/* Enhanced hint for Step 4 */}
                       {step.hint && (
-                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 mt-2">
+                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mt-2">
                           <div className="flex items-start gap-2">
-                            <div className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
+                            <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
                             <div>
-                              <p className="text-green-100 text-sm font-medium mb-1">Recommended RPC Endpoint</p>
-                              <div className="flex items-center gap-2 bg-green-500/20 rounded px-2 py-1">
-                                <code className="text-green-100 text-xs font-mono">{step.hint?.replace('Arbitrum Sepolia RPC: ', '') || ''}</code>
-                                <button
-                                  onClick={() => copyCommand(step.hint?.replace('Arbitrum Sepolia RPC: ', '') || '', `rpc-${index}`)}
-                                  className="p-1 rounded hover:bg-green-500/30 transition"
-                                  aria-label="Copy RPC URL"
-                                >
-                                  {copiedStates[`rpc-${index}`] ? (
-                                    <Check className="w-3 h-3 text-green-400" />
-                                  ) : (
-                                    <Copy className="w-3 h-3 text-green-200" />
-                                  )}
-                                </button>
-                              </div>
+                              <p className="text-blue-100 text-sm font-medium mb-1">Deployment Options</p>
+                              <p className="text-blue-200 text-xs leading-relaxed">
+                                {step.hint}
+                              </p>
                             </div>
                           </div>
                         </div>
