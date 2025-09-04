@@ -40,7 +40,7 @@ export async function setupE2EContract(
   } = {},
 ): Promise<ContractService> {
   // Build and compile the contract
-  run(`npx as-stylus compile contract.ts --endpoint ${RPC_URL}`, contractPath);
+  run(`as-stylus compile contract.ts --endpoint ${RPC_URL}`, contractPath);
 
   const abi = getAbi(abiPath);
 

@@ -7,6 +7,7 @@ import {
   View,
   msg,
 } from "@wakeuplabs/as-stylus";
+
 // Interface definitions (detected automatically by TypeScript parser)
 // Only 'as' casting syntax will be supported: (address as IERC20).method()
 interface IERC20 {
@@ -68,7 +69,8 @@ export class InterfaceCastingContract {
   @External
   getTokenName(): string {
     const token = (InterfaceCastingContract.tokenAddress as IERC20);
-    return token.name();
+    const result = token.name();
+    return result;
   }
 
   // Test ERC20 symbol through interface casting

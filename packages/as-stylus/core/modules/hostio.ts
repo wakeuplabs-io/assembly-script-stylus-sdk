@@ -1,3 +1,5 @@
+import { Address } from "../types/address";
+
 @external("vm_hooks", "native_keccak256")
 declare function _native_keccak256(bytes: usize, len: usize, output: usize): void;
 
@@ -64,6 +66,9 @@ declare function _account_balance(address: usize, dest: usize): void;
 
 @external("vm_hooks", "read_return_data")
 declare function _read_return_data(dest: usize, offset: usize, size: usize): usize;
+
+@external("vm_hooks", "return_data_size")
+declare function _return_data_size(): usize;
 
 @external("vm_hooks", "exit_early")
 declare function _exit_early(status: i32): void;
@@ -151,6 +156,7 @@ export function call_contract(
   gas: u64,
   outs_len: usize
 ): u8 {
+  storage_flush_cache(1);
   return _call_contract(to, data, data_len, value, gas, outs_len);
 }
 
@@ -161,6 +167,7 @@ export function delegate_call_contract(
   gas: u64,
   outs_len: usize
 ): u8 {
+  storage_flush_cache(1);
   return _delegate_call_contract(to, data, data_len, gas, outs_len);
 }
 
@@ -171,11 +178,16 @@ export function static_call_contract(
   gas: u64,
   outs_len: usize
 ): u8 {
+  storage_flush_cache(0);
   return _static_call_contract(to, data, data_len, gas, outs_len);
 }
 
 export function read_return_data(dest: usize, offset: usize, size: usize): usize {
   return _read_return_data(dest, offset, size);
+}
+
+export function return_data_size(): usize {
+  return _return_data_size();
 }
 
 export function exit_early(status: i32): void {

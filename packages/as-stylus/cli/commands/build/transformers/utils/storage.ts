@@ -294,7 +294,6 @@ export function generateImports(contract: IRContract): string {
   lines.push(`import { Msg } from "${packageName}/core/types/msg";`);
   lines.push(`import { Block } from "${packageName}/core/types/block";`);
   lines.push(`import { malloc } from "${packageName}/core/modules/memory";`);
-  lines.push(`import { DebugU256 } from "${packageName}/core/modules/debug";`);
   lines.push(`import { InterfaceCast } from "${packageName}/core/types/interface-cast";`);
 
   lines.push("");

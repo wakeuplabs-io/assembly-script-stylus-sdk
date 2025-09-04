@@ -1,6 +1,5 @@
-import { call_contract, delegate_call_contract, static_call_contract, read_return_data } from "./hostio";
+import { call_contract, delegate_call_contract, static_call_contract, read_return_data, return_data_size } from "./hostio";
 import { malloc } from "./memory";
-
 const DEFAULT_GAS_LIMIT: u64 = 500_000;
 
 export enum CallStatus {
@@ -11,19 +10,22 @@ export enum CallStatus {
 
 export class CallResult {
   /**
-   * Creates a call result structure (12 bytes total)
-   * Layout: [status:u8][returnDataLen:u32][returnData:usize]
+   * Creates a call result structure (16 bytes total)
+   * Layout: [status:u8][returnDataLen:u32][padding:3][returnData:usize]
+   * Memory layout: offset 0=status(1), offset 1=returnDataLen(4), offset 8=returnData(8)
    * @param status - Call status (0=success, 1=revert, 2=failure)
    * @param returnData - Pointer to return data
    * @param returnDataLen - Length of return data
    * @returns Pointer to call result structure
    */
   static create(status: u8, returnData: usize, returnDataLen: u32): usize {
+    
     const ptr = malloc(16); // u8 + u32 + usize (8 bytes on wasm32) = 13 bytes, rounded to 16
     
+    // Proper memory alignment: status:u8 at 0, returnDataLen:u32 at 1, returnData:usize at 8
     store<u8>(ptr, status);
-    store<u32>(ptr + 4, returnDataLen);
-    store<usize>(ptr + 8, returnData);
+    store<u32>(ptr + 1, returnDataLen);  // No gap - store immediately after u8
+    store<usize>(ptr + 8, returnData);   // usize at 8-byte boundary for alignment
     
     return ptr;
   }
@@ -34,7 +36,8 @@ export class CallResult {
    * @returns true if successful
    */
   static isSuccess(resultPtr: usize): bool {
-    return load<u8>(resultPtr) == CallStatus.SUCCESS;
+    const status = load<u8>(resultPtr);
+    return status == CallStatus.SUCCESS;
   }
 
   /**
@@ -52,7 +55,12 @@ export class CallResult {
    * @returns Pointer to return data
    */
   static getReturnData(resultPtr: usize): usize {
-    return load<usize>(resultPtr + 8);
+    if (resultPtr == 0) {
+      return 0;
+    }
+    
+    const returnDataPtr = load<usize>(resultPtr + 8);
+    return returnDataPtr;
   }
 
   /**
@@ -61,7 +69,7 @@ export class CallResult {
    * @returns Length of return data
    */
   static getReturnDataLen(resultPtr: usize): u32 {
-    return load<u32>(resultPtr + 4);
+    return load<u32>(resultPtr + 1);  // Updated to match new memory layout
   }
 }
 
@@ -84,19 +92,20 @@ export class Calls {
     value: usize,
     gasLimit: u64 = DEFAULT_GAS_LIMIT
   ): usize {
-    const outsLenPtr = malloc(8);
-    store<u64>(outsLenPtr, 0);
+    // Use u32 for WASM32 compatibility (not u64)
+    const outsLenPtr = malloc(4);
+    store<u32>(outsLenPtr, 0);
 
     const status = call_contract(to, calldata, calldataLen, value, gasLimit, outsLenPtr);
-    const returnDataLen = load<u64>(outsLenPtr);
+    const returnDataLen = load<u32>(outsLenPtr);
 
     let returnDataPtr: usize = 0;
-    if (returnDataLen > 0) {
-      returnDataPtr = malloc(<i32>returnDataLen);
-      const written = read_return_data(returnDataPtr, 0, <i32>returnDataLen);
+    if (status == 0 && returnDataLen > 0) {
+      returnDataPtr = malloc(returnDataLen);
+      read_return_data(returnDataPtr, 0, returnDataLen);
     }
 
-    return CallResult.create(status, returnDataPtr, <u32>returnDataLen);
+    return CallResult.create(status, returnDataPtr, returnDataLen);
   }
 
   /**
@@ -116,19 +125,20 @@ export class Calls {
     calldataLen: usize,
     gasLimit: u64 = DEFAULT_GAS_LIMIT
   ): usize {
-    const outsLenPtr = malloc(8);
-    store<u64>(outsLenPtr, 0);
+    // Use u32 for WASM32 compatibility (not u64)
+    const outsLenPtr = malloc(4);
+    store<u32>(outsLenPtr, 0);
 
     const status = delegate_call_contract(to, calldata, calldataLen, gasLimit, outsLenPtr);
-    const returnDataLen = load<u64>(outsLenPtr);
+    const returnDataLen = load<u32>(outsLenPtr);
 
     let returnDataPtr: usize = 0;
-    if (returnDataLen > 0) {
-      returnDataPtr = malloc(<i32>returnDataLen);
-      const written = read_return_data(returnDataPtr, 0, <i32>returnDataLen);
+    if (status == 0 && returnDataLen > 0) {
+      returnDataPtr = malloc(returnDataLen);
+      read_return_data(returnDataPtr, 0, returnDataLen);
     }
 
-    return CallResult.create(status, returnDataPtr, <u32>returnDataLen);
+    return CallResult.create(status, returnDataPtr, returnDataLen);
   }
 
   /**
@@ -147,19 +157,29 @@ export class Calls {
     calldataLen: usize,
     gasLimit: u64 = DEFAULT_GAS_LIMIT
   ): usize {
-    const outsLenPtr = malloc(8);
-    store<u64>(outsLenPtr, 0);
-
+    const outsLenPtr = malloc(4);
+    store<u32>(outsLenPtr, 0);
+    
     const status = static_call_contract(to, calldata, calldataLen, gasLimit, outsLenPtr);
-    const returnDataLen = load<u64>(outsLenPtr);
-
+    const outsLen = load<u32>(outsLenPtr);
+    const vmLen = return_data_size();
     let returnDataPtr: usize = 0;
-    if (returnDataLen > 0) {
-      returnDataPtr = malloc(<i32>returnDataLen);
-      const written = read_return_data(returnDataPtr, 0, <i32>returnDataLen);
-    }
+    returnDataPtr = malloc(32);
+    const written = read_return_data(returnDataPtr, 0, 0);
 
-    return CallResult.create(status, returnDataPtr, <u32>returnDataLen);
+    let returnDataLen: u32 = 0;
+    
+    if (status == 0) {
+      const actualLen = return_data_size();
+      
+      if (actualLen > 0) {
+        returnDataPtr = malloc(actualLen);
+        const written = read_return_data(returnDataPtr, 0, actualLen);
+        returnDataLen = written;
+      }
+    }
+    
+    return CallResult.create(status, returnDataPtr, returnDataLen);
   }
 
   /**
@@ -197,8 +217,9 @@ export class Calls {
     const emptyCalldata: usize = 0;
     const emptyCalldataLen: usize = 0;
     
-    const outsLenPtr = malloc(8);
-    store<u64>(outsLenPtr, 0);
+    // Use u32 for WASM32 compatibility (not u64)
+    const outsLenPtr = malloc(4);
+    store<u32>(outsLenPtr, 0);
     
     const status = call_contract(
       to, 
@@ -210,10 +231,10 @@ export class Calls {
     );
     
     // Opcional: leer return data para debugging (sin afectar el resultado)
-    const returnDataLen = load<u64>(outsLenPtr);
+    const returnDataLen = load<u32>(outsLenPtr);
     if (returnDataLen > 0) {
-      const returnDataPtr = malloc(<i32>returnDataLen);
-      read_return_data(returnDataPtr, 0, <i32>returnDataLen);
+      const returnDataPtr = malloc(returnDataLen);
+      read_return_data(returnDataPtr, 0, returnDataLen);
     }
     
     return status == CallStatus.SUCCESS;

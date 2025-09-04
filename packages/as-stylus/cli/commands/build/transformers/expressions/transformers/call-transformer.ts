@@ -348,10 +348,22 @@ export class CallTransformer extends Handler {
     const setupLines: string[] = [...initialSetupLines, ...this.combineSetupLines(argResults)];
     const callId = (++CallTransformer.callCounter).toString();
 
-    setupLines.push(`const methodSig_${callId} = "${this.getMethodSignature(methodName)}";`);
-    setupLines.push(`const calldata_${callId} = ABI.encodeCall(methodSig_${callId}, []);`);
+    const methodSignature = this.getMethodSignature(methodName);
+    const selector = this.getMethodSelector(methodSignature);
+    const argExprs = argResults.map((r) => r.valueExpr);
+
+    if (selector !== 0) {
+      setupLines.push(
+        `const calldata_${callId} = ABI.encodeCallWithSelector(0x${selector.toString(16).padStart(8, "0")}, [${argExprs.join(", ")}]);`,
+      );
+    } else {
+      setupLines.push(`const methodSig_${callId} = "${methodSignature}";`);
+      setupLines.push(
+        `const calldata_${callId} = ABI.encodeCall(methodSig_${callId}, [${argExprs.join(", ")}]);`,
+      );
+    }
     setupLines.push(
-      `const callResult_${callId} = Calls.staticCall(${receiverName}.getAddress(), calldata_${callId}.ptr, calldata_${callId}.len);`,
+      `const callResult_${callId} = Calls.staticCall(InterfaceCast.getAddress(${receiverName}), ABI.getPtr(calldata_${callId}), ABI.getLen(calldata_${callId}));`,
     );
     const functionReturnType = this.contractContext.currentFunctionReturnType || "unknown";
 
@@ -494,10 +506,22 @@ export class CallTransformer extends Handler {
     const setupLines: string[] = [...allSetupLines];
     const callId = (++CallTransformer.callCounter).toString();
 
-    setupLines.push(`const methodSig_${callId} = "${this.getMethodSignature(methodName)}";`);
-    setupLines.push(`const calldata_${callId} = ABI.encodeCall(methodSig_${callId}, []);`);
+    const methodSignature = this.getMethodSignature(methodName);
+    const selector = this.getMethodSelector(methodSignature);
+    const argExprs = argResults.map((r) => r.valueExpr);
+
+    if (selector !== 0) {
+      setupLines.push(
+        `const calldata_${callId} = ABI.encodeCallWithSelector(0x${selector.toString(16).padStart(8, "0")}, [${argExprs.join(", ")}]);`,
+      );
+    } else {
+      setupLines.push(`const methodSig_${callId} = "${methodSignature}";`);
+      setupLines.push(
+        `const calldata_${callId} = ABI.encodeCall(methodSig_${callId}, [${argExprs.join(", ")}]);`,
+      );
+    }
     setupLines.push(
-      `const callResult_${callId} = Calls.staticCall(${receiverResult.valueExpr}.getAddress(), calldata_${callId}.ptr, calldata_${callId}.len);`,
+      `const callResult_${callId} = Calls.staticCall(InterfaceCast.getAddress(${receiverResult.valueExpr}), ABI.getPtr(calldata_${callId}), ABI.getLen(calldata_${callId}));`,
     );
 
     const functionReturnType = this.contractContext.currentFunctionReturnType || "unknown";
@@ -559,6 +583,36 @@ export class CallTransformer extends Handler {
     };
 
     return signatures[methodName] || `${methodName}()`;
+  }
+
+  /** Get method selector for known interface methods */
+  private getMethodSelector(signature: string): number {
+    // Known Ethereum method selectors (pre-calculated with Keccak256)
+    const knownSelectors: Record<string, number> = {
+      // ERC20
+      "name()": 0x06fdde03,
+      "symbol()": 0x95d89b41,
+      "decimals()": 0x313ce567,
+      "totalSupply()": 0x18160ddd,
+      "balanceOf(address)": 0x70a08231,
+      "transfer(address,uint256)": 0xa9059cbb,
+      "allowance(address,address)": 0xdd62ed3e,
+      "approve(address,uint256)": 0x095ea7b3,
+      "transferFrom(address,address,uint256)": 0x23b872dd,
+
+      // ERC721
+      "ownerOf(uint256)": 0x6352211e,
+      "getApproved(uint256)": 0x081812fc,
+      "setApprovalForAll(address,bool)": 0xa22cb465,
+      "isApprovedForAll(address,address)": 0xe985e9c5,
+      "safeTransferFrom(address,address,uint256)": 0x42842e0e,
+
+      // Oracle
+      "getPrice(string)": 0x8e15f473,
+      "setPrice(string,uint256)": 0x91b7f5ed,
+    };
+
+    return knownSelectors[signature] || 0;
   }
 
   /** Get method return type using dynamic interface analyzer with fallback to hardcoded types */

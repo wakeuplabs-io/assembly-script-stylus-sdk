@@ -1,3 +1,5 @@
+import { debugLogI32 } from "./console";
+
 let heapPointer: usize = 0;
 
 /**
@@ -18,10 +20,15 @@ export function initHeap(start: usize, length: usize): void {
  */
 export function malloc(size: usize): usize {
   const aligned = (size + 7) & ~7;
+  
   const ptr = heapPointer;
+  
   heapPointer += aligned;
+  
   const neededPages: i32 = <i32>(((heapPointer + 0xffff) >> 16) - memory.size());
-  if (neededPages > 0) memory.grow(neededPages);
+  if (neededPages > 0) {
+    memory.grow(neededPages);
+  }
 
   return ptr;
 }
