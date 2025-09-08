@@ -98,19 +98,28 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   buildIR(): IRVariable {
     const typeInferred = inferType(this.symbolTable, this.property.getType().getText());
     const { name, type } = parseName(this.property.getText(), typeInferred);
-    this.symbolTable.declareVariable(name, {
-      name,
-      type: convertType(this.symbolTable, type),
-      scope: "storage",
-      dynamicType: type,
-    });
 
     const fullTypeText = this.property.getType().getText();
     const typeNodeText = this.property.getTypeNode()?.getText() || "";
     const arrayInfo = extractArrayTypes(typeNodeText);
     const mappingTypes = extractMappingTypes(fullTypeText);
 
-    // Handle static arrays
+    let correctAbiType: AbiType;
+    if (arrayInfo.isStatic && arrayInfo.elementType && arrayInfo.length) {
+      correctAbiType = AbiType.ArrayStatic;
+    } else if (!arrayInfo.isStatic && arrayInfo.elementType) {
+      correctAbiType = AbiType.ArrayDynamic;
+    } else {
+      correctAbiType = convertType(this.symbolTable, type);
+    }
+
+    this.symbolTable.declareVariable(name, {
+      name,
+      type: correctAbiType,
+      scope: "storage",
+      dynamicType: type,
+    });
+
     if (arrayInfo.isStatic && arrayInfo.elementType && arrayInfo.length) {
       const arrayVar: IRArrayStaticVar = {
         name,
@@ -123,7 +132,6 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       return arrayVar;
     }
 
-    // Handle dynamic arrays
     if (!arrayInfo.isStatic && arrayInfo.elementType) {
       const arrayVar: IRArrayDynamicVar = {
         name,

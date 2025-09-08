@@ -126,6 +126,43 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
           }
         }
 
+        // Handle memory arrays (calldata parameters, local variables)
+        if (arrayIR.kind === "var" && arrayIR.scope === "memory") {
+          const arrayVar = this.symbolTable.lookup(arrayIR.name);
+          
+          if (arrayVar?.type === AbiType.ArrayDynamic || arrayVar?.type === AbiType.ArrayStatic) {
+            // For memory arrays, infer element type from the array type
+            if (arrayVar.dynamicType?.includes("[")) {
+              const elementTypeMatch = arrayVar.dynamicType.match(/^([^[]+)/);
+              if (elementTypeMatch) {
+                const elementTypeName = elementTypeMatch[1];
+
+                switch (elementTypeName) {
+                  case "U256":
+                    resultType = AbiType.Uint256;
+                    break;
+                  case "I256":
+                    resultType = AbiType.Int256;
+                    break;
+                  case "Address":
+                    resultType = AbiType.Address;
+                    break;
+                  case "String":
+                    resultType = AbiType.String;
+                    break;
+                  default:
+                    resultType = AbiType.Unknown;
+                }
+              }
+            } else {
+              // Fallback: if no dynamicType, assume U256[] for array_dynamic
+              if (arrayVar.type === AbiType.ArrayDynamic) {
+                resultType = AbiType.Uint256; // Common case for calldata U256[]
+              }
+            }
+          }
+        }
+
         const arrayAccessIR: IRExpression = {
           kind: "array_access",
           array: arrayIR,

@@ -8,40 +8,40 @@ export class Arrays {
     const a = U256Factory.fromString("1");
     const b = U256Factory.fromString("2");
     const c = U256Factory.fromString("3");
-    this.staticU256Array = U256ArrayFactory.create([a, b, c]);
+    this.staticU256Array = StaticArrayFactory.create<U256>([a, b, c]);
 
-    this.dynamicU256Array = [];
+    this.dynamicU256Array = DynamicArrayFactory.empty<U256>();
     let count = U256Factory.create();
     const one = U256Factory.fromString("1");
     while (count < size) {
-      this.dynamicU256Array.push(U256Factory.fromString(count.toString()));
+      this.dynamicU256Array.push(count);
       count = count.add(one);
     }
   }
 
   @View
   getStaticAt(index: U256): U256 {
-    return this.staticU256Array[index.toI32()];
+    return this.staticU256Array[index];
   }
 
   @External
   setStaticAt(index: U256, value: U256): void {
-    this.staticU256Array[index.toI32()] = value;
+    this.staticU256Array[index] = value;
   }
 
   @View
   staticLength(): U256 {
-    return U256Factory.fromString("3");
+    return this.staticU256Array.length();
   }
 
   @View
   getDynamicAt(index: U256): U256 {
-    return this.dynamicU256Array[index.toI32()];
+    return this.dynamicU256Array[index];
   }
 
   @External
   setDynamicAt(index: U256, value: U256): void {
-    this.dynamicU256Array[index.toI32()] = value;
+    this.dynamicU256Array[index] = value;
   }
 
   @External
@@ -56,7 +56,7 @@ export class Arrays {
 
   @View
   dynamicLength(): U256 {
-    return U256Factory.fromString(this.dynamicU256Array.length.toString());
+    return this.dynamicU256Array.length();
   }
 
   @View
@@ -66,11 +66,11 @@ export class Arrays {
 
   @View
   makeMemoryArray(size: U256): U256[] {
-    const arr = U256ArrayFactory.create(size);
+    const arr = MemoryArrayFactory.ofLength<U256>(size);
     let i = U256Factory.create();
     const one = U256Factory.fromString("1");
     while (i < size) {
-      arr[i.toI32()] = U256Factory.fromString((i.toI32() + 1).toString());
+      arr[i] = i.add(one);
       i = i.add(one);
     }
     return arr;
@@ -78,7 +78,7 @@ export class Arrays {
 
   @View
   makeFixedMemoryArray(): U256[] {
-    const arr = U256ArrayFactory.memory(3);
+    const arr = MemoryArrayFactory.ofLength<U256>(3);
     arr[0] = U256Factory.fromString("11");
     arr[1] = U256Factory.fromString("22");
     arr[2] = U256Factory.fromString("33");
@@ -87,12 +87,13 @@ export class Arrays {
 
   @External
   sumCalldata(values: U256[]): U256 {
-    let acc = U256Factory.fromString("0");
+    let acc = U256Factory.create();
     let i = U256Factory.create();
     const one = U256Factory.fromString("1");
-    const length = U256Factory.fromString(values.length.toString());
-    while (i < length) {
-      acc = acc.add(values[i.toI32()]);
+    const len = values.length();
+    while (i < len) {
+      const value = values[i];
+      acc = acc.add(value);
       i = i.add(one);
     }
     return acc;
@@ -100,16 +101,16 @@ export class Arrays {
 
   @External
   lenCalldata(values: U256[]): U256 {
-    return U256Factory.fromString(values.length.toString());
+    return values.length();
   }
 
   @External
   echoCalldata(values: U256[]): U256[] {
-    const length = U256Factory.fromString(values.length.toString());
-    const out = U256ArrayFactory.memory(values.length);
+    const out = MemoryArrayFactory.ofLength<U256>(values.length());
     let index = U256Factory.create();
     const one = U256Factory.fromString("1");
-    while (index < length) {
+    const len = values.length();
+    while (index < len) {
       out[index] = values[index];
       index = index.add(one);
     }

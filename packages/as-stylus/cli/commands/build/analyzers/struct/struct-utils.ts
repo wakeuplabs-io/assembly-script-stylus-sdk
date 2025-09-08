@@ -63,22 +63,75 @@ export function convertBasicType(input: string): AbiType | null {
 }
 
 /**
+ * Extracts array information from a type string
+ * Examples: "U256[]" -> { elementType: "U256", isArray: true, isStatic: false }
+ *          "U256[3]" -> { elementType: "U256", isArray: true, isStatic: true, length: 3 }
+ *          "U256" -> { elementType: "U256", isArray: false }
+ */
+function extractArrayInfo(typeString: string): {
+  elementType: string;
+  isArray: boolean;
+  isStatic: boolean;
+  length?: number;
+} {
+  const arrayMatch = typeString.match(/^(.+?)\[(\d*)\]$/);
+  if (arrayMatch) {
+    const [, elementType, lengthStr] = arrayMatch;
+    if (lengthStr) {
+      return {
+        elementType,
+        isArray: true,
+        isStatic: true,
+        length: parseInt(lengthStr, 10),
+      };
+    } else {
+      return {
+        elementType,
+        isArray: true,
+        isStatic: false,
+      };
+    }
+  }
+
+  return {
+    elementType: typeString,
+    isArray: false,
+    isStatic: false,
+  };
+}
+
+/**
  * Converts a type string to appropriate IR format, preserving struct information
  * This is shared between MethodIRBuilder and ArgumentIRBuilder
  */
-export function convertTypeForIR(symbolTable: SymbolTableStack, typeString: string): { type: AbiType; originalType?: string } {
+export function convertTypeForIR(
+  symbolTable: SymbolTableStack,
+  typeString: string,
+): { type: AbiType; originalType?: string } {
   const basicType = convertBasicType(typeString);
   if (basicType) {
     return { type: basicType, originalType: typeString };
+  }
+
+  const arrayInfo = extractArrayInfo(typeString);
+  if (arrayInfo.isArray) {
+    const elementBasicType = convertBasicType(arrayInfo.elementType);
+    if (elementBasicType) {
+      if (arrayInfo.isStatic) {
+        return { type: AbiType.ArrayStatic, originalType: typeString };
+      } else {
+        return { type: AbiType.ArrayDynamic, originalType: typeString };
+      }
+    }
   }
 
   const structName = extractStructName(typeString);
   if (structName) {
     const variable = symbolTable.lookup(structName);
     if (variable?.type === AbiType.Struct) {
-      return { 
-        type: AbiType.Struct, 
-        originalType: typeString 
+      return {
+        type: AbiType.Struct,
+        originalType: typeString,
       };
     }
   }
@@ -102,8 +155,6 @@ export function getExpressionType(expr: IRExpression): string | undefined {
   }
 }
 
-
-
 /**
  * Determines if a type is primitive according to the golden rule:
  * Primitives (pass by value): U256, boolean, Address, numbers
@@ -122,13 +173,13 @@ export function extractStructTypeFromCall(callExpression: any): string | undefin
   // This will be called from CallFunctionIRBuilder
   // For now, we'll use a simple heuristic or context analysis
   // The proper implementation would need access to TypeScript's type checker
-  
+
   // If we have type arguments, extract from there
   if (callExpression.getTypeArguments && callExpression.getTypeArguments().length > 0) {
     const typeArg = callExpression.getTypeArguments()[0];
     return typeArg.getText();
   }
-  
+
   // Fallback: try to infer from context or return undefined
   // This will need to be enhanced based on actual usage
   return undefined;

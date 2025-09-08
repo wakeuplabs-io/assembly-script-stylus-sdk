@@ -36,6 +36,7 @@ export type Call = {
     isStructCreation?: boolean;
     structType?: string;
   };
+  genericType?: string;
 };
 
 export type ArrayAccess = {
@@ -48,6 +49,14 @@ export type ArrayAccess = {
 export type ArrayLiteral = {
   kind: "array_literal";
   elements: IRExpression[];
+  type: SupportedType;
+};
+
+export type ArrayAssignment = {
+  kind: "array_assignment";
+  array: IRExpression;
+  index: IRExpression;
+  value: IRExpression;
   type: SupportedType;
 };
 export type Member = {
@@ -156,7 +165,8 @@ export type IRExpression =
   | IRThis
   | ChainedCall
   | ArrayAccess
-  | ArrayLiteral;
+  | ArrayLiteral
+  | ArrayAssignment;
 
 // ───────────────────────
 // Statements

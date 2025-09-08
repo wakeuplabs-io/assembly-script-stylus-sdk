@@ -43,5 +43,30 @@ export function buildU256IR(
     } satisfies IRCondition;
   }
 
-  return { kind: "call", target, args, type: AbiType.Function, returnType: AbiType.Uint256, scope };
+  if (varName === "U256Factory") {
+    return {
+      kind: "call" as const,
+      target: operation,
+      args,
+      type: AbiType.Function,
+      returnType: AbiType.Uint256,
+      scope,
+      receiver: {
+        kind: "var" as const,
+        name: "U256Factory",
+        type: AbiType.Function,
+        scope: "memory" as const,
+      },
+    };
+  }
+
+  // For all other U256 operations (like variable.add), use only the operation name
+  return {
+    kind: "call",
+    target: operation || target, // Use operation name if available, fallback to full target
+    args,
+    type: AbiType.Function,
+    returnType: AbiType.Uint256,
+    scope,
+  };
 }
