@@ -1,0 +1,11 @@
+{
+  "name": "fallback-receive-contract", 
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@wakeuplabs/as-stylus": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
