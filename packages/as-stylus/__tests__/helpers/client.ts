@@ -15,6 +15,8 @@ import {
   BaseError,
   ContractFunctionRevertedError,
   ContractFunctionExecutionError,
+  keccak256,
+  toBytes,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
@@ -303,6 +305,75 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
           return { success: false, error: { name: "DecodeError", args: [] } };
         }
       }
+    },
+
+    /**
+     * Executes a raw transaction with custom calldata, bypassing ABI validation
+     * @param walletClient - Wallet client for signing transactions
+     * @param calldata - Raw hex calldata to send
+     * @param value - ETH value to send (optional)
+     * @param gasLimit - Gas limit for transaction (optional, defaults to 30M)
+     * @returns Transaction result with success status
+     */
+    writeRawTransaction: async (
+      walletClient: WalletClient,
+      calldata: Hex,
+      value?: bigint,
+      gasLimit?: bigint
+    ) => {
+      if (verbose) console.log("→ raw transaction calldata:", calldata);
+
+      try {
+        const txRequest = {
+          to: contractAddr,
+          data: calldata,
+          value: value || 0n,
+          gas: gasLimit || 30000000n, // Default 30M gas for raw transactions
+          account: walletClient.account as Account,
+          chain,
+        };
+
+        const txHash = await walletClient.sendTransaction(txRequest);
+        if (verbose) console.log("← raw txHash:", txHash);
+
+        const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        if (verbose) console.log("← raw transaction receipt status:", receipt.status);
+        
+        const success = receipt.status === 'success';
+        
+        return { success, txHash, receipt };
+      } catch (error: any) {
+        if (verbose) console.log("← raw transaction error:", error);
+
+        return {
+          success: false,
+          error: {
+            name: error.name || "RawTransactionError",
+            args: error.message ? [error.message] : [],
+          },
+        };
+      }
+    },
+
+    /**
+     * Generates invalid calldata to trigger fallback function
+     * @param fakeFunctionName - Name for fake function (default: "invalidFunction")
+     * @returns 4-byte function selector that doesn't exist in ABI
+     */
+    buildInvalidCalldata: (fakeFunctionName: string = "invalidFunction"): Hex => {
+      const functionSignature = `${fakeFunctionName}()`;
+      const hash = keccak256(toBytes(functionSignature));
+      const selector = hash.slice(0, 10) as Hex;
+      if (verbose) console.log("→ generated invalid selector:", selector, "for signature:", functionSignature);
+      return selector;
+    },
+
+    /**
+     * Generates empty calldata to trigger receive function
+     * @returns Empty hex string "0x"
+     */
+    buildEmptyCalldata: (): Hex => {
+      return "0x";
     },
   };
 }
