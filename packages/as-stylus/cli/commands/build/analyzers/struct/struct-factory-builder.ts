@@ -1,10 +1,11 @@
-import { CallExpression, SyntaxKind } from "ts-morph";
+import { ArrayLiteralExpression, CallExpression, SyntaxKind } from "ts-morph";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
+import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { extractStructTypeFromCall } from "./struct-utils.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
+import { SymbolTableStack } from "../shared/symbol-table.js";
 
 /**
  * Specialized builder for StructFactory.create<T>() calls
@@ -22,7 +23,7 @@ export class StructFactoryBuilder {
   /**
    * Builds IR for StructFactory.create<StructType>([...values])
    */
-  static buildStructCreateIR(call: CallExpression): IRExpression {
+  static buildStructCreateIR(symbolTable: SymbolTableStack, call: CallExpression): IRExpression {
     // Extract the struct type from generic parameter
     const structType = extractStructTypeFromCall(call);
 
@@ -33,7 +34,7 @@ export class StructFactoryBuilder {
     }
 
     // Verify the struct exists in registry
-    const struct = ctx.structRegistry.get(structType);
+    const struct = symbolTable.getStructTemplateByName(structType);
     if (!struct) {
       throw new Error(`Unknown struct type: ${structType}`);
     }
@@ -47,9 +48,9 @@ export class StructFactoryBuilder {
     // Build IR for the array elements
     const arrayArg = args[0];
     const initialValues: IRExpression[] = [];
-
+    
     if (arrayArg.getKind() === SyntaxKind.ArrayLiteralExpression) {
-      const elements = (arrayArg as any).getElements();
+      const elements = (arrayArg as ArrayLiteralExpression).getElements();
       for (const element of elements) {
         const builder = new ExpressionIRBuilder(element);
         initialValues.push(builder.validateAndBuildIR());
@@ -57,17 +58,22 @@ export class StructFactoryBuilder {
     }
 
     // Return IR for struct creation with initialization
-    return {
+    const result = {
       kind: "call",
       target: "StructFactory.create",
       args: initialValues,
-      returnType: structType,
+      returnType: AbiType.Struct,
       scope: "memory",
       // Add metadata for later processing
       metadata: {
         structType,
-        isStructCreation: true,
-      },
-    } as IRExpression & { metadata: any };
+        isStructCreation: true
+      }
+    } as IRExpression & { metadata: {
+      structType: string;
+      isStructCreation: boolean;
+    } };
+
+    return result;
   }
 }

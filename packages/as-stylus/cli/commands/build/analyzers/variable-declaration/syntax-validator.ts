@@ -36,7 +36,7 @@ export class VariableDeclarationSyntaxValidator extends BaseValidator {
       hasErrors = true;
     }
 
-    if (!SUPPORTED_TYPES.includes(convertType(type))) {
+    if (!SUPPORTED_TYPES.includes(convertType(this.symbolTable, type))) {
       this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(type, SUPPORTED_TYPES));
       hasErrors = true;
     }

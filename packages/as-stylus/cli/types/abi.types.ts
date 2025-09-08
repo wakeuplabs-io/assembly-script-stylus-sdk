@@ -35,6 +35,7 @@ export enum AbiType {
   Function = "function",
   UserDefinedFunction = "user_defined_function",
   Unknown = "unknown",
+  This = "this",
 }
 
 export enum AssemblyScriptType {

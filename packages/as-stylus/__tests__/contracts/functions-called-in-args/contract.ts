@@ -23,13 +23,13 @@ export class AllViewResults {
 
 @Contract
 export class FunctionCallArgsTest {
-  static strValue: Str;
-  static u256Value: U256;
-  static i256Value: I256;
-  static boolValue: boolean;
-  static addrValue: Address;
-  static user: Struct<User>;
-  static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
+  strValue: Str;
+  u256Value: U256;
+  i256Value: I256;
+  boolValue: boolean;
+  addrValue: Address;
+  user: Struct<User>;
+  balances: Mapping<Address, U256> = new Mapping<Address, U256>();
 
   @Internal
   getStr(): Str {

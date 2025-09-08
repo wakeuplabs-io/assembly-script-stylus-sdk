@@ -1,11 +1,13 @@
 import { PropertyAccessExpression } from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRExpression, Call, Member } from "@/cli/types/ir.types.js";
+import { IRExpression, Member, Variable } from "@/cli/types/ir.types.js";
+import { VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
+import { StructMemberBuilder } from "./struct.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
-import { isExpressionOfStructType, getStructInfoFromVariableName } from "../struct/struct-utils.js";
+import { parseThis } from "../shared/utils/parse-this.js";
 
 export class MemberIRBuilder extends IRBuilder<IRExpression> {
   private expression: PropertyAccessExpression;
@@ -21,33 +23,16 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
 
   buildIR(): IRExpression {
     const objectIR = new ExpressionIRBuilder(this.expression.getExpression()).validateAndBuildIR();
-    const propertyName = this.expression.getName();
+    const propertyName = parseThis(this.expression.getName());
+    const variable = this.symbolTable.lookup((objectIR as Variable)?.name || "");
+    const struct = this.symbolTable.getStructTemplateByName(variable?.dynamicType ?? "");
 
-    const structInfo = isExpressionOfStructType(objectIR);
-    if (structInfo.isStruct && structInfo.structName) {
-      if (objectIR.kind === "var") {
-        const variableInfo = getStructInfoFromVariableName(objectIR.name);
-        
-        if (variableInfo.isStruct) {
-          return {
-            kind: "call",
-            target: `${structInfo.structName}_get_${propertyName}`,
-            args: [objectIR],
-            returnType: AbiType.Uint256,
-            scope: "storage",
-            originalType: structInfo.structName,
-          } as Call;
-        }
-      }
-      
-      return {
-        kind: "call",
-        target: `${structInfo.structName}_get_${propertyName}`,
-        args: [objectIR],
-        returnType: AbiType.Uint256,
-        scope: (objectIR.kind === "var" || objectIR.kind === "call") && objectIR.scope ? objectIR.scope : "memory",
-        originalType: structInfo.structName,
-      } as Call;
+    if (struct && variable) {
+      return new StructMemberBuilder(this.symbolTable).buildIR(
+        objectIR,
+        propertyName,
+        variable as VariableSymbol,
+      );
     }
 
     // Regular member access
