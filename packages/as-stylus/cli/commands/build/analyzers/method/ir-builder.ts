@@ -38,9 +38,21 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       Object.values(StateMutability).includes(d.getName().toLowerCase() as StateMutability),
     );
 
+    // Check for special method decorators
+    const fallbackDecorator = decorators.find((d) => d.getName() === "Fallback");
+    const receiveDecorator = decorators.find((d) => d.getName() === "Receive");
+
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? Visibility.PUBLIC;
     const stateMutability =
       stateDecorators[0]?.getName()?.toLowerCase() ?? StateMutability.NONPAYABLE;
+
+    // Determine method type
+    let methodType: "normal" | "fallback" | "receive" = "normal";
+    if (fallbackDecorator) {
+      methodType = "fallback";
+    } else if (receiveDecorator) {
+      methodType = "receive";
+    }
 
     const inputs = this.methodDecl.getParameters().map((param) => {
       const argumentBuilder = new ArgumentIRBuilder(param);
@@ -75,6 +87,7 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       outputs,
       stateMutability: stateMutability as StateMutability,
       ir: irBody,
+      methodType,
     };
   }
 }

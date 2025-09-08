@@ -9,12 +9,12 @@ import { IRContract, IRStruct, IRVariable } from "@/cli/types/ir.types.js";
  */
 function isWithinMonorepo(cwd: string): boolean {
   let currentDir = cwd;
-  
+
   // Search up to 5 levels for the monorepo structure
   for (let i = 0; i < 5; i++) {
     const potentialSdkPath = path.join(currentDir, "packages", "as-stylus", "core");
     const potentialPackageJson = path.join(currentDir, "packages", "as-stylus", "package.json");
-    
+
     if (fs.existsSync(potentialSdkPath) && fs.existsSync(potentialPackageJson)) {
       try {
         const packageJson = JSON.parse(fs.readFileSync(potentialPackageJson, "utf-8"));
@@ -25,12 +25,12 @@ function isWithinMonorepo(cwd: string): boolean {
         // Continue searching if package.json can't be read
       }
     }
-    
+
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir) break; // Reached filesystem root
     currentDir = parentDir;
   }
-  
+
   return false;
 }
 
@@ -39,12 +39,12 @@ function isWithinMonorepo(cwd: string): boolean {
  */
 function findSdkRoot(cwd: string): string | null {
   let currentDir = cwd;
-  
+
   // First, find the monorepo root (directory containing packages/as-stylus)
   for (let i = 0; i < 5; i++) {
     const potentialSdkPath = path.join(currentDir, "packages", "as-stylus");
     const potentialPackageJson = path.join(potentialSdkPath, "package.json");
-    
+
     if (fs.existsSync(potentialPackageJson)) {
       try {
         const packageJson = JSON.parse(fs.readFileSync(potentialPackageJson, "utf-8"));
@@ -60,12 +60,12 @@ function findSdkRoot(cwd: string): string | null {
     if (parentDir === currentDir) break;
     currentDir = parentDir;
   }
-  
+
   // If not found above, check if we're already inside as-stylus directory
   currentDir = cwd;
   for (let i = 0; i < 5; i++) {
     const potentialPackageJson = path.join(currentDir, "package.json");
-    
+
     if (fs.existsSync(potentialPackageJson)) {
       try {
         const packageJson = JSON.parse(fs.readFileSync(potentialPackageJson, "utf-8"));
@@ -76,12 +76,12 @@ function findSdkRoot(cwd: string): string | null {
         // Continue searching
       }
     }
-    
+
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir) break;
     currentDir = parentDir;
   }
-  
+
   return null;
 }
 
@@ -92,11 +92,11 @@ function ensureSymlinkExists(cwd: string): void {
   if (!isWithinMonorepo(cwd)) {
     return; // Not in monorepo, nothing to do
   }
-  
+
   const nodeModulesPath = path.join(cwd, "node_modules");
   const wakeupLabsPath = path.join(nodeModulesPath, "@wakeuplabs");
   const symlinkPath = path.join(wakeupLabsPath, "as-stylus");
-  
+
   // If symlink already exists and is valid, we're good
   if (fs.existsSync(symlinkPath)) {
     try {
@@ -112,12 +112,12 @@ function ensureSymlinkExists(cwd: string): void {
       // Symlink is broken, we'll recreate it
     }
   }
-  
+
   const sdkRoot = findSdkRoot(cwd);
   if (!sdkRoot) {
     return; // Can't find SDK root
   }
-  
+
   try {
     // Ensure @wakeuplabs directory exists
     if (!fs.existsSync(nodeModulesPath)) {
@@ -126,16 +126,15 @@ function ensureSymlinkExists(cwd: string): void {
     if (!fs.existsSync(wakeupLabsPath)) {
       fs.mkdirSync(wakeupLabsPath, { recursive: true });
     }
-    
+
     // Remove existing symlink if it exists and is broken
     if (fs.existsSync(symlinkPath)) {
       fs.unlinkSync(symlinkPath);
     }
-    
+
     // Create relative symlink to SDK root
     const relativePath = path.relative(wakeupLabsPath, sdkRoot);
     fs.symlinkSync(relativePath, symlinkPath);
-    
   } catch (error) {
     // Symlink creation failed, but we'll continue anyway
     console.warn(`Warning: Could not create symlink for local AS-Stylus development: ${error}`);
@@ -152,12 +151,7 @@ function formatSlotName(slot: number): string {
  */
 function getPackageName(): string {
   const cwd = process.cwd();
-  
-  // Ensure symlink exists when in monorepo development
   ensureSymlinkExists(cwd);
-  
-  // Always return the npm package name
-  // Node.js will automatically resolve to symlink (development) or npm package (production)
   return "@wakeuplabs/as-stylus";
 }
 
@@ -166,8 +160,7 @@ export function slotConst(slot: number): string {
 }
 
 export function loadSimple(name: string, slot: number, type?: AbiType): string {
-  // Determine the correct type factory based on ABI type
-  let createCall = "U256.create()"; // Default fallback
+  let createCall = "U256.create()";
 
   switch (type) {
     case AbiType.Address:
@@ -183,7 +176,6 @@ export function loadSimple(name: string, slot: number, type?: AbiType): string {
       createCall = "I256.create()";
       break;
     default:
-      // For unknown types or legacy calls, default to U256
       createCall = "U256.create()";
       break;
   }
@@ -207,7 +199,6 @@ function store_${name}(ptr: usize): void {
 export function generateImports(contract: IRContract): string {
   const lines: string[] = ["// eslint-disable-next-line import/namespace"];
   const packageName = getPackageName();
-
   const types = contract.symbolTable.getTypes();
   const hasEvents = contract.events && contract.events.length > 0;
   const hasErrors = contract.errors && contract.errors.length > 0;
@@ -273,7 +264,7 @@ export function generateImports(contract: IRContract): string {
   const hasCallFactory = contract.methods.some((method) =>
     method.ir.some((statement: unknown) => JSON.stringify(statement).includes("CallFactory")),
   );
-  
+
   const hasInterfaceCasts = contract.methods.some((method) =>
     method.ir.some((statement: unknown) => JSON.stringify(statement).includes("interface_cast")),
   );

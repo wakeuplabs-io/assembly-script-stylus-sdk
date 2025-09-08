@@ -4,6 +4,7 @@ import { IRContract, IRMethod } from "../../../../types/ir.types.js";
 import { AddressTransformer } from "../address/address-transformer.js";
 import { BlockTransformer } from "../block/block-transformer.js";
 import { BooleanTransformer } from "../boolean/boolean-transformer.js";
+import { CallsTransformer } from "../calls/calls-transformer.js";
 import { ErrorTransformer, registerErrorTransformer } from "../error/error-transformer.js";
 import { EventTransformer } from "../event/event-transformer.js";
 import { registerEventTransformer } from "../event/utils/register-events.js";
@@ -14,7 +15,6 @@ import { StatementHandler } from "../statements/statement-handler.js";
 import { StrTransformer } from "../string/string-transformer.js";
 import { registerStructTransformer, StructTransformer } from "../struct/struct-transformer.js";
 import { U256Transformer } from "../u256/u256-transformer.js";
-import { CallsTransformer } from "../calls/calls-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
 import { generateImports, generateStorageHelpers } from "../utils/storage.js";
@@ -121,6 +121,14 @@ export function emitContract(contract: IRContract): string {
 
   // Add methods
   const methodParts = contract.methods.map(method => generateMethod(method, contractContext));
+  
+  // Add fallback and receive functions
+  if (contract.fallback) {
+    methodParts.push(generateMethod(contract.fallback, contractContext));
+  }
+  if (contract.receive) {
+    methodParts.push(generateMethod(contract.receive, contractContext));
+  }
   
   parts.push(...methodParts);
 

@@ -60,3 +60,22 @@ export function Nonpayable(_target: any): any {}
  * Marks an event field as indexed (for efficient filtering)
  */
 export function Indexed(_target: any, _propertyKey: string): any {}
+
+/**
+ * Marks a method as a fallback function (called when no function matches or with unknown function signatures)
+ * Must be external and can optionally be payable.
+ * Only one fallback function per contract is allowed.
+ * @param _target - The target method
+ * @param _propertyKey - The property key
+ */
+export function Fallback(_target: any, _propertyKey: string): any {}
+
+/**
+ * Marks a method as a receive function (called when ETH is sent with empty calldata)
+ * Must be external and can optionally be payable.
+ * Only one receive function per contract is allowed.
+ * Cannot have parameters.
+ * @param _target - The target method
+ * @param _propertyKey - The property key
+ */
+export function Receive(_target: any, _propertyKey: string): any {}

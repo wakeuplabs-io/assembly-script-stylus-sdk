@@ -65,15 +65,16 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     const errors = this.processErrors(classes);
     const storage = this.processStorage(contractClass);
     const constructor = this.processConstructor(contractClass);
-    const methods = this.processMethods(contractClass);
-
+    const methodsResult = this.processMethods(contractClass);
 
     return {
       path: this.contractName,
       name: this.contractName,
       parent,
       constructor,
-      methods,
+      methods: methodsResult.methods,
+      fallback: methodsResult.fallback,
+      receive: methodsResult.receive,
       storage,
       events,
       structs,
@@ -271,9 +272,43 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       return name;
     });
 
-    return methods.map((method) => {
+    // Build IR for all methods
+    const allMethods = methods.map((method) => {
       const methodIRBuilder = new MethodIRBuilder(method, methodNames);
       return methodIRBuilder.validateAndBuildIR();
     });
+
+    // Separate methods by type
+    const normalMethods = allMethods.filter(method => !method.methodType || method.methodType === "normal");
+    const fallbackMethod = allMethods.find(method => method.methodType === "fallback");
+    const receiveMethod = allMethods.find(method => method.methodType === "receive");
+
+    // Validate only one fallback and one receive per contract
+    const fallbackMethods = allMethods.filter(method => method.methodType === "fallback");
+    const receiveMethods = allMethods.filter(method => method.methodType === "receive");
+
+    if (fallbackMethods.length > 1) {
+      this.errorManager.addSemanticError(
+        "MULTIPLE_FALLBACK_FUNCTIONS",
+        this.sourceFile.getFilePath(),
+        1,
+        ["Only one fallback function is allowed per contract."]
+      );
+    }
+
+    if (receiveMethods.length > 1) {
+      this.errorManager.addSemanticError(
+        "MULTIPLE_RECEIVE_FUNCTIONS", 
+        this.sourceFile.getFilePath(),
+        1,
+        ["Only one receive function is allowed per contract."]
+      );
+    }
+
+    return {
+      methods: normalMethods,
+      fallback: fallbackMethod,
+      receive: receiveMethod,
+    };
   }
 }

@@ -239,6 +239,7 @@ export type IRMethod = {
   inputs: AbiInput[];
   outputs: AbiOutput[];
   ir: IRStatement[];
+  methodType?: "normal" | "fallback" | "receive";
 };
 
 export type IRConstructor = {
@@ -301,6 +302,8 @@ export interface IRContract {
   parent?: IRContract;
   methods: IRMethod[];
   constructor?: IRMethod;
+  fallback?: IRMethod;
+  receive?: IRMethod;
   storage: IRVariable[];
   events?: IREvent[];
   structs?: IRStruct[];

@@ -32,6 +32,7 @@ interface EntrypointResult {
 interface CodeBlock {
   imports: string[];
   entries: string[];
+  constructorSelector?: string;
 }
 
 /**
@@ -107,7 +108,7 @@ function generateBytesReturnLogic(methodName: string, callArgs: Array<{ name: st
     `const len = 32;`, // For now, assume fixed 32 bytes for msg.data/msg.sig
     `const padded = ((len + ${MEMORY_OFFSETS.PADDING_MASK}) & ~${MEMORY_OFFSETS.PADDING_MASK});`,
     `const resultPtr = malloc(${MEMORY_OFFSETS.STRING_DATA_OFFSET} + padded);`,
-    `store<u8>(resultPtr + 31, 0x20);`, // Store offset pointer (0x20 = 32) 
+    `store<u8>(resultPtr + 31, 0x20);`, // Store offset pointer (0x20 = 32)
     `store<u32>(resultPtr + 32 + 28, len);`, // Store length in big-endian format at byte 60
     `memory.copy(resultPtr + ${MEMORY_OFFSETS.STRING_DATA_OFFSET}, rawPtr, len);`,
     `write_result(resultPtr, ${MEMORY_OFFSETS.STRING_DATA_OFFSET} + padded);`,
@@ -123,7 +124,7 @@ function generateStructReturnLogic(
   const { dynamic, size } = structInfo;
   let callLine = "";
 
-  const argsList = callArgs.map(arg => arg.name).join(", ");
+  const argsList = callArgs.map((arg) => arg.name).join(", ");
   if (dynamic) {
     callLine = [
       `const structPtr = ${methodName}(${argsList});`,
@@ -219,23 +220,27 @@ function generateMethodEntry(
   return { import: importStatement, entry };
 }
 
+/**
+ * Generates constructor entry for first-time deployment
+ * Uses normalized 'contract_constructor' name for consistent selector generation
+ */
 function generateConstructorEntry(
   contractName: string,
   constructor: { inputs: AbiInput[] },
   contractPath: string,
   symbolTable: SymbolTableStack,
-): { imports: string[]; entry: string } {
+): { imports: string[]; entry: string; selector: string } {
   const { inputs } = constructor;
 
   const { argLines, callArgs } = generateArgsLoadBlock(inputs);
 
   const deployMethod: IRMethod = {
-    name: `${contractName}_constructor`,
+    name: `contract_constructor`,
     visibility: Visibility.PUBLIC,
     stateMutability: StateMutability.NONPAYABLE,
     inputs: inputs.map((input) => ({
       name: input.name,
-    type: convertType(symbolTable, input.type),
+      type: convertType(symbolTable, input.type),
     })),
     outputs: [],
     ir: [],
@@ -252,7 +257,7 @@ function generateConstructorEntry(
 
   const entry = `${INDENTATION.BLOCK}if (selector == ${deploySig}) {\n${bodyLines}\n${INDENTATION.BLOCK}}`;
 
-  return { imports, entry };
+  return { imports, entry, selector: deploySig };
 }
 
 function processContractMethods(contract: IRContract): CodeBlock {
@@ -278,38 +283,160 @@ function processContractMethods(contract: IRContract): CodeBlock {
   return { imports, entries };
 }
 
+/**
+ * Processes fallback and receive functions for entrypoint dispatch logic
+ * Supports all combinations: fallback only, receive only, both, or neither
+ * Order independent - can handle receive defined before fallback or vice versa
+ */
+function processFallbackAndReceive(contract: IRContract): {
+  imports: string[];
+  fallbackEntry?: string;
+  receiveEntry?: string;
+} {
+  const imports: string[] = [];
+  let fallbackEntry: string | undefined;
+  let receiveEntry: string | undefined;
+
+  if (contract.fallback) {
+    const method = contract.fallback;
+    try {
+      const importStatement = `import { ${method.name} } from "./${contract.path}.transformed";`;
+      imports.push(importStatement);
+
+      const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
+      const callLogic = generateMethodCallLogic(method, callArgs, contract);
+      const bodyLines = [...argLines, callLogic]
+        .map((line) => `${INDENTATION.BODY}${line}`)
+        .join("\n");
+
+      fallbackEntry = `${INDENTATION.BLOCK}// Fallback function call\n${bodyLines}`;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Error processing fallback method: ${message}`);
+    }
+  }
+
+  if (contract.receive) {
+    const method = contract.receive;
+    try {
+      const importStatement = `import { ${method.name} } from "./${contract.path}.transformed";`;
+      imports.push(importStatement);
+
+      const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
+      const callLogic = generateMethodCallLogic(method, callArgs, contract);
+      const bodyLines = [...argLines, callLogic]
+        .map((line) => `${INDENTATION.BODY}${line}`)
+        .join("\n");
+
+      receiveEntry = `${INDENTATION.BLOCK}// Receive function call\n${bodyLines}`;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Error processing receive method: ${message}`);
+    }
+  }
+
+  return { imports, fallbackEntry, receiveEntry };
+}
+
 function processConstructor(contract: IRContract): CodeBlock {
   if (!contract.constructor) {
     return { imports: [], entries: [] };
   }
 
   try {
-    const { imports, entry } = generateConstructorEntry(
+    const { imports, entry, selector } = generateConstructorEntry(
       contract.name,
       contract.constructor,
       contract.path,
       contract.symbolTable,
     );
-    return { imports, entries: [entry] };
+    return { imports, entries: [entry], constructorSelector: selector };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Error processing constructor: ${message}`);
   }
 }
 
+/**
+ * Generates complete user entrypoint with fallback/receive support and constructor handling
+ * Handles first-time deployment constructor execution and fallback/receive dispatch logic
+ */
 export function generateUserEntrypoint(contract: IRContract): EntrypointResult {
   try {
     validateContract(contract);
 
     const methodsResult = processContractMethods(contract);
     const constructorResult = processConstructor(contract);
+    const fallbackReceiveResult = processFallbackAndReceive(contract);
 
-    const allImports = [...methodsResult.imports, ...constructorResult.imports];
-    const allEntries = [...methodsResult.entries, ...constructorResult.entries];
+    const allImports = [
+      ...methodsResult.imports,
+      ...constructorResult.imports,
+      ...fallbackReceiveResult.imports,
+    ];
+    const allEntries = contract.constructor
+      ? [...methodsResult.entries]
+      : [...methodsResult.entries, ...constructorResult.entries];
+
+    let entrypointBody = allEntries.join("\n");
+
+    if (contract.fallback || contract.receive) {
+      let fallbackDispatch = "";
+
+      if (contract.receive && contract.fallback) {
+        // Both functions exist - use proper dispatch logic
+        if (!fallbackReceiveResult.fallbackEntry || !fallbackReceiveResult.receiveEntry) {
+          throw new Error(
+            "Both fallback and receive functions are defined but entries are missing",
+          );
+        }
+
+        fallbackDispatch = `
+  if (!isFirstTimeDeploy()) {
+    if (selector == 0 && Msg.hasValue()) {
+${fallbackReceiveResult.receiveEntry.replace(/^ {2}/, "      ")}
+    } else {
+${fallbackReceiveResult.fallbackEntry.replace(/^ {2}/, "      ")}
+    }
+  }
+  return 0;`;
+      } else if (contract.receive) {
+        if (!fallbackReceiveResult.receiveEntry) {
+          throw new Error("Receive function is defined but entry is missing");
+        }
+
+        fallbackDispatch = `
+  if (!isFirstTimeDeploy()) {
+    if (selector == 0 && Msg.hasValue()) {
+${fallbackReceiveResult.receiveEntry.replace(/^ {2}/, "      ")}
+    }
+  }
+  return 0;`;
+      } else if (contract.fallback) {
+        if (!fallbackReceiveResult.fallbackEntry) {
+          throw new Error("Fallback function is defined but entry is missing");
+        }
+
+        fallbackDispatch = `
+  if (!isFirstTimeDeploy()) {
+${fallbackReceiveResult.fallbackEntry.replace(/^ {2}/, "    ")}
+  }
+  return 0;`;
+      }
+
+      entrypointBody = entrypointBody + "\n" + fallbackDispatch;
+
+      return {
+        imports: allImports.join("\n"),
+        entrypointBody,
+      };
+    }
+
+    entrypointBody = entrypointBody + "\n  return 0;";
 
     return {
       imports: allImports.join("\n"),
-      entrypointBody: allEntries.join("\n"),
+      entrypointBody,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -327,8 +454,44 @@ export function buildEntrypoint(userFilePath: string, contract: IRContract): voi
     const contractBasePath = path.dirname(userFilePath);
 
     let indexTemplate = getUserEntrypointTemplate();
+
     indexTemplate = indexTemplate.replace("// @logic_imports", imports);
-    indexTemplate = indexTemplate.replace("// @user_entrypoint", entrypointBody);
+    indexTemplate = indexTemplate.replace("// @user_entrypoint\n  return 0;", entrypointBody);
+
+    if (contract.constructor) {
+      const constructorResult = processConstructor(contract);
+      if (constructorResult.constructorSelector) {
+        const constructorCall = constructorResult.entries[0];
+        const constructorLines = constructorCall.split("\n");
+        const bodyLines = constructorLines.slice(1, -1);
+        const processedLines = bodyLines.map((line) => {
+          return line.replace(/; return 0;/, ";");
+        });
+        const constructorBody = processedLines.join("\n");
+        const constructorCheck = `if (selector == ${constructorResult.constructorSelector}) {
+${constructorBody}
+      store_initialized_storage(Boolean.create(true));
+      return 0;`;
+        const constructorFallthrough = `}`;
+        indexTemplate = indexTemplate.replace("// @constructor_check", constructorCheck);
+        indexTemplate = indexTemplate.replace(
+          "// @constructor_fallthrough",
+          constructorFallthrough,
+        );
+      } else {
+        indexTemplate = indexTemplate.replace("// @constructor_check", "");
+        indexTemplate = indexTemplate.replace(
+          "// @constructor_fallthrough",
+          "store_initialized_storage(Boolean.create(true));\n    return 0;",
+        );
+      }
+    } else {
+      indexTemplate = indexTemplate.replace("// @constructor_check", "");
+      indexTemplate = indexTemplate.replace(
+        "// @constructor_fallthrough",
+        "store_initialized_storage(Boolean.create(true));\n    return 0;",
+      );
+    }
 
     const outputPath = path.join(contractBasePath, `${contract.path}.entrypoint.ts`);
     writeFile(outputPath, indexTemplate);

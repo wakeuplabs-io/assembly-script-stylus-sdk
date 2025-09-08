@@ -77,6 +77,37 @@ const SEMANTIC_ERRORS: Record<string, SemanticError> = {
     message: () => 'Multiple inheritance is not supported',
     description: 'A contract class has multiple inheritance.',
     suggestedFix: 'Ensure the contract class has only one inheritance.'
+  },
+  // Fallback/Receive decorator errors
+  [ERROR_CODES.MULTIPLE_FALLBACK_RECEIVE_DECORATORS]: {
+    code: ERROR_CODES.MULTIPLE_FALLBACK_RECEIVE_DECORATORS,
+    message: ([decorators]: string[]) => `Method cannot have multiple fallback/receive decorators: ${decorators}`,
+    description: 'A method has both @Fallback and @Receive decorators, which is not allowed.',
+    suggestedFix: 'Use either @Fallback or @Receive, but not both on the same method.'
+  },
+  [ERROR_CODES.FALLBACK_RECEIVE_MUST_BE_EXTERNAL]: {
+    code: ERROR_CODES.FALLBACK_RECEIVE_MUST_BE_EXTERNAL,
+    message: ([decoratorName]: string[]) => `${decoratorName} function must be external`,
+    description: 'Fallback and receive functions must have external visibility.',
+    suggestedFix: 'Add @External decorator to the fallback/receive function.'
+  },
+  [ERROR_CODES.FALLBACK_RECEIVE_CANNOT_BE_VIEW_PURE]: {
+    code: ERROR_CODES.FALLBACK_RECEIVE_CANNOT_BE_VIEW_PURE,
+    message: ([decoratorName]: string[]) => `${decoratorName} function cannot be view or pure`,
+    description: 'Fallback and receive functions cannot be marked as view or pure since they can modify state.',
+    suggestedFix: 'Remove @View or @Pure decorators from fallback/receive functions.'
+  },
+  [ERROR_CODES.FALLBACK_RECEIVE_NO_PARAMETERS]: {
+    code: ERROR_CODES.FALLBACK_RECEIVE_NO_PARAMETERS,
+    message: ([decoratorName]: string[]) => `${decoratorName} function cannot have parameters`,
+    description: 'Fallback and receive functions must not accept any parameters.',
+    suggestedFix: 'Remove all parameters from the fallback/receive function.'
+  },
+  [ERROR_CODES.RECEIVE_MUST_RETURN_VOID]: {
+    code: ERROR_CODES.RECEIVE_MUST_RETURN_VOID,
+    message: () => 'Receive function must return void',
+    description: 'Receive functions cannot return values.',
+    suggestedFix: 'Change the return type of the receive function to void.'
   }
 };
 
