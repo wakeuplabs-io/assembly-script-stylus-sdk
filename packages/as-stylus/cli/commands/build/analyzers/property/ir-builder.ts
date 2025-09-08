@@ -95,8 +95,6 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     return syntaxValidator.validate();
   }
 
-
-
   buildIR(): IRVariable {
     const typeInferred = inferType(this.symbolTable, this.property.getType().getText());
     const { name, type } = parseName(this.property.getText(), typeInferred);
@@ -104,14 +102,14 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       name,
       type: convertType(this.symbolTable, type),
       scope: "storage",
-      dynamicType: type
+      dynamicType: type,
     });
-  
+
     const fullTypeText = this.property.getType().getText();
     const typeNodeText = this.property.getTypeNode()?.getText() || "";
     const arrayInfo = extractArrayTypes(typeNodeText);
     const mappingTypes = extractMappingTypes(fullTypeText);
-    
+
     // Handle static arrays
     if (arrayInfo.isStatic && arrayInfo.elementType && arrayInfo.length) {
       const arrayVar: IRArrayStaticVar = {
@@ -124,7 +122,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       };
       return arrayVar;
     }
-    
+
     // Handle dynamic arrays
     if (!arrayInfo.isStatic && arrayInfo.elementType) {
       const arrayVar: IRArrayDynamicVar = {
@@ -136,7 +134,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       };
       return arrayVar;
     }
-    
+
     if (type === AbiType.MappingNested || type.startsWith("MappingNested")) {
       const variable: IRVariable = {
         name,
@@ -147,7 +145,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
         valueType: mappingTypes.valueType || "U256",
         kind: "mapping2",
       };
-      
+
       return variable;
     }
 
