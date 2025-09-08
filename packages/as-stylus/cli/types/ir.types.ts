@@ -37,6 +37,19 @@ export type Call = {
     structType?: string;
   };
 };
+
+export type ArrayAccess = {
+  kind: "array_access";
+  array: IRExpression;
+  index: IRExpression;
+  type: SupportedType;
+};
+
+export type ArrayLiteral = {
+  kind: "array_literal";
+  elements: IRExpression[];
+  type: SupportedType;
+};
 export type Member = {
   kind: "member";
   object: IRExpression;
@@ -141,7 +154,9 @@ export type IRExpression =
   | IRMapGet2
   | IRMapSet2
   | IRThis
-  | ChainedCall;
+  | ChainedCall
+  | ArrayAccess
+  | ArrayLiteral;
 
 // ───────────────────────
 // Statements
@@ -224,7 +239,29 @@ export type IRMappingNestedVar = {
   kind: "mapping2";
 };
 
-export type IRVariable = IRSimpleVar | IRMappingVar | IRMappingNestedVar;
+export type IRArrayStaticVar = {
+  name: string;
+  type: AbiType.ArrayStatic;
+  slot: number;
+  elementType: string;
+  length: number;
+  kind: "array_static";
+};
+
+export type IRArrayDynamicVar = {
+  name: string;
+  type: AbiType.ArrayDynamic;
+  slot: number;
+  elementType: string;
+  kind: "array_dynamic";
+};
+
+export type IRVariable =
+  | IRSimpleVar
+  | IRMappingVar
+  | IRMappingNestedVar
+  | IRArrayStaticVar
+  | IRArrayDynamicVar;
 
 // ───────────────────────
 // Contract structure

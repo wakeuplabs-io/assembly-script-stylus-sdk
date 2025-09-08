@@ -1,4 +1,11 @@
-import { SourceFile, ConstructorDeclaration, ClassDeclaration, SyntaxKind, CallExpression, VariableDeclaration } from "ts-morph";
+import {
+  SourceFile,
+  ConstructorDeclaration,
+  ClassDeclaration,
+  SyntaxKind,
+  CallExpression,
+  VariableDeclaration,
+} from "ts-morph";
 
 import { IRContract, IRErrorDecl, IREvent } from "@/cli/types/ir.types.js";
 
@@ -16,10 +23,10 @@ import { SymbolTableStack } from "../shared/symbol-table.js";
 import { StructIRBuilder } from "../struct/ir-builder.js";
 
 const DECORATORS = {
-  CONTRACT: 'Contract',
-  STRUCT: 'Struct',
-  EVENT: 'Event',
-  ERROR: 'Error'
+  CONTRACT: "Contract",
+  STRUCT: "Struct",
+  EVENT: "Event",
+  ERROR: "Error",
 } as const;
 
 export class ContractIRBuilder extends IRBuilder<IRContract> {
@@ -44,7 +51,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
   buildIR(): IRContract {
     const classes = this.sourceFile.getClasses();
-    
+
     if (classes.length === 0) {
       return this.createEmptyContract();
     }
@@ -95,10 +102,8 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
   }
 
   private findContractClass(classes: ClassDeclaration[]): ClassDeclaration | undefined {
-    const contractClass = classes.find(cls => 
-      this.hasDecorator(cls, DECORATORS.CONTRACT)
-    );
-    
+    const contractClass = classes.find((cls) => this.hasDecorator(cls, DECORATORS.CONTRACT));
+
     if (contractClass) {
       return contractClass;
     }
@@ -107,22 +112,20 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
   }
 
   private hasDecorator(cls: ClassDeclaration, decoratorName: string): boolean {
-    return cls.getDecorators().some(decorator => 
-      decorator.getName() === decoratorName
-    );
+    return cls.getDecorators().some((decorator) => decorator.getName() === decoratorName);
   }
 
-  private filterClassesByDecorator(classes: ClassDeclaration[], decoratorName: string): ClassDeclaration[] {
-    return classes.filter(cls => this.hasDecorator(cls, decoratorName));
+  private filterClassesByDecorator(
+    classes: ClassDeclaration[],
+    decoratorName: string,
+  ): ClassDeclaration[] {
+    return classes.filter((cls) => this.hasDecorator(cls, decoratorName));
   }
 
   private handleNoContractClassError(): void {
-    this.errorManager.addSemanticError(
-      "NO_CONTRACT_CLASS",
-      this.sourceFile.getFilePath(),
-      1,
-      ["No contract class found in the file."]
-    );
+    this.errorManager.addSemanticError("NO_CONTRACT_CLASS", this.sourceFile.getFilePath(), 1, [
+      "No contract class found in the file.",
+    ]);
   }
 
   private processInheritance(contractClass: ClassDeclaration): IRContract | undefined {
@@ -131,13 +134,13 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
   private processStructs(classes: ClassDeclaration[]) {
     const structClasses = this.filterClassesByDecorator(classes, DECORATORS.STRUCT);
-    
-    const structs = structClasses.map(structClass => {
+
+    const structs = structClasses.map((structClass) => {
       const structIRBuilder = new StructIRBuilder(structClass);
       return structIRBuilder.validateAndBuildIR();
     });
 
-    structs.forEach(struct => {
+    structs.forEach((struct) => {
       this.symbolTable.declareStruct(struct.name, struct);
     });
 
@@ -147,95 +150,99 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
   private processEvents(): IREvent[] {
     const events: IREvent[] = [];
     const sourceFile = this.sourceFile;
-    
+
     // Find all EventFactory.create<T>() calls
     const eventFactoryCalls = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
-    
+
     for (const call of eventFactoryCalls) {
       const expr = call.getExpression();
-      
+
       if (expr.getText() === "EventFactory.create") {
         const parent = call.getParent();
-        
+
         if (parent && parent.getKind() === SyntaxKind.VariableDeclaration) {
           const varDecl = parent as VariableDeclaration;
-          
+
           const eventIRBuilder = new EventIRBuilder(varDecl);
           const eventIR = eventIRBuilder.validateAndBuildIR();
-          
+
           events.push(eventIR);
         }
       }
     }
-    
+
     return events;
   }
 
   private processErrors(classes: ClassDeclaration[]) {
     const errors: IRErrorDecl[] = [];
-    
+
     // TODO: Remove this once we have a proper way to handle ErrorFactory.create<T>() calls
     const errorClasses = this.filterClassesByDecorator(classes, DECORATORS.ERROR);
-    errorClasses.forEach(errorClass => {
+    errorClasses.forEach((errorClass) => {
       const errorIRBuilder = new ErrorIRBuilder(errorClass);
       errors.push(errorIRBuilder.validateAndBuildIR());
     });
-    
+
     // Process ErrorFactory.create<T>() calls
     const errorFactoryErrors = this.processErrorFactoryCalls();
     errors.push(...errorFactoryErrors);
-    
+
     return errors;
   }
 
   private processErrorFactoryCalls(): IRErrorDecl[] {
     const errors: IRErrorDecl[] = [];
     const sourceFile = this.sourceFile;
-    
+
     // Find all ErrorFactory.create<T>() calls
     const errorFactoryCalls = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
-    
+
     for (const call of errorFactoryCalls) {
       const expr = call.getExpression();
-      
+
       if (expr.getText() === "ErrorFactory.create") {
-        
         // Create a synthetic class declaration for the error
         const parent = call.getParent();
-        
+
         if (parent && parent.getKind() === SyntaxKind.VariableDeclaration) {
           const varDecl = parent as VariableDeclaration;
           const errorName = varDecl.getName();
-          
+
           const syntheticClass = this.createSyntheticErrorClass(errorName, call);
-          
+
           const errorIRBuilder = new ErrorIRBuilder(syntheticClass);
           const errorIR = errorIRBuilder.validateAndBuildIR();
-          
+
           errors.push(errorIR);
         }
       }
     }
-    
+
     return errors;
   }
 
-  private createSyntheticErrorClass(errorName: string, errorFactoryCall: CallExpression): ClassDeclaration {
+  private createSyntheticErrorClass(
+    errorName: string,
+    errorFactoryCall: CallExpression,
+  ): ClassDeclaration {
     const sourceFile = this.sourceFile;
-    
+
     const tempClass = sourceFile.addClass({
       name: errorName,
       isExported: false,
-      decorators: []
+      decorators: [],
     });
-    
+
     (tempClass as any).errorFactoryCall = errorFactoryCall;
-    
+
     return tempClass;
   }
 
   private processStorage(contractClass: ClassDeclaration) {
-    const storage = contractClass.getProperties().map((property) => {
+    const properties = contractClass.getProperties();
+    
+    const storage = properties.map((property) => {
       const propertyIRBuilder = new PropertyIRBuilder(property);
       return propertyIRBuilder.validateAndBuildIR();
     });
@@ -245,7 +252,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
   private processConstructor(contractClass: ClassDeclaration) {
     const constructorDecl: ConstructorDeclaration = contractClass.getConstructors()[0];
-    
+
     if (!constructorDecl) {
       return undefined;
     }
@@ -256,15 +263,15 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
   private processMethods(contractClass: ClassDeclaration) {
     const methods = contractClass.getMethods();
-    
+
     // First pass: register all method names in symbol table
-    const methodNames = methods.map(method => {
+    const methodNames = methods.map((method) => {
       const name = method.getName();
       this.symbolTable.declareFunction(name, {
         returnType: convertType(this.symbolTable, method.getReturnType().getText()),
         isDeclaredByUser: true,
         name: name,
-        parameters: method.getParameters().map(param => ({
+        parameters: method.getParameters().map((param) => ({
           name: param.getName(),
           type: convertType(this.symbolTable, param.getType().getText()),
         })),
@@ -279,29 +286,31 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     });
 
     // Separate methods by type
-    const normalMethods = allMethods.filter(method => !method.methodType || method.methodType === "normal");
-    const fallbackMethod = allMethods.find(method => method.methodType === "fallback");
-    const receiveMethod = allMethods.find(method => method.methodType === "receive");
+    const normalMethods = allMethods.filter(
+      (method) => !method.methodType || method.methodType === "normal",
+    );
+    const fallbackMethod = allMethods.find((method) => method.methodType === "fallback");
+    const receiveMethod = allMethods.find((method) => method.methodType === "receive");
 
     // Validate only one fallback and one receive per contract
-    const fallbackMethods = allMethods.filter(method => method.methodType === "fallback");
-    const receiveMethods = allMethods.filter(method => method.methodType === "receive");
+    const fallbackMethods = allMethods.filter((method) => method.methodType === "fallback");
+    const receiveMethods = allMethods.filter((method) => method.methodType === "receive");
 
     if (fallbackMethods.length > 1) {
       this.errorManager.addSemanticError(
         "MULTIPLE_FALLBACK_FUNCTIONS",
         this.sourceFile.getFilePath(),
         1,
-        ["Only one fallback function is allowed per contract."]
+        ["Only one fallback function is allowed per contract."],
       );
     }
 
     if (receiveMethods.length > 1) {
       this.errorManager.addSemanticError(
-        "MULTIPLE_RECEIVE_FUNCTIONS", 
+        "MULTIPLE_RECEIVE_FUNCTIONS",
         this.sourceFile.getFilePath(),
         1,
-        ["Only one receive function is allowed per contract."]
+        ["Only one receive function is allowed per contract."],
       );
     }
 

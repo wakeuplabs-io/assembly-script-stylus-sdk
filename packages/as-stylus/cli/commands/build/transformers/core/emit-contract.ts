@@ -95,7 +95,6 @@ export function emitContract(contract: IRContract): string {
   transformerRegistry.register(new ExpressionHandler(contractContext));
 
   const parts: string[] = [];
-
   // Add imports
   parts.push(generateImports(contract));
 

@@ -26,6 +26,8 @@ export enum AbiType {
   Bytes = "bytes",
   Struct = "struct",
   Array = "array",
+  ArrayStatic = "array_static",
+  ArrayDynamic = "array_dynamic",
   Tuple = "tuple",
   // TODO: Analyze if we need these
   Void = "void",
