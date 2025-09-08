@@ -271,7 +271,6 @@ export function generateImports(contract: IRContract): string {
 
   if (hasCallFactory || hasInterfaceCasts) {
     lines.push(`import { Calls, CallResult } from "${packageName}/core/modules/calls";`);
-    lines.push(`import { ABI } from "${packageName}/core/modules/abi";`);
     lines.push(`import { U256Factory } from "${packageName}/cli/sdk-interface/u256";`);
     lines.push(`import { AddressFactory } from "${packageName}/cli/sdk-interface/address";`);
   }

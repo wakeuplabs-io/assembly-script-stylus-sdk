@@ -482,14 +482,14 @@ ${constructorBody}
         indexTemplate = indexTemplate.replace("// @constructor_check", "");
         indexTemplate = indexTemplate.replace(
           "// @constructor_fallthrough",
-          "store_initialized_storage(Boolean.create(true));\n    return 0;",
+          "store_initialized_storage(Boolean.create(true));",
         );
       }
     } else {
       indexTemplate = indexTemplate.replace("// @constructor_check", "");
       indexTemplate = indexTemplate.replace(
         "// @constructor_fallthrough",
-        "store_initialized_storage(Boolean.create(true));\n    return 0;",
+        "store_initialized_storage(Boolean.create(true));",
       );
     }
 

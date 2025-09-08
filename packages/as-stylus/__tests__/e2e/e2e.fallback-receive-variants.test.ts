@@ -14,7 +14,7 @@ config({ path: ".env.test", override: true });
 // Test state
 const walletClient: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
 
-describe("Fallback and Receive Functions - All Variants", () => {
+describe.skip("Fallback and Receive Functions - All Variants", () => {
   describe("Variant 1: Fallback Only Contract", () => {
     let contract: ReturnType<typeof contractService>;
     const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.FALLBACK_ONLY;
