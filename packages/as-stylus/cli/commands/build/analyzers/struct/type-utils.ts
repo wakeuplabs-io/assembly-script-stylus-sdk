@@ -47,7 +47,6 @@ export function calculateFieldLayout(fields: Array<{ name: string; type: AbiType
       name: field.name,
       type: field.type,
       offset: currentOffset,
-      memoryOffset: isDynamic ? currentOffset + 32 : currentOffset,
       size: fieldSize,
       dynamic: fieldDynamic,
     };
@@ -56,12 +55,10 @@ export function calculateFieldLayout(fields: Array<{ name: string; type: AbiType
     return layoutField;
   });
 
-  const memorySize = 32 + currentOffset + (countString * 32 * 2);
   return {
     fields: layoutFields,
     totalSize: currentOffset,
     dynamic: isDynamic,
-    memorySize: countString === 0 ? currentOffset : memorySize,
     alignment: 32, // EVM alignment (32 bytes)
   };
 } 

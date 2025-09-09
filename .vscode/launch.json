@@ -1,98 +1,68 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Build Balance Contract",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/balances",
-            "runtimeExecutable": "npx",
-            "runtimeArgs": [
-                "as-stylus",
-                "build"
-            ],
-            "console": "integratedTerminal"
-        },
-        {
-          "type": "node",
-          "request": "launch",
-          "name": "Build Address Contract",
-          "skipFiles": [
-              "<node_internals>/**"
-          ],
-          "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/admin-registry",
-          "runtimeExecutable": "npx",
-          "runtimeArgs": [
-              "as-stylus",
-              "build"
-          ],
-          "console": "integratedTerminal"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Build ERC20 Contract",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/erc20-full",
-            "runtimeExecutable": "npx",
-            "runtimeArgs": [
-                "as-stylus",
-                "build"
-            ],
-            "console": "integratedTerminal"
-        },
-        {
-          "type": "node",
-          "request": "launch",
-          "name": "Build String Contract",
-          "skipFiles": [
-              "<node_internals>/**"
-          ],
-          "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/string",
-          "runtimeExecutable": "npx",
-          "runtimeArgs": [
-              "as-stylus",
-              "build"
-          ],
-          "console": "integratedTerminal"
-        },
-        {
-          "type": "node",
-          "request": "launch",
-          "name": "Build Struct Contract",
-          "skipFiles": [
-              "<node_internals>/**"
-          ],
-          "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/struct",
-          "runtimeExecutable": "npx",
-          "runtimeArgs": [
-              "as-stylus",
-              "build"
-          ],
-          "console": "integratedTerminal"
-        },
-        {
-          "type": "node",
-          "request": "launch",
-          "name": "Build ERC721 Contract",
-          "skipFiles": [
-              "<node_internals>/**"
-          ],
-          "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/erc721",
-          "runtimeExecutable": "npx",
-          "runtimeArgs": [
-              "as-stylus",
-              "build"
-          ],
-          "console": "integratedTerminal"
-        },
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Build Balance Contract",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/balances",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["as-stylus", "build"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Build Address Contract",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/admin-registry",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["as-stylus", "build"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Build ERC20 Contract",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/erc20-full",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["as-stylus", "build"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Build String Contract",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/string",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["as-stylus", "build"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Build Struct Contract",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/struct",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["as-stylus", "build", "./contract.ts"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Build ERC721 Contract",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/erc721",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["as-stylus", "build"],
+      "console": "integratedTerminal"
+    }
+  ]
 }

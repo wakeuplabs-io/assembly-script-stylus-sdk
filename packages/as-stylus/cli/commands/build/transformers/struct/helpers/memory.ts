@@ -7,46 +7,34 @@ export function ${name}_memory_alloc(): usize {
   const ptr = Struct.alloc(${size});
   return ptr;
 }`,
-  dynamic: (name: string, dynamicSize: number) => `
-export function ${name}_memory_alloc(): usize {
-  const ptr = Struct.alloc(${dynamicSize});
-  store<u8>(ptr + 31, 0x20);
-  return ptr;
-}`
 };
 
 const MEMORY_GETTER_TEMPLATES = {
   BOOL: (name: string, fieldName: string, offset: number) => `
 export function ${name}_memory_get_${fieldName}(ptr: usize): boolean {
-  return Boolean.fromABI(ptr + ${offset});
+  return StructMemory.getBoolean(ptr, ${offset});
 }`,
 
   STRING: (name: string, fieldName: string, fieldOffset: number) => `
 export function ${name}_memory_get_${fieldName}(ptr: usize): usize {
-  return Struct.getMemoryString(ptr + 32, ptr + ${fieldOffset});
+  return StructMemory.getString(ptr, ${fieldOffset});
 }`,
 
   GENERIC: (name: string, fieldName: string, offset: number) => `
 export function ${name}_memory_get_${fieldName}(ptr: usize): usize {
-  const pointer = malloc(32);
-  for (let i = 0; i < 32; i++) {
-    store<u8>(pointer + i, load<u8>(ptr + ${offset} + i));
-  }
-  return pointer;
+  return StructMemory.getField(ptr, ${offset});
 }`
 };
 
 const MEMORY_SETTER_TEMPLATES = {
-  STRING: (name: string, fieldName: string, fieldOffset: number, dynamicOffset: number) => `
+  STRING: (name: string, fieldName: string, fieldOffset: number) => `
 export function ${name}_memory_set_${fieldName}(ptr: usize, v: usize): void {
-  Struct.setMemoryString(ptr + ${fieldOffset}, v, ${dynamicOffset});
+  StructMemory.setString(ptr, ${fieldOffset}, v);
 }`,
 
   GENERIC: (name: string, fieldName: string, fieldOffset: number) => `
 export function ${name}_memory_set_${fieldName}(ptr: usize, v: usize): void {
-  for (let i = 0; i < 32; i++) {
-    store<u8>(ptr + ${fieldOffset} + i, load<u8>(v + i));
-  }
+  StructMemory.setField(ptr, ${fieldOffset}, v);
 }`
 };
 
@@ -62,13 +50,6 @@ export function generateMemoryAlloc(
   structName?: string
 ): string {
   const name = structName || struct.name;
-
-  const strings = struct.fields.filter((field) => field.type === AbiType.String);
-  const isDynamic = strings.length > 0;
-  if (isDynamic) {
-    const dynamicSize = struct.size + strings.length * 64 + 32;
-    return ALLOCS_TEMPLATES.dynamic(name, dynamicSize);
-  }
 
   return ALLOCS_TEMPLATES.static(name, struct.size);
 }
@@ -92,14 +73,14 @@ export function generateMemoryGetters(
 
     switch (field.type) {
       case AbiType.Bool:
-        template = MEMORY_GETTER_TEMPLATES.BOOL(name, field.name, field.memoryOffset);
+        template = MEMORY_GETTER_TEMPLATES.BOOL(name, field.name, field.offset);
         break;
       case AbiType.String: {
-        template = MEMORY_GETTER_TEMPLATES.STRING(name, field.name, field.memoryOffset);
+        template = MEMORY_GETTER_TEMPLATES.STRING(name, field.name, field.offset);
         break;
       }
       default:
-        template = MEMORY_GETTER_TEMPLATES.GENERIC(name, field.name, field.memoryOffset);
+        template = MEMORY_GETTER_TEMPLATES.GENERIC(name, field.name, field.offset);
         break;
     }
 
@@ -127,11 +108,9 @@ export function generateMemorySetters(
     let template: string;
 
     if (field.type === AbiType.String) {
-      const previousStrings = struct.fields.filter(f => f.type === AbiType.String && f.offset < field.offset);
-      const dynamicOffset = struct.size + previousStrings.length * 64;
-      template = MEMORY_SETTER_TEMPLATES.STRING(name, field.name, field.memoryOffset, dynamicOffset);
+      template = MEMORY_SETTER_TEMPLATES.STRING(name, field.name, field.offset);
     } else {
-      template = MEMORY_SETTER_TEMPLATES.GENERIC(name, field.name, field.memoryOffset);
+      template = MEMORY_SETTER_TEMPLATES.GENERIC(name, field.name, field.offset);
     }
 
     helpers.push(template);

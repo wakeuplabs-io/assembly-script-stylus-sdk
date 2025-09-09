@@ -265,7 +265,6 @@ export interface IRStructField {
   name: string;
   type: string;
   offset: number;
-  memoryOffset: number;
   size: number;
   dynamic: boolean;
 }
@@ -274,7 +273,6 @@ export interface IRStruct {
   name: string;
   fields: IRStructField[];
   size: number;
-  memorySize: number;
   dynamic: boolean;
   alignment: number;
 }

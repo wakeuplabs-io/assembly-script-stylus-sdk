@@ -8,6 +8,7 @@ import { getReturnSize } from "@/cli/utils/type-utils.js";
 import { getUserEntrypointTemplate } from "@/templates/entrypoint.js";
 
 import { convertType } from "./build-abi.js";
+import { generateStructToABI } from "./entrypoint/struct-to-abi.js";
 import { SymbolTableStack } from "../analyzers/shared/symbol-table.js";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
 
@@ -97,14 +98,15 @@ function generateStructReturnLogic(
   callArgs: Array<{ name: string }>,
   structInfo: IRStruct,
 ): string {
-  const { memorySize } = structInfo;
   let callLine = "";
 
   const argsList = callArgs.map((arg) => arg.name).join(", ");
 
   callLine = [
     `const ptr = ${methodName}(${argsList});`,
-    `write_result(ptr, ${memorySize});`,
+    `const resultPointer = ${structInfo.name}_toABI(ptr);`,
+    `const size = ${structInfo.name}_getDynamicSize(ptr);`,
+    `write_result(resultPointer, size);`,
     `return 0;`,
   ].join("\n    ");
 
@@ -159,7 +161,7 @@ function generateMethodCallLogic(
 function generateMethodEntry(
   method: IRMethod,
   contract: IRContract,
-): { import: string; entry: string } {
+): { import: string; functions: string | undefined; entry: string } {
   validateMethod(method);
 
   const { name, visibility } = method;
@@ -173,12 +175,13 @@ function generateMethodEntry(
 
   const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
   const callLogic = generateMethodCallLogic(method, callArgs, contract);
+  const functions = generateStructToABI(method, contract);
 
   const bodyLines = [...argLines, callLogic].map((line) => `${INDENTATION.BODY}${line}`).join("\n");
 
   const entry = `${INDENTATION.BLOCK}if (selector == ${selector}) {\n${bodyLines}\n${INDENTATION.BLOCK}}`;
 
-  return { import: importStatement, entry };
+  return { import: importStatement, functions, entry };
 }
 
 function generateConstructorEntry(
@@ -228,8 +231,11 @@ function processContractMethods(contract: IRContract): CodeBlock {
       )
     ) {
       try {
-        const { import: methodImport, entry } = generateMethodEntry(method, contract);
+        const { import: methodImport, functions: utils, entry } = generateMethodEntry(method, contract);
         imports.push(methodImport);
+        if (utils) {
+          functions.push(utils);
+        }
         entries.push(entry);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

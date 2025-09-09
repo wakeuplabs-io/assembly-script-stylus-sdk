@@ -1,7 +1,6 @@
 import { Address } from "./address";
 import { Boolean } from "./boolean";
 import { Str } from "./str";
-import { storeU32BE, loadU32BE } from "../modules/endianness";
 import {
   storage_load_bytes32,
   storage_cache_bytes32,
@@ -10,6 +9,7 @@ import {
 import { malloc } from "../modules/memory";
 import { createStorageKey } from "../modules/storage";
 
+// TODO: convert it to StructStorage
 export class Struct {
   /**
    * Allocates and zero-initializes memory for a struct
@@ -30,16 +30,6 @@ export class Struct {
    */
   static copy(d: usize, s: usize, sz: u32): void {
     memory.copy(d, s, sz);
-  }
-
-  /**
-   * Gets a pointer to a field within a struct
-   * @param ptr - Base struct pointer
-   * @param off - Field offset in bytes
-   * @returns Pointer to the field
-   */
-  static getField(ptr: usize, off: u32): usize {
-    return ptr + off;
   }
 
   /**
@@ -95,40 +85,6 @@ export class Struct {
     Str.storeTo(slot, strObj);
   }
 
-  static getMemoryString(base: usize, field: usize): usize {
-    const offset: u32 = loadU32BE(field + 28);
-    const len = loadU32BE(base + offset + 28);
-    const dataPtr = base + offset + 32;
-    return Str.fromBytes(dataPtr, len);
-  }
-
-  /**
-   * Sets a string field in a struct memory with ABI format
-   * @param ptr - Struct pointer (where to write the offset)
-   * @param strObj - String object pointer (AssemblyScript string format)
-   */
-  static setMemoryString(ptr: usize, strObj: usize, offset: u32): void {
-    const strLen: u32 = load<u32>(strObj);
-    const baseSize: u32 = offset;
-
-    // Set offset pointer in the struct field (points to where string data starts)
-    for (let i = 0; i < 32; i++) store<u8>(ptr + i, 0);
-    storeU32BE(ptr + 28, baseSize);
-
-    // Get pointer to where string data will be written (after the base struct)
-    const stringDataPtr = ptr - 32 + baseSize; // ptr - 32 because ptr already points to the string field offset
-
-    // Write string length at the beginning of string data area
-    for (let i = 0; i < 32; i++) store<u8>(stringDataPtr + i, 0);
-    storeU32BE(stringDataPtr + 28, strLen);
-
-    // Write actual string content after the length
-    const stringContentPtr = stringDataPtr + 32;
-    for (let i: u32 = 0; i < strLen; i++) {
-      store<u8>(stringContentPtr + i, load<u8>(strObj + 4 + i)); // +4 to skip AS string length header
-    }
-  }
-
   /**
    * Sets a U256 field and stores to storage
    * @param slot - Storage slot identifier
@@ -150,54 +106,12 @@ export class Struct {
   }
 
   /**
-   * Encodes a struct with dynamic data for ABI compatibility
-   * @param structPtr - Base struct pointer (modified in place)
-   * @param stringFieldOffset - Offset of string field in the struct
-   * @param stringABIBlob - Pointer to ABI-encoded string data
-   * @returns Total size of the encoded struct
-   */
-  static encodeStructForABI(structPtr: usize, stringFieldOffset: u32, stringABIBlob: usize): u32 {
-    const baseSize: u32 = 160;
-
-    for (let i = 0; i < 32; i++) store<u8>(structPtr + stringFieldOffset + i, 0);
-    storeU32BE(structPtr + stringFieldOffset + 28, baseSize);
-
-    const strLen: u32 = loadU32BE(stringABIBlob + 0x20 + 28);
-    const paddedLen = (strLen + 31) & ~31;
-
-    const stringDataPtr = structPtr + baseSize;
-    for (let i = 0; i < 32; i++) store<u8>(stringDataPtr + i, 0);
-    storeU32BE(stringDataPtr + 28, strLen);
-
-    const stringContentPtr = stringDataPtr + 32;
-    for (let i: u32 = 0; i < paddedLen; i++) {
-      store<u8>(stringContentPtr + i, load<u8>(stringABIBlob + 0x40 + i));
-    }
-
-    return baseSize + 32 + paddedLen;
-  }
-
-  /**
    * Retrieves a string from storage and converts to ABI format
    * @param slot - Storage slot identifier
    * @returns Pointer to ABI-encoded string data
    */
   static getString(slot: u64): usize {
     return Str.loadFrom(slot);
-  }
-
-  /**
-   * Gets a string from a struct field and converts to ABI format
-   * @param ptr - Struct pointer
-   * @param offset - Field offset in the struct
-   * @returns Pointer to ABI-encoded string data, or 0 if null
-   */
-  static getStringFromField(ptr: usize, offset: u32): usize {
-    const stringPtr = load<usize>(ptr + offset);
-    if (stringPtr != 0) {
-      return Str.rawStringToABI(stringPtr);
-    }
-    return 0;
   }
 
   /**

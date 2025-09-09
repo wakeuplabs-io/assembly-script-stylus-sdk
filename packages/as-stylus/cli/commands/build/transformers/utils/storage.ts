@@ -110,6 +110,7 @@ export function generateImports(contract: IRContract): string {
     lines.push(`import { loadU32BE } from "${packageName}/core/modules/endianness";`);
   }
   lines.push(`import { Struct } from "${packageName}/core/types/struct";`);
+  lines.push(`import { StructMemory } from "${packageName}/core/memory/struct";`);
   lines.push(`import { Msg } from "${packageName}/core/types/msg";`);
   lines.push(`import { malloc } from "${packageName}/core/modules/memory";`);
   lines.push(`import { DebugU256 } from "${packageName}/core/modules/debug";`);

@@ -49,7 +49,6 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
       name: field.name,
       type: field.type,
       offset: field.offset,
-      memoryOffset: field.memoryOffset,
       size: field.size,
       dynamic: field.dynamic,
     }));
@@ -58,7 +57,6 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
       name,
       fields,
       size: layout.totalSize,
-      memorySize: layout.memorySize,
       dynamic: layout.dynamic,
       alignment: layout.alignment,
     };
