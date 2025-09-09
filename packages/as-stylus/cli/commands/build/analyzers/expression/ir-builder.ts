@@ -126,12 +126,10 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
           }
         }
 
-        // Handle memory arrays (calldata parameters, local variables)
         if (arrayIR.kind === "var" && arrayIR.scope === "memory") {
           const arrayVar = this.symbolTable.lookup(arrayIR.name);
-          
+
           if (arrayVar?.type === AbiType.ArrayDynamic || arrayVar?.type === AbiType.ArrayStatic) {
-            // For memory arrays, infer element type from the array type
             if (arrayVar.dynamicType?.includes("[")) {
               const elementTypeMatch = arrayVar.dynamicType.match(/^([^[]+)/);
               if (elementTypeMatch) {
@@ -153,11 +151,6 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
                   default:
                     resultType = AbiType.Unknown;
                 }
-              }
-            } else {
-              // Fallback: if no dynamicType, assume U256[] for array_dynamic
-              if (arrayVar.type === AbiType.ArrayDynamic) {
-                resultType = AbiType.Uint256; // Common case for calldata U256[]
               }
             }
           }

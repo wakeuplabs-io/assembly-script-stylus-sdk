@@ -78,10 +78,10 @@ export class Arrays {
 
   @View
   makeFixedMemoryArray(): U256[] {
-    const arr = MemoryArrayFactory.ofLength<U256>(3);
-    arr[0] = U256Factory.fromString("11");
-    arr[1] = U256Factory.fromString("22");
-    arr[2] = U256Factory.fromString("33");
+    const arr = MemoryArrayFactory.ofLength<U256>(U256Factory.fromString("3"));
+    arr[U256Factory.fromString("0")] = U256Factory.fromString("11");
+    arr[U256Factory.fromString("1")] = U256Factory.fromString("22");
+    arr[U256Factory.fromString("2")] = U256Factory.fromString("33");
     return arr;
   }
 

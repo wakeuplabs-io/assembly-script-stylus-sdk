@@ -365,7 +365,6 @@ export function generateUserEntrypoint(contract: IRContract): EntrypointResult {
   try {
     validateContract(contract);
 
-
     const methodsResult = processContractMethods(contract);
     const constructorResult = processConstructor(contract);
     const fallbackReceiveResult = processFallbackAndReceive(contract);

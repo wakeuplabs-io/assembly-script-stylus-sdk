@@ -17,9 +17,9 @@ import { Str } from "${packageName}/core/types/str";
 import { Boolean } from "${packageName}/core/types/boolean";
 import { U256 } from "${packageName}/core/types/u256";
 import { Msg } from "${packageName}/core/types/msg";
+import { Array } from "${packageName}/core/types/array";
 import { createStorageKey } from "${packageName}/core/modules/storage";
 import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "${packageName}/core/modules/hostio";
-import { debugLogI32 } from "${packageName}/core/modules/console";
 
 // @logic_imports
 
@@ -40,11 +40,9 @@ function store_initialized_storage(ptr: usize): void {
 
 function isFirstTimeDeploy(): bool {
   const init = load_initialized_storage();
-  debugLogI32(9000);  // Debug: checking first time deploy
   // Compare the U256 value with zero using U256.equals()
   const zero = U256.create();
   const result = U256.equals(init, zero);
-  debugLogI32(result ? 9001 : 9002);  // Debug: 9001=true, 9002=false
   return result;
 }
 
@@ -58,13 +56,9 @@ export function user_entrypoint(args_len: usize): i32 {
     (<u32>load<u8>(position + 2) << 8) |
     (<u32>load<u8>(position + 3));
 
-  debugLogI32(8000); // Debug: about to check first time deploy
   if (isFirstTimeDeploy()) {
-    debugLogI32(8001); // Debug: is first time deploy = true
     // @constructor_check
     // @constructor_fallthrough
-  } else {
-    debugLogI32(8002); // Debug: is first time deploy = false
   }
 
   // @user_entrypoint

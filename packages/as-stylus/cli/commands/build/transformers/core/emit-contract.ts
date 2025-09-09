@@ -15,6 +15,7 @@ import { StatementHandler } from "../statements/statement-handler.js";
 import { StrTransformer } from "../string/string-transformer.js";
 import { registerStructTransformer, StructTransformer } from "../struct/struct-transformer.js";
 import { U256Transformer } from "../u256/u256-transformer.js";
+import { ArrayTransformer } from "../array/array-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
 import { generateImports, generateStorageHelpers } from "../utils/storage.js";
@@ -77,8 +78,8 @@ export function emitContract(contract: IRContract): string {
   // Initialize context-aware expression handler with contract information
   const transformerRegistry = new TransformerRegistry();
   const contractContext = new ContractContext(transformerRegistry, contract.name, contract.parent?.name);
-  
   // Register type-specific transformers FIRST (highest priority)
+  transformerRegistry.register(new ArrayTransformer(contractContext));
   transformerRegistry.register(new U256Transformer(contractContext));
   transformerRegistry.register(new I256Transformer(contractContext));
   transformerRegistry.register(new AddressTransformer(contractContext));
@@ -117,7 +118,6 @@ export function emitContract(contract: IRContract): string {
     parts.push(generateDeployFunction(contract, contractContext));
     parts.push("");
   }
-
   // Add methods
   const methodParts = contract.methods.map(method => generateMethod(method, contractContext));
   
