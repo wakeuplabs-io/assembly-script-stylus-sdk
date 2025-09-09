@@ -9,7 +9,8 @@ function generateGetDynamicSize(structInfo: IRStruct): string {
     if (field.type === AbiType.String) {
       return `
   const len${index} = StructMemory.getStringLength(memoryStruct, ${field.offset});
-  totalSize += 32 + len${index};
+  const paddedLen${index} = (len${index} + 31) & ~31;
+  totalSize += 32 + paddedLen${index};
   `;
     }
     return "";
@@ -19,7 +20,7 @@ function generateGetDynamicSize(structInfo: IRStruct): string {
 function ${structInfo.name}_getDynamicSize(memoryStruct: usize): u32 {
   let totalSize = ${structInfo.size};
   ${fieldsCalculations}
-  return ${isDynamic} ? totalSize + 32 : totalSize;
+  return ${isDynamic ? "totalSize + 32" : "totalSize"};
 }`;
 }
 
@@ -39,17 +40,19 @@ export function generateStructToABI(method: IRMethod, contract: IRContract): str
   const stringOffsets = structInfo.fields.map((field, index) => {
     if (field.type === AbiType.String) {
       return `
-  const value = StructMemory.getString(memoryStruct, ${field.offset});
+  const value${index} = StructMemory.getString(memoryStruct, ${field.offset});
   const len${index} = StructMemory.getStringLength(memoryStruct, ${field.offset});
+  const paddedLen${index} = (len${index} + 31) & ~31;
+
   const offset${index} = totalSize;
-  totalSize += 32 + len${index};`;
+  totalSize += 32 + paddedLen${index};`;
     }
   }).join("");
 
   const isDynamic = structInfo.dynamic;
   const fieldSetters = structInfo.fields.map((field, index) => {
     if (field.type === AbiType.String) {
-      return `  StructABI.setString(structABI + 32, structABI + 32 + ${field.offset}, value, offset${index});`;
+      return `  StructABI.setString(structABI + 32, structABI + 32 + ${field.offset}, value${index}, offset${index});`;
     }
 
     if (isDynamic) {

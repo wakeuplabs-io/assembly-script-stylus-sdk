@@ -27,24 +27,46 @@ beforeAll(async () => {
   }
 }, DEPLOY_TIMEOUT);
 
-describe("Struct Return Address", () => {
-  it("should return address from struct", async () => {
-    await contract.write(ownerWallet, "setAddress", [ownerWallet.account?.address as Address]);
+describe("Struct New Struct", () => {
+  describe("Struct Return Address", () => {
+    it("should return address from struct", async () => {
+      await contract.write(ownerWallet, "setAddress", [ownerWallet.account?.address as Address]);
 
-    const userData = (await contract.read("getUser", [])) as {
-      address: Address;
-      owner: Address;
-    };
+      const address = await contract.read("getAddress", []);
 
-    expect(userData.address).toBe(ownerWallet.account?.address);
-    expect(userData.owner).toBe(ownerWallet.account?.address);
+      expect(address).toBe(ownerWallet.account?.address);
+    });
   });
 
-  it("should return address from struct", async () => {
-    await contract.write(ownerWallet, "setAddress", [ownerWallet.account?.address as Address]);
+  describe("Struct Return Struct", () => {
+    it("should return struct from struct", async () => {
+      const name = "Jhon has a very long and long name";
+      const lastName = "Doe";
+      const age = 42n;
+      const isActive = true;
+      await contract.write(ownerWallet, "setUser", [
+        ownerWallet.account?.address as Address,
+        name,
+        lastName,
+        age,
+        true,
+      ]);
 
-    const address = await contract.read("getAddress", []);
+      const userData = (await contract.read("getUser", [])) as {
+        age: bigint;
+        isActive: boolean;
+        address: Address;
+        name: string;
+        lastName: string;
+        owner: Address;
+      };
 
-    expect(address).toBe(ownerWallet.account?.address);
+      expect(userData.address).toBe(ownerWallet.account?.address);
+      expect(userData.owner).toBe(ownerWallet.account?.address);
+      expect(userData.name).toBe(name);
+      expect(userData.lastName).toBe(lastName);
+      expect(userData.age).toBe(age);
+      expect(userData.isActive).toBe(isActive);
+    });
   });
 });
