@@ -34,8 +34,15 @@ export class ArrayAssignmentHandler extends Handler {
     ];
 
     let indexExpr = indexResult.valueExpr;
-    if (expr.index.type === "uint256") {
-      indexExpr = `<u32>${indexResult.valueExpr}`;
+    if (
+      (expr.index.kind === "call" && expr.index.returnType === "uint256") ||
+      expr.index.type === "uint256"
+    ) {
+      const tempVar = `__index_${Math.floor(Math.random() * 10000)}`;
+      setupLines.push(
+        `const ${tempVar}: u32 = (load<u8>(${indexResult.valueExpr} + 28) << 24) | (load<u8>(${indexResult.valueExpr} + 29) << 16) | (load<u8>(${indexResult.valueExpr} + 30) << 8) | load<u8>(${indexResult.valueExpr} + 31);`,
+      );
+      indexExpr = tempVar;
     }
 
     let assignmentExpr: string;

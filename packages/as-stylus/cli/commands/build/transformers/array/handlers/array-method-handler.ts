@@ -146,25 +146,38 @@ export class ArrayMethodHandler extends Handler {
   }
 
   /**
-   * Gets the compile-time length of a static array
+   * Gets the compile-time length of a static array from the contract IR
    */
   private getStaticArrayLength(receiver: any): number {
-    // TODO: In a complete implementation, this would look up the variable
-    // in the symbol table to get its declared length
-    // For now, return a default
-    return 3; // Default static array length
+    if (!receiver || receiver.kind !== "var") {
+      throw new Error(
+        `Static array length requires variable receiver, got ${receiver?.kind || "undefined"}`,
+      );
+    }
+
+    const variableName = receiver.name;
+    const variable = this.contractContext.getStorageVariable(variableName);
+
+    if (!variable) {
+      throw new Error(`Storage variable '${variableName}' not found in contract IR`);
+    }
+
+    if (variable.kind !== "array_static") {
+      throw new Error(`Variable '${variableName}' is not a static array (kind: ${variable.kind})`);
+    }
+
+    // TypeScript narrowing: we know this is IRArrayStaticVar
+    return variable.length;
   }
 
   /**
    * Gets the element type from the receiver's genericType or infers it from name
    */
   private getElementType(receiver: any): string {
-    // Check IR genericType first
     if (receiver.genericType) {
       return receiver.genericType;
     }
 
-    // Fallback to name-based inference
     if (receiver.kind === "var") {
       const varName = receiver.name;
       if (varName.includes("U256") || varName.includes("uint256")) return "U256";
@@ -173,7 +186,7 @@ export class ArrayMethodHandler extends Handler {
       if (varName.includes("String") || varName.includes("string")) return "String";
     }
 
-    return "U256"; // Default to U256
+    return "U256";
   }
 
   /**
@@ -189,9 +202,9 @@ export class ArrayMethodHandler extends Handler {
       case "Bool":
         return 1;
       case "String":
-        return 32; // String pointers are 32 bytes
+        return 32;
       default:
-        return 32; // Default to U256 size
+        return 32;
     }
   }
 }

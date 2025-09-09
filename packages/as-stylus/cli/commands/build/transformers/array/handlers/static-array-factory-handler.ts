@@ -117,11 +117,6 @@ export class StaticArrayFactoryHandler extends Handler {
             `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${arrayLength});`,
           );
 
-          // For storage arrays, set the base slot
-          if (expr.scope === "storage") {
-            // For now, the slot will be set by the assignment handler that knows the target variable
-          }
-
           argResults.forEach((result, index) => {
             setupLines.push(
               `ArrayStatic.set(${tempVarName}, ${index}, ${result.valueExpr}, ${elementSize});`,

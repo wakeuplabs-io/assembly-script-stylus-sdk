@@ -77,7 +77,7 @@ function generateMethod(method: IRMethod, contractContext: ContractContext): str
 export function emitContract(contract: IRContract): string {
   // Initialize context-aware expression handler with contract information
   const transformerRegistry = new TransformerRegistry();
-  const contractContext = new ContractContext(transformerRegistry, contract.name, contract.parent?.name);
+  const contractContext = new ContractContext(transformerRegistry, contract);
   // Register type-specific transformers FIRST (highest priority)
   transformerRegistry.register(new ArrayTransformer(contractContext));
   transformerRegistry.register(new U256Transformer(contractContext));

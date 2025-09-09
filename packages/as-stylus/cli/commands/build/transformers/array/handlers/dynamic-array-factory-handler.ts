@@ -35,7 +35,6 @@ export class DynamicArrayFactoryHandler extends Handler {
     });
 
     const elementSize = 32;
-    // Use createStorage for storage scope, createMemory for memory scope
     const createMethod = expr.scope === "storage" ? "createStorage" : "createMemory";
     let factoryExpr: string;
 
