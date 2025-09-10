@@ -12,6 +12,7 @@ export interface ValidationResult {
   suggestion?: string;
   code?: ErrorCode;
   error?: Error;
+  correctedValue?: string;
 }
 
 export class ValidationUtils {
@@ -26,17 +27,15 @@ export class ValidationUtils {
       };
     }
 
+    let keyToValidate = privateKey;
+    let wasAutoCorrected = false;
+
     if (!privateKey.startsWith("0x")) {
-      return {
-        isValid: false,
-        message: "Private key must start with '0x'",
-        suggestion: `Add '0x' prefix to your private key: 0x${privateKey}`,
-        code: ErrorCode.INVALID_PRIVATE_KEY_FORMAT,
-        error: createAStylusError(ErrorCode.INVALID_PRIVATE_KEY_FORMAT),
-      };
+      keyToValidate = `0x${privateKey}`;
+      wasAutoCorrected = true;
     }
 
-    const keyWithoutPrefix = privateKey.slice(2);
+    const keyWithoutPrefix = keyToValidate.slice(2);
     if (keyWithoutPrefix.length !== 64) {
       return {
         isValid: false,
@@ -57,7 +56,11 @@ export class ValidationUtils {
       };
     }
 
-    return { isValid: true };
+    return { 
+      isValid: true,
+      correctedValue: wasAutoCorrected ? keyToValidate : undefined,
+      message: wasAutoCorrected ? "Added missing '0x' prefix to private key" : undefined
+    };
   }
 
   /**

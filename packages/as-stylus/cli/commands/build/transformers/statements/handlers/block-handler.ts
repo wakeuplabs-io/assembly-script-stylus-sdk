@@ -17,16 +17,16 @@ export class BlockHandler extends StatementHandler {
 
     const lines: string[] = [];
     lines.push(`${indent}{`);
-    
+
     // Process each statement in the block
     const bodyLines = blockStmt.body
-      .map(s => mainHandler.handle(s, indent + "  "))
-      .filter(s => s.trim());
-    
+      .map((s) => mainHandler.handle(s, indent + "  "))
+      .filter((s) => s.trim());
+
     if (bodyLines.length > 0) {
       lines.push(...bodyLines);
     }
-    
+
     lines.push(`${indent}}`);
 
     return lines.join("\n");

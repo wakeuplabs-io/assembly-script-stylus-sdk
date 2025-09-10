@@ -4,63 +4,60 @@ import { ContractContext } from "@/transformers/core/contract-context.js";
 
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 
-
-
-export class MsgTransformer extends BaseTypeTransformer {
+export class BlockTransformer extends BaseTypeTransformer {
   constructor(contractContext: ContractContext) {
-    super(contractContext, "Msg");
+    super(contractContext, "Block");
   }
 
   canHandle(expr: Member): boolean {
     const object = expr.object as Variable;
-    return object?.name === "msg";
+    return object?.name === "block";
   }
 
   protected handleDefault(expr: Member): EmitResult {
     switch (expr.property) {
-      case "sender":
+      case "timestamp":
         return { 
           setupLines: [], 
-          valueExpr: "Msg.sender()",
+          valueExpr: "Block.timestamp()",
+          valueType: "U256"
+        };
+      case "number":
+        return { 
+          setupLines: [], 
+          valueExpr: "Block.number()",
+          valueType: "U256"
+        };
+      case "coinbase":
+        return {
+          setupLines: [],
+          valueExpr: "Block.coinbase()",
           valueType: "Address"
         };
-      case "value":
-        return { 
-          setupLines: [], 
-          valueExpr: "Msg.value()",
+      case "basefee":
+        return {
+          setupLines: [],
+          valueExpr: "Block.basefee()",
           valueType: "U256"
         };
-      case "data":
+      case "gaslimit":
         return {
           setupLines: [],
-          valueExpr: "Msg.data()",
-          valueType: "bytes"
-        };
-      case "sig":
-        return {
-          setupLines: [],
-          valueExpr: "Msg.sig()",
-          valueType: "bytes4"
-        };
-      case "reentrant":
-        return {
-          setupLines: [],
-          valueExpr: "Msg.reentrant()",
+          valueExpr: "Block.gaslimit()",
           valueType: "U256"
         };
-      case "hasValue":
+      case "hasBasefee":
         return {
           setupLines: [],
-          valueExpr: "Boolean.create(Msg.hasValue())",
+          valueExpr: "Boolean.create(Block.hasBasefee())",
           valueType: "boolean"
         };
       default:
         return {
           setupLines: [],
-          valueExpr: `/* Unsupported msg property: ${expr.property} */`,
+          valueExpr: `/* Unsupported block property: ${expr.property} */`,
           valueType: "unknown"
         };
     }
   }
 }
-

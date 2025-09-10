@@ -20,7 +20,12 @@ export class ProjectBuilder {
   private allContracts: IRContract[];
   private errorManager: ErrorManager;
 
-  constructor(userIndexPath: string, contract: IRContract, allContracts: IRContract[], errorManager: ErrorManager) {
+  constructor(
+    userIndexPath: string,
+    contract: IRContract,
+    allContracts: IRContract[],
+    errorManager: ErrorManager,
+  ) {
     this.userIndexPath = userIndexPath;
     this.contract = contract;
     this.allContracts = allContracts;
@@ -32,22 +37,15 @@ export class ProjectBuilder {
     const contractBasePath = path.dirname(this.userIndexPath);
 
     if (!fs.existsSync(contractBasePath)) {
-      this.errorManager.addSemanticError(
-        "Contract base path does not exist",
-        contractBasePath
-      );
+      this.errorManager.addSemanticError("Contract base path does not exist", contractBasePath);
       return false;
     }
 
     // Validate contract name
     if (!this.contract.name) {
-      this.errorManager.addSemanticError(
-        "Contract must have a name",
-        this.userIndexPath
-      );
+      this.errorManager.addSemanticError("Contract must have a name", this.userIndexPath);
       return false;
     }
-
 
     return true;
   }
@@ -71,4 +69,4 @@ export class ProjectBuilder {
 
     Logger.getInstance().info(`Build artifacts generated at ./${BUILD_PATH}`);
   }
-} 
+}

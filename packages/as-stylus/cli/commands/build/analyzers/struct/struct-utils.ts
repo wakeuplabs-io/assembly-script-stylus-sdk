@@ -55,6 +55,8 @@ export function convertBasicType(input: string): AbiType | null {
       return AbiType.Bytes32;
     case "bytes":
       return AbiType.Bytes;
+    case "uint8array":
+      return AbiType.Bytes;
     default:
       return null;
   }

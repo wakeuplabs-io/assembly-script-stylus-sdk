@@ -74,6 +74,7 @@ export function runDeploy(
     endpoint?: string;
     output?: string;
     constructorArgs?: string[];
+    privateKey?: string;
   },
 ) {
   const contractsRoot = path.resolve(process.cwd());
@@ -82,9 +83,22 @@ export function runDeploy(
 
   displayDeploymentStart(contractPath, finalEndpoint);
 
-  const privateKey = promptPrivateKey();
+  let privateKey: string;
+  if (options.privateKey) {
+    privateKey = options.privateKey;
+  } else {
+    privateKey = promptPrivateKey();
+  }
 
   displayValidationStep("Validating deployment parameters...");
+
+  if (options.privateKey) {
+    const privateKeyValidation = ValidationUtils.validatePrivateKey(privateKey);
+    if (privateKeyValidation.correctedValue) {
+      privateKey = privateKeyValidation.correctedValue;
+    }
+  }
+
   const validationResults = [
     ValidationUtils.validateContractFile(contractPath),
     ValidationUtils.validatePrivateKey(privateKey),
@@ -166,7 +180,9 @@ export function runDeploy(
 }
 
 export const deployCommand = new Command("deploy")
-  .description("Deploy an AssemblyScript Contract (private key will be prompted securely)")
+  .description(
+    "Deploy an AssemblyScript Contract (private key can be provided via --private-key or will be prompted securely)",
+  )
   .argument("<contract-path>", "Path to the contract file")
   .option(
     "--endpoint <endpoint>",
@@ -174,6 +190,10 @@ export const deployCommand = new Command("deploy")
   )
   .option("--output <output-file>", "Save deployment information to a JSON file")
   .option("--constructor-args <constructor-args...>", "Constructor arguments")
+  .option(
+    "--private-key <private-key>",
+    "Private key for deployment (will be prompted securely if not provided). Must include 0x prefix.",
+  )
   .action(
     (
       contractPath: string,
@@ -181,6 +201,7 @@ export const deployCommand = new Command("deploy")
         endpoint?: string;
         output?: string;
         constructorArgs?: string[];
+        privateKey?: string;
       },
     ) => {
       runDeploy(contractPath, options);

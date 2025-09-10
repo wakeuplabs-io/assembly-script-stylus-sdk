@@ -39,6 +39,24 @@ declare function _call_contract(
   value: usize,
   gas: u64,
   outs_len: usize
+): u8;
+
+@external("vm_hooks", "delegate_call_contract")
+declare function _delegate_call_contract(
+  to: usize,
+  data: usize,
+  data_len: usize,
+  gas: u64,
+  outs_len: usize
+): u8;
+
+@external("vm_hooks", "static_call_contract")
+declare function _static_call_contract(
+  to: usize,
+  data: usize,
+  data_len: usize,
+  gas: u64,
+  outs_len: usize
 ): u8;            
 
 @external("vm_hooks", "account_balance")
@@ -52,6 +70,21 @@ declare function _exit_early(status: i32): void;
 
 @external("vm_hooks", "account_codehash")
 declare function _account_codehash(address: usize, dest: usize): void;
+
+@external("vm_hooks", "block_timestamp")
+declare function _block_timestamp(): u64;
+
+@external("vm_hooks", "block_number")
+declare function _block_number(): u64;
+
+@external("vm_hooks", "block_coinbase")
+declare function _block_coinbase(dest: usize): void;
+
+@external("vm_hooks", "block_basefee")
+declare function _block_basefee(dest: usize): void;
+
+@external("vm_hooks", "block_gas_limit")
+declare function _block_gas_limit(): u64;
 
 @external("env", "abort")
 export declare function abort(
@@ -121,6 +154,26 @@ export function call_contract(
   return _call_contract(to, data, data_len, value, gas, outs_len);
 }
 
+export function delegate_call_contract(
+  to: usize,
+  data: usize,
+  data_len: usize,
+  gas: u64,
+  outs_len: usize
+): u8 {
+  return _delegate_call_contract(to, data, data_len, gas, outs_len);
+}
+
+export function static_call_contract(
+  to: usize,
+  data: usize,
+  data_len: usize,
+  gas: u64,
+  outs_len: usize
+): u8 {
+  return _static_call_contract(to, data, data_len, gas, outs_len);
+}
+
 export function read_return_data(dest: usize, offset: usize, size: usize): usize {
   return _read_return_data(dest, offset, size);
 }
@@ -131,4 +184,24 @@ export function exit_early(status: i32): void {
 
 export function account_codehash(address: usize, dest: usize): void {
   _account_codehash(address, dest);
+}
+
+export function block_timestamp(): u64 {
+  return _block_timestamp();
+}
+
+export function block_number(): u64 {
+  return _block_number();
+}
+
+export function block_coinbase(dest: usize): void {
+  _block_coinbase(dest);
+}
+
+export function block_basefee(dest: usize): void {
+  _block_basefee(dest);
+}
+
+export function block_gas_limit(): u64 {
+  return _block_gas_limit();
 }

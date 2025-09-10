@@ -47,7 +47,7 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       name,
       type: convertType(this.symbolTable, dynamicType),
       dynamicType,
-      scope: "memory"
+      scope: "memory",
     };
 
     return variable;
@@ -63,11 +63,15 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       expr: { kind: "literal", value: null, type: variable.type } as const,
       scope: variable.scope,
     };
-}
+  }
 
-  private buildAssignment(variable: VariableSymbol, initializer: Expression, kind: "let" | "const") {
+  private buildAssignment(
+    variable: VariableSymbol,
+    initializer: Expression,
+    kind: "let" | "const",
+  ) {
     const expression = new ExpressionIRBuilder(initializer).validateAndBuildIR();
-    
+
     if (variable.type === AbiType.Any || variable.type === AbiType.Unknown) {
       const inferredType = this.inferTypeFromExpression(expression);
       if (inferredType) {
@@ -75,15 +79,14 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       }
     }
     this.symbolTable.declareVariable(variable.name, variable);
-    
+
     return {
       kind,
       name: variable.name,
       type: variable.type,
-      expr: expression,
+      expr: { kind: "literal", value: null, type: variable.type } as const,
       scope: variable.scope,
     };
-
   }
 
   /**
@@ -92,23 +95,23 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
    * @returns The inferred type or undefined if no type information is available
    */
   private inferTypeFromExpression(expression: IRExpression): AbiType | undefined {
-    if ('returnType' in expression && expression.returnType) {
+    if ("returnType" in expression && expression.returnType) {
       return expression.returnType as AbiType;
     }
-    
-    if ('type' in expression && expression.type) {
+
+    if ("type" in expression && expression.type) {
       return expression.type as AbiType;
     }
-    
+
     return undefined;
   }
 
   buildIR(): IRStatement {
     const initializer = this.declaration.getInitializer();
     const variable = this.createVariable(initializer?.getText() ?? "");
-    
+
     const kind = this.getDeclarationKind();
-    
+
     if (!initializer) {
       return this.buildDeclaration(variable, kind);
     } else {
@@ -116,5 +119,3 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
     }
   }
 }
-
-
