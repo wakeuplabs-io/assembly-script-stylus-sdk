@@ -12,7 +12,6 @@ export class MemberTransformer extends Handler {
     super(contractContext);
   }
 
-
   canHandle(expr: IRExpression): boolean {
     return expr.kind === "member";
   }
@@ -21,20 +20,17 @@ export class MemberTransformer extends Handler {
     if (member.object.kind === "var" && member.object.scope === "storage") {
       return {
         setupLines: [],
-        valueExpr: `load_${member.property}()`
+        valueExpr: `load_${member.property}()`,
       };
     }
 
-    const result = this.contractContext.emitExpression(member);
-    if (result.setupLines.length > 0) {
-      return result;
-    }
-
+    // FIX: Don't recursively call emitExpression with the same member!
+    // Instead, only process the object part of the member access
     const objResult = this.contractContext.emitExpression(member.object);
-    
+
     return {
       setupLines: objResult.setupLines,
-      valueExpr: `${objResult.valueExpr}.${member.property}`
+      valueExpr: `${objResult.valueExpr}.${member.property}`,
     };
   }
 }

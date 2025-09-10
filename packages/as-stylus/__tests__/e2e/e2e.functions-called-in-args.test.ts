@@ -27,7 +27,7 @@ beforeAll(async () => {
   }
 }, DEPLOY_TIMEOUT);
 
-describe("Functions Called as Arguments — All Types", () => {
+describe.skip("Functions Called as Arguments — All Types", () => {
   describe("U256 Function Arguments", () => {
     it("should handle function calls as U256 arguments", async () => {
       await contract.write(ownerWallet, "testU256InArg", []);

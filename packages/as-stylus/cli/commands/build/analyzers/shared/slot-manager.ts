@@ -3,6 +3,7 @@ import { AbiType } from "@/cli/types/abi.types.js";
 type SlotAssignment = {
   type: AbiType;
   dynamicType?: string;
+  length?: number;
 };
 
 /**
@@ -32,13 +33,12 @@ export class SlotManager {
 
     const slot = this.findNextAvailableSlot(slotAssignment);
     this.allocateSlotRange(slot, this.calculateSlotCount(slotAssignment));
-    
+
     this.variableSlotMap.set(variableName, slot);
     this.slotVariableMap.set(slot, variableName);
-    
+
     return slot;
   }
-
 
   /**
    * Gets the slot allocated for a specific variable
@@ -115,12 +115,14 @@ export class SlotManager {
    */
   private calculateSlotCount(variable: SlotAssignment): number {
     switch (variable.type) {
+      case AbiType.ArrayStatic:
+        return variable.length || 1;
       case AbiType.Mapping:
         return 1;
       case AbiType.MappingNested:
-        return 1; // Nested mappings use a single slot for the storage location
+        return 1;
       default:
-        return 1; // Default to 1 slot
+        return 1;
     }
   }
 
@@ -131,8 +133,7 @@ export class SlotManager {
    */
   private findNextAvailableSlot(variable: SlotAssignment): number {
     const slotCount = this.calculateSlotCount(variable);
-    
-    // Find a contiguous range of available slots
+
     let startSlot = this.nextAvailableSlot;
     let found = false;
     while (!found) {
@@ -142,11 +143,11 @@ export class SlotManager {
           break;
         }
       }
-      
+
       if (found) {
         return startSlot;
       }
-      
+
       startSlot++;
     }
 
@@ -162,8 +163,7 @@ export class SlotManager {
     for (let i = 0; i < slotCount; i++) {
       this.allocatedSlots.add(startSlot + i);
     }
-    
-    // Update the next available slot if necessary
+
     if (startSlot + slotCount > this.nextAvailableSlot) {
       this.nextAvailableSlot = startSlot + slotCount;
     }
@@ -176,12 +176,12 @@ export class SlotManager {
   public generateSlotConstants(): string[] {
     const constants: string[] = [];
     const sortedSlots = Array.from(this.allocatedSlots).sort((a, b) => a - b);
-    
+
     for (const slot of sortedSlots) {
       const slotNumber = slot.toString(16).padStart(2, "0");
       constants.push(`const __SLOT${slotNumber}: u64 = ${slot};`);
     }
-    
+
     return constants;
   }
 }

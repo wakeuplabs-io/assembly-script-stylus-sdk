@@ -20,27 +20,27 @@ export function generateDeployFunction(contract: IRContract, contractContext: Co
     lines.push(`export function ${contract.name}_constructor(): void {`);
   }
 
-  contract.storage.forEach(variable => {
-    const defaultValue = getDefaultValueForType(variable.type);
-    switch (variable.kind) {
-      case "simple":
-        if (variable.type === AbiType.String) {
-          lines.push(`  const empty${variable.name} = Str.create();`);
-          lines.push(`  store_${variable.name}(empty${variable.name});`);
-        } else {
-          const symbol = contract.symbolTable.lookup(variable.name);
-          lines.push(`  const default${variable.name} = ${getInitializer(variable.type as AbiType, defaultValue, symbol?.dynamicType)};`);
-          lines.push(`  store_${variable.name}(default${variable.name});`);
-        }
-        break;
-    }
-  });
-
   if (contract.constructor) {
     const constructorBody = contractContext.emitStatements(contract.constructor.ir);
     if (constructorBody.trim()) {
       lines.push(constructorBody);
     }
+  } else {
+    contract.storage.forEach(variable => {
+      const defaultValue = getDefaultValueForType(variable.type);
+      switch (variable.kind) {
+        case "simple":
+          if (variable.type === AbiType.String) {
+            lines.push(`  const empty${variable.name} = Str.create();`);
+            lines.push(`  store_${variable.name}(empty${variable.name});`);
+          } else {
+            const symbol = contract.symbolTable.lookup(variable.name);
+            lines.push(`  const default${variable.name} = ${getInitializer(variable.type as AbiType, defaultValue, symbol?.dynamicType)};`);
+            lines.push(`  store_${variable.name}(default${variable.name});`);
+          }
+          break;
+      }
+    });
   }
 
   lines.push(`}`);

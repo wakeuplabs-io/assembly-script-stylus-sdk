@@ -14,7 +14,7 @@ export class U256ChainedCallHandler extends Handler {
     if (expr.kind !== "call") return false;
 
     // Handle receiver-based chained calls (modern approach)
-    if (expr.receiver && expr.receiver.kind === "call") {
+    if (expr.receiver && (expr.receiver.kind === "call" || expr.receiver.kind === "var")) {
       const target = expr.target || "";
       const receiverTarget = expr.receiver.target || "";
       const receiverReceiver = expr.receiver.receiver;
@@ -36,11 +36,12 @@ export class U256ChainedCallHandler extends Handler {
           "lessThan",
           "greaterThan",
           "equals",
+          "copy",
         ];
         return u256Methods.includes(target);
       }
 
-      // Other U256 chained operations (e.g., result.mul().div())
+      // Other U256 chained operations (e.g., result.mul().div() or variable.copy())
       if (expr.receiver.returnType === "uint256" || expr.receiver.type === "uint256") {
         const u256Methods = [
           "add",
@@ -52,6 +53,24 @@ export class U256ChainedCallHandler extends Handler {
           "lessThan",
           "greaterThan",
           "equals",
+          "copy",
+        ];
+        return u256Methods.includes(target);
+      }
+
+      // Handle variable.method() calls (e.g., one.copy())
+      if (expr.receiver.kind === "var") {
+        const u256Methods = [
+          "add",
+          "sub",
+          "mul",
+          "div",
+          "mod",
+          "pow",
+          "lessThan",
+          "greaterThan",
+          "equals",
+          "copy",
         ];
         return u256Methods.includes(target);
       }
@@ -74,7 +93,7 @@ export class U256ChainedCallHandler extends Handler {
     setupLines.push(...argResults.flatMap((result: any) => result.setupLines));
     const argExprs = argResults.map((result: any) => result.valueExpr);
 
-    if (expr.receiver && expr.receiver.kind === "call") {
+    if (expr.receiver && (expr.receiver.kind === "call" || expr.receiver.kind === "var")) {
       const receiverResult = this.contractContext.emitExpression(expr.receiver);
       setupLines.unshift(...receiverResult.setupLines);
 

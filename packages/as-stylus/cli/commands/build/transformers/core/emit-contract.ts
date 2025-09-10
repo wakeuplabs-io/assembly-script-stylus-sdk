@@ -14,10 +14,11 @@ import { StatementHandler } from "../statements/statement-handler.js";
 import { StrTransformer } from "../string/string-transformer.js";
 import { registerStructTransformer, StructTransformer } from "../struct/struct-transformer.js";
 import { U256Transformer } from "../u256/u256-transformer.js";
-import { CallsTransformer } from "../calls/calls-transformer.js";
+import { ArrayTransformer } from "../array/array-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
 import { generateImports, generateStorageHelpers } from "../utils/storage.js";
+import { CallsTransformer } from "../calls/calls-transformer.js";
 
 interface ArgumentSignature {
   argsSignature: string;
@@ -76,9 +77,9 @@ function generateMethod(method: IRMethod, contractContext: ContractContext): str
 export function emitContract(contract: IRContract): string {
   // Initialize context-aware expression handler with contract information
   const transformerRegistry = new TransformerRegistry();
-  const contractContext = new ContractContext(transformerRegistry, contract.name, contract.parent?.name);
-  
+  const contractContext = new ContractContext(transformerRegistry, contract);
   // Register type-specific transformers FIRST (highest priority)
+  transformerRegistry.register(new ArrayTransformer(contractContext));
   transformerRegistry.register(new U256Transformer(contractContext));
   transformerRegistry.register(new I256Transformer(contractContext));
   transformerRegistry.register(new AddressTransformer(contractContext));
@@ -95,7 +96,6 @@ export function emitContract(contract: IRContract): string {
   transformerRegistry.register(new ExpressionHandler(contractContext));
 
   const parts: string[] = [];
-
   // Add imports
   parts.push(generateImports(contract));
 
@@ -118,9 +118,16 @@ export function emitContract(contract: IRContract): string {
     parts.push(generateDeployFunction(contract, contractContext));
     parts.push("");
   }
-
   // Add methods
   const methodParts = contract.methods.map(method => generateMethod(method, contractContext));
+  
+  // Add fallback and receive functions
+  if (contract.fallback) {
+    methodParts.push(generateMethod(contract.fallback, contractContext));
+  }
+  if (contract.receive) {
+    methodParts.push(generateMethod(contract.receive, contractContext));
+  }
   
   parts.push(...methodParts);
 

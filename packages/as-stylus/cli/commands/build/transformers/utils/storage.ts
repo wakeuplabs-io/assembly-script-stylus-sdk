@@ -151,12 +151,7 @@ function formatSlotName(slot: number): string {
  */
 function getPackageName(): string {
   const cwd = process.cwd();
-
-  // Ensure symlink exists when in monorepo development
   ensureSymlinkExists(cwd);
-
-  // Always return the npm package name
-  // Node.js will automatically resolve to symlink (development) or npm package (production)
   return "@wakeuplabs/as-stylus";
 }
 
@@ -165,8 +160,7 @@ export function slotConst(slot: number): string {
 }
 
 export function loadSimple(name: string, slot: number, type?: AbiType): string {
-  // Determine the correct type factory based on ABI type
-  let createCall = "U256.create()"; // Default fallback
+  let createCall = "U256.create()";
 
   switch (type) {
     case AbiType.Address:
@@ -182,7 +176,6 @@ export function loadSimple(name: string, slot: number, type?: AbiType): string {
       createCall = "I256.create()";
       break;
     default:
-      // For unknown types or legacy calls, default to U256
       createCall = "U256.create()";
       break;
   }
@@ -197,8 +190,8 @@ function load_${name}(): usize {
 
 export function storeSimple(name: string, slot: number): string {
   return `
-function store_${name}(ptr: usize): void {
-  storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), ptr);
+function store_${name}(): void {
+  storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), ${name});
   storage_flush_cache(0);
 }`;
 }
@@ -206,7 +199,6 @@ function store_${name}(ptr: usize): void {
 export function generateImports(contract: IRContract): string {
   const lines: string[] = ["// eslint-disable-next-line import/namespace"];
   const packageName = getPackageName();
-
   const types = contract.symbolTable.getTypes();
   const hasEvents = contract.events && contract.events.length > 0;
   const hasErrors = contract.errors && contract.errors.length > 0;
@@ -269,6 +261,35 @@ export function generateImports(contract: IRContract): string {
     lines.push(`import { loadU32BE } from "${packageName}/core/modules/endianness";`);
   }
 
+  if (
+    types.has(AbiType.Array) ||
+    types.has(AbiType.ArrayStatic) ||
+    types.has(AbiType.ArrayDynamic)
+  ) {
+    lines.push(`import { Array } from "${packageName}/core/types/array";`);
+  }
+
+  if (
+    types.has(AbiType.ArrayStatic) ||
+    contract.storage.some((v: any) => v.kind === "array_static")
+  ) {
+    lines.push(`import { ArrayStatic } from "${packageName}/core/types/array-static";`);
+  }
+
+  if (types.has(AbiType.ArrayDynamic)) {
+    lines.push(`import { ArrayDynamic } from "${packageName}/core/types/array-dynamic";`);
+  }
+
+  // Import array factories if arrays are used
+  if (
+    types.has(AbiType.Array) ||
+    types.has(AbiType.ArrayStatic) ||
+    types.has(AbiType.ArrayDynamic) ||
+    contract.storage.some((v: any) => v.kind === "array_static" || v.kind === "array_dynamic")
+  ) {
+    lines.push(`import { U256ArrayFactory } from "${packageName}/core/types/array-factories";`);
+  }
+
   const hasCallFactory = contract.methods.some((method) =>
     method.ir.some((statement: unknown) => JSON.stringify(statement).includes("CallFactory")),
   );
@@ -279,7 +300,6 @@ export function generateImports(contract: IRContract): string {
 
   if (hasCallFactory || hasInterfaceCasts) {
     lines.push(`import { Calls, CallResult } from "${packageName}/core/modules/calls";`);
-    lines.push(`import { ABI } from "${packageName}/core/modules/abi";`);
     lines.push(`import { U256Factory } from "${packageName}/cli/sdk-interface/u256";`);
     lines.push(`import { AddressFactory } from "${packageName}/cli/sdk-interface/address";`);
   }
@@ -335,6 +355,12 @@ export function generateStorageHelpers(
   const lines: string[] = [];
   const structMap = new Map(structs.map((s) => [s.name, s]));
 
+  // Declare global variables for storage
+  for (const variable of variables) {
+    lines.push(`let ${variable.name}: usize;`);
+  }
+  lines.push(""); // Add empty line
+
   for (const variable of variables) {
     lines.push(slotConst(variable.slot));
 
@@ -347,8 +373,8 @@ function load_${variable.name}(): usize {
   return Str.loadFrom(${formatSlotName(variable.slot)});
 }
 
-function store_${variable.name}(strPtr: usize): void {
-  Str.storeTo(${formatSlotName(variable.slot)}, strPtr);
+function store_${variable.name}(): void {
+  Str.storeTo(${formatSlotName(variable.slot)}, ${variable.name});
 }`.trim(),
           );
           break;
@@ -378,6 +404,31 @@ function store_${variable.name}(strPtr: usize): void {
           lines.push(storeSimple(variable.name, variable.slot));
           break;
       }
+    } else if (variable.kind === "array_static") {
+      // Static array storage functions
+      lines.push(`
+function load_${variable.name}(): usize {
+  // Always create a fresh metadata structure pointing to the correct storage slots
+  const arrayPtr = ArrayStatic.createStorage(32, ${variable.length}); // elementSize=32 for U256
+  ArrayStatic.setBaseSlot(arrayPtr, ${variable.slot});
+  return arrayPtr;
+}
+
+function store_${variable.name}(): void {
+  // Static arrays store elements directly in consecutive slots using the global variable
+  // The actual slot assignment is handled by ArrayStatic.setBaseSlot()
+}`);
+    } else if (variable.kind === "array_dynamic") {
+      // Dynamic array storage functions
+      lines.push(`
+export function load_${variable.name}(): usize {
+  return createStorageKey(${formatSlotName(variable.slot)});
+}
+
+function store_${variable.name}(): void {
+  // Dynamic arrays store length at base slot
+  // Storage is handled automatically through storage_cache_bytes32/storage_flush_cache
+}`);
     }
   }
 

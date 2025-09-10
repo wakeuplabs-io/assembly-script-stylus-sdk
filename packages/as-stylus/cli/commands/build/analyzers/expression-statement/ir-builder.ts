@@ -5,6 +5,7 @@ import { IRStatement , IRExpression } from "@/cli/types/ir.types.js";
 
 import { StructAssignmentBuilder } from "./struct.js";
 import { ExpressionStatementSyntaxValidator } from "./syntax-validator.js";
+import { CallFunctionIRBuilder } from "../call-function/ir-builder.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { parseThis } from "../shared/utils/parse-this.js";
@@ -99,11 +100,14 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
         }
 
         if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression) {
-          if (variable?.scope === "memory") { 
+          // Handle both memory and storage assignments
+          if (variable?.scope === "memory" || variable?.scope === "storage") { 
+            // Create a custom ExpressionIRBuilder that knows the assignment context
+            const rhsExpr = this.buildExpressionWithAssignmentContext(rhsNode, variable?.scope ?? "memory");
             return {
               kind: "assign",
               target: target,
-              expr: new ExpressionIRBuilder(rhsNode).validateAndBuildIR(),
+              expr: rhsExpr,
               scope: variable?.scope ?? "memory",
             };
           }
@@ -119,5 +123,18 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
       expr: expression,
       type: expression.type,
     };
+  }
+
+  private buildExpressionWithAssignmentContext(expr: Expression, targetScope: "storage" | "memory"): IRExpression {
+    // For CallExpression, we need to pass the assignment context
+    if (expr.getKind() === SyntaxKind.CallExpression) {
+      const callExpr = expr as CallExpression;
+      const callBuilder = new CallFunctionIRBuilder(callExpr);
+      callBuilder.setAssignmentContext(targetScope);
+      return callBuilder.validateAndBuildIR();
+    }
+    
+    // For other expressions, use regular ExpressionIRBuilder
+    return new ExpressionIRBuilder(expr).validateAndBuildIR();
   }
 }

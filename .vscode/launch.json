@@ -95,5 +95,20 @@
           ],
           "console": "integratedTerminal"
         },
+        {
+          "type": "node",
+          "request": "launch",
+          "name": "Build Fallback Receive Contract",
+          "skipFiles": [
+              "<node_internals>/**"
+          ],
+          "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/fallback-receive",
+          "runtimeExecutable": "as-stylus",
+          "runtimeArgs": [
+              "compile",
+              "contract.ts"
+          ],
+          "console": "integratedTerminal"
+        },
     ]
 }
