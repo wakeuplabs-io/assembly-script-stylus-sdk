@@ -75,9 +75,21 @@ export async function expectRevert(
 }
 
 export function parseDeploymentOutput(deploymentOutput: string) {
-  const match = deploymentOutput.match(/Contract deployed at address: (0x[a-fA-F0-9]{40})/);
-  if (!match) {
-    throw new Error(`Could not extract contract address from deployment log: ${deploymentOutput}`);
+  // eslint-disable-next-line no-control-regex
+  const cleanOutput = deploymentOutput.replace(/\u001b\[[0-9;]*m/g, "");
+
+  const patterns = [
+    /deployed code at address:\s*(0x[a-fA-F0-9]{40})/, // cargo stylus pattern
+    /Contract deployed at address:\s*(0x[a-fA-F0-9]{40})/, // as-stylus CLI pattern
+    /deployment tx hash:\s*0x[a-fA-F0-9]{64}.*deployed code at address:\s*(0x[a-fA-F0-9]{40})/, // multiline pattern
+  ];
+
+  for (const pattern of patterns) {
+    const match = cleanOutput.match(pattern);
+    if (match) {
+      return match[1];
+    }
   }
-  return match[1];
+
+  throw new Error(`Could not extract contract address from deployment log: ${cleanOutput}`);
 }

@@ -1,6 +1,14 @@
 import path from "path";
 
-import { AbiItem, AbiInput, AbiOutput, AbiType, StateMutability , AbiComponent, Visibility } from "@/cli/types/abi.types.js";
+import {
+  AbiItem,
+  AbiInput,
+  AbiOutput,
+  AbiType,
+  StateMutability,
+  AbiComponent,
+  Visibility,
+} from "@/cli/types/abi.types.js";
 import { IRContract, IRStruct } from "@/cli/types/ir.types.js";
 import { ABI_PATH } from "@/cli/utils/constants.js";
 import { writeFile } from "@/cli/utils/fs.js";
@@ -13,7 +21,8 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
   const abi: AbiItem[] = [];
 
   for (const method of contract.methods) {
-    if (method.visibility !== Visibility.PUBLIC && method.visibility !== Visibility.EXTERNAL) continue;
+    if (method.visibility !== Visibility.PUBLIC && method.visibility !== Visibility.EXTERNAL)
+      continue;
 
     const inputs: AbiInput[] = method.inputs.map((param) => {
       const typeToConvert = param.originalType || param.type;
@@ -21,7 +30,7 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
       return {
         name: param.name,
         type: converted.type,
-        ...(converted.components && { components: converted.components })
+        ...(converted.components && { components: converted.components }),
       };
     });
 
@@ -31,7 +40,7 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
       return {
         name: param.name || undefined,
         type: converted.type,
-        ...(converted.components && { components: converted.components })
+        ...(converted.components && { components: converted.components }),
       };
     });
     abi.push({
@@ -54,7 +63,7 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
         return {
           name: param.name,
           type: converted.type,
-          ...(converted.components && { components: converted.components })
+          ...(converted.components && { components: converted.components }),
         };
       }),
       outputs: [],
@@ -80,30 +89,37 @@ export function buildAbi(targetPath: string, contract: IRContract) {
 /**
  * Converts a struct to its ABI tuple representation with components
  */
-function convertStructToTuple(symbolTable: SymbolTableStack, structName: string | null, struct: IRStruct): { type: AbiType; components: AbiComponent[] } | null {
+function convertStructToTuple(
+  symbolTable: SymbolTableStack,
+  structName: string | null,
+  struct: IRStruct,
+): { type: AbiType; components: AbiComponent[] } | null {
   if (!structName) {
     return null;
   }
 
-  const components: AbiComponent[] = struct.fields.map(field => {
+  const components: AbiComponent[] = struct.fields.map((field) => {
     const convertedField = convertTypeWithComponents(symbolTable, field.type);
     return {
       name: field.name,
       type: convertedField.type,
-      ...(convertedField.components && { components: convertedField.components })
+      ...(convertedField.components && { components: convertedField.components }),
     } as AbiComponent;
   });
 
   return {
     type: AbiType.Tuple,
-    components
+    components,
   };
 }
 
 /**
  * Converts a type to ABI format, handling structs as tuples with components
  */
-function convertTypeWithComponents(symbolTable: SymbolTableStack, type: string): { type: AbiType; components?: AbiComponent[] } {
+function convertTypeWithComponents(
+  symbolTable: SymbolTableStack,
+  type: string,
+): { type: AbiType | string; components?: AbiComponent[] } {
   const basicType = convertBasicType(type);
   if (basicType) {
     return { type: basicType };
@@ -120,7 +136,6 @@ function convertTypeWithComponents(symbolTable: SymbolTableStack, type: string):
   }
 
   const structTuple = convertStructToTuple(symbolTable, structName, struct);
-  
   if (structTuple) {
     return structTuple;
   }

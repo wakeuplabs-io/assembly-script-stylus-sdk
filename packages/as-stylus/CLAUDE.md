@@ -24,10 +24,10 @@ AS-Stylus SDK - A comprehensive SDK that enables developers to write Arbitrum St
 - `npm run test:watch` - Run tests in watch mode
 
 ### Contract Development Workflow
-1. `as-stylus generate <project-name>` - Create new contract project
-2. `as-stylus compile <contract-file>` - Compile TypeScript to WASM via AssemblyScript
+1. `@wakeuplabs/as-stylus generate <project-name>` - Create new contract project
+2. `@wakeuplabs/as-stylus compile <contract-file>` - Compile TypeScript to WASM via AssemblyScript
 3. From contract directory: `cargo stylus check --endpoint <RPC_URL>` - Validate WASM
-4. From contract directory: `cargo stylus deploy --private-key <KEY> --endpoint <RPC_URL>` - Deploy
+4. `as-stylus deploy <contract-file> --endpoint <RPC_URL> --constructor-args "arg1" "arg2"` - Deploy (will prompt for private key securely)
 
 ### Testing Specific Contracts
 - `npm test -- --testNamePattern="Expert Counter" --testPathPattern="e2e.expert-counter.test.ts" --verbose`
@@ -208,7 +208,7 @@ interface CompilationContext {
 
 4. **Validation & Deployment** (from contract directory)
    - Validate WASM: `cargo stylus check --endpoint <RPC_URL>`
-   - Deploy: `cargo stylus deploy --private-key <KEY> --endpoint <RPC_URL>`
+   - Deploy: Use `as-stylus deploy contract.ts --endpoint <RPC_URL>` (prompts for private key securely)
    - Store deployment info in `artifacts/deployments/`
 
 ### Type System Architecture
@@ -284,7 +284,7 @@ contracts/expert-counter/
 1. Navigate to specific contract: `cd __tests__/contracts/expert-counter`
 2. Compile from SDK root: `npm run pre:build` then `as-stylus compile contract.ts --endpoint <RPC>`
 3. Check WASM from contract dir: `cargo stylus check --endpoint <RPC>`
-4. Deploy from contract dir: `cargo stylus deploy --private-key <KEY> --endpoint <RPC>`
+4. Deploy: `as-stylus deploy contract.ts --endpoint <RPC>` (prompts for private key securely)
 
 #### Adding New Type Transformers
 1. Create transformer class extending `BaseTypeTransformer` in `cli/commands/build/transformers/`
@@ -379,411 +379,40 @@ TypeScript interfaces that developers use when writing contracts:
 
 ## Handler System Architecture
 
-### Overview: Hybrid Legacy/Modern System
+### Hybrid Legacy/Modern System
 
-The AS-Stylus SDK uses a **hybrid approach** combining **legacy handlers** and **modern handlers** to transform TypeScript code to AssemblyScript. This architecture ensures backward compatibility while providing modern type safety and performance benefits.
+The AS-Stylus SDK uses a **hybrid approach** combining **legacy handlers** (string pattern matching) and **modern handlers** (receiver structures with type safety).
 
 #### Transformation Flow
 ```
-TypeScript Source → IR (Intermediate Representation) → Transformers → Handlers → AssemblyScript
+TypeScript Source → IR → Transformers → Handlers → AssemblyScript
 ```
 
-#### Two Coexisting Systems
-1. **🏛️ Legacy System**: String pattern matching and simple detection
-2. **🚀 Modern System**: Receiver structures and type safety
+### Handler Patterns
 
----
-
-### Legacy Handler System
-
-#### What is the Legacy System?
-
-The legacy system handles expressions using **string pattern matching** and **hybrid targets**.
-
-**Legacy Example:**
+**Modern (Preferred):**
 ```typescript
 // INPUT: counter.add(one)
-// IR GENERATED: { target: "counter.add", args: [...] }
-// DETECTION: target.endsWith(".add")
-// OUTPUT: U256.add(counter, one)
+// IR: { target: "add", receiver: { name: "counter", type: "uint256" }}
+// Uses type-safe validation with enums
 ```
 
-#### Legacy System Characteristics
-
-**✅ Advantages:**
-- **Simplicity**: Easy to understand and implement
-- **Stability**: Works well for basic cases
-- **Compatibility**: Supports old system syntax
-- **Debugging**: Explicit targets facilitate debugging
-
-**❌ Disadvantages:**
-- **Not Type Safe**: Uses string matching instead of types
-- **Fragile**: Prone to errors with similar targets
-- **Not Scalable**: Hard to add new types
-- **Performance**: Multiple string checks per expression
-
-#### Current Legacy Handlers
-
-**U256 Legacy Handler Example:**
+**Legacy (Fallback):**
 ```typescript
-// U256OperationHandler.ts
-canHandle(expr: Call): boolean {
-  const target = expr.target || "";
-  
-  // ❌ LEGACY: String pattern matching
-  return (
-    target.endsWith(".add") ||
-    target.endsWith(".sub") ||
-    target.endsWith(".mul") ||
-    target.endsWith(".div")
-  );
-}
+// Uses string matching: target.endsWith(".add")
+// Maintains backward compatibility
 ```
 
-#### Legacy System Problems
-
-**1. Target Conflicts**
-```typescript
-// ❌ PROBLEM: Both could intercept
-"counter.add" // U256?
-"string.add" // String? (if existed)
-```
-
-**2. No Type Validation**
-```typescript
-// ❌ PROBLEM: Doesn't validate receiver types
-target.endsWith(".lessThan") // Any type could have lessThan
-```
-
-**3. Poor Scalability**
-```typescript
-// ❌ PROBLEM: Adding new methods requires modifying multiple handlers
-if (target.endsWith(".newMethod1") || 
-    target.endsWith(".newMethod2") || 
-    target.endsWith(".newMethod3")) {
-  // Each new method = more code
-}
-```
-
----
-
-### Modern Handler System
-
-#### What is the Modern System?
-
-The modern system handles expressions using **receiver structures** and **type safety**.
-
-**Modern Example:**
-```typescript
-// INPUT: counter.add(one)
-// IR GENERATED: { target: "add", receiver: { name: "counter", type: "uint256" }, args: [...] }
-// DETECTION: expr.receiver.type === AbiType.Uint256 && target === MethodName.Add
-// OUTPUT: U256.add(counter, one)
-```
-
-#### Modern System Characteristics
-
-**✅ Advantages:**
-- **Type Safe**: Uses enums and structured types
-- **Scalable**: Easy to add new types and methods
-- **Robust**: Compile-time validation
-- **Performance**: Fewer string checks, more efficient
-- **Maintainable**: Clean and structured code
-
-**❌ Disadvantages:**
-- **Complexity**: More initial setup code
-- **Learning Curve**: Requires understanding receiver structures
-- **Migration Effort**: Migrating legacy system requires effort
-
-#### Current Modern Handlers
-
-**Type-Safe Method Detection:**
-```typescript
-// U256OperationHandler.ts (modern)
-canHandle(expr: Call): boolean {
-  const target = expr.target || "";
-  
-  // ✅ MODERN: Receiver-based validation
-  if (expr.receiver) {
-    const arithmeticMethods = METHOD_GROUPS.ARITHMETIC;
-    return (
-      arithmeticMethods.includes(target as (typeof METHOD_GROUPS.ARITHMETIC)[number]) &&
-      (expr.receiver.type === AbiType.Uint256 || 
-       expr.receiver.returnType === AbiType.Uint256)
-    );
-  }
-  
-  // ⚠️ FALLBACK: Legacy support
-  return arithmeticMethods.some(method => target.endsWith(`.${method}`));
-}
-```
-
-**Centralized Type Mappings:**
-```typescript
-// method-types.ts
-export const TYPE_METHOD_RETURNS = {
-  [AbiType.Uint256]: {
-    [MethodName.Add]: AbiType.Uint256,
-    [MethodName.LessThan]: AbiType.Bool,
-    // Type-safe, no string hardcoding
-  }
-};
-```
-
-#### Modern System Benefits
-
-**1. Complete Type Safety**
-```typescript
-// ✅ ADVANTAGE: Compile-time validation
-if (target === MethodName.Add) { // Error if MethodName.Add doesn't exist
-  // TypeScript catches errors early
-}
-```
-
-**2. Conflict Resolution**
-```typescript
-// ✅ ADVANTAGE: Type-based resolution
-if (expr.receiver.type === AbiType.Uint256 && target === MethodName.Add) {
-  // Only U256.add()
-} else if (expr.receiver.type === AbiType.String && target === MethodName.Add) {
-  // Only String.add() (if existed)
-}
-```
-
-**3. Scalability**
-```typescript
-// ✅ ADVANTAGE: Adding new methods is trivial
-export enum MethodName {
-  Add = "add",
-  NewMethod = "newMethod", // One line
-}
-
-// Auto-detected by all handlers using METHOD_GROUPS
-```
-
----
-
-### Current Hybrid System - Coexistence
-
-#### How They Work Together
-
-Currently, handlers support **both systems simultaneously**:
-
-```typescript
-// Example: U256OperationHandler hybrid
-canHandle(expr: Call): boolean {
-  const target = expr.target || "";
-  
-  // 🚀 MODERN: Receiver-based (priority)
-  if (expr.receiver) {
-    const arithmeticMethods = METHOD_GROUPS.ARITHMETIC;
-    return arithmeticMethods.includes(target as MethodName) &&
-           expr.receiver.type === AbiType.Uint256;
-  }
-  
-  // 🏛️ LEGACY: String-based (fallback)
-  const arithmeticMethods = METHOD_GROUPS.ARITHMETIC;
-  return arithmeticMethods.some(method => target.endsWith(`.${method}`));
-}
-```
-
-#### Decision Flow
-```
-Expression Detected
-        ↓
-Has receiver structure?
-        ↓ YES              ↓ NO
-   Modern System      Legacy System
-        ↓                  ↓
-   Type-safe logic   String matching
-        ↓                  ↓
-   AssemblyScript Output
-```
-
-#### Use Cases by System
-
-**🚀 Modern System (Preferred):**
-```typescript
-// Chained calls
-U256Factory.fromString("100").add(counter)
-
-// Modern method calls  
-counter.add(one)
-address.isZero()
-result.mul(three).div(two)
-```
-
-**🏛️ Legacy System (Fallback):**
-```typescript
-// Cases without receiver structure
-// Or simple calls from legacy IR
-```
-
----
-
-### Detailed Comparison: Legacy vs Modern
-
-| Aspect | 🏛️ Legacy | 🚀 Modern | 🏆 Winner |
-|---------|-----------|------------|-----------|
-| **Type Safety** | ❌ String-based | ✅ Type-safe enums | Modern |
-| **Performance** | ❌ Multiple string checks | ✅ Efficient type checks | Modern |
-| **Scalability** | ❌ Requires handler modifications | ✅ Auto-scaling with enums | Modern |
-| **Maintainability** | ❌ Duplicate code | ✅ Centralized types | Modern |
-| **Debugging** | ✅ Explicit targets | ⚠️ Requires IR knowledge | Legacy |
-| **Simplicity** | ✅ Easy to understand | ❌ More complex | Legacy |
-| **Robustness** | ❌ Prone to errors | ✅ Compile-time validation | Modern |
-| **Compatibility** | ✅ Backward compatible | ⚠️ Requires migration | Legacy |
-
-**Final Score: Modern 6-2 Legacy**
-
----
-
-### Migration Requirements
-
-#### Current Coverage Analysis
-
-**Already Modernized Handlers (✅):**
-- `U256OperationHandler` - Hybrid (✅ modern + 🏛️ legacy fallback)
-- `U256ComparisonHandler` - Hybrid (✅ modern + 🏛️ legacy fallback)
-- `U256CreateHandler` - Hybrid (✅ modern + 🏛️ legacy fallback)
-- `AddressTransformer` - Hybrid (✅ modern + 🏛️ legacy fallback)
-- `StringTransformer` - Hybrid (✅ modern + 🏛️ legacy fallback)
-
-**Pending Modernization Handlers (⚠️):**
-- `I256OperationHandler` - Partially modernized
-- `BooleanHandlers` - Mostly legacy
-- `MappingHandlers` - Legacy system
-- `EventHandlers` - Mixed approach
-- `StructHandlers` - Legacy system
-
-#### Complete Migration Steps
-
-**Step 1: Extend method-types.ts**
-```typescript
-// Add all missing types
-export const TYPE_METHOD_RETURNS = {
-  [AbiType.Uint256]: { /* already exists */ },
-  [AbiType.Int256]: { /* already exists */ },
-  [AbiType.Address]: { /* already exists */ },
-  [AbiType.String]: { /* already exists */ },
-  
-  // ⚠️ MISSING:
-  [AbiType.Bool]: {
-    [MethodName.Copy]: AbiType.Bool,
-    // Boolean methods
-  },
-  [AbiType.Mapping]: {
-    [MethodName.Get]: AbiType.Unknown, // Dynamic type
-    [MethodName.Set]: AbiType.Void,
-  },
-  [AbiType.Struct]: {
-    // Struct-specific methods
-  }
-};
-```
-
-**Step 2: Update IR Builders**
-```typescript
-// Ensure all IR builders generate receiver structures
-// Instead of hybrid targets
-```
-
-**Step 3: Modernize Pending Handlers**
-```typescript
-// Standard pattern for all handlers:
-canHandle(expr: IRExpression): boolean {
-  if (expr.kind !== "call") return false;
-  const target = expr.target || "";
-  
-  // 🚀 MODERN (priority)
-  if (expr.receiver) {
-    return this.canHandleModern(expr, target);
-  }
-  
-  // 🏛️ LEGACY (temporary fallback)
-  return this.canHandleLegacy(target);
-}
-```
-
-**Step 4: Comprehensive Testing**
-```typescript
-// Verify migration doesn't break existing cases
-// Especially legacy contracts
-```
-
-#### Estimated Effort
-- **Time:** 2-3 weeks
-- **Risk:** Medium (requires extensive testing)
-- **Benefit:** High (code quality + maintainability)
-
----
-
-### Recommendations and Conclusions
-
-#### 🎯 MAIN RECOMMENDATION: GRADUAL MIGRATION
-
-**Don't migrate everything at once**. Continue with the current hybrid approach with **gradual modernization**.
-
-#### Why not migrate everything now:
-1. **✅ Current system works**: 0 compilation errors
-2. **⚠️ Regression risk**: Massive changes can break edge cases
-3. **🔄 Gradual is safer**: Allows incremental testing
-4. **📊 ROI**: Current cost-benefit doesn't justify massive migration
-
-#### 🛣️ RECOMMENDED ROADMAP
-
-**Phase 1: Maintain Hybrid (Current) ✅**
-- ✅ **DONE**: Modernize critical handlers (U256, Address, String)
-- ✅ **DONE**: Maintain legacy fallbacks
-- ✅ **DONE**: Stable and functional system
-
-**Phase 2: Selective Modernization (Next)**
-- 🎯 **TODO**: Modernize handlers with more legacy problems
-- 🎯 **TODO**: Extend method-types.ts for new types
-- 🎯 **TODO**: Improve type safety gradually
-
-**Phase 3: Complete Migration (Future)**
-- 🔮 **FUTURE**: Only when necessary (major new features)
-- 🔮 **FUTURE**: When legacy maintenance becomes costly
-- 🔮 **FUTURE**: Breaking changes requiring rewrite
-
-#### 📈 CRITERIA FOR FUTURE MIGRATION
-
-**Migrate when:**
-- ✅ Adding **new complex types** (Struct, Bytes, Arrays)
-- ✅ **Critical performance** in transformations
-- ✅ **Legacy maintenance** becomes costly
-- ✅ **Type safety** is critical for new features
-
-**Don't migrate if:**
-- ❌ Current system works well
-- ❌ No time for comprehensive testing
-- ❌ No clear immediate benefit
-- ❌ Risk > Benefit
-
-#### 🏆 FINAL CONCLUSION
-
-**The current hybrid system is OPTIMAL for this moment:**
-
-1. **✅ Complete Functionality**: 0 compilation errors
-2. **✅ Best of Both Worlds**: Modern type safety + legacy compatibility
-3. **✅ Maintainable**: Easy to add new modern handlers
-4. **✅ Scalable**: Clear path for future migration
-5. **✅ Stable**: No regressions in existing contracts
-
-**Recommendation: CONTINUE with hybrid system**
-
-There's no urgent need for complete migration. The current system provides the benefits of the modern approach where it matters (type safety, performance) while maintaining the compatibility and stability of the legacy system.
-
-#### 🎯 SUGGESTED NEXT STEPS
-
-1. **✅ Complete**: I256OperationHandler modernization
-2. **✅ Add**: Boolean methods to method-types.ts  
-3. **✅ Monitor**: Hybrid system performance
-4. **✅ Document**: Patterns for future handlers
-5. **⚠️ Evaluate**: Migration only when necessary
-
-**The AssemblyScript Stylus SDK has a solid and flexible foundation that supports both modern development and legacy compatibility. This hybrid architecture is the most pragmatic option for continued development.**
+### Current Status
+- **Modernized**: U256, I256, Address, String transformers (hybrid support)
+- **Pending**: Boolean, Mapping, Struct handlers
+- **Recommendation**: Continue gradual migration as needed
+
+### Benefits of Hybrid Approach
+1. ✅ **Type Safety**: Modern handlers use compile-time validation
+2. ✅ **Compatibility**: Legacy handlers ensure backward compatibility  
+3. ✅ **Performance**: Efficient type checks vs multiple string checks
+4. ✅ **Maintainability**: Centralized type mappings
 
 ---
 
@@ -1153,149 +782,55 @@ read: async (
 
 ---
 
-## Advanced Debugging and Development Workflow
+## Advanced Development
 
-### Compilation Pipeline Deep Dive
+### Debugging Compilation Issues
 
-Understanding the compilation process helps debug complex issues:
+#### Check Compilation Pipeline:
+1. **IR Generation**: `__tests__/contracts/*/artifacts/intermediate-representation/json/`
+2. **AssemblyScript**: `__tests__/contracts/*/artifacts/contract.transformed.ts`  
+3. **WASM**: `__tests__/contracts/*/artifacts/build/contract.wasm`
 
-1. **TypeScript Parsing** → Generates IR (Intermediate Representation)
-2. **IR Transformation** → Applies transformer/handler logic  
-3. **AssemblyScript Generation** → Creates `.transformed.ts`
-4. **WASM Compilation** → Final bytecode for deployment
-
-### Debugging Workflow
-
-#### Step 1: Examine Intermediate Representation
+#### Step-by-step Compilation:
 ```bash
-# Check generated IR
-cat __tests__/contracts/your-contract/artifacts/intermediate-representation/json/contract-methods/*.json
-```
-
-The IR shows how expressions are parsed and structured:
-```json
-{
-  "kind": "call",
-  "target": "add", 
-  "receiver": {
-    "name": "counter",
-    "type": "uint256"
-  },
-  "args": [...]
-}
-```
-
-#### Step 2: Verify Transformed AssemblyScript
-```bash
-# Check generated AssemblyScript
-cat __tests__/contracts/your-contract/artifacts/contract.transformed.ts
-```
-
-Look for:
-- Proper import statements
-- Correct method transformations
-- Storage helper functions
-
-#### Step 3: Test Compilation Step by Step
-```bash
-# From SDK root
-npm run pre:build
-
-# Navigate to contract directory
+npm run pre:build                              # Required first step
 cd __tests__/contracts/your-contract
-
-# Compile to WASM
-npx as-stylus compile contract.ts
-
-# Validate with Stylus
-cargo stylus check --endpoint <RPC_URL>
+npx as-stylus compile contract.ts             # Generate WASM
+cargo stylus check --endpoint <RPC_URL>       # Validate
+cargo stylus deploy --private-key <KEY>       # Deploy
 ```
 
-### Advanced Handler Development
+### Adding Custom Handlers
 
-#### Creating Custom Handlers
-
-When adding support for new types or operations:
-
-1. **Define Type Mappings** in `cli/types/method-types.ts`:
+**1. Define Type Mappings** in `method-types.ts`:
 ```typescript
 export const TYPE_METHOD_RETURNS = {
-  [AbiType.YourType]: {
-    [MethodName.YourMethod]: AbiType.ReturnType,
-  }
+  [AbiType.YourType]: { [MethodName.YourMethod]: AbiType.ReturnType }
 };
 ```
 
-2. **Create Handler Class**:
+**2. Create Handler Class**:
 ```typescript
 export class YourTypeHandler implements ExpressionHandler {
   canHandle(expr: IRExpression): boolean {
-    // Modern approach: check receiver type
-    if (expr.receiver && expr.receiver.type === AbiType.YourType) {
-      return expr.target === MethodName.YourMethod;
-    }
-    
-    // Legacy fallback: string matching
-    return expr.target?.endsWith('.yourMethod') || false;
+    // Modern: check receiver type, Legacy: string matching fallback
+    return (expr.receiver?.type === AbiType.YourType && expr.target === MethodName.YourMethod) ||
+           expr.target?.endsWith('.yourMethod');
   }
-
+  
   handle(expr: any, context: EmitContext, emitExprFn: Function): EmitResult {
-    // Transform logic here
-    return {
-      setupLines: [],
-      valueExpr: `YourType.yourMethod(${args})`,
-      valueType: "YourType"
-    };
+    return { setupLines: [], valueExpr: `YourType.yourMethod(args)`, valueType: "YourType" };
   }
 }
 ```
 
-3. **Register in Transformer**:
-```typescript
-class YourTypeTransformer extends BaseTypeTransformer {
-  constructor() {
-    super("YourType");
-    this.registerHandler(new YourTypeHandler());
-  }
-}
-```
+**3. Register in Transformer**: Add handler to constructor
 
-#### Handler Priority and Resolution
-
-Handlers are resolved in order:
-1. **Modern handlers** (receiver-based) get priority
-2. **Legacy handlers** (string-based) as fallback  
-3. **Type-specific** transformers before generic ones
-4. **Registration order** within the same transformer
-
-### Memory Management Best Practices
-
-#### Understanding AS-Stylus Memory Model
-
-- **Stack allocation** for simple types (booleans, small integers)
-- **Heap allocation** for complex types (U256, Address, String, Struct)
-- **Manual management** required for temporary objects
-- **Storage operations** use deterministic slot calculation
-
-#### Memory-Efficient Patterns
-
-**✅ Reuse Objects When Possible:**
-```typescript
-// ✅ GOOD: Reuse existing U256
-const result = existingValue.add(amount);
-
-// ❌ AVOID: Creating unnecessary intermediates  
-const temp = U256Factory.create();
-const result = temp.add(existingValue).add(amount);
-```
-
-**✅ Use copyInPlace for Buffer Operations:**
-```typescript
-// For events and errors that need buffer copying
-U256.copyInPlace(destBuffer, srcU256);  // Efficient
-// vs
-const copy = U256.copy(srcU256);        // Creates new object
-```
+### Memory Management Tips
+- **Memory-based API**: All U256/I256 operations return new instances
+- **Buffer operations**: Use `U256.copyInPlace()` for events/errors
+- **Reuse objects**: Avoid creating unnecessary intermediate values
+- **Pre-declare constants**: Outside loops for gas efficiency
 
 ---
 

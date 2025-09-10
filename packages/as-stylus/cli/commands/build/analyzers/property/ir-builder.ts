@@ -1,7 +1,7 @@
 import { PropertyDeclaration } from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRVariable } from "@/cli/types/ir.types.js";
+import { IRVariable, IRArrayStaticVar, IRArrayDynamicVar } from "@/cli/types/ir.types.js";
 import { inferType } from "@/cli/utils/inferType.js";
 
 import { PropertySyntaxValidator } from "./syntax-validator.js";
@@ -15,6 +15,33 @@ import { parseName } from "../shared/utils/parse-this.js";
  *   "Mapping<U256, Address>" → { keyType: "U256", valueType: "Address" }
  *   "MappingNested<Address, Address, boolean>" → { keyType1: "Address", keyType2: "Address", valueType: "boolean" }
  */
+function extractArrayTypes(typeText: string): {
+  elementType?: string;
+  length?: number;
+  isStatic: boolean;
+} {
+  // Handle static arrays like U256[3]
+  const staticMatch = typeText.match(/^([A-Za-z0-9_]+)\[(\d+)\]$/);
+  if (staticMatch) {
+    return {
+      elementType: staticMatch[1],
+      length: parseInt(staticMatch[2]),
+      isStatic: true,
+    };
+  }
+
+  // Handle dynamic arrays like U256[]
+  const dynamicMatch = typeText.match(/^([A-Za-z0-9_]+)\[\]$/);
+  if (dynamicMatch) {
+    return {
+      elementType: dynamicMatch[1],
+      isStatic: false,
+    };
+  }
+
+  return { isStatic: false };
+}
+
 function extractMappingTypes(typeText: string): {
   keyType?: string;
   valueType?: string;
@@ -79,10 +106,52 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       scope: "storage",
       dynamicType: type
     });
-  
+
     const fullTypeText = this.property.getType().getText();
+    const typeNodeText = this.property.getTypeNode()?.getText() || "";
+    const arrayInfo = extractArrayTypes(typeNodeText);
     const mappingTypes = extractMappingTypes(fullTypeText);
-    
+
+    let correctAbiType: AbiType;
+    if (arrayInfo.isStatic && arrayInfo.elementType && arrayInfo.length) {
+      correctAbiType = AbiType.ArrayStatic;
+    } else if (!arrayInfo.isStatic && arrayInfo.elementType) {
+      correctAbiType = AbiType.ArrayDynamic;
+    } else {
+      correctAbiType = convertType(this.symbolTable, type);
+    }
+
+    this.symbolTable.declareVariable(name, {
+      name,
+      type: correctAbiType,
+      scope: "storage",
+      dynamicType: type,
+      length: arrayInfo.isStatic ? arrayInfo.length : undefined,
+    });
+
+    if (arrayInfo.isStatic && arrayInfo.elementType && arrayInfo.length) {
+      const arrayVar: IRArrayStaticVar = {
+        name,
+        type: AbiType.ArrayStatic,
+        slot: this.slotManager.getSlotForVariable(name),
+        elementType: arrayInfo.elementType,
+        length: arrayInfo.length,
+        kind: "array_static",
+      };
+      return arrayVar;
+    }
+
+    if (!arrayInfo.isStatic && arrayInfo.elementType) {
+      const arrayVar: IRArrayDynamicVar = {
+        name,
+        type: AbiType.ArrayDynamic,
+        slot: this.slotManager.getSlotForVariable(name),
+        elementType: arrayInfo.elementType,
+        kind: "array_dynamic",
+      };
+      return arrayVar;
+    }
+
     if (type === AbiType.MappingNested || type.startsWith("MappingNested")) {
       const variable: IRVariable = {
         name,
@@ -93,7 +162,6 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
         valueType: mappingTypes.valueType || "U256",
         kind: "mapping2",
       };
-      
       return variable;
     }
 

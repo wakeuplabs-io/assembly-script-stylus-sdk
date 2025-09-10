@@ -51,7 +51,7 @@
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/struct",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["as-stylus", "build", "./contract.ts"],
+      "runtimeArgs": ["as-stylus", "build"],
       "console": "integratedTerminal"
     },
     {
@@ -61,7 +61,17 @@
       "skipFiles": ["<node_internals>/**"],
       "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/erc721",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["as-stylus", "build"],
+      "runtimeArgs": ["as-stylus", "compile", "contract.ts"],
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Build Fallback Receive Contract",
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/fallback-receive",
+      "runtimeExecutable": "as-stylus",
+      "runtimeArgs": ["compile", "contract.ts"],
       "console": "integratedTerminal"
     }
   ]

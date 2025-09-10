@@ -36,6 +36,28 @@ export type Call = {
     isStructCreation?: boolean;
     structType?: string;
   };
+  genericType?: string;
+};
+
+export type ArrayAccess = {
+  kind: "array_access";
+  array: IRExpression;
+  index: IRExpression;
+  type: SupportedType;
+};
+
+export type ArrayLiteral = {
+  kind: "array_literal";
+  elements: IRExpression[];
+  type: SupportedType;
+};
+
+export type ArrayAssignment = {
+  kind: "array_assignment";
+  array: IRExpression;
+  index: IRExpression;
+  value: IRExpression;
+  type: SupportedType;
 };
 export type Member = {
   kind: "member";
@@ -141,7 +163,10 @@ export type IRExpression =
   | IRMapGet2
   | IRMapSet2
   | IRThis
-  | ChainedCall;
+  | ChainedCall
+  | ArrayAccess
+  | ArrayLiteral
+  | ArrayAssignment;
 
 // ───────────────────────
 // Statements
@@ -224,7 +249,29 @@ export type IRMappingNestedVar = {
   kind: "mapping2";
 };
 
-export type IRVariable = IRSimpleVar | IRMappingVar | IRMappingNestedVar;
+export type IRArrayStaticVar = {
+  name: string;
+  type: AbiType.ArrayStatic;
+  slot: number;
+  elementType: string;
+  length: number;
+  kind: "array_static";
+};
+
+export type IRArrayDynamicVar = {
+  name: string;
+  type: AbiType.ArrayDynamic;
+  slot: number;
+  elementType: string;
+  kind: "array_dynamic";
+};
+
+export type IRVariable =
+  | IRSimpleVar
+  | IRMappingVar
+  | IRMappingNestedVar
+  | IRArrayStaticVar
+  | IRArrayDynamicVar;
 
 // ───────────────────────
 // Contract structure
@@ -239,6 +286,7 @@ export type IRMethod = {
   inputs: AbiInput[];
   outputs: AbiOutput[];
   ir: IRStatement[];
+  methodType?: "normal" | "fallback" | "receive";
 };
 
 export type IRConstructor = {
@@ -301,6 +349,8 @@ export interface IRContract {
   parent?: IRContract;
   methods: IRMethod[];
   constructor?: IRMethod;
+  fallback?: IRMethod;
+  receive?: IRMethod;
   storage: IRVariable[];
   events?: IREvent[];
   structs?: IRStruct[];

@@ -26,6 +26,8 @@ export enum AbiType {
   Bytes = "bytes",
   Struct = "struct",
   Array = "array",
+  ArrayStatic = "array_static",
+  ArrayDynamic = "array_dynamic",
   Tuple = "tuple",
   // TODO: Analyze if we need these
   Void = "void",
@@ -54,14 +56,14 @@ export type AbiComponent = {
 
 export type AbiInput = {
   name: string;
-  type: AbiType;
+  type: AbiType | string;
   components?: AbiComponent[];
   originalType?: string;
 };
 
 export type AbiOutput = {
   name?: string;
-  type: AbiType;
+  type: AbiType | string;
   components?: AbiComponent[];
   originalType?: string;
 };

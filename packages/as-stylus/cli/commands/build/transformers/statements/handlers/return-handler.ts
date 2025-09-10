@@ -14,15 +14,14 @@ export class ReturnHandler extends StatementHandler {
     if (setupLines.length === 0) {
       return `${indent}return ${returnExpr};`;
     }
-    
-    const lines = setupLines.map(line => `${indent}${line}`);
+
+    const lines = setupLines.map((line) => `${indent}${line}`);
     lines.push(`${indent}return ${returnExpr};`);
     return lines.join("\n");
   }
 
   handle(stmt: IRStatement, indent: string): string {
     const returnStmt = stmt as Return;
-    
     if (!returnStmt.expr) {
       return `${indent}return;`;
     }
@@ -35,4 +34,5 @@ export class ReturnHandler extends StatementHandler {
 
     return this.buildReturnWithSetup(exprResult.setupLines, exprResult.valueExpr, indent);
   }
+
 }

@@ -36,7 +36,7 @@ export class Str {
 }
 
 /**
- * @interface StrFactory
+ * @class StrFactory
  * @description Factory for creating strings
  * @method create - Create a new string
  * @method fromUtf8 - Create a string from a UTF-8 encoded byte array
