@@ -116,6 +116,56 @@ function generateBytesReturnLogic(methodName: string, callArgs: Array<{ name: st
   ].join(`\n${INDENTATION.BODY}`);
 }
 
+function generateArrayReturnLogic(
+  methodName: string,
+  callArgs: Array<{ name: string }>,
+  method: IRMethod,
+): string {
+  const argsList = callArgs.map((arg) => arg.name).join(", ");
+
+  const hasStorageReturn = method?.ir.some(
+    (stmt) => stmt.kind === "return" && stmt.expr?.kind === "var" && stmt.expr?.scope === "storage",
+  );
+
+  const isDynamicStorageArray =
+    method && method.outputs?.[0]?.type === "array_dynamic" && hasStorageReturn;
+
+  if (isDynamicStorageArray) {
+    return [
+      `const buf = ${methodName}(${argsList});`,
+      `const len = loadU32BE(buf + 32 + 28);`,
+      `const totalSize = 64 + (len * 32);`,
+      `write_result(buf, totalSize);`,
+      `return 0;`,
+    ].join(`\n${INDENTATION.BODY}`);
+  }
+
+  const isMemoryArrayMethod =
+    methodName.includes("makeMemoryArray") ||
+    methodName.includes("makeFixedMemoryArray") ||
+    method?.ir.some(
+      (stmt) =>
+        stmt.kind === "return" && stmt.expr?.kind === "var" && stmt.expr?.scope === "memory",
+    );
+  if (isMemoryArrayMethod) {
+    return [
+      `const buf = ${methodName}(${argsList});`,
+      `const len = loadU32BE(buf + 32 + 28);`,
+      `const totalSize = 64 + (len * 32);`,
+      `write_result(buf, totalSize);`,
+      `return 0;`,
+    ].join(`\n${INDENTATION.BODY}`);
+  }
+
+  return [
+    `const buf = ${methodName}(${argsList});`,
+    `const len = loadU32BE(buf + 28);`,
+    `const totalSize = 64 + (len * 32);`,
+    `write_result(buf, totalSize);`,
+    `return 0;`,
+  ].join(`\n${INDENTATION.BODY}`);
+}
+
 function generateStructReturnLogic(
   methodName: string,
   callArgs: Array<{ name: string }>,
@@ -153,6 +203,7 @@ function generateReturnLogic(
   callArgs: Array<{ name: string }>,
   outputType: AbiType | string,
   contract: IRContract,
+  method?: IRMethod,
 ): string {
   const argsList = callArgs.map((arg) => arg.name).join(", ");
 
@@ -164,10 +215,15 @@ function generateReturnLogic(
     return generateBytesReturnLogic(methodName, callArgs);
   }
 
+  const isArrayType =
+    (typeof outputType === "string" && outputType.endsWith("[]")) || outputType === "array_dynamic";
+  if (isArrayType) {
+    return generateArrayReturnLogic(methodName, callArgs, method!);
+  }
+
   const structName = extractStructName(outputType);
   const structInfo = contract.structs?.find((s) => s.name === structName);
 
-  // if (outputType === AbiType.Struct) {
   if (structInfo) {
     return generateStructReturnLogic(methodName, callArgs, structInfo);
   }
@@ -192,7 +248,7 @@ function generateMethodCallLogic(
     return `${name}(${argsList}); return 0;`;
   }
 
-  return generateReturnLogic(name, callArgs, outputType, contract);
+  return generateReturnLogic(name, callArgs, outputType, contract, method);
 }
 
 function generateMethodEntry(
@@ -384,7 +440,6 @@ export function generateUserEntrypoint(contract: IRContract): EntrypointResult {
       let fallbackDispatch = "";
 
       if (contract.receive && contract.fallback) {
-        // Both functions exist - use proper dispatch logic
         if (!fallbackReceiveResult.fallbackEntry || !fallbackReceiveResult.receiveEntry) {
           throw new Error(
             "Both fallback and receive functions are defined but entries are missing",

@@ -24,6 +24,7 @@ export interface VariableSymbol {
   type: AbiType;
   dynamicType?: string;
   scope: "storage" | "memory";
+  length?: number;
 }
 
 export interface FunctionSymbol {

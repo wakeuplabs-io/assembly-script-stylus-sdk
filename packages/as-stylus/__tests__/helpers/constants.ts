@@ -111,4 +111,8 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/fallback-receive"),
     abi: path.join(ROOT_PATH, "/fallback-receive/artifacts/abi/no_fallback_no_receive-abi.json"),
   },
+  ARRAYS: {
+    contract: path.join(ROOT_PATH, "/arrays"),
+    abi: path.join(ROOT_PATH, "/arrays/artifacts/abi/contract-abi.json"),
+  },
 } as const;

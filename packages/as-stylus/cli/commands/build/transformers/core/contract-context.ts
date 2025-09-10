@@ -34,6 +34,10 @@ export class ContractContext {
     return this.parentName;
   }
 
+  getContractIR(): IRContract | null {
+    return this.contractIR;
+  }
+
   emitExpression(expr: IRExpression): EmitResult {
     const transformer = this.transformerRegistry.detectExpressionType(expr);
     if (transformer) {

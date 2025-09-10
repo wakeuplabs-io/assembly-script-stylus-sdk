@@ -33,16 +33,26 @@ export class ArrayAssignmentHandler extends Handler {
       ...valueResult.setupLines,
     ];
 
+    const isStorageArray =
+      expr.array.kind === "var" && "scope" in expr.array && expr.array.scope === "storage";
+    const isStaticArray = isStorageArray && this.isStaticArray(expr.array);
+    const isDynamicArray = isStorageArray && !isStaticArray;
+
     let indexExpr = indexResult.valueExpr;
-    if (
+    const needsU256ToU32Conversion =
       (expr.index.kind === "call" && expr.index.returnType === "uint256") ||
-      expr.index.type === "uint256"
-    ) {
-      const tempVar = `__index_${Math.floor(Math.random() * 10000)}`;
-      setupLines.push(
-        `const ${tempVar}: u32 = (load<u8>(${indexResult.valueExpr} + 28) << 24) | (load<u8>(${indexResult.valueExpr} + 29) << 16) | (load<u8>(${indexResult.valueExpr} + 30) << 8) | load<u8>(${indexResult.valueExpr} + 31);`,
-      );
-      indexExpr = tempVar;
+      expr.index.type === "uint256";
+
+    if (needsU256ToU32Conversion) {
+      if (isStaticArray || !isDynamicArray) {
+        const tempVar = `__index_${Math.floor(Math.random() * 10000)}`;
+        setupLines.push(
+          `const ${tempVar}: u32 = (load<u8>(${indexResult.valueExpr} + 28) << 24) | (load<u8>(${indexResult.valueExpr} + 29) << 16) | (load<u8>(${indexResult.valueExpr} + 30) << 8) | load<u8>(${indexResult.valueExpr} + 31);`,
+        );
+        indexExpr = tempVar;
+      } else {
+        indexExpr = indexResult.valueExpr;
+      }
     }
 
     let assignmentExpr: string;
@@ -63,14 +73,10 @@ export class ArrayAssignmentHandler extends Handler {
         elementSize = 32;
     }
 
-    if (expr.array.kind === "var" && "scope" in expr.array && expr.array.scope === "storage") {
-      const isStatic = this.isStaticArray(expr.array);
-
-      if (isStatic) {
-        assignmentExpr = `ArrayStatic.set(${arrayResult.valueExpr}, ${indexExpr}, ${valueResult.valueExpr}, ${elementSize})`;
-      } else {
-        assignmentExpr = `ArrayDynamic.set(${arrayResult.valueExpr}, ${indexExpr}, ${valueResult.valueExpr})`;
-      }
+    if (isStaticArray) {
+      assignmentExpr = `ArrayStatic.set(${arrayResult.valueExpr}, ${indexExpr}, ${valueResult.valueExpr}, ${elementSize})`;
+    } else if (isDynamicArray) {
+      assignmentExpr = `ArrayDynamic.set(${arrayResult.valueExpr}, ${indexExpr}, ${valueResult.valueExpr})`;
     } else {
       assignmentExpr = `Array.set(${arrayResult.valueExpr}, ${indexExpr}, ${valueResult.valueExpr}, ${elementSize})`;
     }

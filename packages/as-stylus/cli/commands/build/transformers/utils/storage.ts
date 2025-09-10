@@ -408,7 +408,10 @@ function store_${variable.name}(): void {
       // Static array storage functions
       lines.push(`
 function load_${variable.name}(): usize {
-  return ArrayStatic.createStorage(32, ${variable.length}); // elementSize=32 for U256
+  // Always create a fresh metadata structure pointing to the correct storage slots
+  const arrayPtr = ArrayStatic.createStorage(32, ${variable.length}); // elementSize=32 for U256
+  ArrayStatic.setBaseSlot(arrayPtr, ${variable.slot});
+  return arrayPtr;
 }
 
 function store_${variable.name}(): void {
@@ -418,13 +421,13 @@ function store_${variable.name}(): void {
     } else if (variable.kind === "array_dynamic") {
       // Dynamic array storage functions
       lines.push(`
-function load_${variable.name}(): usize {
-  return ArrayDynamic.createStorage();
+export function load_${variable.name}(): usize {
+  return createStorageKey(${formatSlotName(variable.slot)});
 }
 
 function store_${variable.name}(): void {
   // Dynamic arrays store length at base slot
-  // Implementation would need proper storage handling
+  // Storage is handled automatically through storage_cache_bytes32/storage_flush_cache
 }`);
     }
   }

@@ -4,6 +4,18 @@ import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
 export class StaticArrayFactoryHandler extends Handler {
+  private getStorageVariableName(): string | null {
+    const contractIR = this.contractContext.getContractIR();
+    const contractStorage = contractIR?.storage;
+    if (contractStorage && contractStorage.length > 0) {
+      const staticArrayVar = contractStorage.find((v: any) => v.kind === "array_static");
+      if (staticArrayVar) {
+        return staticArrayVar.name;
+      }
+    }
+    return null;
+  }
+
   canHandle(expr: Call): boolean {
     if (expr.kind !== "call") {
       return false;
@@ -53,9 +65,21 @@ export class StaticArrayFactoryHandler extends Handler {
             const arrayLength = firstArg.elements.length;
             const tempVarName = makeTemp("array");
 
-            setupLines.push(
-              `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${arrayLength});`,
-            );
+            if (expr.scope === "storage") {
+              const storageVarName = this.getStorageVariableName();
+              if (storageVarName) {
+                setupLines.push(`const ${tempVarName}: usize = load_${storageVarName}();`);
+              } else {
+                setupLines.push(
+                  `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${arrayLength});`,
+                );
+                setupLines.push(`ArrayStatic.setBaseSlot(${tempVarName}, 0);`);
+              }
+            } else {
+              setupLines.push(
+                `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${arrayLength});`,
+              );
+            }
 
             firstArg.elements.forEach((element, index) => {
               let elementExpr: string;
@@ -93,9 +117,21 @@ export class StaticArrayFactoryHandler extends Handler {
           const tempLength = makeTemp("length");
 
           setupLines.push(`const ${tempLength}: u32 = <u32>${lengthArg};`);
-          setupLines.push(
-            `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${tempLength});`,
-          );
+          if (expr.scope === "storage") {
+            const storageVarName = this.getStorageVariableName();
+            if (storageVarName) {
+              setupLines.push(`const ${tempVarName}: usize = load_${storageVarName}();`);
+            } else {
+              setupLines.push(
+                `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${tempLength});`,
+              );
+              setupLines.push(`ArrayStatic.setBaseSlot(${tempVarName}, 0);`);
+            }
+          } else {
+            setupLines.push(
+              `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${tempLength});`,
+            );
+          }
 
           setupLines.push(`for (let i: u32 = 0; i < ${tempLength}; i++) {`);
           setupLines.push(`  ArrayStatic.set(${tempVarName}, i, ${valueArg}, ${elementSize});`);
@@ -113,9 +149,21 @@ export class StaticArrayFactoryHandler extends Handler {
           const arrayLength = argResults.length;
           const tempVarName = makeTemp("array");
 
-          setupLines.push(
-            `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${arrayLength});`,
-          );
+          if (expr.scope === "storage") {
+            const storageVarName = this.getStorageVariableName();
+            if (storageVarName) {
+              setupLines.push(`const ${tempVarName}: usize = load_${storageVarName}();`);
+            } else {
+              setupLines.push(
+                `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${arrayLength});`,
+              );
+              setupLines.push(`ArrayStatic.setBaseSlot(${tempVarName}, 0);`);
+            }
+          } else {
+            setupLines.push(
+              `const ${tempVarName}: usize = ArrayStatic.${createMethod}(${elementSize}, ${arrayLength});`,
+            );
+          }
 
           argResults.forEach((result, index) => {
             setupLines.push(

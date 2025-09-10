@@ -118,6 +118,7 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
       type: correctAbiType,
       scope: "storage",
       dynamicType: type,
+      length: arrayInfo.isStatic ? arrayInfo.length : undefined,
     });
 
     if (arrayInfo.isStatic && arrayInfo.elementType && arrayInfo.length) {

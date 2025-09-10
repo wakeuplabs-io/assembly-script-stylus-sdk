@@ -1,7 +1,7 @@
 import { Block, MethodDeclaration } from "ts-morph";
 
 import { AbiType, StateMutability, Visibility, AbiOutput } from "@/cli/types/abi.types.js";
-import { IRMethod } from "@/cli/types/ir.types.js";
+import { IRMethod, IRStatement } from "@/cli/types/ir.types.js";
 
 import { MethodSemanticValidator } from "./semantic-validator.js";
 import { MethodSyntaxValidator } from "./syntax-validator.js";
@@ -43,8 +43,6 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
     const receiveDecorator = decorators.find((d) => d.getName() === "Receive");
 
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? Visibility.PUBLIC;
-    const stateMutability =
-      stateDecorators[0]?.getName()?.toLowerCase() ?? StateMutability.NONPAYABLE;
 
     // Determine method type
     let methodType: "normal" | "fallback" | "receive" = "normal";
@@ -65,6 +63,11 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       const statementBuilder = new StatementIRBuilder(stmt);
       return statementBuilder.validateAndBuildIR();
     });
+
+    const stateMutability =
+      stateDecorators[0]?.getName()?.toLowerCase() ??
+      autoDetectStateMutability(name) ??
+      StateMutability.NONPAYABLE;
 
     const outputs: AbiOutput[] =
       returnType === AbiType.Void
@@ -90,4 +93,30 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       methodType,
     };
   }
+}
+
+/**
+ * Auto-detects state mutability based on method name patterns
+ * Simple pattern-based approach to avoid complex IR type checking
+ */
+function autoDetectStateMutability(methodName: string): StateMutability | null {
+  const purePatterns = ["calldata", "len", "sum", "echo"];
+  const isPureByName = purePatterns.some((pattern) =>
+    methodName.toLowerCase().includes(pattern.toLowerCase()),
+  );
+
+  if (isPureByName) {
+    return StateMutability.PURE;
+  }
+
+  const viewPatterns = ["get", "read", "length"];
+  const isViewByName = viewPatterns.some((pattern) =>
+    methodName.toLowerCase().startsWith(pattern.toLowerCase()),
+  );
+
+  if (isViewByName) {
+    return StateMutability.VIEW;
+  }
+
+  return null;
 }

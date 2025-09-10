@@ -82,7 +82,7 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
 
     read: async (
       functionName: string,
-      args: (string | boolean | Address | bigint)[],
+      args: (string | boolean | Address | bigint | (string | boolean | Address | bigint)[])[],
       gasLimit?: bigint,
     ) => {
       const data = encodeFunctionData({ abi, functionName, args });
@@ -104,7 +104,7 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
     readWithAccount: async (
       walletClient: WalletClient,
       functionName: string,
-      args: (string | boolean | Address | bigint)[] = [],
+      args: (string | boolean | Address | bigint | (string | boolean | Address | bigint)[])[] = [],
       value?: bigint,
       gasLimit?: bigint,
     ) => {
@@ -319,7 +319,7 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
       walletClient: WalletClient,
       calldata: Hex,
       value?: bigint,
-      gasLimit?: bigint
+      gasLimit?: bigint,
     ) => {
       if (verbose) console.log("→ raw transaction calldata:", calldata);
 
@@ -338,9 +338,9 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
 
         const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
         if (verbose) console.log("← raw transaction receipt status:", receipt.status);
-        
-        const success = receipt.status === 'success';
-        
+
+        const success = receipt.status === "success";
+
         return { success, txHash, receipt };
       } catch (error: any) {
         if (verbose) console.log("← raw transaction error:", error);
@@ -364,7 +364,8 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
       const functionSignature = `${fakeFunctionName}()`;
       const hash = keccak256(toBytes(functionSignature));
       const selector = hash.slice(0, 10) as Hex;
-      if (verbose) console.log("→ generated invalid selector:", selector, "for signature:", functionSignature);
+      if (verbose)
+        console.log("→ generated invalid selector:", selector, "for signature:", functionSignature);
       return selector;
     },
 

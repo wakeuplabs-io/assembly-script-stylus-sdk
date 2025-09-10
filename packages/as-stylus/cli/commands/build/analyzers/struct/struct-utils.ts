@@ -21,15 +21,31 @@ export function extractStructName(fullType: string): string | null {
 }
 
 /**
- * Converts basic types to AbiType. Returns null if not a basic type.
+ * Converts basic types to AbiType or array type string. Returns null if not a basic type.
  * This is shared logic between different type conversion functions.
  */
-export function convertBasicType(input: string): AbiType | null {
+export function convertBasicType(input: string): AbiType | string | null {
   const typeString = parseImport(input);
+
   if (Object.values(AbiType).includes(typeString as AbiType)) {
     return typeString as AbiType;
   }
 
+  const arrayInfo = extractArrayInfo(typeString);
+  if (arrayInfo.isArray) {
+    const elementType = convertBasicTypeInternal(arrayInfo.elementType);
+    if (elementType) {
+      return `${elementType}[]`;
+    }
+  }
+
+  return convertBasicTypeInternal(typeString);
+}
+
+/**
+ * Internal function to convert individual type names to AbiType
+ */
+function convertBasicTypeInternal(typeString: string): AbiType | null {
   if (typeString.startsWith("MappingNested")) {
     return AbiType.MappingNested;
   }
@@ -110,7 +126,19 @@ export function convertTypeForIR(
 ): { type: AbiType; originalType?: string } {
   const basicType = convertBasicType(typeString);
   if (basicType) {
-    return { type: basicType, originalType: typeString };
+    if (typeof basicType === "string") {
+      // For IR purposes, arrays are either ArrayStatic or ArrayDynamic
+      const arrayInfo = extractArrayInfo(typeString);
+      if (arrayInfo.isArray) {
+        if (arrayInfo.isStatic) {
+          return { type: AbiType.ArrayStatic, originalType: typeString };
+        } else {
+          return { type: AbiType.ArrayDynamic, originalType: typeString };
+        }
+      }
+    } else {
+      return { type: basicType, originalType: typeString };
+    }
   }
 
   const arrayInfo = extractArrayInfo(typeString);
@@ -170,18 +198,11 @@ export function isPrimitiveType(type: AbiType): boolean {
  * This is used by CallFunctionIRBuilder to determine the return type
  */
 export function extractStructTypeFromCall(callExpression: any): string | undefined {
-  // This will be called from CallFunctionIRBuilder
-  // For now, we'll use a simple heuristic or context analysis
-  // The proper implementation would need access to TypeScript's type checker
-
-  // If we have type arguments, extract from there
   if (callExpression.getTypeArguments && callExpression.getTypeArguments().length > 0) {
     const typeArg = callExpression.getTypeArguments()[0];
     return typeArg.getText();
   }
 
-  // Fallback: try to infer from context or return undefined
-  // This will need to be enhanced based on actual usage
   return undefined;
 }
 

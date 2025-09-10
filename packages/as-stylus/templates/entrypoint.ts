@@ -18,6 +18,7 @@ import { Boolean } from "${packageName}/core/types/boolean";
 import { U256 } from "${packageName}/core/types/u256";
 import { Msg } from "${packageName}/core/types/msg";
 import { Array } from "${packageName}/core/types/array";
+import { ArrayDynamic } from "${packageName}/core/types/array-dynamic";
 import { createStorageKey } from "${packageName}/core/modules/storage";
 import { storage_load_bytes32, storage_cache_bytes32, storage_flush_cache } from "${packageName}/core/modules/hostio";
 

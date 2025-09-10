@@ -5,7 +5,7 @@ import { contractService, ContractService } from "./client.js";
 import { PRIVATE_KEY, RPC_URL } from "./constants.js";
 import { getAbi, parseDeploymentOutput, run } from "./utils.js";
 
-export type ContractArgs = (string | boolean | Address | bigint)[];
+export type ContractArgs = (string | boolean | Address | bigint | (string | boolean | Address | bigint)[])[];
 
 /**
  * Deploys contract directly using DeployRunner (non-interactive)

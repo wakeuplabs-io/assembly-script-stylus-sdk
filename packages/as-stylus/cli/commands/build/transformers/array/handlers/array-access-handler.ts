@@ -28,17 +28,29 @@ export class ArrayAccessHandler extends Handler {
 
     const setupLines = [...arrayResult.setupLines, ...indexResult.setupLines];
 
-    // Convert index to u32 automatically if it's U256
+    const isStorageArray =
+      expr.array.kind === "var" && "scope" in expr.array && expr.array.scope === "storage";
+    const isStaticArray = isStorageArray && this.isStaticArray(expr.array);
+    const isDynamicArray = isStorageArray && !isStaticArray;
+
     let indexExpr = indexResult.valueExpr;
+    let indexConversionLine = "";
+
     if (expr.index.type === "uint256") {
-      indexExpr = `<u32>${indexResult.valueExpr}`;
+      if (isStaticArray) {
+        const varName = `__index_${Math.floor(Math.random() * 10000)}`;
+        indexConversionLine = `const ${varName}: u32 = (load<u8>(${indexResult.valueExpr} + 28) << 24) | (load<u8>(${indexResult.valueExpr} + 29) << 16) | (load<u8>(${indexResult.valueExpr} + 30) << 8) | load<u8>(${indexResult.valueExpr} + 31);`;
+        indexExpr = varName;
+      } else if (isDynamicArray) {
+        indexExpr = indexResult.valueExpr;
+      } else {
+        indexExpr = `<u32>${indexResult.valueExpr}`;
+      }
     }
 
-    // Determine the array type and generate appropriate access code
     let accessExpr: string;
     let elementType: string;
 
-    // Determine element size based on the result type
     let elementSize: number;
     switch (expr.type) {
       case "uint256":
@@ -59,25 +71,21 @@ export class ArrayAccessHandler extends Handler {
         elementType = "usize";
     }
 
-    // Check if this is a storage array access
-    if (expr.array.kind === "var" && "scope" in expr.array && expr.array.scope === "storage") {
-      // Determine if it's static or dynamic array based on the variable type
-      const isStatic = this.isStaticArray(expr.array);
-
-      if (isStatic) {
-        // Static storage array: ArrayStatic.get(array, index, elementSize)
-        accessExpr = `ArrayStatic.get(${arrayResult.valueExpr}, ${indexExpr}, ${elementSize})`;
-      } else {
-        // Dynamic storage array: ArrayDynamic.get(array, index)
-        accessExpr = `ArrayDynamic.get(${arrayResult.valueExpr}, ${indexExpr})`;
-      }
+    if (isStaticArray) {
+      accessExpr = `ArrayStatic.get(${arrayResult.valueExpr}, ${indexExpr}, ${elementSize})`;
+    } else if (isDynamicArray) {
+      accessExpr = `ArrayDynamic.get(${arrayResult.valueExpr}, ${indexExpr})`;
     } else {
-      // Memory or calldata array: Array.get(array, index, elementSize)
       accessExpr = `Array.get(${arrayResult.valueExpr}, ${indexExpr}, ${elementSize})`;
     }
 
+    const finalSetupLines = [...setupLines];
+    if (indexConversionLine) {
+      finalSetupLines.push(indexConversionLine);
+    }
+
     return {
-      setupLines,
+      setupLines: finalSetupLines,
       valueExpr: accessExpr,
       valueType: elementType,
     };
@@ -89,25 +97,18 @@ export class ArrayAccessHandler extends Handler {
    * @returns true if the array is static, false if dynamic
    */
   private isStaticArray(arrayVar: IRExpression): boolean {
-    // In a complete implementation, this would check the symbol table
-    // to determine if the variable is declared as a static array (e.g., U256[3])
-    // For now, we'll use a heuristic based on variable naming or type
-
     if (arrayVar.kind === "var") {
       const varName = arrayVar.name;
 
-      // Check if the variable name suggests it's static
       if (varName.includes("static") || varName.includes("Static")) {
         return true;
       }
 
-      // Check if the variable name suggests it's dynamic
       if (varName.includes("dynamic") || varName.includes("Dynamic")) {
         return false;
       }
     }
 
-    // Default to dynamic for safety
     return false;
   }
 }

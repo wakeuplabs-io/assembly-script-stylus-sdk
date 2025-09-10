@@ -36,11 +36,6 @@ export class AssignmentHandler extends StatementHandler {
 
     if (assignment.scope === "storage") {
       const property = assignment.target;
-
-      if (property === "staticU256Array") {
-        lines.push(`${indent}ArrayStatic.setBaseSlot(${assignment.target}, 0);`);
-      }
-
       lines.push(`${indent}store_${property}();`);
     }
 

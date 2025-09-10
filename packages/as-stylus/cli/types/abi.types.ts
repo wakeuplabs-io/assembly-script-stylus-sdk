@@ -56,14 +56,14 @@ export type AbiComponent = {
 
 export type AbiInput = {
   name: string;
-  type: AbiType;
+  type: AbiType | string;
   components?: AbiComponent[];
   originalType?: string;
 };
 
 export type AbiOutput = {
   name?: string;
-  type: AbiType;
+  type: AbiType | string;
   components?: AbiComponent[];
   originalType?: string;
 };

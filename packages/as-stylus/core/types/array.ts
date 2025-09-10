@@ -1,5 +1,4 @@
 import { malloc } from "../modules/memory";
-
 /** Core Array operations for dynamic arrays storage management */
 export class Array {
 
@@ -88,15 +87,18 @@ export class Array {
 
   /** Creates array from calldata */
   static fromCalldata(basePtr: usize, offsetPtr: usize): usize {
-    const offset = load<u32>(offsetPtr);
+    const offset = (load<u8>(offsetPtr + 28) << 24) | (load<u8>(offsetPtr + 29) << 16) | 
+                   (load<u8>(offsetPtr + 30) << 8) | load<u8>(offsetPtr + 31);
     const arrayDataPtr = basePtr + offset;
-    const arrayLength = load<u32>(arrayDataPtr);
+    const arrayLength = (load<u8>(arrayDataPtr + 28) << 24) | (load<u8>(arrayDataPtr + 29) << 16) | 
+                        (load<u8>(arrayDataPtr + 30) << 8) | load<u8>(arrayDataPtr + 31);
     const elementSize = 32;
     const memoryArrayPtr = this.createMemory(elementSize, arrayLength);
     this.setLength(memoryArrayPtr, arrayLength);
     const srcDataPtr = arrayDataPtr + 32;
     const destDataPtr = this.getDataPtr(memoryArrayPtr);
-    const totalSize = arrayLength * elementSize;
+    const totalSize: u32 = arrayLength * elementSize;
+    
     for (let i: u32 = 0; i < totalSize; ++i) {
       store<u8>(destDataPtr + i, load<u8>(srcDataPtr + i));
     }
@@ -117,5 +119,36 @@ export class Array {
       store<u8>(newDataPtr + i, load<u8>(oldDataPtr + i));
     }
     return newArrayPtr;
+  }
+
+  /** Serializes memory array to ABI format for return values */
+  static serializeToABI(arrayPtr: usize): usize {
+    // Memory array format: [length:4][capacity:4][data...]
+    // ABI format for dynamic arrays: [offset_to_data=32][length][element1][element2]...[elementN]
+    
+    const length = this.getLength(arrayPtr);
+    const dataPtr = this.getDataPtr(arrayPtr);
+    
+    const totalSize = 64 + (length * 32);
+    const buffer = malloc(totalSize);
+    
+    for (let i = 0; i < 32; ++i) store<u8>(buffer + i, 0);
+    store<u8>(buffer + 31, 32); // offset = 32
+    
+    for (let i = 0; i < 32; ++i) store<u8>(buffer + 32 + i, 0);
+    store<u8>(buffer + 32 + 28, <u8>((length >> 24) & 0xFF));
+    store<u8>(buffer + 32 + 29, <u8>((length >> 16) & 0xFF));
+    store<u8>(buffer + 32 + 30, <u8>((length >> 8) & 0xFF));
+    store<u8>(buffer + 32 + 31, <u8>(length & 0xFF));
+    
+    for (let j: u32 = 0; j < length; ++j) {
+      const elementOffset = j * 32;
+      const bufferOffset = 64 + elementOffset;
+      for (let k = 0; k < 32; ++k) {
+        store<u8>(buffer + bufferOffset + k, load<u8>(dataPtr + elementOffset + k));
+      }
+    }
+    
+    return buffer;
   }
 }

@@ -50,6 +50,21 @@ export class ReturnHandler extends StatementHandler {
       baseExpr = `Str.toABI(${exprResult.valueExpr})`;
     }
 
+    if (
+      type === AbiType.ArrayDynamic &&
+      returnStmt.expr.kind === "var" &&
+      returnStmt.expr.scope === "storage"
+    ) {
+      baseExpr = `ArrayDynamic.serializeComplete(${exprResult.valueExpr})`;
+    }
+
+    if (
+      (type === AbiType.ArrayDynamic || type.toString() === "array_dynamic") &&
+      this.isMemoryArrayReturn(returnStmt.expr)
+    ) {
+      baseExpr = `Array.serializeToABI(${exprResult.valueExpr})`;
+    }
+
     const isBooleanMapping =
       baseExpr.includes("MappingNested.getBoolean") || baseExpr.includes("Mapping.getBoolean");
     let returnExpr: string;
@@ -81,6 +96,29 @@ export class ReturnHandler extends StatementHandler {
 
     if (expr.kind === "var" && (expr.name.includes("_storage") || expr.name === "flag")) {
       return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if this expression represents a memory array that needs ABI serialization
+   */
+  private isMemoryArrayReturn(expr: any): boolean {
+    if (
+      expr.kind === "var" &&
+      expr.scope === "memory" &&
+      (expr.type === "array_dynamic" || expr.type === AbiType.ArrayDynamic)
+    ) {
+      return true;
+    }
+
+    if (expr.kind === "call" && expr.target) {
+      const isMemoryArrayMethod =
+        expr.target.includes("makeMemoryArray") ||
+        expr.target.includes("makeFixedMemoryArray") ||
+        expr.target.includes("MemoryArrayFactory");
+      return isMemoryArrayMethod;
     }
 
     return false;
