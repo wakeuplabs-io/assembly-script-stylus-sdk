@@ -32,7 +32,6 @@ export class U256FunctionCallHandler extends Handler {
    */
   handle(expr: Call): EmitResult {
     const functionName = expr.target;
-
     const argResults = (expr.args || []).map((arg) => this.contractContext.emitExpression(arg));
     const setupLines = argResults.flatMap((result) => result.setupLines);
     const argExprs = argResults.map((result) => result.valueExpr);

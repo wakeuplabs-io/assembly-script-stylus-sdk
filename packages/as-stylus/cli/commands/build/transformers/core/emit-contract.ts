@@ -4,7 +4,6 @@ import { IRContract, IRMethod } from "../../../../types/ir.types.js";
 import { AddressTransformer } from "../address/address-transformer.js";
 import { BlockTransformer } from "../block/block-transformer.js";
 import { BooleanTransformer } from "../boolean/boolean-transformer.js";
-import { CallsTransformer } from "../calls/calls-transformer.js";
 import { ErrorTransformer, registerErrorTransformer } from "../error/error-transformer.js";
 import { EventTransformer } from "../event/event-transformer.js";
 import { registerEventTransformer } from "../event/utils/register-events.js";
@@ -19,6 +18,7 @@ import { ArrayTransformer } from "../array/array-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
 import { generateImports, generateStorageHelpers } from "../utils/storage.js";
+import { CallsTransformer } from "../calls/calls-transformer.js";
 
 interface ArgumentSignature {
   argsSignature: string;

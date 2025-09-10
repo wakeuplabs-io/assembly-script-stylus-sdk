@@ -84,7 +84,7 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       kind,
       name: variable.name,
       type: variable.type,
-      expr: expression,  // ← FIX: Use the actual expression instead of null
+      expr: expression,
       scope: variable.scope,
     };
   }

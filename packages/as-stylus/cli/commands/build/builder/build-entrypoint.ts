@@ -105,11 +105,11 @@ function generateBytesReturnLogic(methodName: string, callArgs: Array<{ name: st
 
   return [
     `const rawPtr = ${methodName}(${argsList});`,
-    `const len = 32;`, // For now, assume fixed 32 bytes for msg.data/msg.sig
+    `const len = 32;`,
     `const padded = ((len + ${MEMORY_OFFSETS.PADDING_MASK}) & ~${MEMORY_OFFSETS.PADDING_MASK});`,
     `const resultPtr = malloc(${MEMORY_OFFSETS.STRING_DATA_OFFSET} + padded);`,
-    `store<u8>(resultPtr + 31, 0x20);`, // Store offset pointer (0x20 = 32)
-    `store<u32>(resultPtr + 32 + 28, len);`, // Store length in big-endian format at byte 60
+    `store<u8>(resultPtr + 31, 0x20);`,
+    `store<u32>(resultPtr + 32 + 28, len);`,
     `memory.copy(resultPtr + ${MEMORY_OFFSETS.STRING_DATA_OFFSET}, rawPtr, len);`,
     `write_result(resultPtr, ${MEMORY_OFFSETS.STRING_DATA_OFFSET} + padded);`,
     `return 0;`,
