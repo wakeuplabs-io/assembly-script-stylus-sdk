@@ -5,6 +5,7 @@ import { IRExpression } from "@/cli/types/ir.types.js";
 import { FunctionSymbol, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
 import { buildAddressIR } from "./address.js";
+import { buildArrayIR } from "./array.js";
 import { buildI256IR } from "./i256.js";
 import { buildMappingIR } from "./mapping.js";
 import { buildStringIR } from "./string.js";
@@ -30,17 +31,6 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
   validate(): boolean {
     return true;
-  }
-
-  private extractGenericType(): string | undefined {
-    // The generic type arguments are on the CallExpression itself, not the expression
-    const typeArgs = this.call.getTypeArguments();
-
-    if (typeArgs.length > 0) {
-      return typeArgs[0].getText();
-    }
-
-    return undefined;
   }
 
   private getReturnType(target: string): SupportedType {
@@ -133,86 +123,13 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       }
     }
 
-    // Handle U256Factory methods specifically
-    if (target.startsWith("U256Factory.")) {
-      const [_, methodName] = target.split(".");
-      return {
-        kind: "call" as const,
-        target: methodName,
-        args,
-        type: AbiType.Function,
-        returnType: AbiType.Uint256,
-        scope,
-        receiver: {
-          kind: "var" as const,
-          name: "U256Factory",
-          type: AbiType.Function,
-          scope: "memory" as const,
-        },
-      };
-    }
+    const targetIsArrayFactory =
+      target.startsWith("StaticArrayFactory.") ||
+      target.startsWith("DynamicArrayFactory.") ||
+      target.startsWith("MemoryArrayFactory.");
 
-    // Handle StaticArrayFactory methods specifically
-    if (target.startsWith("StaticArrayFactory.")) {
-      const [_, methodName] = target.split(".");
-      const genericType = this.extractGenericType();
-      return {
-        kind: "call" as const,
-        target: methodName,
-        args,
-        type: AbiType.Function,
-        returnType: AbiType.ArrayStatic,
-        scope,
-        receiver: {
-          kind: "var" as const,
-          name: "StaticArrayFactory",
-          type: AbiType.Function,
-          scope: "memory" as const,
-        },
-        genericType,
-      };
-    }
-
-    // Handle DynamicArrayFactory methods specifically
-    if (target.startsWith("DynamicArrayFactory.")) {
-      const [_, methodName] = target.split(".");
-      const genericType = this.extractGenericType();
-      return {
-        kind: "call" as const,
-        target: methodName,
-        args,
-        type: AbiType.Function,
-        returnType: AbiType.ArrayDynamic,
-        scope,
-        receiver: {
-          kind: "var" as const,
-          name: "DynamicArrayFactory",
-          type: AbiType.Function,
-          scope: "memory" as const,
-        },
-        genericType,
-      };
-    }
-
-    // Handle MemoryArrayFactory methods specifically
-    if (target.startsWith("MemoryArrayFactory.")) {
-      const [_, methodName] = target.split(".");
-      const genericType = this.extractGenericType();
-      return {
-        kind: "call" as const,
-        target: methodName,
-        args,
-        type: AbiType.Function,
-        returnType: AbiType.ArrayDynamic,
-        scope,
-        receiver: {
-          kind: "var" as const,
-          name: "MemoryArrayFactory",
-          type: AbiType.Function,
-          scope: "memory" as const,
-        },
-        genericType,
-      };
+    if (targetIsArrayFactory) {
+      return buildArrayIR(target, this.call, args, scope);
     }
 
     const isUserDefinedFunction = (this.symbolTable.lookup(target) as FunctionSymbol)

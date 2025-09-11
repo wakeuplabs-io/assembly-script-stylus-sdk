@@ -21,7 +21,7 @@ export class BinaryTransformer extends Handler {
     if (expr.op === "=") {
       return this.handleAssignment(expr);
     }
-    
+
     return this.handleArithmetic(expr);
   }
 
@@ -29,20 +29,20 @@ export class BinaryTransformer extends Handler {
     if (expr.left.kind === "var" && expr.left.scope === "storage") {
       const property = expr.left.name;
       const rightResult = this.contractContext.emitExpression(expr.right);
-      
+
       if (expr.left.type === AbiType.Bool) {
         return this.handleBooleanStorageAssignment(property, expr, rightResult);
       }
-      
+
       return {
         setupLines: rightResult.setupLines,
         valueExpr: `store_${property}(${rightResult.valueExpr})`
       };
     }
-    
+
     const leftResult = this.contractContext.emitExpression(expr.left);
     const rightResult = this.contractContext.emitExpression(expr.right);
-   
+
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
       valueExpr: `${leftResult.valueExpr} = ${rightResult.valueExpr}`
@@ -54,12 +54,8 @@ export class BinaryTransformer extends Handler {
     expr: IRExpressionBinary,
     rightResult: EmitResult
   ): EmitResult {
-    let result = rightResult.valueExpr;
+    const result = rightResult.valueExpr;
 
-    if (["literal", "var"].includes(expr.right.kind) && expr.right.type === AbiType.Bool) {
-      result = `Boolean.create(${rightResult.valueExpr})`;
-    }
-    
     return {
       setupLines: rightResult.setupLines,
       valueExpr: `store_${property}(${result})`
@@ -71,7 +67,7 @@ export class BinaryTransformer extends Handler {
   ): EmitResult {
     const leftResult = this.contractContext.emitExpression(expr.left);
     const rightResult = this.contractContext.emitExpression(expr.right);
-    
+
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
       valueExpr: `${leftResult.valueExpr} ${expr.op} ${rightResult.valueExpr}`

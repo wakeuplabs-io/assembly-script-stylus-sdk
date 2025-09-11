@@ -1,4 +1,5 @@
-// @ts-nocheck
+import { Contract, External, View, U256, U256Factory } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class Arrays {
   staticU256Array: U256[3];

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Contract, External, View, U256, U256Factory } from "@wakeuplabs/as-stylus";
 
 @Contract

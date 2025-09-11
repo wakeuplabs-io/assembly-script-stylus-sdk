@@ -100,12 +100,6 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
   buildIR(): IRVariable {
     const typeInferred = inferType(this.symbolTable, this.property.getType().getText());
     const { name, type } = parseName(this.property.getText(), typeInferred);
-    this.symbolTable.declareVariable(name, {
-      name,
-      type: convertType(this.symbolTable, type),
-      scope: "storage",
-      dynamicType: type
-    });
 
     const fullTypeText = this.property.getType().getText();
     const typeNodeText = this.property.getTypeNode()?.getText() || "";
