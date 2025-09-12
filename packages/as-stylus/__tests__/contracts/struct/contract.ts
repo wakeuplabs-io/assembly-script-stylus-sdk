@@ -2,16 +2,17 @@ import {
   Address,
   Str,
   U256,
-  Struct,
   Contract,
   External,
   View,
   Mapping,
   StructFactory,
   U256Factory,
+  StructTemplate,
+  Struct,
 } from "as-stylus";
 
-@Struct
+@StructTemplate
 export class StructTest {
   to: Address;
   contents: Str;
@@ -67,13 +68,13 @@ export class StructContract {
     const valueMemory = this.myStruct.value;
     const flag = this.myStruct.flag;
     const value2Memory = this.myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     return structTemp;
   }
 
@@ -84,13 +85,13 @@ export class StructContract {
     const valueMemory = this.myStruct.value;
     const flag = this.myStruct.flag;
     const value2Memory = this.myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     return structTemp.to;
   }
 
@@ -101,13 +102,13 @@ export class StructContract {
     const valueMemory = this.myStruct.value;
     const flag = this.myStruct.flag;
     const value2Memory = this.myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     return structTemp.contents;
   }
 
@@ -118,13 +119,13 @@ export class StructContract {
     const valueMemory = this.myStruct.value;
     const flag = this.myStruct.flag;
     const value2Memory = this.myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     const tempValue = structTemp.value;
     const delta: U256 = U256Factory.fromString("1");
     structTemp.value = tempValue.add(delta);
@@ -138,13 +139,13 @@ export class StructContract {
     const valueMemory = this.myStruct.value;
     const flag = this.myStruct.flag;
     const value2Memory = this.myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     return structTemp.flag;
   }
 
@@ -155,13 +156,13 @@ export class StructContract {
     const valueMemory = this.myStruct.value;
     const flag = this.myStruct.flag;
     const value2Memory = this.myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     const tempValue = structTemp.value;
     structTemp.value2 = tempValue;
     return structTemp.value2;

@@ -1,6 +1,17 @@
-import { Address, Contract, External, msg, Str, Struct, U256, View } from "as-stylus";
+import {
+  Address,
+  Contract,
+  External,
+  msg,
+  Str,
+  Struct,
+  StructFactory,
+  StructTemplate,
+  U256,
+  View,
+} from "as-stylus";
 
-@Struct
+@StructTemplate
 export class User {
   address!: Address;
   owner!: Address;
@@ -22,14 +33,14 @@ export class FunctionCallArgsTest {
   @View
   @External
   getUser(): User {
-    const temp = StructFactory.create<User>([
-      this.user.address,
-      this.user.owner,
-      this.user.name,
-      this.user.lastName,
-      this.user.age,
-      this.user.isActive,
-    ]);
+    const temp = StructFactory.create<User>({
+      address: this.user.address,
+      owner: this.user.owner,
+      name: this.user.name,
+      lastName: this.user.lastName,
+      age: this.user.age,
+      isActive: this.user.isActive,
+    });
     return temp;
   }
 

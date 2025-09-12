@@ -7,6 +7,9 @@ export function buildTsconfig(targetPath: string) {
     JSON.stringify(
       {
         extends: "assemblyscript/std/assembly.json",
+        compilerOptions: {
+          strictPropertyInitialization: false,
+        },
         include: ["contract.ts"],
       },
       null,
