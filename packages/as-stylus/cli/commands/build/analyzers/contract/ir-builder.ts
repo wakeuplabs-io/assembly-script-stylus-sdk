@@ -19,7 +19,7 @@ import { StructIRBuilder } from "../struct/ir-builder.js";
 
 const DECORATORS = {
   CONTRACT: "Contract",
-  STRUCT: "Struct",
+  STRUCT: "StructTemplate",
   EVENT: "Event",
   ERROR: "Error",
 } as const;
