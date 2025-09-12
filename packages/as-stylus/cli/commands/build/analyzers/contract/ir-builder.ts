@@ -1,10 +1,5 @@
 import {
-  SourceFile,
-  ConstructorDeclaration,
-  ClassDeclaration,
-  SyntaxKind,
-  CallExpression,
-  VariableDeclaration,
+  SourceFile, ConstructorDeclaration, ClassDeclaration, SyntaxKind, CallExpression, VariableDeclaration,
 } from "ts-morph";
 
 import { IRContract, IRErrorDecl, IREvent } from "@/cli/types/ir.types.js";
@@ -170,7 +165,6 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
         }
       }
     }
-
     return events;
   }
 
@@ -222,16 +216,13 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     return errors;
   }
 
-  private createSyntheticErrorClass(
-    errorName: string,
-    errorFactoryCall: CallExpression,
-  ): ClassDeclaration {
+  private createSyntheticErrorClass(errorName: string, errorFactoryCall: CallExpression): ClassDeclaration {
     const sourceFile = this.sourceFile;
 
     const tempClass = sourceFile.addClass({
       name: errorName,
       isExported: false,
-      decorators: [],
+      decorators: []
     });
 
     (tempClass as any).errorFactoryCall = errorFactoryCall;
@@ -240,9 +231,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
   }
 
   private processStorage(contractClass: ClassDeclaration) {
-    const properties = contractClass.getProperties();
-    
-    const storage = properties.map((property) => {
+    const storage = contractClass.getProperties().map((property) => {
       const propertyIRBuilder = new PropertyIRBuilder(property);
       return propertyIRBuilder.validateAndBuildIR();
     });

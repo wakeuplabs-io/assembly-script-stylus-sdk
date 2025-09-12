@@ -23,6 +23,12 @@ export class BooleanVariableHandler extends Handler {
   }
 
   handle(expr: Variable): EmitResult {
+    if (expr.scope === "storage") {
+      return {
+        setupLines: [],
+        valueExpr: `load_${expr.name}()`
+      };
+    }
     return {
       setupLines: [],
       valueExpr: expr.name,

@@ -18,15 +18,10 @@ export class BooleanCopyHandler extends Handler {
     const srcArg = this.contractContext.emitExpression(expr.args[0]);
     const dstPtr = makeTemp("boolCopy");
 
-    // Use create for direct boolean values (from function parameters)
-    // Use copyNew for pointer-based booleans (from memory/storage)
-    // Cast usize to u8 since entrypoint passes everything as usize
-    const copyMethod = "Boolean.create";
-
     return {
       setupLines: [
         ...srcArg.setupLines,
-        `const ${dstPtr}: usize = ${copyMethod}(${srcArg.valueExpr});`
+        `const ${dstPtr}: boolean = ${srcArg.valueExpr};`
       ],
       valueExpr: dstPtr,
       valueType: "boolean",

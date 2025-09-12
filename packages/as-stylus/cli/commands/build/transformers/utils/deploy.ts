@@ -6,14 +6,14 @@ import { ContractContext } from "../core/contract-context.js";
 
 export function generateDeployFunction(contract: IRContract, contractContext: ContractContext): string {
   const lines: string[] = [];
-  
+
   if (contract.constructor) {
     const { inputs } = contract.constructor;
     const { callArgs } = generateArgsLoadBlock(inputs);
     const argsSignature = callArgs.map(a => `${a.name}: ${a.type}`).join(", ");
     const aliasLines = inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i].name};`);
-    
-    
+
+
     lines.push(`export function ${contract.name}_constructor(${argsSignature}): void {`);
     lines.push(...aliasLines);
   } else {
@@ -74,7 +74,7 @@ function getInitializer(type: AbiType, defaultValue: string, dynamicType?: strin
     case AbiType.Address:
       return `Address.create()`;
     case AbiType.Bool:
-      return `Boolean.create(${defaultValue})`;
+      return defaultValue;
     case AbiType.String:
       return `Str.create()`;
     case AbiType.Struct:

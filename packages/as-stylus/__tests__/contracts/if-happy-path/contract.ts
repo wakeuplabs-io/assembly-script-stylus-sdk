@@ -54,8 +54,6 @@ export class IfHappyPath {
     const nestedFlag = false;
     if (this.getTrueFlag())
       if (this.getFalseFlag()) {
-        // TODO: missing boolean operators
-        // if (!getFlag()) {
         return U256Factory.fromString("0");
       } else if (nestedFlag) {
         return U256Factory.fromString("2");

@@ -12,12 +12,11 @@ export class User {
 
 @Struct
 export class AllViewResults {
-  strValue: Str;
+  // strValue: Str;
   u256Value: U256;
   i256Value: I256;
   boolValue: boolean;
   addrValue: Address;
-  user: User;
   balance: U256;
 }
 
@@ -163,7 +162,7 @@ export class FunctionCallArgsTest {
     addr: Address,
     balance: U256,
   ): AllViewResults {
-    const structTemp = StructFactory.create<AllViewResults>([str, u256, i256, bool, addr, balance]);
+    const structTemp = StructFactory.create<AllViewResults>([u256, i256, bool, addr, balance]);
 
     return structTemp;
   }

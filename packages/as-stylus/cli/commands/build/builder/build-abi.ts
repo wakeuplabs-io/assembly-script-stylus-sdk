@@ -136,7 +136,6 @@ function convertTypeWithComponents(
   }
 
   const structTuple = convertStructToTuple(symbolTable, structName, struct);
-
   if (structTuple) {
     return structTuple;
   }

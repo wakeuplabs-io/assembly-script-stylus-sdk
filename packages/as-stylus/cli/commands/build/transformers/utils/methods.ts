@@ -22,9 +22,6 @@ export function generateMethods(contract: IRContract, contractContext: ContractC
     const body = contractContext.emitStatements(m.ir);
     const aliasLines = m.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
     
-    if (m.inputs.some(inp => inp.type === "string")) {
-      aliasLines.push(`  const argsStart: usize = arg0;`);
-    }
 
     methodParts.push(
       `export function ${m.name}(${argsSignature}): ${returnType} {\n` +

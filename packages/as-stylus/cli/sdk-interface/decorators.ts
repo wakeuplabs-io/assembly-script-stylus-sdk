@@ -9,66 +9,62 @@
  * Marks a class as a smart contract
  * @param _target - The target class
  */
-export function Contract(_target: any): any {}
+export function Contract(_target: any): any { }
 
 /**
  * Marks a method as internal (callable from within the contract)
  * @param _target - The target method
- * @param _propertyKey - The property key
  */
-export function Internal(_target: any, _propertyKey: string): any {}
+export function Internal(_target: any): any { }
 
 /**
  * Marks a method as external (callable from outside the contract)
  * @param _target - The target method
- * @param _propertyKey - The property key
  */
-export function External(_target: any, _propertyKey: string): any {}
+export function External(_target: any): any { }
 
 /**
  * Marks a method as public
  * @param _target - The target method
  */
-export function Public(_target: any): any {}
+export function Public(_target: any): any { }
 
 /**
  * Marks a method as read-only (does not modify state)
  * @param _target - The target method
- * @param _propertyKey - The property key
  */
-export function View(_target: any, _propertyKey: string): any {}
+export function View(_target: any): any { }
 
 /**
  * Marks a method as pure (does not read or modify state)
  * @param _target - The target method
  */
-export function Pure(_target: any): any {}
+export function Pure(_target: any): any { }
 
 /**
  * Marks a method as payable (can receive ETH)
  * @param _target - The target method
  */
-export function Payable(_target: any): any {}
+export function Payable(_target: any): any { }
 
 /**
  * Marks a method as non-payable (cannot receive ETH)
  * @param _target - The target method
  */
-export function Nonpayable(_target: any): any {}
+export function Nonpayable(_target: any): any { }
 
 /**
  * Marks an event field as indexed (for efficient filtering)
  */
-export function Indexed(_target: any, _propertyKey: string): any {}
+export function Indexed(_target: any, _propertyKey: string): any { }
 
 /**
  * Marks a method as a fallback function (called when no function matches or with unknown function signatures)
  * Must be external and can optionally be payable.
  * Only one fallback function per contract is allowed.
  * @param _target - The target method
- * @param _propertyKey - The property key
  */
-export function Fallback(_target: any, _propertyKey: string): any {}
+export function Fallback(_target: any): any { }
 
 /**
  * Marks a method as a receive function (called when ETH is sent with empty calldata)
@@ -76,6 +72,5 @@ export function Fallback(_target: any, _propertyKey: string): any {}
  * Only one receive function per contract is allowed.
  * Cannot have parameters.
  * @param _target - The target method
- * @param _propertyKey - The property key
  */
-export function Receive(_target: any, _propertyKey: string): any {}
+export function Receive(_target: any): any { }

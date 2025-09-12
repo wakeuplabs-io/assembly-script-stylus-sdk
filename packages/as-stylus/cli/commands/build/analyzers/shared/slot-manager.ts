@@ -133,7 +133,6 @@ export class SlotManager {
    */
   private findNextAvailableSlot(variable: SlotAssignment): number {
     const slotCount = this.calculateSlotCount(variable);
-
     let startSlot = this.nextAvailableSlot;
     let found = false;
     while (!found) {
@@ -163,7 +162,6 @@ export class SlotManager {
     for (let i = 0; i < slotCount; i++) {
       this.allocatedSlots.add(startSlot + i);
     }
-
     if (startSlot + slotCount > this.nextAvailableSlot) {
       this.nextAvailableSlot = startSlot + slotCount;
     }
@@ -176,12 +174,10 @@ export class SlotManager {
   public generateSlotConstants(): string[] {
     const constants: string[] = [];
     const sortedSlots = Array.from(this.allocatedSlots).sort((a, b) => a - b);
-
     for (const slot of sortedSlots) {
       const slotNumber = slot.toString(16).padStart(2, "0");
       constants.push(`const __SLOT${slotNumber}: u64 = ${slot};`);
     }
-
     return constants;
   }
 }

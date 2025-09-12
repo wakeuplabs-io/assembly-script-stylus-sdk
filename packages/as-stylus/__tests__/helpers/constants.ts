@@ -91,6 +91,10 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/while"),
     abi: path.join(ROOT_PATH, "/while/artifacts/abi/contract-abi.json"),
   },
+  NEW_STRUCT: {
+    contract: path.join(ROOT_PATH, "/new-struct"),
+    abi: path.join(ROOT_PATH, "/new-struct/artifacts/abi/contract-abi.json"),
+  },
   FALLBACK_RECEIVE: {
     contract: path.join(ROOT_PATH, "/fallback-receive"),
     abi: path.join(ROOT_PATH, "/fallback-receive/artifacts/abi/contract-abi.json"),

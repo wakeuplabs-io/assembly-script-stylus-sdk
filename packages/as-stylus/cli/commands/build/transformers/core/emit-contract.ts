@@ -1,3 +1,5 @@
+import { AbiType } from "@/cli/types/abi.types.js";
+
 import { ContractContext } from "./contract-context.js";
 import { TransformerRegistry } from "./transformer-registry.js";
 import { IRContract, IRMethod } from "../../../../types/ir.types.js";
@@ -35,14 +37,24 @@ function generateMethodSignature(method: IRMethod): ArgumentSignature {
   const argsSignature = callArgs.map(arg => `${arg.name}: ${arg.type}`).join(", ");
   const aliasLines = method.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i].name};`);
   
-  if (method.inputs.some(inp => inp.type === "string")) {
-    aliasLines.push(`  const argsStart: usize = arg0;`);
-  }
 
   return {
     argsSignature,
     aliasLines,
   };
+}
+
+function generateReturnType(method: IRMethod): string {
+  if (!method.outputs || method.outputs.length === 0) {
+    return "void";
+  }
+
+  if (method.outputs[0].type === AbiType.Bool) {
+    return "boolean";
+  }
+
+  // Otherwise, it's a pointer
+  return "usize";
 }
 
 /**
@@ -52,10 +64,7 @@ function generateMethodSignature(method: IRMethod): ArgumentSignature {
  */
 function generateMethod(method: IRMethod, contractContext: ContractContext): string {
   const statementHandler = new StatementHandler(contractContext);
-  let returnType = "void";
-  if (method.outputs && method.outputs.length > 0 && method.outputs[0].type !== "void") {
-    returnType = "usize";
-  }
+  const returnType = generateReturnType(method);
   const { argsSignature, aliasLines } = generateMethodSignature(method);
   const body = statementHandler.handleStatements(method.ir);
 

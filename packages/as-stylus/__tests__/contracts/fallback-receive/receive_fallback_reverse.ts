@@ -1,5 +1,12 @@
-// @ts-nocheck  
-import { Contract, External, Fallback, Receive, Payable, U256, U256Factory } from "@wakeuplabs/as-stylus";
+import {
+  Contract,
+  External,
+  Fallback,
+  Receive,
+  Payable,
+  U256,
+  U256Factory,
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class ReceiveFallbackReverseContract {

@@ -95,11 +95,11 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
    * @returns The inferred type or undefined if no type information is available
    */
   private inferTypeFromExpression(expression: IRExpression): AbiType | undefined {
-    if ("returnType" in expression && expression.returnType) {
+    if ('returnType' in expression && expression.returnType) {
       return expression.returnType as AbiType;
     }
 
-    if ("type" in expression && expression.type) {
+    if ('type' in expression && expression.type) {
       return expression.type as AbiType;
     }
 
@@ -119,3 +119,5 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
     }
   }
 }
+
+

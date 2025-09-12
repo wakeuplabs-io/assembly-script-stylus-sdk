@@ -190,7 +190,6 @@ export class U256Transformer extends BaseTypeTransformer {
           const hasU256Return =
             (expr.returnType as AbiType) === AbiType.Uint256 ||
             (expr.returnType as AbiType) === AbiType.Bool;
-
           // TODO: check if this is needed
           // if (arg.type === AbiType.Uint256) {
           //   return true;

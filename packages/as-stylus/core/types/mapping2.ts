@@ -38,7 +38,7 @@ export class MappingNested {
    * @param k2 - Second mapping key pointer
    * @param val - Boolean value to store
    */
-  static setBoolean(slot: u64, k1: usize, k2: usize, val: bool): void {
+  static setBoolean(slot: u64, k1: usize, k2: usize, val: boolean): void {
     const slot1 = createMappingKey(slot, k1, ADDRESS_LEN);
     const boolPtr = Boolean.create(val);
     mapStoreHash(slot1, k2, ADDRESS_LEN, boolPtr);
@@ -51,12 +51,11 @@ export class MappingNested {
    * @param k2 - Second mapping key pointer
    * @returns Pointer to the retrieved boolean value
    */
-  static getBoolean(slot: u64, k1: usize, k2: usize): usize {
+  static getBoolean(slot: u64, k1: usize, k2: usize): boolean {
     const temp = Boolean.create();
     const slot1 = createMappingKey(slot, k1, ADDRESS_LEN);
     mapLoadHash(slot1, k2, ADDRESS_LEN, temp);
 
-    const boolValue = Boolean.fromABI(temp);
-    return Boolean.create(boolValue);
+    return Boolean.fromABI(temp);
   }
 }

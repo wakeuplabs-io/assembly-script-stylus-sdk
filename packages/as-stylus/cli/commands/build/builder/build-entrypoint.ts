@@ -8,6 +8,7 @@ import { getReturnSize } from "@/cli/utils/type-utils.js";
 import { getUserEntrypointTemplate } from "@/templates/entrypoint.js";
 
 import { convertType } from "./build-abi.js";
+import { generateStructToABI } from "./entrypoint/struct-to-abi.js";
 import { SymbolTableStack } from "../analyzers/shared/symbol-table.js";
 import { generateArgsLoadBlock } from "../transformers/utils/args.js";
 
@@ -31,6 +32,7 @@ interface EntrypointResult {
 
 interface CodeBlock {
   imports: string[];
+  functions?: string[];
   entries: string[];
   constructorSelector?: string;
 }
@@ -92,10 +94,9 @@ function generateStringReturnLogic(methodName: string, callArgs: Array<{ name: s
   const argsList = callArgs.map((arg) => arg.name).join(", ");
 
   return [
-    `const buf = ${methodName}(${argsList});`,
-    `const len = loadU32BE(buf + ${MEMORY_OFFSETS.STRING_LENGTH_OFFSET});`,
-    `const padded = ((len + ${MEMORY_OFFSETS.PADDING_MASK}) & ~${MEMORY_OFFSETS.PADDING_MASK});`,
-    `write_result(buf, ${MEMORY_OFFSETS.STRING_DATA_OFFSET} + padded);`,
+    `const buf = Str.toABI(${methodName}(${argsList}));`,
+    `const size = Str.getABISize(buf);`,
+    `write_result(buf, size);`,
     `return 0;`,
   ].join(`\n${INDENTATION.BODY}`);
 }
@@ -166,34 +167,23 @@ function generateArrayReturnLogic(
   ].join(`\n${INDENTATION.BODY}`);
 }
 
+
 function generateStructReturnLogic(
   methodName: string,
   callArgs: Array<{ name: string }>,
   structInfo: IRStruct,
 ): string {
-  const { dynamic, size } = structInfo;
   let callLine = "";
 
   const argsList = callArgs.map((arg) => arg.name).join(", ");
-  if (dynamic) {
-    callLine = [
-      `const structPtr = ${methodName}(${argsList});`,
-      `const strLen   = loadU32BE(structPtr + 160 + 28);`,
-      `const padded   = ((strLen + 31) & ~31);`,
-      `const tupleSz  = 160 + 32 + padded;`,
-      `const resultPtr = malloc(tupleSz + 32);`,
-      `store<u8>(resultPtr + 31, 0x20);`,
-      `memory.copy(resultPtr + 32, structPtr, tupleSz);`,
-      `write_result(resultPtr, tupleSz + 32);`,
-      `return 0;`,
-    ].join("\n    ");
-  } else {
-    callLine = [
-      `const ptr = ${methodName}(${argsList});`,
-      `write_result(ptr, ${size});`,
-      `return 0;`,
-    ].join("\n    ");
-  }
+
+  callLine = [
+    `const ptr = ${methodName}(${argsList});`,
+    `const resultPointer = ${structInfo.name}_toABI(ptr);`,
+    `const size = ${structInfo.name}_getDynamicSize(ptr);`,
+    `write_result(resultPointer, size);`,
+    `return 0;`,
+  ].join("\n    ");
 
   return callLine;
 }
@@ -227,6 +217,9 @@ function generateReturnLogic(
   if (structInfo) {
     return generateStructReturnLogic(methodName, callArgs, structInfo);
   }
+  if (outputType === AbiType.Bool) {
+    return `let ptr = Boolean.create(${methodName}(${argsList})); write_result(ptr, 32); return 0;`;
+  }
 
   const size = getReturnSize(outputType as AbiType);
   return `let ptr = ${methodName}(${argsList}); write_result(ptr, ${size}); return 0;`;
@@ -254,7 +247,7 @@ function generateMethodCallLogic(
 function generateMethodEntry(
   method: IRMethod,
   contract: IRContract,
-): { import: string; entry: string } {
+): { import: string; functions: string | undefined; entry: string } {
   validateMethod(method);
 
   const { name, visibility } = method;
@@ -268,12 +261,13 @@ function generateMethodEntry(
 
   const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
   const callLogic = generateMethodCallLogic(method, callArgs, contract);
+  const functions = generateStructToABI(method, contract);
 
   const bodyLines = [...argLines, callLogic].map((line) => `${INDENTATION.BODY}${line}`).join("\n");
 
   const entry = `${INDENTATION.BLOCK}if (selector == ${selector}) {\n${bodyLines}\n${INDENTATION.BLOCK}}`;
 
-  return { import: importStatement, entry };
+  return { import: importStatement, functions, entry };
 }
 
 /**
@@ -318,6 +312,7 @@ function generateConstructorEntry(
 
 function processContractMethods(contract: IRContract): CodeBlock {
   const imports: string[] = [];
+  const functions: string[] = [];
   const entries: string[] = [];
   for (const method of contract.methods) {
     if (
@@ -326,8 +321,11 @@ function processContractMethods(contract: IRContract): CodeBlock {
       )
     ) {
       try {
-        const { import: methodImport, entry } = generateMethodEntry(method, contract);
+        const { import: methodImport, functions: utils, entry } = generateMethodEntry(method, contract);
         imports.push(methodImport);
+        if (utils) {
+          functions.push(utils);
+        }
         entries.push(entry);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -336,7 +334,7 @@ function processContractMethods(contract: IRContract): CodeBlock {
     }
   }
 
-  return { imports, entries };
+  return { imports, functions, entries };
 }
 
 /**
@@ -394,6 +392,7 @@ function processFallbackAndReceive(contract: IRContract): {
   return { imports, fallbackEntry, receiveEntry };
 }
 
+
 function processConstructor(contract: IRContract): CodeBlock {
   if (!contract.constructor) {
     return { imports: [], entries: [] };
@@ -425,10 +424,13 @@ export function generateUserEntrypoint(contract: IRContract): EntrypointResult {
     const constructorResult = processConstructor(contract);
     const fallbackReceiveResult = processFallbackAndReceive(contract);
 
+    const allFunctions = methodsResult.functions ?? [];
+
     const allImports = [
       ...methodsResult.imports,
       ...constructorResult.imports,
       ...fallbackReceiveResult.imports,
+      ...allFunctions,
     ];
     const allEntries = contract.constructor
       ? [...methodsResult.entries]

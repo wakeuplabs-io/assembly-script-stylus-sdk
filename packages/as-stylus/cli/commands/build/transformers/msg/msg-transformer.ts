@@ -19,14 +19,14 @@ export class MsgTransformer extends BaseTypeTransformer {
   protected handleDefault(expr: Member): EmitResult {
     switch (expr.property) {
       case "sender":
-        return { 
-          setupLines: [], 
+        return {
+          setupLines: [],
           valueExpr: "Msg.sender()",
           valueType: "Address"
         };
       case "value":
-        return { 
-          setupLines: [], 
+        return {
+          setupLines: [],
           valueExpr: "Msg.value()",
           valueType: "U256"
         };
@@ -51,7 +51,7 @@ export class MsgTransformer extends BaseTypeTransformer {
       case "hasValue":
         return {
           setupLines: [],
-          valueExpr: "Boolean.create(Msg.hasValue())",
+          valueExpr: "Msg.hasValue()",
           valueType: "boolean"
         };
       default:

@@ -17,14 +17,14 @@ export class BlockTransformer extends BaseTypeTransformer {
   protected handleDefault(expr: Member): EmitResult {
     switch (expr.property) {
       case "timestamp":
-        return { 
-          setupLines: [], 
+        return {
+          setupLines: [],
           valueExpr: "Block.timestamp()",
           valueType: "U256"
         };
       case "number":
-        return { 
-          setupLines: [], 
+        return {
+          setupLines: [],
           valueExpr: "Block.number()",
           valueType: "U256"
         };
@@ -49,7 +49,7 @@ export class BlockTransformer extends BaseTypeTransformer {
       case "hasBasefee":
         return {
           setupLines: [],
-          valueExpr: "Boolean.create(Block.hasBasefee())",
+          valueExpr: "Block.hasBasefee()",
           valueType: "boolean"
         };
       default:

@@ -1,7 +1,6 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 import { Return, IRStatement } from "@/cli/types/ir.types.js";
 
-import { SupportedType } from "../../../analyzers/shared/supported-types.js";
 import { StatementHandler } from "../base-statement-handler.js";
 
 /**
@@ -24,31 +23,18 @@ export class ReturnHandler extends StatementHandler {
 
   handle(stmt: IRStatement, indent: string): string {
     const returnStmt = stmt as Return;
-
     if (!returnStmt.expr) {
       return `${indent}return;`;
     }
 
     const exprResult = this.contractContext.emitExpression(returnStmt.expr);
-    let type = (returnStmt.expr as { type: SupportedType }).type;
-
-    const isStruct =
-      returnStmt.expr.kind === "call" &&
-      returnStmt.expr.args.length > 0 &&
-      returnStmt.expr.args[0].type === AbiType.Struct;
-    if (isStruct) {
-      type = AbiType.Struct;
-    }
+    const type = returnStmt.expr.type as AbiType;
 
     if (returnStmt.expr.kind === "call") {
       return this.buildReturnWithSetup(exprResult.setupLines, exprResult.valueExpr, indent);
     }
 
     let baseExpr = exprResult.valueExpr;
-
-    if (type === AbiType.String) {
-      baseExpr = `Str.toABI(${exprResult.valueExpr})`;
-    }
 
     if (
       type === AbiType.ArrayDynamic &&
@@ -65,40 +51,8 @@ export class ReturnHandler extends StatementHandler {
       baseExpr = `Array.serializeToABI(${exprResult.valueExpr})`;
     }
 
-    const isBooleanMapping =
-      baseExpr.includes("MappingNested.getBoolean") || baseExpr.includes("Mapping.getBoolean");
-    let returnExpr: string;
 
-    if (isBooleanMapping) {
-      returnExpr = `Boolean.create(${baseExpr})`;
-    } else if (type === AbiType.Bool) {
-      const isBooleanStorageVariable = this.isBooleanStorageVariable(returnStmt.expr);
-
-      if (isBooleanStorageVariable) {
-        returnExpr = `Boolean.create(Boolean.fromABI(${baseExpr}))`;
-      } else {
-        returnExpr = `Boolean.create(${baseExpr})`;
-      }
-    } else {
-      returnExpr = baseExpr;
-    }
-
-    return this.buildReturnWithSetup(exprResult.setupLines, returnExpr, indent);
-  }
-
-  /**
-   * Check if this expression represents a boolean storage variable
-   */
-  private isBooleanStorageVariable(expr: any): boolean {
-    if (expr.kind === "var" && expr.scope === "storage") {
-      return true;
-    }
-
-    if (expr.kind === "var" && (expr.name.includes("_storage") || expr.name === "flag")) {
-      return true;
-    }
-
-    return false;
+    return this.buildReturnWithSetup(exprResult.setupLines, baseExpr, indent);
   }
 
   /**

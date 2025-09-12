@@ -14,6 +14,8 @@ import { read_args, write_result } from "${packageName}/core/modules/hostio";
 import { initHeap, malloc } from "${packageName}/core/modules/memory";
 import { loadU32BE } from "${packageName}/core/modules/endianness";
 import { Str } from "${packageName}/core/types/str";
+import { StructABI } from "${packageName}/core/abi/struct";
+import { StructMemory } from "${packageName}/core/memory/struct";
 import { Boolean } from "${packageName}/core/types/boolean";
 import { U256 } from "${packageName}/core/types/u256";
 import { Msg } from "${packageName}/core/types/msg";
