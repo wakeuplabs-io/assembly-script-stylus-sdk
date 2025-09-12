@@ -103,7 +103,6 @@ export class Array {
     const srcDataPtr = arrayDataPtr + 32;
     const destDataPtr = this.getDataPtr(memoryArrayPtr);
     const totalSize: u32 = arrayLength * elementSize;
-
     for (let i: u32 = 0; i < totalSize; ++i) {
       store<u8>(destDataPtr + i, load<u8>(srcDataPtr + i));
     }

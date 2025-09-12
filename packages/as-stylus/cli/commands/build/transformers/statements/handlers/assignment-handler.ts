@@ -17,7 +17,6 @@ export class AssignmentHandler extends StatementHandler {
     const exprResult = this.contractContext.emitExpression(assignment.expr);
     const lines: string[] = [];
 
-
     if (exprResult.setupLines.length > 0) {
       lines.push(...exprResult.setupLines.map((line) => `${indent}${line}`));
     }
@@ -30,7 +29,7 @@ export class AssignmentHandler extends StatementHandler {
 
     if (assignment.scope === "storage") {
       const property = assignment.target;
-      lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);
+      lines.push(`${indent}store_${property}();`);
     }
 
     return combineLines(lines, "");

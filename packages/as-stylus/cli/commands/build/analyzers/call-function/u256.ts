@@ -65,7 +65,6 @@ export function buildU256IR(
   if (parts.length === 2) {
     const receiverName = parts[0];
     const methodName = parts[1];
-
     return {
       kind: "call",
       target: methodName, // Just the method name
@@ -81,7 +80,6 @@ export function buildU256IR(
       },
     };
   }
-
   // Fallback for patterns we don't understand
   return {
     kind: "call",

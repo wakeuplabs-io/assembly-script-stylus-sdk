@@ -118,7 +118,6 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       return this.buildAssignment(variable, initializer, kind);
     }
   }
-
 }
 
 

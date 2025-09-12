@@ -193,8 +193,8 @@ function load_${name}(): ${returnType} {
 
 export function storeSimple(name: string, slot: number): string {
   return `
-function store_${name}(ptr: usize): void {
-  storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), ptr);
+function store_${name}(): void {
+  storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), ${name});
   storage_flush_cache(0);
 }`;
 }
@@ -381,8 +381,8 @@ function load_${variable.name}(): usize {
   return Str.loadFrom(${formatSlotName(variable.slot)});
 }
 
-function store_${variable.name}(strPtr: usize): void {
-  Str.storeTo(${formatSlotName(variable.slot)}, strPtr);
+function store_${variable.name}(): void {
+  Str.storeTo(${formatSlotName(variable.slot)}, ${variable.name});
 }`.trim(),
           );
           break;

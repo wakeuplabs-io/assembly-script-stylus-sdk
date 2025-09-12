@@ -44,7 +44,6 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
     }));
 
     const layout = calculateFieldLayout(basicFields);
-
     const fields: IRStructField[] = layout.fields.map((field) => ({
       name: field.name,
       type: field.type,

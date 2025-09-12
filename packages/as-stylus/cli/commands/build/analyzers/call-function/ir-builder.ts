@@ -33,6 +33,17 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     return true;
   }
 
+  private extractGenericType(): string | undefined {
+    // The generic type arguments are on the CallExpression itself, not the expression
+    const typeArgs = this.call.getTypeArguments();
+
+    if (typeArgs.length > 0) {
+      return typeArgs[0].getText();
+    }
+
+    return undefined;
+  }
+
   private getReturnType(target: string): SupportedType {
     const symbol = this.symbolTable.lookup(target);
     if (symbol && symbol.type === "function") {

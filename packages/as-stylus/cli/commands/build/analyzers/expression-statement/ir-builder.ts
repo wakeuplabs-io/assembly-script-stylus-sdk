@@ -54,7 +54,6 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
       const builder = new ExpressionIRBuilder(arg as Expression);
       return builder.validateAndBuildIR();
     });
-
     return {
       kind: "revert",
       error: errorName,
@@ -91,7 +90,6 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
           const fieldName = propAccess.getName();
           const objectExpr = new ExpressionIRBuilder(propAccess.getExpression()).validateAndBuildIR();
           const valueExpr = new ExpressionIRBuilder(rhsNode).validateAndBuildIR();
-
           if (objectExpr.type === AbiType.Struct) {
             return new StructAssignmentBuilder(this.symbolTable).buildIR(objectExpr, fieldName, valueExpr);
           } else {
@@ -129,7 +127,6 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
       callBuilder.setAssignmentContext(targetScope);
       return callBuilder.validateAndBuildIR();
     }
-
     // For other expressions, use regular ExpressionIRBuilder
     return new ExpressionIRBuilder(expr).validateAndBuildIR();
   }

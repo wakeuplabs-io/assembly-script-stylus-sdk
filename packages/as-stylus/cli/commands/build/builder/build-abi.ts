@@ -154,6 +154,5 @@ export function convertType(symbolTable: SymbolTableStack, type: string): AbiTyp
   if (result.type === AbiType.Tuple) {
     return AbiType.Struct;
   }
-
   return result.type as AbiType;
 }

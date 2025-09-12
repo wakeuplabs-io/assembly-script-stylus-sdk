@@ -167,6 +167,7 @@ function generateArrayReturnLogic(
   ].join(`\n${INDENTATION.BODY}`);
 }
 
+
 function generateStructReturnLogic(
   methodName: string,
   callArgs: Array<{ name: string }>,
@@ -390,6 +391,7 @@ function processFallbackAndReceive(contract: IRContract): {
 
   return { imports, fallbackEntry, receiveEntry };
 }
+
 
 function processConstructor(contract: IRContract): CodeBlock {
   if (!contract.constructor) {
