@@ -193,16 +193,16 @@ function load_${name}(): ${returnType} {
 
 export function storeSimple(name: string, slot: number): string {
   return `
-function store_${name}(): void {
-  storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), ${name});
+function store_${name}(ptr: usize): void {
+  storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), ptr);
   storage_flush_cache(0);
 }`;
 }
 
 export function storeBoolean(name: string, slot: number): string {
   return `
-function store_${name}(): void {
-  storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), Boolean.create(${name}));
+function store_${name}(value: boolean): void {
+  storage_cache_bytes32(createStorageKey(${formatSlotName(slot)}), Boolean.create(value));
   storage_flush_cache(0);
 }`;
 }
@@ -367,14 +367,6 @@ export function generateStorageHelpers(
   const lines: string[] = [];
   const structMap = new Map(structs.map((s) => [s.name, s]));
 
-  // Declare global variables for storage
-  for (const variable of variables) {
-    if (variable.type === AbiType.Bool) {
-      lines.push(`let ${variable.name}: boolean;`);
-    } else {
-      lines.push(`let ${variable.name}: usize;`);
-    }
-  }
   lines.push(""); // Add empty line
 
   for (const variable of variables) {
@@ -389,8 +381,8 @@ function load_${variable.name}(): usize {
   return Str.loadFrom(${formatSlotName(variable.slot)});
 }
 
-function store_${variable.name}(): void {
-  Str.storeTo(${formatSlotName(variable.slot)}, ${variable.name});
+function store_${variable.name}(strPtr: usize): void {
+  Str.storeTo(${formatSlotName(variable.slot)}, strPtr);
 }`.trim(),
           );
           break;
@@ -433,7 +425,7 @@ function load_${variable.name}(): usize {
   return arrayPtr;
 }
 
-function store_${variable.name}(): void {
+function store_${variable.name}(ptr: usize): void {
   // Static arrays store elements directly in consecutive slots using the global variable
   // The actual slot assignment is handled by ArrayStatic.setBaseSlot()
 }`);
@@ -444,7 +436,7 @@ export function load_${variable.name}(): usize {
   return createStorageKey(${formatSlotName(variable.slot)});
 }
 
-function store_${variable.name}(): void {
+function store_${variable.name}(ptr: usize): void {
   // Dynamic arrays store length at base slot
   // Storage is handled automatically through storage_cache_bytes32/storage_flush_cache
 }`);

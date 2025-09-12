@@ -17,13 +17,12 @@ export class AssignmentHandler extends StatementHandler {
     const exprResult = this.contractContext.emitExpression(assignment.expr);
     const lines: string[] = [];
 
+
     if (exprResult.setupLines.length > 0) {
       lines.push(...exprResult.setupLines.map((line) => `${indent}${line}`));
     }
 
-    if (assignment.target.indexOf(".") === -1) {
-      lines.push(`${indent}${assignment.target} = ${exprResult.valueExpr};`);
-    } else {
+    if (assignment.target.indexOf(".") !== -1) {
       const parts = assignment.target.split(".");
       const property = parts[0];
       lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);
@@ -31,7 +30,7 @@ export class AssignmentHandler extends StatementHandler {
 
     if (assignment.scope === "storage") {
       const property = assignment.target;
-      lines.push(`${indent}store_${property}();`);
+      lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);
     }
 
     return combineLines(lines, "");
