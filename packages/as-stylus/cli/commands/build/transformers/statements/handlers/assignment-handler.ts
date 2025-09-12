@@ -29,7 +29,7 @@ export class AssignmentHandler extends StatementHandler {
 
     if (assignment.scope === "storage") {
       const property = assignment.target;
-      lines.push(`${indent}store_${property}();`);
+      lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);
     }
 
     return combineLines(lines, "");
