@@ -49,20 +49,3 @@ export abstract class BaseTypeTransformer extends TypeTransformer {
   }
 }
 
-/*
-function detectExpressionTypeFallback(expr: any): string | null {
-  if (expr.kind === "call") {
-    if (expr.target.endsWith("Factory.create") || expr.target.endsWith("Factory.fromString")) {
-      const typeName = expr.target.split("Factory.")[0];
-      return typeName;
-    }
-
-    if (expr.target.startsWith("U256.")) return "U256";
-    if (expr.target.startsWith("I256.")) return "I256";
-    if (expr.target.startsWith("Address.")) return "Address";
-    if (expr.target.startsWith("String.")) return "String";
-  }
-
-  return null;
-}
-*/

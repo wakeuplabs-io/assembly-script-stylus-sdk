@@ -20,8 +20,8 @@ export function ${name}_set_${fieldName}(ptr: usize, v: usize): void {
 }`,
 
   BOOL: (name: string, fieldName: string, slotNumber: string) => `
-export function ${name}_set_${fieldName}(ptr: usize, v: usize): void {
-  Struct.setBoolean(__SLOT${slotNumber}, v);
+export function ${name}_set_${fieldName}(ptr: usize, v: boolean): void {
+  Struct.setBoolean(__SLOT${slotNumber}, Boolean.create(v));
 }`,
 
   GENERIC: (name: string, fieldName: string, offset: number, _slotNumber: string) => `

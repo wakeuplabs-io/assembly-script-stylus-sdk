@@ -10,9 +10,19 @@ import { Label } from "@/components/ui/label"
 import { Loader2, ExternalLink, CheckCircle } from "lucide-react"
 import { useContract } from "@/hooks/use-contract"
 import { useContract as useContractContext } from "@/contexts/contract-context"
+import { RpcEndpointInput } from "@/components/rpc-endpoint-input"
+import { BlockExplorerInput } from "@/components/block-explorer-input"
+import { NetworkDetection } from "@/components/network-detection"
+import { getChainIdFromRpc, switchToNetwork } from "@/lib/validation-utils"
 import type { Address } from "viem"
 import erc20Abi from "@/abis/erc20.json"
 import erc721Abi from "@/abis/erc721.json"
+
+declare global {
+  interface Window {
+    ethereum?: any
+  }
+}
 
 interface ContractFunction {
   name: string
@@ -26,6 +36,7 @@ interface ContractFunction {
     type: string
   }>
 }
+
 
 export function ContractInteraction() {
   const [contractAddress, setContractAddress] = useState("")
@@ -62,7 +73,7 @@ export function ContractInteraction() {
     setResultTimeouts(prev => ({ ...prev, [functionName]: timeoutId }))
   }
 
-  const { activeContract: contractType } = useContractContext()
+  const { activeContract: contractType, rpcEndpoint, blockExplorerUrl } = useContractContext()
 
   const { isConnected, address } = useAccount()
   const { connect, connectors } = useConnect()
@@ -170,6 +181,16 @@ export function ContractInteraction() {
           alert("Please connect your wallet to perform write operations")
           return
         }
+        
+        const rpcValidation = await getChainIdFromRpc(rpcEndpoint)
+        if (rpcValidation.isValid && rpcValidation.networkInfo) {
+          const switchResult = await switchToNetwork(rpcValidation.networkInfo.chainId, rpcEndpoint)
+          if (!switchResult.isValid) {
+            alert("Please switch to the correct network in MetaMask to perform this transaction")
+            return
+          }
+        }
+        
         const result = await contract.write(functionName, args)
         if (result.success) {
           setResults((prev) => ({
@@ -178,12 +199,12 @@ export function ContractInteraction() {
               <span className="flex items-center gap-2">
                 <span className="text-[#bf2968] font-medium">Transaction completed.</span>
                 <a
-                  href={`https://sepolia.arbiscan.io/tx/${result.txHash}`}
+                  href={`${blockExplorerUrl}tx/${result.txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#bf2968] hover:text-[#e04b8a] underline decoration-dotted flex items-center gap-1"
                 >
-                  View transaction on Arbiscan
+                  View transaction on Block Explorer
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </span>
@@ -243,6 +264,7 @@ export function ContractInteraction() {
     }))
   }
 
+
   const renderFunctionInputs = (func: ContractFunction) => {
     return func.inputs.map((input) => (
       <div key={input.name} className="space-y-2">
@@ -295,10 +317,26 @@ export function ContractInteraction() {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">Interact with your contract</h2>
         <p className="text-gray-400 text-center mb-8">Connect to your deployed contract and test its functions</p>
 
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-center mb-8">
           <div className="inline-flex items-center px-6 py-3 bg-gray-800 border border-gray-700 rounded-full">
             <span className="text-gray-400 mr-2">Testing:</span>
             <span className="text-stylus-primary-light font-medium">{contractType} Contract</span>
+          </div>
+        </div>
+
+        <div className="flex justify-center mb-4">
+          <div className="w-full max-w-md">
+            <RpcEndpointInput className="text-center" />
+          </div>
+        </div>
+
+        <div className="flex justify-center mb-4">
+          <NetworkDetection rpcEndpoint={rpcEndpoint} className="justify-center" />
+        </div>
+
+        <div className="flex justify-center mb-8">
+          <div className="w-full max-w-md">
+            <BlockExplorerInput className="text-center" />
           </div>
         </div>
 
@@ -356,13 +394,13 @@ export function ContractInteraction() {
                 <span className="text-green-400">Contract confirmed:</span>
                 <code className="text-green-300 font-mono">{contractAddress}</code>
                 <a
-                  href={`https://sepolia.arbiscan.io/address/${contractAddress}`}
+                  href={`${blockExplorerUrl}address/${contractAddress}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="ml-auto flex items-center gap-1 hover:text-stylus-primary-light transition-colors"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  View on Arbiscan
+                  View on Block Explorer
                 </a>
               </div>
             )}

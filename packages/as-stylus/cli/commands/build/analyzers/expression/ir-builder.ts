@@ -88,6 +88,106 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
         return member.validateAndBuildIR();
       }
 
+      /* ---------- Array access ---------- */
+      // Example: array[index]
+      case SyntaxKind.ElementAccessExpression: {
+        const elementAccess = this.expression as any;
+
+        const arrayExpr = elementAccess.getExpression();
+        const indexExpr = elementAccess.getArgumentExpression();
+
+        const arrayIR = new ExpressionIRBuilder(arrayExpr).validateAndBuildIR();
+        const indexIR = new ExpressionIRBuilder(indexExpr).validateAndBuildIR();
+
+        let resultType = AbiType.Unknown;
+
+        if (arrayIR.kind === "var" && arrayIR.scope === "storage") {
+          const arrayVar = this.symbolTable.lookup(arrayIR.name);
+
+          if (arrayVar?.dynamicType?.includes("[")) {
+            const elementTypeMatch = arrayVar.dynamicType.match(/^([^[]+)/);
+            if (elementTypeMatch) {
+              const elementTypeName = elementTypeMatch[1];
+
+              switch (elementTypeName) {
+                case "U256":
+                  resultType = AbiType.Uint256;
+                  break;
+                case "I256":
+                  resultType = AbiType.Int256;
+                  break;
+                case "Address":
+                  resultType = AbiType.Address;
+                  break;
+                default:
+                  resultType = AbiType.Unknown;
+              }
+            }
+          }
+        }
+
+        if (arrayIR.kind === "var" && arrayIR.scope === "memory") {
+          const arrayVar = this.symbolTable.lookup(arrayIR.name);
+
+          if (arrayVar?.type === AbiType.ArrayDynamic || arrayVar?.type === AbiType.ArrayStatic) {
+            if (arrayVar.dynamicType?.includes("[")) {
+              const elementTypeMatch = arrayVar.dynamicType.match(/^([^[]+)/);
+              if (elementTypeMatch) {
+                const elementTypeName = elementTypeMatch[1];
+
+                switch (elementTypeName) {
+                  case "U256":
+                    resultType = AbiType.Uint256;
+                    break;
+                  case "I256":
+                    resultType = AbiType.Int256;
+                    break;
+                  case "Address":
+                    resultType = AbiType.Address;
+                    break;
+                  case "String":
+                    resultType = AbiType.String;
+                    break;
+                  default:
+                    resultType = AbiType.Unknown;
+                }
+              }
+            }
+          }
+        }
+
+        const arrayAccessIR: IRExpression = {
+          kind: "array_access",
+          array: arrayIR,
+          index: indexIR,
+          type: resultType,
+        };
+
+        return arrayAccessIR;
+      }
+
+      /* ---------- Array literals ---------- */
+      // Example: [a, b, c] or []
+      case SyntaxKind.ArrayLiteralExpression: {
+        const arrayLiteral = this.expression as any; // ArrayLiteralExpression type
+
+        const elements = arrayLiteral.getElements();
+
+        const elementIRs: IRExpression[] = [];
+        for (const element of elements) {
+          const elementIR = new ExpressionIRBuilder(element).validateAndBuildIR();
+          elementIRs.push(elementIR);
+        }
+
+        const arrayLiteralIR: IRExpression = {
+          kind: "array_literal",
+          elements: elementIRs,
+          type: AbiType.Array,
+        };
+
+        return arrayLiteralIR;
+      }
+
       case SyntaxKind.BinaryExpression: {
         const bin = new BinaryExpressionIRBuilder(this.expression as BinaryExpression);
         return bin.validateAndBuildIR();
@@ -106,7 +206,6 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
         const whenTrue = new ExpressionIRBuilder(conditional.getWhenTrue()).validateAndBuildIR();
         const whenFalse = new ExpressionIRBuilder(conditional.getWhenFalse()).validateAndBuildIR();
 
-        // For now, return a simple representation (TODO: implement proper conditional IR)
         return {
           kind: "call",
           target: "conditional",

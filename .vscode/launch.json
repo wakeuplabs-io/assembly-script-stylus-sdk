@@ -7,61 +7,11 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Build Balance Contract",
+      "name": "Debugging test",
       "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/balances",
+      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/if-happy-path",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["as-stylus", "build"],
-      "console": "integratedTerminal"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Build Address Contract",
-      "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/admin-registry",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["as-stylus", "build"],
-      "console": "integratedTerminal"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Build ERC20 Contract",
-      "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/erc20-full",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["as-stylus", "build"],
-      "console": "integratedTerminal"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Build String Contract",
-      "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/string",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["as-stylus", "build"],
-      "console": "integratedTerminal"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Build Struct Contract",
-      "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/struct",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["as-stylus", "build", "./contract.ts"],
-      "console": "integratedTerminal"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Build ERC721 Contract",
-      "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/erc721",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["as-stylus", "build"],
+      "runtimeArgs": ["as-stylus", "build", "contract.ts"],
       "console": "integratedTerminal"
     }
   ]

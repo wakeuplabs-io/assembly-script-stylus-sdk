@@ -11,18 +11,19 @@ export class U256FunctionCallHandler extends Handler {
    * Determines if this handler can process the given expression
    */
   canHandle(expr: Call): boolean {
-    
     // Handle function calls that return U256 (uint256)
     // But exclude factory methods and property operations
     const target = expr.target || "";
-    
-    if (target.startsWith("U256Factory.") || 
-        target.includes(".") || 
-        target.includes("_get_") || 
-        target.includes("_set_")) {
+
+    if (
+      target.startsWith("U256Factory.") ||
+      target.includes(".") ||
+      target.includes("_get_") ||
+      target.includes("_set_")
+    ) {
       return false;
     }
-    
+
     return expr.returnType === "uint256";
   }
 
@@ -31,15 +32,13 @@ export class U256FunctionCallHandler extends Handler {
    */
   handle(expr: Call): EmitResult {
     const functionName = expr.target;
-    
-    // Process arguments
     const argResults = (expr.args || []).map((arg) => this.contractContext.emitExpression(arg));
     const setupLines = argResults.flatMap((result) => result.setupLines);
     const argExprs = argResults.map((result) => result.valueExpr);
-    
+
     // Generate function call
     const functionCall = `${functionName}(${argExprs.join(", ")})`;
-    
+
     return {
       setupLines,
       valueExpr: functionCall,

@@ -1,5 +1,5 @@
 import { EmitResult } from "@/cli/types/emit.types.js";
-import { IRExpression, IRStatement } from "@/cli/types/ir.types.js";
+import { IRExpression, IRStatement, IRVariable, IRContract } from "@/cli/types/ir.types.js";
 
 import { TypeTransformer } from "./base-abstract-handlers.js";
 import { TransformerRegistry } from "./transformer-registry.js";
@@ -14,11 +14,16 @@ export class ContractContext {
   private contractName: string;
   private parentName: string;
   private transformerRegistry: TransformerRegistry;
+  private contractIR: IRContract | null;
 
-  constructor(transformerRegistry: TransformerRegistry, contractName: string = "", parentName: string = "") {
-    this.contractName = contractName;
-    this.parentName = parentName;
+  constructor(
+    transformerRegistry: TransformerRegistry, 
+    contractIR: IRContract | null = null
+  ) {
     this.transformerRegistry = transformerRegistry;
+    this.contractIR = contractIR;
+    this.contractName = contractIR?.name ?? "";
+    this.parentName = contractIR?.parent?.name ?? "";
   }
 
   getContractName(): string {
@@ -27,6 +32,10 @@ export class ContractContext {
 
   getParentName(): string {
     return this.parentName;
+  }
+
+  getContractIR(): IRContract | null {
+    return this.contractIR;
   }
 
   emitExpression(expr: IRExpression): EmitResult {
@@ -44,6 +53,18 @@ export class ContractContext {
   emitStatements(statements: IRStatement[]): string { 
     const statementHandler = new StatementHandler(this);
     return statementHandler.handleStatements(statements);
+  }
+
+  /**
+   * Gets a storage variable from the contract IR by name
+   * @param name - The name of the storage variable
+   * @returns The storage variable if found, undefined otherwise
+   */
+  getStorageVariable(name: string): IRVariable | undefined {
+    if (!this.contractIR) {
+      return undefined;
+    }
+    return this.contractIR.storage.find(v => v.name === name);
   }
 }
 

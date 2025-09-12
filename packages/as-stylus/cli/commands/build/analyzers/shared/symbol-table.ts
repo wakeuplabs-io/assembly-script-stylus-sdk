@@ -1,6 +1,11 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRStruct } from "@/cli/types/ir.types.js";
-import { FunctionSymbol, SymbolInfo, SymbolTable, VariableSymbol } from "@/cli/types/symbol-table.types.js";
+import {
+  FunctionSymbol,
+  SymbolInfo,
+  SymbolTable,
+  VariableSymbol,
+} from "@/cli/types/symbol-table.types.js";
 
 import { SlotManager } from "./slot-manager.js";
 
@@ -26,7 +31,7 @@ export class SymbolTableStack {
     return this.types;
   }
 
-  exitScope() { 
+  exitScope() {
     if (this.scopes.length <= 1) {
       throw new Error("Cannot exit global scope");
     }
@@ -41,27 +46,28 @@ export class SymbolTableStack {
     return true;
   }
 
-  declareVariable(name: string, info: Omit<VariableSymbol, "scopeLevel">): boolean {  
+  declareVariable(name: string, info: Omit<VariableSymbol, "scopeLevel">): boolean {
     const current = this.scopes[this.scopes.length - 1];
     if (current.has(name)) return false;
 
     this.types.add(info.type);
-    current.set(name, { ...info, scopeLevel: this.scopes.length - 1 }); 
+    current.set(name, { ...info, scopeLevel: this.scopes.length - 1 });
 
     if (info.scope === "storage") {
       this.slotManager.allocateSlot(name, {
         type: info.type,
         dynamicType: info.dynamicType,
+        length: info.length,
       });
     }
 
     return true;
   }
 
-  declareFunction(name: string, info: Omit<FunctionSymbol, "scopeLevel" | "type">): boolean {  
+  declareFunction(name: string, info: Omit<FunctionSymbol, "scopeLevel" | "type">): boolean {
     const current = this.scopes[this.scopes.length - 1];
     if (current.has(name)) return false;
-    
+
     this.types.add(info.returnType);
     current.set(name, { ...info, scopeLevel: this.scopes.length - 1, type: AbiType.Function });
     return true;
@@ -100,10 +106,10 @@ export class SymbolTableStack {
   }
 
   toJSON() {
-    return this.scopes.map(scope => {
+    return this.scopes.map((scope) => {
       return {
         scopeLevel: scope.get("scopeLevel"),
-        symbols: Array.from(scope.values())
+        symbols: Array.from(scope.values()),
       };
     });
   }

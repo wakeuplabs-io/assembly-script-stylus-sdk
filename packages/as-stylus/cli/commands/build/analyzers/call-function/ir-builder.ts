@@ -5,6 +5,7 @@ import { IRExpression } from "@/cli/types/ir.types.js";
 import { FunctionSymbol, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
 import { buildAddressIR } from "./address.js";
+import { buildArrayIR } from "./array.js";
 import { buildI256IR } from "./i256.js";
 import { buildMappingIR } from "./mapping.js";
 import { buildStringIR } from "./string.js";
@@ -17,10 +18,15 @@ import { StructFactoryBuilder } from "../struct/struct-factory-builder.js";
 
 export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
   private call: CallExpression;
+  private assignmentContext?: { targetScope: "storage" | "memory" };
 
   constructor(expr: CallExpression) {
     super(expr);
     this.call = expr;
+  }
+
+  setAssignmentContext(targetScope: "storage" | "memory"): void {
+    this.assignmentContext = { targetScope };
   }
 
   validate(): boolean {
@@ -68,7 +74,8 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
 
     const { name: varName } = parseNameWithMethod(target);
     const variable = this.symbolTable.lookup(varName);
-    const scope = variable?.scope ?? "memory";
+    // Use assignment context if available, otherwise fall back to variable scope or memory
+    const scope = this.assignmentContext?.targetScope ?? variable?.scope ?? "memory";
 
     if (variable?.type === AbiType.Uint256) {
       return buildU256IR(target, this.call, this.symbolTable);
@@ -86,6 +93,28 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       return buildAddressIR(target, this.call, this.symbolTable);
     }
 
+    if (variable?.type === AbiType.ArrayStatic || variable?.type === AbiType.ArrayDynamic) {
+      const [receiverName, methodName] = target.split(".");
+      const receiverVariable = this.symbolTable.lookup(receiverName);
+
+      if (receiverVariable && methodName) {
+        return {
+          kind: "call",
+          target: methodName,
+          args,
+          type: AbiType.Function,
+          returnType: methodName === "length" ? AbiType.Uint256 : AbiType.Void,
+          scope,
+          receiver: {
+            kind: "var",
+            name: receiverName,
+            type: variable.type,
+            scope: receiverVariable.scope ?? "storage",
+          },
+        };
+      }
+    }
+
     if (variable?.type === AbiType.Mapping || variable?.type === AbiType.MappingNested) {
       const slot = this.slotManager.getSlotForVariable(varName);
       const result = buildMappingIR(variable, this.call, slot ?? 0);
@@ -94,10 +123,41 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       }
     }
 
+    const targetIsArrayFactory =
+      target.startsWith("StaticArrayFactory.") ||
+      target.startsWith("DynamicArrayFactory.") ||
+      target.startsWith("MemoryArrayFactory.");
+
+    if (targetIsArrayFactory) {
+      return buildArrayIR(target, this.call, args, scope);
+    }
+
     const isUserDefinedFunction = (this.symbolTable.lookup(target) as FunctionSymbol)
       ?.isDeclaredByUser;
     const type = isUserDefinedFunction ? AbiType.UserDefinedFunction : AbiType.Function;
 
-    return { kind: "call", target, args, type, returnType: this.getReturnType(target), scope };
+    // Handle complex expressions like "(i + one).toString"
+    let finalReturnType = this.getReturnType(target);
+    if (target.includes(".toString")) {
+      finalReturnType = AbiType.String;
+    } else if (target.includes(".toI32")) {
+      finalReturnType = AbiType.Int256;
+    } else if (
+      target.includes(".add") ||
+      target.includes(".sub") ||
+      target.includes(".mul") ||
+      target.includes(".div")
+    ) {
+      finalReturnType = AbiType.Uint256;
+    }
+
+    return {
+      kind: "call" as const,
+      target,
+      args,
+      type,
+      returnType: finalReturnType,
+      scope,
+    };
   }
 }
