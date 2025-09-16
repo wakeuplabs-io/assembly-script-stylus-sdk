@@ -64,7 +64,7 @@ examples(
   uintValue: U256,          // ✅ Unsigned 256-bit integer
   intValue: I256,           // ✅ Signed 256-bit integer
   addressValue: Address,    // ✅ Ethereum address
-  stringValue: String,      // ✅ Dynamic string
+  stringValueStr,      // ✅ Dynamic string
   boolValue: Boolean        // ✅ Boolean value
 ): U256 {                   // ✅ Any supported type as return
   // Implementation
@@ -81,21 +81,21 @@ invalid(complexObject: CustomClass): void { } // Error
 ### State Management
 
 ```typescript
-import { Contract, Public, U256, Address, Mapping, String } from "@wakeuplabs/as-stylus";
+import { Contract, Public, U256, Address, Mapping, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class UserRegistry {
-  users: Mapping<Address, String>;
+  users: Mapping<Address, Str>;
   userCount: U256;
 
   @Public
-  registerUser(name: String): void {
+  registerUser(name: Str): void {
     this.users.set(msg.sender, name);
     this.userCount = this.userCount.add(U256Factory.fromString("1"));
   }
 
   @Public
-  updateUserName(newName: String): void {
+  updateUserName(newName: Str): void {
     this.users.set(msg.sender, newName);
   }
 
@@ -114,15 +114,7 @@ export class UserRegistry {
 ### Complex Operations
 
 ```typescript
-import {
-  Contract,
-  U256Factory,
-  Public,
-  U256,
-  Address,
-  Mapping,
-  String,
-} from "@wakeuplabs/as-stylus";
+import { Contract, U256Factory, Public, U256, Address, Mapping, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MultiFunctionContract {

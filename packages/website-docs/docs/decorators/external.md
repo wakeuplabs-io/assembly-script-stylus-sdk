@@ -58,7 +58,7 @@ examples(
   uintValue: U256,          // ✅ Unsigned 256-bit integer
   intValue: I256,           // ✅ Signed 256-bit integer
   addressValue: Address,    // ✅ Ethereum address
-  stringValue: String,      // ✅ Dynamic string
+  stringValueStr,      // ✅ Dynamic string
   boolValue: Boolean        // ✅ Boolean value
 ): U256 {                   // ✅ Any supported type as return
   // Implementation

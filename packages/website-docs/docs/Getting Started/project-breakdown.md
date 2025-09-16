@@ -7,7 +7,9 @@ This comprehensive guide provides an in-depth look at the AssemblyScript Stylus 
 Our monorepo contains three main components designed to provide a complete development experience:
 
 ### 🛠️ [SDK Core](https://www.npmjs.com/package/@wakeuplabs/as-stylus)
+
 The main SDK package that provides:
+
 - AssemblyScript bindings for Stylus host functions
 - Type-safe storage and memory management
 - Event emission and error handling
@@ -15,13 +17,17 @@ The main SDK package that provides:
 - Built-in support for common standards (ERC20, ERC721)
 
 ### 🎮 [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/)
+
 A web-based playground that allows developers to:
+
 - Try out ERC20 and ERC721 contract examples in the browser
 - Interact with deployed contracts
 - Learn the SDK through interactive examples
 
 ### 📚 [Documentation Website] (https://as-stylus.wakeuplabs.io/)
+
 Comprehensive documentation covering:
+
 - Getting started guides and tutorials
 - API reference and examples
 - Best practices and patterns
@@ -33,7 +39,7 @@ Comprehensive documentation covering:
 - **Type Safety**: Full compile-time type checking and validation
 - **Performance**: Compile to WebAssembly for near-native execution speeds on Stylus
 - **Developer Experience**: Comprehensive CLI tooling and familiar development workflow
-- **Rich Type System**: Support for U256, I256, Address, String, Boolean, Mapping, and Struct types
+- **Rich Type System**: Support for U256, I256, Address, Str, Boolean, Mapping, and Struct types
 - **Event System**: Emit events with proper ABI encoding
 - **Error Handling**: Custom error types with revert functionality
 - **Standard Library**: Built-in implementations of common contract patterns
@@ -101,6 +107,7 @@ my-contract/
 ### Memory Management
 
 The SDK provides efficient memory management through:
+
 - **Stack-based Storage**: For temporary variables and function parameters
 - **Persistent Storage**: For contract state using optimized storage slots
 - **Memory Pools**: For dynamic allocations with automatic cleanup
@@ -130,23 +137,28 @@ The SDK provides efficient memory management through:
 ## Comprehensive Learning Path
 
 ### Learn the Fundamentals
+
 - [Decorators](../decorators/contract) - Define contract structure and behavior
 - [Data Types](../types/u256) - Master blockchain-optimized types
 - [Data Structures](../structures/mapping) - Organize contract state efficiently
 
 ### Build Real Contracts
+
 - [ERC20 Example](../examples/erc20) - Token contract implementation
 - [ERC721 Example](../examples/erc721) - NFT contract patterns
 
 ### Advanced Topics
+
 - [Error Handling](../decorators/error) - Custom error types and patterns
 - [Event System](../decorators/event) - Efficient logging and monitoring
 - [Visibility Modifiers](../decorators/visibility) - Access control patterns
 
 ### Try it Live
+
 - [Interactive Playground](https://as-stylus-playground.wakeuplabs.link/) - Test concepts in your browser
 
 ### Resources
+
 - [NPM Package](https://www.npmjs.com/package/@wakeuplabs/as-stylus)
 - [GitHub Repository](https://github.com/your-org/assembly-script-stylus-sdk)
 
@@ -160,4 +172,4 @@ Ready to build the future of smart contracts? Here are your next steps:
 4. **Explore Advanced Features**: Learn about [events](../decorators/event), [errors](../decorators/error), and [data structures](../structures/mapping)
 5. **Deploy to Mainnet**: Use the CLI tools to deploy your contracts to Arbitrum
 
-The AssemblyScript Stylus SDK opens up new possibilities for high-performance smart contract development. With familiar TypeScript syntax and WebAssembly performance, you can build the next generation of decentralized applications! 
+The AssemblyScript Stylus SDK opens up new possibilities for high-performance smart contract development. With familiar TypeScript syntax and WebAssembly performance, you can build the next generation of decentralized applications!

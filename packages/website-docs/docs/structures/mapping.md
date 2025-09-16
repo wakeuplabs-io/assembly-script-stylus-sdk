@@ -29,7 +29,7 @@ Mapping provides:
 ### Declaration and Initialization
 
 ```typescript
-import { Contract, Mapping, Address, U256, String } from "@wakeuplabs/as-stylus";
+import { Contract, Mapping, Address, U256, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class StorageExample {
@@ -37,7 +37,7 @@ export class StorageExample {
   balances: Mapping<Address, U256> = new Mapping<Address, U256>();
 
   // Configuration flags
-  settings: Mapping<String, boolean> = new Mapping<String, boolean>();
+  settings: Mapping<Str, boolean> = new Mapping<Str, boolean>();
 
   // Numeric data storage
   counters: Mapping<U256, U256> = new Mapping<U256, U256>();
@@ -76,13 +76,13 @@ export class MappingBasics {
 ## Different Key-Value Types
 
 ```typescript
-import { Contract, External, View, Mapping, Address, U256, String } from "@wakeuplabs/as-stylus";
+import { Contract, External, View, Mapping, Address, U256, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MappingTypes {
   addressToNumber: Mapping<Address, U256> = new Mapping<Address, U256>();
-  stringToFlag: Mapping<String, boolean> = new Mapping<String, boolean>();
-  numberToText: Mapping<U256, String> = new Mapping<U256, String>();
+  stringToFlag: Mapping<Str, boolean> = new Mapping<Str, boolean>();
+  numberToText: Mapping<U256, Str> = new Mapping<U256, Str>();
 
   @External
   setAddressValue(addr: Address, value: U256): void {
@@ -90,7 +90,7 @@ export class MappingTypes {
   }
 
   @External
-  setStringFlag(key: String, flag: boolean): void {
+  setStringFlag(keyStr, flag: boolean): void {
     this.stringToFlag.set(key, flag);
   }
 
@@ -100,7 +100,7 @@ export class MappingTypes {
   }
 
   @View
-  getStringFlag(key: String): boolean {
+  getStringFlag(key: Str): boolean {
     return this.stringToFlag.get(key);
   }
 }
@@ -109,12 +109,12 @@ export class MappingTypes {
 ## Supported Key Types
 
 ```typescript
-import { Contract, Mapping, Address, U256, String } from "@wakeuplabs/as-stylus";
+import { Contract, Mapping, Address, U256, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class KeyTypes {
   addressMapping: Mapping<Address, U256> = new Mapping<Address, U256>(); // ✅ Address keys
-  stringMapping: Mapping<String, boolean> = new Mapping<String, boolean>(); // ✅ String keys
+  stringMapping: Mapping<Str, boolean> = new Mapping<Str, boolean>(); // ✅ String keys
   numberMapping: Mapping<U256, Address> = new Mapping<U256, Address>(); // ✅ U256 keys
 }
 ```
@@ -122,14 +122,14 @@ export class KeyTypes {
 ## Supported Value Types
 
 ```typescript
-import { Contract, Mapping, Address, U256, String } from "@wakeuplabs/as-stylus";
+import { Contract, Mapping, Address, U256, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class ValueTypes {
   numberValues: Mapping<Address, U256> = new Mapping<Address, U256>(); // ✅ U256 values
-  booleanValues: Mapping<String, boolean> = new Mapping<String, boolean>(); // ✅ Boolean values
+  booleanValues: Mapping<Str, boolean> = new Mapping<Str, boolean>(); // ✅ Boolean values
   addressValues: Mapping<U256, Address> = new Mapping<U256, Address>(); // ✅ Address values
-  stringValues: Mapping<Address, String> = new Mapping<Address, String>(); // ✅ String values
+  stringValues: Mapping<Address, Str> = new Mapping<Address, Str>(); // ✅ String values
 }
 ```
 

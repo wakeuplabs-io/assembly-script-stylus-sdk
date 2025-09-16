@@ -29,7 +29,7 @@ MappingNested provides:
 ### Declaration and Initialization
 
 ```typescript
-import { Contract, MappingNested, Address, U256, String } from "@wakeuplabs/as-stylus";
+import { Contract, MappingNested, Address, U256, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class NestedStorage {
@@ -37,11 +37,7 @@ export class NestedStorage {
   allowances: MappingNested<Address, Address, U256> = new MappingNested<Address, Address, U256>();
 
   // User settings: user -> setting -> value
-  userSettings: MappingNested<Address, String, boolean> = new MappingNested<
-    Address,
-    String,
-    boolean
-  >();
+  userSettings: MappingNested<Address, Str, boolean> = new MappingNested<Address, Str, boolean>();
 
   // Game scores: player -> level -> score
   gameScores: MappingNested<Address, U256, U256> = new MappingNested<Address, U256, U256>();
@@ -83,38 +79,30 @@ export class AllowanceManager {
 ## Key Combinations
 
 ```typescript
-import {
-  Contract,
-  External,
-  View,
-  MappingNested,
-  Address,
-  U256,
-  String,
-} from "@wakeuplabs/as-stylus";
+import { Contract, External, View, MappingNested, Address, U256, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class SimpleMappingNested {
-  data: MappingNested<Address, String, U256> = new MappingNested<Address, String, U256>();
-  flags: MappingNested<String, U256, boolean> = new MappingNested<String, U256, boolean>();
+  data: MappingNested<Address, Str, U256> = new MappingNested<Address, Str, U256>();
+  flags: MappingNested<Str, U256, boolean> = new MappingNested<Str, U256, boolean>();
 
   @External
-  setValue(user: Address, key: String, value: U256): void {
+  setValue(user: Address, keyStr, value: U256): void {
     this.data.set(user, key, value);
   }
 
   @External
-  setFlag(category: String, id: U256, flag: boolean): void {
+  setFlag(categoryStr, id: U256, flag: boolean): void {
     this.flags.set(category, id, flag);
   }
 
   @View
-  getValue(user: Address, key: String): U256 {
+  getValue(user: Address, key: Str): U256 {
     return this.data.get(user, key);
   }
 
   @View
-  getFlag(category: String, id: U256): boolean {
+  getFlag(categoryStr, id: U256): boolean {
     return this.flags.get(category, id);
   }
 }
@@ -123,7 +111,7 @@ export class SimpleMappingNested {
 ## Supported Key Combinations
 
 ```typescript
-import { Contract, MappingNested, Address, U256, String } from "@wakeuplabs/as-stylus";
+import { Contract, MappingNested, Address, U256, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class KeyCombinations {
@@ -131,17 +119,13 @@ export class KeyCombinations {
   addressPairs: MappingNested<Address, Address, U256> = new MappingNested<Address, Address, U256>();
 
   // Address + String keys
-  userSettings: MappingNested<Address, String, boolean> = new MappingNested<
-    Address,
-    String,
-    boolean
-  >();
+  userSettings: MappingNested<Address, Str, boolean> = new MappingNested<Address, Str, boolean>();
 
   // String + String keys
-  stringMatrix: MappingNested<String, String, U256> = new MappingNested<String, String, U256>();
+  stringMatrix: MappingNested<Str, Str, U256> = new MappingNested<Str, Str, U256>();
 
   // U256 + Address keys
-  indexedUsers: MappingNested<U256, Address, String> = new MappingNested<U256, Address, String>();
+  indexedUsers: MappingNested<U256, Address, Str> = new MappingNested<U256, Address, Str>();
 }
 ```
 

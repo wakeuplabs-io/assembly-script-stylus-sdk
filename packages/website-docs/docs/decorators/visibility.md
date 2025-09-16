@@ -126,7 +126,7 @@ export class CombinationExamples {
   // External + Pure (stateless external function)
   @External
   @Pure
-  calculateHash(data: String): U256 {
+  calculateHash(data: Str): U256 {
     return U256.hash(data);
   }
 

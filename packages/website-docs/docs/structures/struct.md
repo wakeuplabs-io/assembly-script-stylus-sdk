@@ -40,14 +40,14 @@ import {
   External,
   View,
   U256,
-  String,
+  Str,
   StructFactory,
 } from "@wakeuplabs/as-stylus";
 
 @StructTemplate
 class UserInfo {
   id: U256;
-  name: String;
+  name: Str;
   isActive: boolean;
 }
 
@@ -56,7 +56,7 @@ export class UserManager {
   currentUser: Struct<UserInfo>;
 
   @External
-  createUser(id: U256, name: String): void {
+  createUser(id: U256, name: Str): void {
     this.currentUser.id = id;
     this.currentUser.name = name;
     this.currentUser.isActive = true;
@@ -164,13 +164,13 @@ export class GameContract {
 ## Supported Field Types
 
 ```typescript
-import { U256, I256, Address, String } from "@wakeuplabs/as-stylus";
+import { U256, I256, Address, Str } from "@wakeuplabs/as-stylus";
 
 class AllTypes {
   numberField: U256; // ✅ Numbers
   signedField: I256; // ✅ Signed numbers
   addressField: Address; // ✅ Addresses
-  textField: String; // ✅ Text
+  textField: Str; // ✅ Text
   flagField: boolean; // ✅ True/false
 }
 ```

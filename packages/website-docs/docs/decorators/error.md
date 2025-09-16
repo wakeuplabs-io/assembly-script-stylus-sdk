@@ -68,14 +68,13 @@ import {
   External,
   U256,
   Address,
-  String,
+  Str,
   ErrorFactory,
   StrFactory,
   U256Factory,
 } from "@wakeuplabs/as-stylus";
 
-const SimpleError =
-  ErrorFactory.create<[code: U256, message: String, user: Address, active: boolean]>();
+const SimpleError = ErrorFactory.create<[code: U256, messageStr, user: Address, active: boolean]>();
 
 @Contract
 export class ErrorContract {
@@ -92,14 +91,14 @@ export class ErrorContract {
 ## Complex Error Examples
 
 ```typescript
-import { Contract, External, U256, Address, String, ErrorFactory } from "@wakeuplabs/as-stylus";
+import { Contract, External, U256, Address, Str, ErrorFactory } from "@wakeuplabs/as-stylus";
 
 // Multiple parameter errors
 const TransferFailed =
-  ErrorFactory.create<[from: Address, to: Address, amount: U256, reason: String]>();
-const AccessDenied = ErrorFactory.create<[caller: Address, requiredRole: String]>();
+  ErrorFactory.create<[from: Address, to: Address, amount: U256, reason: Str]>();
+const AccessDenied = ErrorFactory.create<[caller: Address, requiredRole: Str]>();
 const InvalidParameter =
-  ErrorFactory.create<[paramName: String, providedValue: U256, maxAllowed: U256]>();
+  ErrorFactory.create<[paramNameStr, providedValue: U256, maxAllowed: U256]>();
 
 @Contract
 export class AdvancedContract {
@@ -137,7 +136,7 @@ export class AdvancedContract {
 ```typescript
 import { ErrorFactory, U256Factory, StrFactory } from "@wakeuplabs/as-stylus";
 
-const ValidationError = ErrorFactory.create<[field: String, value: U256, constraint: String]>();
+const ValidationError = ErrorFactory.create<[fieldStr, value: U256, constraint: Str]>();
 
 // Helper validation functions
 function requirePositive(value: U256, fieldName: string): void {

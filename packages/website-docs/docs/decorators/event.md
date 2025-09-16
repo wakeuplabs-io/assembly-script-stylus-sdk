@@ -46,11 +46,11 @@ import {
   External,
   Address,
   StrFactory,
-  String,
+  Str,
   U256,
 } from "@wakeuplabs/as-stylus";
 
-const SimpleEvent = EventFactory.create<[Address, U256, String, boolean]>({
+const SimpleEvent = EventFactory.create<[Address, U256, Str, boolean]>({
   indexed: [true, true, true, true, true],
 });
 
@@ -100,7 +100,7 @@ export class MultiEventContract {
 ```typescript
 import { Contract, EventFactory, External, Address, U256 } from "@wakeuplabs/as-stylus";
 
-const OrderCreated = EventFactory.create<[U256, Address, U256, U256, U256, U256, String]>({
+const OrderCreated = EventFactory.create<[U256, Address, U256, U256, U256, U256, Str]>({
   indexed: [true, true, false, false, false, false, false],
 });
 
@@ -152,26 +152,26 @@ import {
   EventFactory,
   External,
   Mapping,
-  String,
+  Str,
   Address,
   U256,
 } from "@wakeuplabs/as-stylus";
 
-const StateChanged = EventFactory.create<[U256, U256, Address, String, U256]>({
+const StateChanged = EventFactory.create<[U256, U256, Address, Str, U256]>({
   indexed: [true, true, true, false, false],
 });
 
-const ConfigUpdated = EventFactory.create<[String, U256, U256, Address]>({
+const ConfigUpdated = EventFactory.create<[Str, U256, U256, Address]>({
   indexed: [true, false, false, false],
 });
 
 @Contract
 export class StateMachine {
   currentState: U256;
-  config: Mapping<String, U256>;
+  config: Mapping<Str, U256>;
 
   @External
-  changeState(newState: U256, reason: String): void {
+  changeState(newState: U256, reason: Str): void {
     const previousState = this.currentState;
 
     this.currentState = newState;
@@ -180,7 +180,7 @@ export class StateMachine {
   }
 
   @External
-  updateConfig(parameter: String, newValue: U256): void {
+  updateConfig(parameterStr, newValue: U256): void {
     const previousValue = this.config.get(parameter);
 
     this.config.set(parameter, newValue);
