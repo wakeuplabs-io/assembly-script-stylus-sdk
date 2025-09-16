@@ -1,4 +1,10 @@
-import { ClassDeclaration, CallExpression, SyntaxKind, TupleTypeNode, NamedTupleMember } from "ts-morph";
+import {
+  ClassDeclaration,
+  CallExpression,
+  SyntaxKind,
+  TupleTypeNode,
+  NamedTupleMember,
+} from "ts-morph";
 import { toFunctionSelector } from "viem";
 
 import { IRErrorDecl, IRErrorField } from "@/cli/types/ir.types.js";
@@ -13,7 +19,9 @@ export class ErrorIRBuilder extends IRBuilder<IRErrorDecl> {
   constructor(errorClass: ClassDeclaration) {
     super(errorClass);
     this.errorClass = errorClass;
-    this.errorFactoryCall = (this.errorClass as ClassDeclaration & { errorFactoryCall?: CallExpression }).errorFactoryCall;
+    this.errorFactoryCall = (
+      this.errorClass as ClassDeclaration & { errorFactoryCall?: CallExpression }
+    ).errorFactoryCall;
   }
 
   validate(): boolean {
@@ -29,14 +37,14 @@ export class ErrorIRBuilder extends IRBuilder<IRErrorDecl> {
     const fields: IRErrorField[] = [];
 
     const typeArgs = this.errorFactoryCall!.getTypeArguments();
-    
+
     if (typeArgs.length > 0) {
       const typeArg = typeArgs[0];
 
       if (typeArg.getKind() === SyntaxKind.TupleType) {
         const tupleType = typeArg as TupleTypeNode;
         const properties = tupleType.getElements();
-        
+
         properties.forEach((property, index) => {
           if (property.getKind() === SyntaxKind.NamedTupleMember) {
             const namedTupleMember = property as NamedTupleMember;
@@ -44,7 +52,7 @@ export class ErrorIRBuilder extends IRBuilder<IRErrorDecl> {
 
             fields.push({
               name: `arg${index}`,
-              type: convertType(this.symbolTable, type)
+              type: convertType(this.symbolTable, type),
             });
           }
         });
@@ -58,15 +66,15 @@ export class ErrorIRBuilder extends IRBuilder<IRErrorDecl> {
       node: "ErrorDeclNode",
       name,
       selector,
-      fields
+      fields,
     };
   }
 
   private generateErrorSignature(name: string, fields: IRErrorField[]): string {
-    return `${name}(${fields.map(field => field.type).join(',')})`;
+    return `${name}(${fields.map((field) => field.type).join(",")})`;
   }
 
   private calculateErrorSelector(signature: string): string {
     return toFunctionSelector(signature);
   }
-} 
+}

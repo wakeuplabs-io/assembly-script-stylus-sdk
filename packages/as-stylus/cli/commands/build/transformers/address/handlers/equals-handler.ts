@@ -20,7 +20,6 @@ export class AddressEqualsHandler extends Handler {
 
   handle(expr: Call): EmitResult {
     if (!expr.receiver && expr.target.endsWith(".equals")) {
-      
       if (!expr.receiver) {
         const chain = expr.target.slice(0, -".equals".length);
         expr.receiver = convertVariableInParams(chain, AbiType.Address);
@@ -28,8 +27,9 @@ export class AddressEqualsHandler extends Handler {
       expr.target = "Address.equals";
     }
 
-
-    const left = expr.receiver ? this.contractContext.emitExpression(expr.receiver) : { setupLines: [], valueExpr: "undefined" };
+    const left = expr.receiver
+      ? this.contractContext.emitExpression(expr.receiver)
+      : { setupLines: [], valueExpr: "undefined" };
     const right = this.contractContext.emitExpression(expr.args[0]);
 
     return {

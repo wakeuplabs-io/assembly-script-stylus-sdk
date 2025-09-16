@@ -36,7 +36,7 @@ export class BinaryTransformer extends Handler {
 
       return {
         setupLines: rightResult.setupLines,
-        valueExpr: `store_${property}(${rightResult.valueExpr})`
+        valueExpr: `store_${property}(${rightResult.valueExpr})`,
       };
     }
 
@@ -45,32 +45,30 @@ export class BinaryTransformer extends Handler {
 
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
-      valueExpr: `${leftResult.valueExpr} = ${rightResult.valueExpr}`
+      valueExpr: `${leftResult.valueExpr} = ${rightResult.valueExpr}`,
     };
   }
 
   private handleBooleanStorageAssignment(
     property: string,
     expr: IRExpressionBinary,
-    rightResult: EmitResult
+    rightResult: EmitResult,
   ): EmitResult {
     const result = rightResult.valueExpr;
 
     return {
       setupLines: rightResult.setupLines,
-      valueExpr: `store_${property}(${result})`
+      valueExpr: `store_${property}(${result})`,
     };
   }
 
-  private handleArithmetic(
-    expr: IRExpressionBinary,
-  ): EmitResult {
+  private handleArithmetic(expr: IRExpressionBinary): EmitResult {
     const leftResult = this.contractContext.emitExpression(expr.left);
     const rightResult = this.contractContext.emitExpression(expr.right);
 
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
-      valueExpr: `${leftResult.valueExpr} ${expr.op} ${rightResult.valueExpr}`
+      valueExpr: `${leftResult.valueExpr} ${expr.op} ${rightResult.valueExpr}`,
     };
   }
 }

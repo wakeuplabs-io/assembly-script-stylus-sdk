@@ -5,13 +5,13 @@ import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-import { handleGlobalError } from "./utils/global-error-handler.js";
 import { buildCommand } from "./commands/build/build.js";
 import { cleanCommand } from "./commands/clean/clean.js";
 import { compileCommand } from "./commands/compile/compile.js";
 import { deployCommand } from "./commands/deploy/deploy.js";
 import { generateCommand } from "./commands/generate/generate.js";
 import { lintCommand } from "./commands/lint/lint.js";
+import { handleGlobalError } from "./utils/global-error-handler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,14 +46,14 @@ async function main() {
 }
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
   handleGlobalError(reason);
 });
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
   handleGlobalError(error);
 });
 

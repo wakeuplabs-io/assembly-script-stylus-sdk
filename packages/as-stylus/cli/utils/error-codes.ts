@@ -83,7 +83,7 @@ export enum ErrorCode {
  */
 export enum ErrorCategory {
   VALIDATION = "validation",
-  COMPILATION = "compilation", 
+  COMPILATION = "compilation",
   DEPLOYMENT = "deployment",
   RUNTIME = "runtime",
   SYSTEM = "system",
@@ -97,35 +97,35 @@ export const ERROR_CATEGORIES: Record<number, ErrorCategory> = {
   ...Object.fromEntries(
     Object.entries(ErrorCode)
       .filter(([_, code]) => typeof code === "number" && code >= 100 && code < 200)
-      .map(([_, code]) => [code, ErrorCategory.VALIDATION])
+      .map(([_, code]) => [code, ErrorCategory.VALIDATION]),
   ),
 
-  // Compilation (2xx)  
+  // Compilation (2xx)
   ...Object.fromEntries(
     Object.entries(ErrorCode)
       .filter(([_, code]) => typeof code === "number" && code >= 200 && code < 300)
-      .map(([_, code]) => [code, ErrorCategory.COMPILATION])
+      .map(([_, code]) => [code, ErrorCategory.COMPILATION]),
   ),
 
   // Deployment (3xx)
   ...Object.fromEntries(
     Object.entries(ErrorCode)
       .filter(([_, code]) => typeof code === "number" && code >= 300 && code < 400)
-      .map(([_, code]) => [code, ErrorCategory.DEPLOYMENT])
+      .map(([_, code]) => [code, ErrorCategory.DEPLOYMENT]),
   ),
 
   // Runtime (4xx)
   ...Object.fromEntries(
     Object.entries(ErrorCode)
       .filter(([_, code]) => typeof code === "number" && code >= 400 && code < 500)
-      .map(([_, code]) => [code, ErrorCategory.RUNTIME])
+      .map(([_, code]) => [code, ErrorCategory.RUNTIME]),
   ),
 
   // System (5xx)
   ...Object.fromEntries(
     Object.entries(ErrorCode)
       .filter(([_, code]) => typeof code === "number" && code >= 500 && code < 600)
-      .map(([_, code]) => [code, ErrorCategory.SYSTEM])
+      .map(([_, code]) => [code, ErrorCategory.SYSTEM]),
   ),
 };
 

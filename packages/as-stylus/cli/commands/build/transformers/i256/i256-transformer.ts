@@ -144,7 +144,7 @@ export class I256Transformer extends BaseTypeTransformer {
         return true;
       }
 
-      //const arg = expr.args[0];      
+      //const arg = expr.args[0];
       const comparisonMethods = METHOD_GROUPS.COMPARISON.map((method) => `.${method}`);
       if (comparisonMethods.some((method) => target.endsWith(method))) {
         // if (arg.type === AbiType.Int256) {

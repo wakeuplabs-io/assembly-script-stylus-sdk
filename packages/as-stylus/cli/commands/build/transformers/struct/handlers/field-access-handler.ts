@@ -13,12 +13,7 @@ export class StructFieldAccessHandler extends Handler {
   }
 
   canHandle(expr: Call | Member): boolean {
-    return (
-      expr.kind === "member" &&
-      !!expr.object &&
-      !!expr.property &&
-      this.isStructAccess(expr)
-    );
+    return expr.kind === "member" && !!expr.object && !!expr.property && this.isStructAccess(expr);
   }
 
   handle(expr: Member): EmitResult {

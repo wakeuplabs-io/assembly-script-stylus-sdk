@@ -6,16 +6,16 @@ import { writeFile } from "@/cli/utils/fs.js";
 
 export function buildAsconfig(targetPath: string) {
   const cwd = process.cwd();
-  
+
   const sdkCorePath = path.join(cwd, "core");
   const packageJsonPath = path.join(cwd, "package.json");
   const isLocalDevelopment = fs.existsSync(sdkCorePath) && fs.existsSync(packageJsonPath);
-  
+
   let packageBasePath = "@wakeuplabs/as-stylus";
-  
+
   if (isLocalDevelopment) {
     try {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
       if (packageJson.name === "@wakeuplabs/as-stylus") {
         packageBasePath = ".";
       }
@@ -23,16 +23,16 @@ export function buildAsconfig(targetPath: string) {
       // Fall through to check parent directories
     }
   }
-  
+
   if (packageBasePath === "@wakeuplabs/as-stylus") {
     let currentDir = cwd;
     for (let i = 0; i < 5; i++) {
       const parentSdkCore = path.join(currentDir, "packages", "as-stylus", "core");
       const parentPackageJson = path.join(currentDir, "packages", "as-stylus", "package.json");
-      
+
       if (fs.existsSync(parentSdkCore) && fs.existsSync(parentPackageJson)) {
         try {
-          const packageJson = JSON.parse(fs.readFileSync(parentPackageJson, 'utf-8'));
+          const packageJson = JSON.parse(fs.readFileSync(parentPackageJson, "utf-8"));
           if (packageJson.name === "@wakeuplabs/as-stylus") {
             packageBasePath = path.relative(cwd, path.join(currentDir, "packages", "as-stylus"));
             break;
@@ -41,7 +41,7 @@ export function buildAsconfig(targetPath: string) {
           // Continue searching
         }
       }
-      
+
       const parentDir = path.dirname(currentDir);
       if (parentDir === currentDir) break;
       currentDir = parentDir;
@@ -80,7 +80,7 @@ export function buildAsconfig(targetPath: string) {
       disable: ["bulk-memory"],
       use: ["abort=assembly/stylus/stylus/abort"],
       runtime: "stub",
-      exportStart: "myStart"
+      exportStart: "myStart",
     },
     targets: {
       debug: {
@@ -89,27 +89,24 @@ export function buildAsconfig(targetPath: string) {
         optimizeLevel: 0,
         shrinkLevel: 0,
         converge: false,
-        debug: true
+        debug: true,
       },
       release: {
         outFile: `${BUILD_WASM_PATH}/module.wasm`,
         optimize: true,
         optimizeLevel: 3,
         shrinkLevel: 2,
-        converge: true
-      }
-    }
+        converge: true,
+      },
+    },
   };
 
   if (packageBasePath !== "@wakeuplabs/as-stylus") {
     config.options.paths = {
       "@wakeuplabs/as-stylus/core/*": [`${packageBasePath}/core/*`],
-      "./core/*": [`${packageBasePath}/core/*`]
+      "./core/*": [`${packageBasePath}/core/*`],
     };
   }
 
-  writeFile(
-    path.join(targetPath, "asconfig.json"),
-    JSON.stringify(config, null, 2),
-  );
+  writeFile(path.join(targetPath, "asconfig.json"), JSON.stringify(config, null, 2));
 }

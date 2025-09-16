@@ -4,7 +4,7 @@
  * @returns The name without the "this." prefix.
  */
 export function parseThis(name: string): string {
-  return name.replace(/^this\./, '');
+  return name.replace(/^this\./, "");
 }
 
 /**
@@ -12,10 +12,10 @@ export function parseThis(name: string): string {
  * @param definition - The string to parse.
  * @returns The name without the "this." prefix.
  */
-export function parseName(definition: string, defaultType: string): { name: string, type: string } {
+export function parseName(definition: string, defaultType: string): { name: string; type: string } {
   const [nameDefinition, typeDefined = defaultType] = definition.split(":");
-  const name = nameDefinition.replace(/^this\./, '');
-  const typeParsed = typeDefined.replace(/[\s;]/g, '');
+  const name = nameDefinition.replace(/^this\./, "");
+  const typeParsed = typeDefined.replace(/[\s;]/g, "");
 
   if (typeParsed.startsWith("Struct")) {
     return { name, type: typeParsed.split("<")[1].replace(">", "") };
@@ -29,7 +29,7 @@ export function parseName(definition: string, defaultType: string): { name: stri
  * @param definition - The string to parse.
  * @returns The name and method.
  */
-export function parseNameWithMethod(definition: string): { name: string, method: string } {
+export function parseNameWithMethod(definition: string): { name: string; method: string } {
   const [nameDefinition, methodDefinition] = parseThis(definition).split(".");
   return { name: nameDefinition, method: methodDefinition?.split("(")[0] };
 }

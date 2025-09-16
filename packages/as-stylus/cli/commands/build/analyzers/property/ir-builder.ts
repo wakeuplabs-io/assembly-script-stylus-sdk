@@ -95,8 +95,6 @@ export class PropertyIRBuilder extends IRBuilder<IRVariable> {
     return syntaxValidator.validate();
   }
 
-
-
   buildIR(): IRVariable {
     const typeInferred = inferType(this.symbolTable, this.property.getType().getText());
     const { name, type } = parseName(this.property.getText(), typeInferred);

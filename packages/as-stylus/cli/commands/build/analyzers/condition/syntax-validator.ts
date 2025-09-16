@@ -9,7 +9,7 @@ export class ConditionSyntaxValidator extends BaseValidator {
 
   validate(): boolean {
     //TODO: implement validation
-    const hasErrors = false;  
+    const hasErrors = false;
 
     return !hasErrors;
   }

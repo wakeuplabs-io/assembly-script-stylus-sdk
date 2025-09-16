@@ -56,10 +56,10 @@ export class ValidationUtils {
       };
     }
 
-    return { 
+    return {
       isValid: true,
       correctedValue: wasAutoCorrected ? keyToValidate : undefined,
-      message: wasAutoCorrected ? "Added missing '0x' prefix to private key" : undefined
+      message: wasAutoCorrected ? "Added missing '0x' prefix to private key" : undefined,
     };
   }
 

@@ -21,10 +21,10 @@ export class FallbackTransformer extends Handler {
   handle(expr: IRExpression): EmitResult {
     // Log the unsupported expression for debugging
     console.warn(`[FallbackTransformer] Unsupported expression kind: ${expr.kind}`, expr);
-    
+
     return {
       setupLines: [],
-      valueExpr: `/* Unsupported expression: ${expr.kind} */`
+      valueExpr: `/* Unsupported expression: ${expr.kind} */`,
     };
   }
 }

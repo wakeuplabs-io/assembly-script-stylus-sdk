@@ -61,9 +61,11 @@ export class LiteralIRBuilder extends IRBuilder<IRExpression> {
         break;
       }
       default:
-        throw new Error(`LiteralIRBuilder: unsupported literal kind ${this.expression.getKindName()}`);
+        throw new Error(
+          `LiteralIRBuilder: unsupported literal kind ${this.expression.getKindName()}`,
+        );
     }
 
     return { kind: "literal", value, type };
   }
-} 
+}

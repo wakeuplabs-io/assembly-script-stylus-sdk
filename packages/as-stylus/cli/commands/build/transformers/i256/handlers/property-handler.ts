@@ -37,4 +37,4 @@ export class I256PropertyHandler extends Handler {
       valueType: "boolean",
     };
   }
-} 
+}

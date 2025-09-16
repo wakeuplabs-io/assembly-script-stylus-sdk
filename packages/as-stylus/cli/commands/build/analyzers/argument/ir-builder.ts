@@ -23,12 +23,10 @@ export class ArgumentIRBuilder extends IRBuilder<IRArgument> {
     return true;
   }
 
-
-
   buildIR(): IRArgument {
     const typeString = this.argument.getType().getText();
     const convertedType = convertTypeForIR(this.symbolTable, typeString);
-    
+
     const variable: VariableSymbol = {
       name: this.argument.getName(),
       type: convertedType.type,
@@ -39,7 +37,7 @@ export class ArgumentIRBuilder extends IRBuilder<IRArgument> {
     return {
       name: variable.name,
       type: variable.type,
-      ...(convertedType.originalType && { originalType: convertedType.originalType })
+      ...(convertedType.originalType && { originalType: convertedType.originalType }),
     };
   }
 }

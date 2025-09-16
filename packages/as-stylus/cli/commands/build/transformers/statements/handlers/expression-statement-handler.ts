@@ -24,18 +24,16 @@ export class ExpressionStatementHandler extends StatementHandler {
     // Handle setup lines
     if (exprResult.setupLines.length) {
       const lines = exprResult.setupLines.map((l) => `${indent}${l}`);
-      
+
       // Only add the value expression if it's not empty or a comment
       if (exprResult.valueExpr.trim() !== "" && !exprResult.valueExpr.trim().startsWith("/*")) {
         lines.push(`${indent}${exprResult.valueExpr};`);
       }
-      
+
       return lines.join("\n");
     }
 
     // Simple case - just the expression with semicolon
-    return exprResult.valueExpr.trim() !== "" ? 
-      `${indent}${exprResult.valueExpr};` : 
-      "";
+    return exprResult.valueExpr.trim() !== "" ? `${indent}${exprResult.valueExpr};` : "";
   }
 }

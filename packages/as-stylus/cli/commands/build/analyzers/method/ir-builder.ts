@@ -1,7 +1,7 @@
 import { Block, MethodDeclaration } from "ts-morph";
 
-import { AbiType, StateMutability, Visibility, AbiOutput } from "@/cli/types/abi.types.js";
-import { IRMethod, IRStatement } from "@/cli/types/ir.types.js";
+import { StateMutability, Visibility, AbiOutput } from "@/cli/types/abi.types.js";
+import { IRMethod } from "@/cli/types/ir.types.js";
 
 import { MethodSemanticValidator } from "./semantic-validator.js";
 import { MethodSyntaxValidator } from "./syntax-validator.js";
@@ -69,18 +69,7 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       autoDetectStateMutability(name) ??
       StateMutability.NONPAYABLE;
 
-    const outputs: AbiOutput[] =
-      returnType === AbiType.Void
-        ? []
-        : (() => {
-            const convertedType = convertTypeForIR(this.symbolTable, returnType);
-            return [
-              {
-                type: convertedType.type,
-                ...(convertedType.originalType && { originalType: convertedType.originalType }),
-              },
-            ];
-          })();
+    const outputs: AbiOutput[] = this.buildOutputs(returnType);
 
     this.symbolTable.exitScope();
     return {
@@ -92,6 +81,27 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       ir: irBody,
       methodType,
     };
+  }
+
+  /**
+   * Builds outputs array from return type
+   * @param returnType The return type string from method declaration
+   * @returns Array of AbiOutput objects
+   */
+  private buildOutputs(returnType: string): AbiOutput[] {
+    // Early return for void types
+    if (returnType === "void") {
+      return [];
+    }
+
+    const convertedType = convertTypeForIR(this.symbolTable, returnType);
+
+    return [
+      {
+        type: convertedType.type,
+        ...(convertedType.originalType && { originalType: convertedType.originalType }),
+      },
+    ];
   }
 }
 

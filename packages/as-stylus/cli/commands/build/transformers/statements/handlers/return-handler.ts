@@ -51,7 +51,6 @@ export class ReturnHandler extends StatementHandler {
       baseExpr = `Array.serializeToABI(${exprResult.valueExpr})`;
     }
 
-
     return this.buildReturnWithSetup(exprResult.setupLines, baseExpr, indent);
   }
 

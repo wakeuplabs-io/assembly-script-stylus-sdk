@@ -23,7 +23,9 @@ export class StatementSyntaxValidator extends BaseValidator {
         return true;
 
       default:
-        this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_STATEMENT_KIND(this.statement.getKindName()));
+        this.addSyntaxError(
+          ERROR_MESSAGES.UNSUPPORTED_STATEMENT_KIND(this.statement.getKindName()),
+        );
         return false;
     }
   }

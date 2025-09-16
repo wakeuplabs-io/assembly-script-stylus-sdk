@@ -1,7 +1,8 @@
-import path from "path";
-import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
-import { LintRunner } from "./lint-runner.js";
 import { Command } from "commander";
+import path from "path";
+
+import { LintRunner } from "./lint-runner.js";
+import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
 
 export function runLint() {
   const contractsRoot = path.resolve(process.cwd(), "../contracts");

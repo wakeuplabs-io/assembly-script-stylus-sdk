@@ -1,7 +1,7 @@
 import { BinaryExpression, Expression } from "ts-morph";
 
 import { BaseValidator } from "../shared/base-validator.js";
-import { ARITHMETIC_OPERATORS , CONDITIONAL_OPERATORS } from "../shared/supported-types.js";
+import { ARITHMETIC_OPERATORS, CONDITIONAL_OPERATORS } from "../shared/supported-types.js";
 
 const ERROR_MESSAGES = {
   MISSING_LEFT_OR_RIGHT_EXPRESSION: "Missing left or right expression",
@@ -23,7 +23,7 @@ export class BinaryExpressionSyntaxValidator extends BaseValidator {
   }
 
   validate(): boolean {
-    let hasErrors = false;  
+    let hasErrors = false;
     if (!this.left || !this.right) {
       this.addSyntaxError(ERROR_MESSAGES.MISSING_LEFT_OR_RIGHT_EXPRESSION);
       hasErrors = true;

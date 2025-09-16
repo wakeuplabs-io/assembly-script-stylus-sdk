@@ -8,10 +8,7 @@ export const TYPE_SIZES: Record<string, number> = {
 };
 
 // Dynamic types (require indirect storage)
-export const DYNAMIC_TYPES = new Set([
-  AbiType.String,
-  AbiType.Array,
-]);
+export const DYNAMIC_TYPES = new Set([AbiType.String, AbiType.Array]);
 
 /**
  * Determines if a type is dynamic
@@ -35,11 +32,11 @@ export function getTypeSize(type: AbiType): number {
  * Calculates the field layout in a struct
  */
 export function calculateFieldLayout(fields: Array<{ name: string; type: AbiType }>) {
-  const countString = fields.filter(field => field.type === AbiType.String).length;
+  const countString = fields.filter((field) => field.type === AbiType.String).length;
   let currentOffset = 0;
   const isDynamic = countString > 0;
 
-  const layoutFields = fields.map(field => {
+  const layoutFields = fields.map((field) => {
     const fieldSize = getTypeSize(field.type);
     const fieldDynamic = isDynamicType(field.type);
 
@@ -61,4 +58,4 @@ export function calculateFieldLayout(fields: Array<{ name: string; type: AbiType
     dynamic: isDynamic,
     alignment: 32, // EVM alignment (32 bytes)
   };
-} 
+}

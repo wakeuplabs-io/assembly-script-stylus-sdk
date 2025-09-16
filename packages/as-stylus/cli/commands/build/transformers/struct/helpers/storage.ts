@@ -26,7 +26,7 @@ export function ${name}_set_${fieldName}(slot: u64, v: boolean): void {
   GENERIC: (name: string, fieldName: string) => `
 export function ${name}_set_${fieldName}(slot: u64, v: usize): void {
   store<usize>(slot, v);
-}`
+}`,
 };
 
 const GETTER_TEMPLATES = {
@@ -53,13 +53,13 @@ export function ${name}_get_${fieldName}(slot: u64): usize {
   GENERIC: (name: string, fieldName: string) => `
 export function ${name}_get_${fieldName}(slot: u64): usize {
   return Struct.getAddress(slot);
-}`
+}`,
 };
 
 /**
  * Generates storage setter functions for struct fields
  * Creates functions that can set values on contract storage variables
- * 
+ *
  * @param struct - The struct definition containing field information
  * @param baseSlot - The base storage slot for this struct
  * @param structName - Name of the struct (derived from struct.name if not provided)
@@ -67,7 +67,7 @@ export function ${name}_get_${fieldName}(slot: u64): usize {
 export function generateStorageSetters(
   struct: IRStruct,
   baseSlot: number,
-  structName?: string
+  structName?: string,
 ): string[] {
   const name = structName || struct.name;
   const helpers: string[] = [];
@@ -103,15 +103,12 @@ export function generateStorageSetters(
 /**
  * Generates storage getter functions for struct fields
  * Creates functions that can retrieve values from contract storage variables
- * 
+ *
  * @param struct - The struct definition containing field information
  * @param baseSlot - The base storage slot for this struct
  * @param structName - Name of the struct (derived from struct.name if not provided)
  */
-export function generateStorageGetters(
-  struct: IRStruct,
-  structName?: string
-): string[] {
+export function generateStorageGetters(struct: IRStruct, structName?: string): string[] {
   const name = structName || struct.name;
   const helpers: string[] = [];
 

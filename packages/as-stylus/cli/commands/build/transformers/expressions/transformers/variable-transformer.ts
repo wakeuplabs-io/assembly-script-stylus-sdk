@@ -20,7 +20,7 @@ export class VariableTransformer extends Handler {
     if (variable.scope === "memory") {
       return {
         setupLines: [],
-        valueExpr: variable.name
+        valueExpr: variable.name,
       };
     }
 
@@ -35,7 +35,7 @@ export class VariableTransformer extends Handler {
 
     return {
       setupLines: [],
-      valueExpr: `load_${variable.name}()`
+      valueExpr: `load_${variable.name}()`,
     };
   }
 }

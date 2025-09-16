@@ -36,4 +36,4 @@ export class I256NegateHandler extends Handler {
       valueType: "I256",
     };
   }
-} 
+}

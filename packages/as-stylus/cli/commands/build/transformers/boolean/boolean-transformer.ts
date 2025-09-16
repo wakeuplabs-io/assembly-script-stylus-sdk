@@ -1,7 +1,7 @@
 // src/cli/transformers/boolean/boolean-transformer.ts
 
-import { IRExpression } from "@/cli/types/ir.types.js";
 import { AbiType } from "@/cli/types/abi.types.js";
+import { IRExpression } from "@/cli/types/ir.types.js";
 
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { BooleanCopyHandler } from "./handlers/copy-handler.js";
@@ -16,7 +16,7 @@ export class BooleanTransformer extends BaseTypeTransformer {
   constructor(contractContext: ContractContext) {
     super(contractContext, "boolean");
 
-    // Register handlers  
+    // Register handlers
     this.registerHandler(new BooleanCopyHandler(contractContext));
     this.registerHandler(new BooleanLiteralHandler(contractContext));
     this.registerHandler(new BooleanVariableHandler(contractContext));
@@ -29,16 +29,20 @@ export class BooleanTransformer extends BaseTypeTransformer {
     if (expr?.kind === "literal" && typeof expr.value === "boolean") {
       return true;
     }
-    
+
     if (expr?.kind === "call" && expr.target === "boolean.copy") {
       return true;
     }
-    
-    if (expr?.kind === "var" && 
-        (expr.type === AbiType.Bool || expr.originalType === "bool" || expr.originalType === "boolean")) {
+
+    if (
+      expr?.kind === "var" &&
+      (expr.type === AbiType.Bool ||
+        expr.originalType === "bool" ||
+        expr.originalType === "boolean")
+    ) {
       return true;
     }
-    
+
     return false;
   }
 }

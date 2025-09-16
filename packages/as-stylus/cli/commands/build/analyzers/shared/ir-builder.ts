@@ -9,7 +9,7 @@ export abstract class IRBuilder<TResult> {
   public readonly errorManager: ErrorManager;
   public readonly symbolTable: SymbolTableStack;
   public readonly slotManager: SlotManager;
-  
+
   constructor(node: Node) {
     const id = node.getSourceFile().getBaseNameWithoutExtension();
     this.errorManager = AnalysisContextFactory.getContext(id).getErrorManager();

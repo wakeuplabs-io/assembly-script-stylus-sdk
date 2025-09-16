@@ -66,13 +66,20 @@ export class SlotManager {
    * @param variable - The storage variable to allocate a slot for
    * @returns The allocated slot number
    */
-  public allocateStructSlots(variableName: string, slotAssignment: SlotAssignment, structTemplate: IRStruct): number {
+  public allocateStructSlots(
+    variableName: string,
+    slotAssignment: SlotAssignment,
+    structTemplate: IRStruct,
+  ): number {
     if (this.variableSlotMap.has(variableName)) {
       throw new Error(`Variable '${variableName}' already has an allocated slot`);
     }
 
     const slot = this.findNextAvailableSlot(slotAssignment);
-    this.allocateSlotRange(slot, this.calculateSlotCount(slotAssignment, structTemplate.fields.length));
+    this.allocateSlotRange(
+      slot,
+      this.calculateSlotCount(slotAssignment, structTemplate.fields.length),
+    );
 
     this.variableSlotMap.set(variableName, slot);
     this.slotVariableMap.set(slot, variableName);
@@ -222,7 +229,6 @@ export class SlotManager {
     return constants;
   }
 
-
   /**
    * Calculates the slot for a specific field in a struct
    * @param variable - The variable information
@@ -230,18 +236,21 @@ export class SlotManager {
    * @param structTemplate - The struct template
    * @returns The calculated slot or undefined if not applicable
    */
-  public calculateStructFieldSlot(variable: SymbolInfo, fieldName: string, structTemplate: IRStruct) {
+  public calculateStructFieldSlot(
+    variable: SymbolInfo,
+    fieldName: string,
+    structTemplate: IRStruct,
+  ) {
     if (variable.scope !== "storage") {
       return undefined;
     }
 
     const baseSlot = this.getSlotForVariable(variable.name);
-    const fieldIndex = structTemplate!.fields.findIndex(f => f.name === fieldName);
+    const fieldIndex = structTemplate!.fields.findIndex((f) => f.name === fieldName);
     if (fieldIndex === -1) {
       return undefined;
     }
 
     return baseSlot + fieldIndex;
   }
-
 }

@@ -19,7 +19,7 @@ export class StrCreateHandler extends Handler {
     return {
       setupLines: [],
       valueExpr: "Str.create()",
-      valueType: "Str"
+      valueType: "Str",
     };
   }
 }
