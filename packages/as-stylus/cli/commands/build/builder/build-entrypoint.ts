@@ -247,7 +247,7 @@ function generateMethodCallLogic(
 function generateMethodEntry(
   method: IRMethod,
   contract: IRContract,
-): { import: string; functions: string | undefined; entry: string } {
+): { import: string; entry: string } {
   validateMethod(method);
 
   const { name, visibility } = method;
@@ -261,13 +261,12 @@ function generateMethodEntry(
 
   const { argLines, callArgs } = generateArgsLoadBlock(method.inputs);
   const callLogic = generateMethodCallLogic(method, callArgs, contract);
-  const functions = generateStructToABI(method, contract);
 
   const bodyLines = [...argLines, callLogic].map((line) => `${INDENTATION.BODY}${line}`).join("\n");
 
   const entry = `${INDENTATION.BLOCK}if (selector == ${selector}) {\n${bodyLines}\n${INDENTATION.BLOCK}}`;
 
-  return { import: importStatement, functions, entry };
+  return { import: importStatement, entry };
 }
 
 /**
@@ -314,6 +313,13 @@ function processContractMethods(contract: IRContract): CodeBlock {
   const imports: string[] = [];
   const functions: string[] = [];
   const entries: string[] = [];
+
+  contract.structs?.forEach((struct) => {
+    const structFunctions = generateStructToABI(struct);
+    functions.push(structFunctions);
+  });
+
+
   for (const method of contract.methods) {
     if (
       [Visibility.PUBLIC, Visibility.EXTERNAL, StateMutability.NONPAYABLE].includes(
@@ -321,11 +327,8 @@ function processContractMethods(contract: IRContract): CodeBlock {
       )
     ) {
       try {
-        const { import: methodImport, functions: utils, entry } = generateMethodEntry(method, contract);
+        const { import: methodImport, entry } = generateMethodEntry(method, contract);
         imports.push(methodImport);
-        if (utils) {
-          functions.push(utils);
-        }
         entries.push(entry);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

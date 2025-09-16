@@ -1,7 +1,5 @@
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRContract, IRMethod, IRStruct } from "@/cli/types/ir.types.js";
-
-import { extractStructName } from "../../analyzers/struct/struct-utils.js";
+import { IRStruct } from "@/cli/types/ir.types.js";
 
 function generateGetDynamicSize(structInfo: IRStruct): string {
   const isDynamic = structInfo.dynamic;
@@ -25,17 +23,7 @@ function ${structInfo.name}_getDynamicSize(memoryStruct: usize): u32 {
 }
 
 
-export function generateStructToABI(method: IRMethod, contract: IRContract): string | undefined {
-  if (method.outputs?.[0]?.type !== AbiType.Struct) {
-    return undefined;
-  }
-  const structName = extractStructName(method.outputs?.[0]?.originalType as string);
-  const structInfo = contract.structs?.find((s) => s.name === structName);
-  if (!structInfo) {
-    return undefined;
-  }
-
-
+export function generateStructToABI(structInfo: IRStruct): string {
   const getDynamicSizeFn = generateGetDynamicSize(structInfo);
   const stringOffsets = structInfo.fields.map((field, index) => {
     if (field.type === AbiType.String) {
@@ -65,7 +53,7 @@ export function generateStructToABI(method: IRMethod, contract: IRContract): str
   return `
   ${getDynamicSizeFn}
 
-function ${structName}_toABI(memoryStruct: usize): usize {
+function ${structInfo.name}_toABI(memoryStruct: usize): usize {
   let totalSize = ${structInfo.size};
   ${stringOffsets}
 

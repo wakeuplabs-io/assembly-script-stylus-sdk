@@ -28,8 +28,8 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
     const struct = this.symbolTable.getStructTemplateByName(variable?.dynamicType ?? "");
 
     if (struct && variable) {
-      return new StructMemberBuilder(this.symbolTable).buildIR(
-        objectIR,
+      return new StructMemberBuilder(this.symbolTable, this.slotManager).buildIR(
+        objectIR as Variable,
         propertyName,
         variable as VariableSymbol,
       );

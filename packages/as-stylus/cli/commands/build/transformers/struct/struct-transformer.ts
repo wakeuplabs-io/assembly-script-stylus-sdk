@@ -168,7 +168,7 @@ export function ${structName}_copy(dst: usize, src: usize): void {
   Struct.copy(dst, src, ${struct.size});
 }`);
 
-  const storageGetters = generateStorageGetters(struct, baseSlot, structName);
+  const storageGetters = generateStorageGetters(struct, structName);
   const storageSetters = generateStorageSetters(struct, baseSlot, structName);
 
   const memoryGetters = generateMemoryGetters(struct, structName);
@@ -204,35 +204,6 @@ export function registerStructTransformer(contract: IRContract): string[] {
 
       if (structVariable) {
         const baseSlot = structVariable.slot;
-
-        const existingSlots = new Set(contract.storage.map((v) => v.slot));
-
-        const neededSlots = new Set<number>();
-
-        const numSlots = Math.ceil(struct.size / 32);
-        for (let i = 0; i < numSlots; i++) {
-          neededSlots.add(baseSlot + i);
-        }
-
-        struct.fields.forEach((field) => {
-          const fieldSlot = baseSlot + Math.floor(field.offset / 32);
-          neededSlots.add(fieldSlot);
-        });
-
-        // Generate slot constants for all needed slots that don't exist
-        const slotsToGenerate = Array.from(neededSlots)
-          .filter((slot) => !existingSlots.has(slot))
-          .sort((a, b) => a - b);
-
-        slotsToGenerate.forEach((slotValue) => {
-          const slotNumber = slotValue.toString(16).padStart(2, "0");
-          parts.push(`const __SLOT${slotNumber}: u64 = ${slotValue};`);
-        });
-
-        if (slotsToGenerate.length > 0) {
-          parts.push(""); // Add empty line after slot constants
-        }
-
         parts.push(...generateStructHelpers(struct, baseSlot));
       } else {
         // Fallback if storage variable is not found

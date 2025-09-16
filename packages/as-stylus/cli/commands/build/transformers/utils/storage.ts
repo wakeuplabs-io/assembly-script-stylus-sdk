@@ -155,10 +155,6 @@ function getPackageName(): string {
   return "@wakeuplabs/as-stylus";
 }
 
-export function slotConst(slot: number): string {
-  return `const ${formatSlotName(slot)}: u64 = ${slot};`;
-}
-
 export function loadSimple(name: string, slot: number, type?: AbiType): string {
   let createCall = "U256.create()";
   const returnSentence = type === AbiType.Bool ? "return Boolean.fromABI(ptr);" : "return ptr;";
@@ -370,8 +366,6 @@ export function generateStorageHelpers(
   lines.push(""); // Add empty line
 
   for (const variable of variables) {
-    lines.push(slotConst(variable.slot));
-
     if (variable.kind === "simple") {
       switch (variable.type) {
         case AbiType.String:

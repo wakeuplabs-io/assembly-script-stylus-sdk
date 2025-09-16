@@ -91,7 +91,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
           const objectExpr = new ExpressionIRBuilder(propAccess.getExpression()).validateAndBuildIR();
           const valueExpr = new ExpressionIRBuilder(rhsNode).validateAndBuildIR();
           if (objectExpr.type === AbiType.Struct) {
-            return new StructAssignmentBuilder(this.symbolTable).buildIR(objectExpr, fieldName, valueExpr);
+            return new StructAssignmentBuilder(this.symbolTable, this.slotManager).buildIR(objectExpr, fieldName, valueExpr);
           } else {
             return this.handleGenericPropertyAssignment(objectExpr, fieldName, valueExpr);
           }

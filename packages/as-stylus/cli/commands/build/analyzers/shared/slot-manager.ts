@@ -1,4 +1,6 @@
 import { AbiType } from "@/cli/types/abi.types.js";
+import { IRStruct } from "@/cli/types/ir.types.js";
+import { SymbolInfo } from "@/cli/types/symbol-table.types.js";
 
 type SlotAssignment = {
   type: AbiType;
@@ -21,6 +23,24 @@ export class SlotManager {
   }
 
   /**
+   * Merges another SlotManager instance into this one.
+   * This is useful for inheritance
+   * @param other - Another SlotManager instance to merge from
+   */
+  merge(other: SlotManager): void {
+    for (const slot of other.getAllocatedSlots()) {
+      this.allocatedSlots.add(slot);
+    }
+    for (const [variable, slot] of other.getVariableSlotMap()) {
+      this.variableSlotMap.set(variable, slot);
+      this.slotVariableMap.set(slot, variable);
+    }
+    if (other.getNextAvailableSlot() > this.nextAvailableSlot) {
+      this.nextAvailableSlot = other.getNextAvailableSlot();
+    }
+  }
+
+  /**
    * Allocates a new slot for a storage variable
    * @param variableName - The name of the storage variable
    * @param variable - The storage variable to allocate a slot for
@@ -32,7 +52,27 @@ export class SlotManager {
     }
 
     const slot = this.findNextAvailableSlot(slotAssignment);
-    this.allocateSlotRange(slot, this.calculateSlotCount(slotAssignment));
+    this.allocateSlotRange(slot, this.calculateSlotCount(slotAssignment, slotAssignment.length));
+
+    this.variableSlotMap.set(variableName, slot);
+    this.slotVariableMap.set(slot, variableName);
+
+    return slot;
+  }
+
+  /**
+   * Allocates a new slot for a storage variable
+   * @param variableName - The name of the storage variable
+   * @param variable - The storage variable to allocate a slot for
+   * @returns The allocated slot number
+   */
+  public allocateStructSlots(variableName: string, slotAssignment: SlotAssignment, structTemplate: IRStruct): number {
+    if (this.variableSlotMap.has(variableName)) {
+      throw new Error(`Variable '${variableName}' already has an allocated slot`);
+    }
+
+    const slot = this.findNextAvailableSlot(slotAssignment);
+    this.allocateSlotRange(slot, this.calculateSlotCount(slotAssignment, structTemplate.fields.length));
 
     this.variableSlotMap.set(variableName, slot);
     this.slotVariableMap.set(slot, variableName);
@@ -113,10 +153,11 @@ export class SlotManager {
    * @param variable - The storage variable
    * @returns The number of slots needed
    */
-  private calculateSlotCount(variable: SlotAssignment): number {
+  private calculateSlotCount(variable: SlotAssignment, fields?: number): number {
     switch (variable.type) {
       case AbiType.ArrayStatic:
-        return variable.length || 1;
+      case AbiType.Struct:
+        return fields || 1;
       case AbiType.Mapping:
         return 1;
       case AbiType.MappingNested:
@@ -180,4 +221,27 @@ export class SlotManager {
     }
     return constants;
   }
+
+
+  /**
+   * Calculates the slot for a specific field in a struct
+   * @param variable - The variable information
+   * @param fieldName - The name of the field
+   * @param structTemplate - The struct template
+   * @returns The calculated slot or undefined if not applicable
+   */
+  public calculateStructFieldSlot(variable: SymbolInfo, fieldName: string, structTemplate: IRStruct) {
+    if (variable.scope !== "storage") {
+      return undefined;
+    }
+
+    const baseSlot = this.getSlotForVariable(variable.name);
+    const fieldIndex = structTemplate!.fields.findIndex(f => f.name === fieldName);
+    if (fieldIndex === -1) {
+      return undefined;
+    }
+
+    return baseSlot + fieldIndex;
+  }
+
 }

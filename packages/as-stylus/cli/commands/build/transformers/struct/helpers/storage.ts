@@ -3,57 +3,56 @@ import { IRStruct } from "@/cli/types/ir.types.js";
 
 // Template constants for better indentation control
 const SETTER_TEMPLATES = {
-  ADDRESS: (name: string, fieldName: string, offset: number, slotNumber: string) => `
-export function ${name}_set_${fieldName}(ptr: usize, v: usize): void {
-  Struct.setAddress(ptr + ${offset}, v, __SLOT${slotNumber});
-
+  ADDRESS: (name: string, fieldName: string) => `
+export function ${name}_set_${fieldName}(slot: u64, v: usize): void {
+  Struct.setAddress(slot, v);
 }`,
 
-  STRING: (name: string, fieldName: string, offset: number, slotNumber: string) => `
-export function ${name}_set_${fieldName}(ptr: usize, v: usize): void {
-  Struct.setString(ptr + ${offset}, v, __SLOT${slotNumber});
+  STRING: (name: string, fieldName: string) => `
+export function ${name}_set_${fieldName}(slot: u64, v: usize): void {
+  Struct.setString(slot, v);
 }`,
 
-  UINT256: (name: string, fieldName: string, slotNumber: string) => `
-export function ${name}_set_${fieldName}(ptr: usize, v: usize): void {
-  Struct.setU256(__SLOT${slotNumber}, v);
+  UINT256: (name: string, fieldName: string) => `
+export function ${name}_set_${fieldName}(slot: u64, v: usize): void {
+  Struct.setU256(slot, v);
 }`,
 
-  BOOL: (name: string, fieldName: string, slotNumber: string) => `
-export function ${name}_set_${fieldName}(ptr: usize, v: boolean): void {
-  Struct.setBoolean(__SLOT${slotNumber}, Boolean.create(v));
+  BOOL: (name: string, fieldName: string) => `
+export function ${name}_set_${fieldName}(slot: u64, v: boolean): void {
+  Struct.setBoolean(slot, Boolean.create(v));
 }`,
 
-  GENERIC: (name: string, fieldName: string, offset: number, _slotNumber: string) => `
-export function ${name}_set_${fieldName}(ptr: usize, v: usize): void {
-  store<usize>(ptr + ${offset}, v);
+  GENERIC: (name: string, fieldName: string) => `
+export function ${name}_set_${fieldName}(slot: u64, v: usize): void {
+  store<usize>(slot, v);
 }`
 };
 
 const GETTER_TEMPLATES = {
-  STRING: (name: string, fieldName: string, offset: number, slotNumber: string) => `
-export function ${name}_get_${fieldName}(ptr: usize): usize {
-  return Struct.getString(__SLOT${slotNumber});
+  STRING: (name: string, fieldName: string) => `
+export function ${name}_get_${fieldName}(slot: u64): usize {
+  return Struct.getString(slot);
 }`,
 
-  UINT256: (name: string, fieldName: string, slotNumber: string) => `
-export function ${name}_get_${fieldName}(_ptr: usize): usize {
-  return Struct.getU256(__SLOT${slotNumber});
+  UINT256: (name: string, fieldName: string) => `
+export function ${name}_get_${fieldName}(slot: u64): usize {
+  return Struct.getU256(slot);
 }`,
 
-  BOOL: (name: string, fieldName: string, slotNumber: string) => `
-export function ${name}_get_${fieldName}(_ptr: usize): boolean {
-  return Struct.getBoolean(__SLOT${slotNumber});
+  BOOL: (name: string, fieldName: string) => `
+export function ${name}_get_${fieldName}(slot: u64): boolean {
+  return Struct.getBoolean(slot);
 }`,
 
-  ADDRESS: (name: string, fieldName: string, slotNumber: string) => `
-export function ${name}_get_${fieldName}(_ptr: usize): usize {
-  return Struct.getAddress(__SLOT${slotNumber});
+  ADDRESS: (name: string, fieldName: string) => `
+export function ${name}_get_${fieldName}(slot: u64): usize {
+  return Struct.getAddress(slot);
 }`,
 
-  GENERIC: (name: string, fieldName: string, slotNumber: string) => `
-export function ${name}_get_${fieldName}(ptr: usize): usize {
-  return Struct.getAddress(__SLOT${slotNumber});
+  GENERIC: (name: string, fieldName: string) => `
+export function ${name}_get_${fieldName}(slot: u64): usize {
+  return Struct.getAddress(slot);
 }`
 };
 
@@ -75,26 +74,23 @@ export function generateStorageSetters(
 
   // Storage setters - for contract storage variables (like myStruct)
   struct.fields.forEach((field) => {
-    const slotForField = baseSlot + Math.floor(field.offset / 32);
-    const slotNumber = slotForField.toString(16).padStart(2, "0");
-
     let template: string;
 
     switch (field.type) {
       case AbiType.Address:
-        template = SETTER_TEMPLATES.ADDRESS(name, field.name, field.offset, slotNumber);
+        template = SETTER_TEMPLATES.ADDRESS(name, field.name);
         break;
       case AbiType.String:
-        template = SETTER_TEMPLATES.STRING(name, field.name, field.offset, slotNumber);
+        template = SETTER_TEMPLATES.STRING(name, field.name);
         break;
       case AbiType.Uint256:
-        template = SETTER_TEMPLATES.UINT256(name, field.name, slotNumber);
+        template = SETTER_TEMPLATES.UINT256(name, field.name);
         break;
       case AbiType.Bool:
-        template = SETTER_TEMPLATES.BOOL(name, field.name, slotNumber);
+        template = SETTER_TEMPLATES.BOOL(name, field.name);
         break;
       default:
-        template = SETTER_TEMPLATES.GENERIC(name, field.name, field.offset, slotNumber);
+        template = SETTER_TEMPLATES.GENERIC(name, field.name);
         break;
     }
 
@@ -114,7 +110,6 @@ export function generateStorageSetters(
  */
 export function generateStorageGetters(
   struct: IRStruct,
-  baseSlot: number,
   structName?: string
 ): string[] {
   const name = structName || struct.name;
@@ -122,26 +117,23 @@ export function generateStorageGetters(
 
   // Storage getters - for contract storage variables (like myStruct)
   struct.fields.forEach((field) => {
-    const slotForField = baseSlot + Math.floor(field.offset / 32);
-    const slotNumber = slotForField.toString(16).padStart(2, "0");
-
     let template: string;
 
     switch (field.type) {
       case AbiType.Address:
-        template = GETTER_TEMPLATES.GENERIC(name, field.name, slotNumber);
+        template = GETTER_TEMPLATES.GENERIC(name, field.name);
         break;
       case AbiType.String:
-        template = GETTER_TEMPLATES.STRING(name, field.name, field.offset, slotNumber);
+        template = GETTER_TEMPLATES.STRING(name, field.name);
         break;
       case AbiType.Uint256:
-        template = GETTER_TEMPLATES.UINT256(name, field.name, slotNumber);
+        template = GETTER_TEMPLATES.UINT256(name, field.name);
         break;
       case AbiType.Bool:
-        template = GETTER_TEMPLATES.BOOL(name, field.name, slotNumber);
+        template = GETTER_TEMPLATES.BOOL(name, field.name);
         break;
       default:
-        template = GETTER_TEMPLATES.GENERIC(name, field.name, slotNumber);
+        template = GETTER_TEMPLATES.GENERIC(name, field.name);
         break;
     }
 

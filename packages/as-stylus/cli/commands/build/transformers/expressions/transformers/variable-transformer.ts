@@ -1,5 +1,6 @@
 import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
 import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
+import { AbiType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { IRExpression, Variable } from "@/cli/types/ir.types.js";
 
@@ -16,16 +17,25 @@ export class VariableTransformer extends Handler {
   }
 
   handle(variable: Variable): EmitResult {
-    if (variable.scope === "storage") {
+    if (variable.scope === "memory") {
       return {
         setupLines: [],
-        valueExpr: `load_${variable.name}()`
+        valueExpr: variable.name
       };
     }
-    
+
+    if (variable.type === AbiType.Struct) {
+      const slot = `__SLOT${variable.slot!.toString(16).padStart(2, "0")}`;
+
+      return {
+        setupLines: [],
+        valueExpr: slot,
+      };
+    }
+
     return {
       setupLines: [],
-      valueExpr: variable.name
+      valueExpr: `load_${variable.name}()`
     };
   }
 }
