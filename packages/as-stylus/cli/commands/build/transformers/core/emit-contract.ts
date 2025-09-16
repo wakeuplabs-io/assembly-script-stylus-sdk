@@ -4,8 +4,10 @@ import { ContractContext } from "./contract-context.js";
 import { TransformerRegistry } from "./transformer-registry.js";
 import { IRContract, IRMethod } from "../../../../types/ir.types.js";
 import { AddressTransformer } from "../address/address-transformer.js";
+import { ArrayTransformer } from "../array/array-transformer.js";
 import { BlockTransformer } from "../block/block-transformer.js";
 import { BooleanTransformer } from "../boolean/boolean-transformer.js";
+import { CallsTransformer } from "../calls/calls-transformer.js";
 import { ErrorTransformer, registerErrorTransformer } from "../error/error-transformer.js";
 import { EventTransformer } from "../event/event-transformer.js";
 import { registerEventTransformer } from "../event/utils/register-events.js";
@@ -16,11 +18,9 @@ import { StatementHandler } from "../statements/statement-handler.js";
 import { StrTransformer } from "../string/string-transformer.js";
 import { registerStructTransformer, StructTransformer } from "../struct/struct-transformer.js";
 import { U256Transformer } from "../u256/u256-transformer.js";
-import { ArrayTransformer } from "../array/array-transformer.js";
 import { generateArgsLoadBlock } from "../utils/args.js";
 import { generateDeployFunction } from "../utils/deploy.js";
 import { generateImports, generateStorageHelpers } from "../utils/storage.js";
-import { CallsTransformer } from "../calls/calls-transformer.js";
 
 interface ArgumentSignature {
   argsSignature: string;
@@ -36,7 +36,7 @@ function generateMethodSignature(method: IRMethod): ArgumentSignature {
   const { callArgs } = generateArgsLoadBlock(method.inputs);
   const argsSignature = callArgs.map(arg => `${arg.name}: ${arg.type}`).join(", ");
   const aliasLines = method.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i].name};`);
-  
+
 
   return {
     argsSignature,
@@ -100,7 +100,7 @@ export function emitContract(contract: IRContract): string {
   transformerRegistry.register(new ErrorTransformer(contractContext, contract.errors || []));
   transformerRegistry.register(new EventTransformer(contractContext, contract.events || []));
   transformerRegistry.register(new StructTransformer(contractContext, contract.structs || []));
-  
+
   // Register ExpressionHandler LAST as fallback
   transformerRegistry.register(new ExpressionHandler(contractContext));
 
@@ -109,6 +109,7 @@ export function emitContract(contract: IRContract): string {
   parts.push(generateImports(contract));
 
   // Add storage slots
+  contract.slotManager.generateSlotConstants().forEach(line => parts.push(line));
   parts.push(...generateStorageHelpers(contract.storage, contract.structs || []));
 
   // Struct helpers
@@ -116,12 +117,12 @@ export function emitContract(contract: IRContract): string {
 
   // Add events
   if (contract.events && contract.events.length > 0) {
-    parts.push(...registerEventTransformer(contract.events || [])); 
+    parts.push(...registerEventTransformer(contract.events || []));
   }
 
   // Custom Errors
   parts.push(...registerErrorTransformer(contract));
-  
+
   // Add constructor
   if (contract.constructor) {
     parts.push(generateDeployFunction(contract, contractContext));
@@ -129,7 +130,7 @@ export function emitContract(contract: IRContract): string {
   }
   // Add methods
   const methodParts = contract.methods.map(method => generateMethod(method, contractContext));
-  
+
   // Add fallback and receive functions
   if (contract.fallback) {
     methodParts.push(generateMethod(contract.fallback, contractContext));
@@ -137,7 +138,7 @@ export function emitContract(contract: IRContract): string {
   if (contract.receive) {
     methodParts.push(generateMethod(contract.receive, contractContext));
   }
-  
+
   parts.push(...methodParts);
 
   return parts.join("\n");

@@ -1,4 +1,4 @@
-import { ArrayLiteralExpression, CallExpression, SyntaxKind } from "ts-morph";
+import { CallExpression, ObjectLiteralExpression, PropertyAssignment, SyntaxKind } from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
@@ -26,6 +26,7 @@ export class StructFactoryBuilder {
   static buildStructCreateIR(symbolTable: SymbolTableStack, call: CallExpression): IRExpression {
     // Extract the struct type from generic parameter
     const structType = extractStructTypeFromCall(call);
+    const structTemplate = symbolTable.getStructTemplateByName(structType!);
 
     if (!structType) {
       throw new Error(
@@ -48,13 +49,19 @@ export class StructFactoryBuilder {
     // Build IR for the array elements
     const arrayArg = args[0];
     const initialValues: IRExpression[] = [];
-    
-    if (arrayArg.getKind() === SyntaxKind.ArrayLiteralExpression) {
-      const elements = (arrayArg as ArrayLiteralExpression).getElements();
-      for (const element of elements) {
-        const builder = new ExpressionIRBuilder(element);
-        initialValues.push(builder.validateAndBuildIR());
-      }
+
+    const value = arrayArg.getKind();
+    if (value === SyntaxKind.ObjectLiteralExpression) {
+      const elements = (arrayArg as ObjectLiteralExpression).getProperties();
+      structTemplate?.fields.map(field => {
+        const element = elements.find(el => (el as PropertyAssignment).getNameNode().getText() === field.name);
+        if (element) {
+          const pa = element as PropertyAssignment;
+          const value = pa.getInitializer()!;
+          const builder = new ExpressionIRBuilder(value);
+          initialValues.push(builder.validateAndBuildIR());
+        }
+      });
     }
 
     // Return IR for struct creation with initialization
@@ -69,10 +76,12 @@ export class StructFactoryBuilder {
         structType,
         isStructCreation: true
       }
-    } as IRExpression & { metadata: {
-      structType: string;
-      isStructCreation: boolean;
-    } };
+    } as IRExpression & {
+      metadata: {
+        structType: string;
+        isStructCreation: boolean;
+      }
+    };
 
     return result;
   }

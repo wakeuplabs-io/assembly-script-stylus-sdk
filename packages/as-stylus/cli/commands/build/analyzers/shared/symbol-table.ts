@@ -54,10 +54,15 @@ export class SymbolTableStack {
     current.set(name, { ...info, scopeLevel: this.scopes.length - 1 });
 
     if (info.scope === "storage") {
+      let fields = info.length ?? 1;
+      if (info.type === AbiType.Struct) {
+        const structTemplate = this.getStructTemplateByName(info.dynamicType!);
+        fields = structTemplate?.fields.length ?? 1;
+      }
       this.slotManager.allocateSlot(name, {
         type: info.type,
         dynamicType: info.dynamicType,
-        length: info.length,
+        length: fields,
       });
     }
 

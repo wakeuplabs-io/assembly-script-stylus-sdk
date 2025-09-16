@@ -1,6 +1,7 @@
 {
   "extends": "assemblyscript/std/assembly.json",
-  "include": [
-    "contract.ts"
-  ]
+  "compilerOptions": {
+    "strictPropertyInitialization": false
+  },
+  "include": ["contract.ts"]
 }

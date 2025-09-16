@@ -29,6 +29,7 @@ export class BooleanVariableHandler extends Handler {
         valueExpr: `load_${expr.name}()`
       };
     }
+
     return {
       setupLines: [],
       valueExpr: expr.name,

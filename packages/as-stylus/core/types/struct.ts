@@ -59,13 +59,11 @@ export class Struct {
 
   /**
    * Sets an address field in a struct and stores to storage
-   * @param p - Struct pointer
-   * @param v - Address value pointer
    * @param slot - Storage slot identifier
+   * @param v - Address value pointer
    */
-  static setAddress(p: usize, v: usize, slot: u64): void {
-    for (let i = 0; i < 32; i++) store<u8>(p + i, load<u8>(v + i));
-    storage_cache_bytes32(createStorageKey(slot), p);
+  static setAddress(slot: u64, v: usize): void {
+    storage_cache_bytes32(createStorageKey(slot), v);
     storage_flush_cache(0);
   }
 
@@ -81,7 +79,7 @@ export class Struct {
    * @param strObj - String object pointer
    * @param slot - Storage slot identifier
    */
-  static setString(ptr: usize, strObj: usize, slot: u64): void {
+  static setString(slot: u64, strObj: usize): void {
     Str.storeTo(slot, strObj);
   }
 

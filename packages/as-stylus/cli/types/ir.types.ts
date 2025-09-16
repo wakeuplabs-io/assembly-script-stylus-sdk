@@ -1,4 +1,5 @@
 import { AbiType, AbiInput, AbiOutput, StateMutability, Visibility } from "./abi.types.js";
+import { SlotManager } from "../commands/build/analyzers/shared/slot-manager.js";
 import { SupportedType } from "../commands/build/analyzers/shared/supported-types.js";
 import { SymbolTableStack } from "../commands/build/analyzers/shared/symbol-table.js";
 
@@ -21,6 +22,7 @@ export type Variable = {
   type: SupportedType;
   originalType?: string;
   scope: "storage" | "memory";
+  slot?: number;
 };
 export type Call = {
   kind: "call";
@@ -356,4 +358,5 @@ export interface IRContract {
   structs?: IRStruct[];
   errors?: IRErrorDecl[];
   symbolTable: SymbolTableStack;
+  slotManager: SlotManager;
 }

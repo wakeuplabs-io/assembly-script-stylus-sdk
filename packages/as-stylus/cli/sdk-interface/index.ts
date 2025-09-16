@@ -3,6 +3,7 @@ export * from "./error.js";
 export * from "./event.js";
 
 // Export original modules
+export * from "./struct.js";
 export * from "./address.js";
 export * from "./u256.js";
 export * from "./mapping.js";

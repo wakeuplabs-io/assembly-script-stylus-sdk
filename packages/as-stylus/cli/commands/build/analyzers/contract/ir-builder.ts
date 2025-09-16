@@ -14,12 +14,13 @@ import { InheritanceIRBuilder } from "../inheritance/ir-builder.js";
 import { MethodIRBuilder } from "../method/ir-builder.js";
 import { PropertyIRBuilder } from "../property/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
+import { SlotManager } from "../shared/slot-manager.js";
 import { SymbolTableStack } from "../shared/symbol-table.js";
 import { StructIRBuilder } from "../struct/ir-builder.js";
 
 const DECORATORS = {
   CONTRACT: "Contract",
-  STRUCT: "Struct",
+  STRUCT: "StructTemplate",
   EVENT: "Event",
   ERROR: "Error",
 } as const;
@@ -60,6 +61,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     // Process inheritance
     const parent = this.processInheritance(contractClass);
     this.symbolTable.merge(parent?.symbolTable ?? new SymbolTableStack(this.slotManager));
+    this.slotManager.merge(parent?.slotManager ?? new SlotManager());
 
     // Process all class-based components
     const structs = this.processStructs(classes);
@@ -82,6 +84,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       structs,
       errors,
       symbolTable: this.symbolTable,
+      slotManager: this.slotManager,
     };
   }
 
@@ -93,6 +96,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       methods: [],
       storage: [],
       symbolTable: new SymbolTableStack(this.slotManager),
+      slotManager: this.slotManager,
     };
   }
 

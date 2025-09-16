@@ -1,6 +1,17 @@
-import { Address, Contract, External, msg, Str, Struct, U256, View } from "as-stylus";
+import {
+  Address,
+  Contract,
+  External,
+  msg,
+  Str,
+  Struct,
+  StructFactory,
+  StructTemplate,
+  U256,
+  View,
+} from "as-stylus";
 
-@Struct
+@StructTemplate
 export class User {
   address!: Address;
   owner!: Address;
@@ -11,41 +22,77 @@ export class User {
 }
 
 @Contract
-export class FunctionCallArgsTest {
-  user: Struct<User>;
+export class Market {
+  buyer: Struct<User>;
+  seller: Struct<User>;
 
   @External
-  getAddress(): Address {
-    return this.user.address;
+  getBuyerAddress(): Address {
+    return this.buyer.address;
+  }
+
+  @External
+  getSellerAddress(): Address {
+    return this.seller.address;
   }
 
   @View
   @External
-  getUser(): User {
-    const temp = StructFactory.create<User>([
-      this.user.address,
-      this.user.owner,
-      this.user.name,
-      this.user.lastName,
-      this.user.age,
-      this.user.isActive,
-    ]);
+  getBuyer(): User {
+    const temp = StructFactory.create<User>({
+      address: this.buyer.address,
+      owner: this.buyer.owner,
+      name: this.buyer.name,
+      lastName: this.buyer.lastName,
+      age: this.buyer.age,
+      isActive: this.buyer.isActive,
+    });
+    return temp;
+  }
+
+  @View
+  @External
+  getSeller(): User {
+    const temp = StructFactory.create<User>({
+      address: this.seller.address,
+      owner: this.seller.owner,
+      name: this.seller.name,
+      lastName: this.seller.lastName,
+      age: this.seller.age,
+      isActive: this.seller.isActive,
+    });
     return temp;
   }
 
   @External
-  setAddress(addr: Address): void {
-    this.user.address = addr;
-    this.user.owner = msg.sender;
+  setBuyerAddress(addr: Address): void {
+    this.buyer.address = addr;
+    this.buyer.owner = msg.sender;
   }
 
   @External
-  setUser(addr: Address, name: Str, lastName: Str, age: U256, isActive: boolean): void {
-    this.user.address = addr;
-    this.user.owner = msg.sender;
-    this.user.name = name;
-    this.user.lastName = lastName;
-    this.user.age = age;
-    this.user.isActive = isActive;
+  setSellerAddress(addr: Address): void {
+    this.seller.address = addr;
+    this.seller.owner = msg.sender;
+  }
+
+  @External
+  setBuyer(addr: Address, name: Str, lastName: Str, age: U256, isActive: boolean): void {
+    this.buyer.address = addr;
+    this.buyer.owner = msg.sender;
+    this.buyer.name = name;
+    this.buyer.lastName = lastName;
+    this.buyer.age = age;
+    this.buyer.isActive = isActive;
+  }
+
+  @External
+  setSeller(addr: Address, name: Str, lastName: Str, age: U256, isActive: boolean): void {
+    this.seller.address = addr;
+    this.seller.owner = msg.sender;
+    this.seller.name = name;
+    this.seller.lastName = lastName;
+    this.seller.age = age;
+    this.seller.isActive = isActive;
   }
 }

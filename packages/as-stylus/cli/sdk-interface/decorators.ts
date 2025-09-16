@@ -12,16 +12,22 @@
 export function Contract(_target: any): any { }
 
 /**
+ * Marks a class as a struct template
+ * @param _target - The target struct class
+ */
+export function StructTemplate(_target: any): any { }
+
+/**
  * Marks a method as internal (callable from within the contract)
  * @param _target - The target method
  */
-export function Internal(_target: any): any { }
+export function Internal(_target: any, _propertyKey: any): any { }
 
 /**
  * Marks a method as external (callable from outside the contract)
- * @param _target - The target method
+ * @param _target - The target object
  */
-export function External(_target: any): any { }
+export function External(_target: any, _propertyKey: any): any { }
 
 /**
  * Marks a method as public
@@ -31,27 +37,31 @@ export function Public(_target: any): any { }
 
 /**
  * Marks a method as read-only (does not modify state)
- * @param _target - The target method
+ * @param _target - The target object
+ * @param _propertyKey - The property key
  */
-export function View(_target: any): any { }
+export function View(_target: any, _propertyKey: any): any { }
 
 /**
  * Marks a method as pure (does not read or modify state)
  * @param _target - The target method
+ * @param _propertyKey - The property key
  */
-export function Pure(_target: any): any { }
+export function Pure(_target: any, _propertyKey: any): any { }
 
 /**
  * Marks a method as payable (can receive ETH)
  * @param _target - The target method
+ * @param _propertyKey - The property key
  */
-export function Payable(_target: any): any { }
+export function Payable(_target: any, _propertyKey: any): any { }
 
 /**
  * Marks a method as non-payable (cannot receive ETH)
  * @param _target - The target method
+ * @param _propertyKey - The property key
  */
-export function Nonpayable(_target: any): any { }
+export function Nonpayable(_target: any, _propertyKey: any): any { }
 
 /**
  * Marks an event field as indexed (for efficient filtering)
