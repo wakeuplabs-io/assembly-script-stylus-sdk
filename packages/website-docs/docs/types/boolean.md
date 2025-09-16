@@ -5,6 +5,7 @@ The `boolean` type represents logical true/false values in AssemblyScript Stylus
 ## Overview
 
 Boolean provides:
+
 - True/false logical values
 - Conditional logic operations
 - State flag management
@@ -16,9 +17,6 @@ Boolean provides:
 ### Creating Boolean Values
 
 ```typescript
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 // Direct boolean values
 const isActive: boolean = true;
 const isComplete: boolean = false;
@@ -35,7 +33,7 @@ const isEqual: boolean = addressA.equals(addressB);
 let result1: boolean = true && false;  // false
 let result2: boolean = true && true;   // true
 
-// OR: at least one must be true  
+// OR: at least one must be true
 let result3: boolean = true || false;  // true
 let result4: boolean = false || false; // false
 
@@ -45,40 +43,43 @@ let result6: boolean = !false; // true
 
 // In contracts
 @View
-static checkAccess(): boolean {
+checkAccess(): boolean {
   return isAdmin && isActive; // true only if both are true
 }
 
 @View
-static canEdit(): boolean {
+canEdit(): boolean {
   return isOwner || isModerator; // true if either is true
 }
 ```
+
 ### Simple Examples
 
 ```typescript
+import { Contract, U256, View, External } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class BooleanExamples {
-  static isActive: boolean = true;
-  static isPaused: boolean = false;
+  isActive: boolean = true;
+  isPaused: boolean = false;
 
   @External
-  static toggleActive(): void {
+  toggleActive(): void {
     isActive = !isActive;
   }
 
   @External
-  static setPaused(paused: boolean): void {
+  setPaused(paused: boolean): void {
     isPaused = paused;
   }
 
   @View
-  static getStatus(): boolean {
+  getStatus(): boolean {
     return isActive && !isPaused;
   }
 
   @View
-  static checkCondition(value: U256): boolean {
+  checkCondition(value: U256): boolean {
     return value > U256.from(100);
   }
 }

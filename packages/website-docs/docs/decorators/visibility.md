@@ -5,28 +5,30 @@
 The `@Pure` decorator indicates that a method doesn't read or modify contract state. Pure functions only use their parameters and constants.
 
 ```typescript
+import { Contract, Pure, U256, U256Factory } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class MathLibrary {
   @Pure
-  static add(a: U256, b: U256): U256 {
-    return a.add(b);  // Only uses parameters
+  add(a: U256, b: U256): U256 {
+    return a.add(b); // Only uses parameters
   }
 
   @Pure
-  static factorial(n: U256): U256 {
+  factorial(n: U256): U256 {
     let result = U256Factory.fromString("1");
     let i = U256Factory.fromString("1");
-    
+
     while (i.lessThanOrEqual(n)) {
       result = result.mul(i);
       i = i.add(U256Factory.fromString("1"));
     }
-    
+
     return result;
   }
 
   @Pure
-  static max(a: U256, b: U256): U256 {
+  max(a: U256, b: U256): U256 {
     return a.greaterThan(b) ? a : b;
   }
 }
@@ -37,32 +39,42 @@ export class MathLibrary {
 The `@Payable` decorator allows a method to receive Ether along with the function call.
 
 ```typescript
+import {
+  Contract,
+  U256,
+  Mapping,
+  Address,
+  U256Factory,
+  Payable,
+  Pure,
+  External,
+} from "@wakeuplabs/as-stylus";
+
+// Define events
+
 @Contract
 export class PayableContract {
-  static balance: U256;
-  static deposits: Mapping<Address, U256>;
+  balance: U256;
+  deposits: Mapping<Address, U256>;
 
   @Payable
   @External
-  static deposit(): void {
+  deposit(): void {
     const sender = msg.sender();
     const value = msg.value();
-    
-    PayableContract.balance = PayableContract.balance.add(value);
-    PayableContract.deposits.set(
-      sender, 
-      PayableContract.deposits.get(sender).add(value)
-    );
-    
+
+    this.balance = this.balance.add(value);
+    this.deposits.set(sender, this.deposits.get(sender).add(value));
+
     DepositReceived.emit(sender, value);
   }
 
   @Payable
   @External
-  static buyTokens(amount: U256): void {
+  buyTokens(amount: U256): void {
     const payment = msg.value();
     const required = amount.mul(U256Factory.fromString("1000")); // 1000 wei per token
-    
+
     if (payment.lessThan(required)) {
       InsufficientPayment.revert(payment, required);
     }
@@ -78,16 +90,18 @@ export class PayableContract {
 Methods without payment decorators are nonpayable by default and will revert if sent Ether:
 
 ```typescript
+import { Contract, Payable, External, Nonpayable } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class NonpayableExample {
-  @External  // Implicitly @Nonpayable
-  static normalFunction(): void {
+  @External // Implicitly @Nonpayable
+  normalFunction(): void {
     // This will revert if called with Ether
   }
 
-  @Nonpayable  // Explicit declaration
+  @Nonpayable // Explicit declaration
   @External
-  static explicitNonpayable(): void {
+  explicitNonpayable(): void {
     // Also rejects Ether payments
   }
 }
@@ -98,33 +112,35 @@ export class NonpayableExample {
 ### Valid Combinations
 
 ```typescript
+import { Contract, Public, View, External, Pure, Payable, U256 } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class CombinationExamples {
   // External + View (read-only external access)
   @External
   @View
-  static getPublicData(): U256 {
+  getPublicData(): U256 {
     return SomeContract.publicValue;
   }
 
   // External + Pure (stateless external function)
   @External
   @Pure
-  static calculateHash(data: String): U256 {
+  calculateHash(data: String): U256 {
     return U256.hash(data);
   }
 
   // External + Payable (accepts payments)
   @External
   @Payable
-  static acceptPayment(): void {
+  acceptPayment(): void {
     // Handle payment
   }
 
   // Public + View (internal + external read-only)
   @Public
   @View
-  static internalOrExternalRead(): U256 {
+  internalOrExternalRead(): U256 {
     return SomeContract.value;
   }
 }
@@ -137,18 +153,18 @@ export class CombinationExamples {
 @View
 @Payable
 @External
-static invalidCombination(): void { }
+invalidCombination(): void { }
 
 // ❌ Cannot combine Pure with Payable
 @Pure
 @Payable
 @External
-static anotherInvalidCombination(): U256 { }
+anotherInvalidCombination(): U256 { }
 
 // ❌ Cannot have multiple visibility decorators
 @External
 @Public
-static multipleVisibility(): void { }
+multipleVisibility(): void { }
 ```
 
 ## Decorator Hierarchy
@@ -161,33 +177,44 @@ static multipleVisibility(): void { }
 4. **@Payable** - Can modify state and accept Ether
 
 ```typescript
+import {
+  Contract,
+  Pure,
+  View,
+  External,
+  Payable,
+  Public,
+  U256,
+  U256Factory,
+} from "@wakeuplabs/as-stylus";
+
 @Contract
 export class StateHierarchy {
-  static value: U256;
+  value: U256;
 
   @Pure
-  static pureFunction(x: U256): U256 {
-    return x.mul(U256Factory.fromString("2"));  // ✅ Only uses parameters
-    // return StateHierarchy.value;  // ❌ Cannot read state
+  pureFunction(x: U256): U256 {
+    return x.mul(U256Factory.fromString("2")); // ✅ Only uses parameters
+    // return this.value;  // ❌ Cannot read state
   }
 
   @View
-  static viewFunction(): U256 {
-    return StateHierarchy.value;  // ✅ Can read state
-    // StateHierarchy.value = U256Factory.create();  // ❌ Cannot modify state
+  viewFunction(): U256 {
+    return this.value; // ✅ Can read state
+    // this.value = U256Factory.create();  // ❌ Cannot modify state
   }
 
   @External
-  static nonpayableFunction(): void {
-    StateHierarchy.value = U256Factory.fromString("100");  // ✅ Can modify state
+  nonpayableFunction(): void {
+    this.value = U256Factory.fromString("100"); // ✅ Can modify state
     // const payment = msg.value();  // ❌ Will be zero
   }
 
   @Payable
   @External
-  static payableFunction(): void {
-    StateHierarchy.value = U256Factory.fromString("200");  // ✅ Can modify state
-    const payment = msg.value();  // ✅ Can receive Ether
+  payableFunction(): void {
+    this.value = U256Factory.fromString("200"); // ✅ Can modify state
+    const payment = msg.value(); // ✅ Can receive Ether
   }
 }
 ```
@@ -197,41 +224,56 @@ export class StateHierarchy {
 ### Access Control with Visibility
 
 ```typescript
+import {
+  Contract,
+  Pure,
+  View,
+  External,
+  Payable,
+  Public,
+  U256,
+  Address,
+  Mapping,
+  U256Factory,
+} from "@wakeuplabs/as-stylus";
+
+// Define errors
+
 @Contract
 export class AccessControlledContract {
-  static owner: Address;
-  static admins: Mapping<Address, Boolean>;
+  owner: Address;
+  admins: Mapping<Address, boolean>;
 
   // Internal helper for access control
-  static requireOwner(): void {
-    if (!msg.sender().equals(AccessControlledContract.owner)) {
-      NotOwner.revert(msg.sender(), AccessControlledContract.owner);
+  requireOwner(): void {
+    if (!msg.sender().equals(this.owner)) {
+      NotOwner.revert(msg.sender(), this.owner);
     }
   }
 
   // Internal helper for admin access
-  static requireAdmin(): void {
-    if (!AccessControlledContract.admins.get(msg.sender()).toValue()) {
+  requireAdmin(): void {
+    if (!this.admins.get(msg.sender()).toValue()) {
       NotAdmin.revert(msg.sender());
     }
   }
 
   @External
-  static ownerOnlyFunction(): void {
-    AccessControlledContract.requireOwner();
+  ownerOnlyFunction(): void {
+    this.requireOwner();
     // Owner-only logic
   }
 
   @Public
-  static adminFunction(): void {
-    AccessControlledContract.requireAdmin();
+  adminFunction(): void {
+    this.requireAdmin();
     // Admin function that can also be called internally
   }
 
   @External
-  static publicFunction(): void {
+  publicFunction(): void {
     // Call admin function internally
-    AccessControlledContract.adminFunction();
+    this.adminFunction();
   }
 }
 ```
@@ -240,4 +282,4 @@ export class AccessControlledContract {
 
 import { DecoratorNavigation } from '@site/src/components/NavigationGrid';
 
-<DecoratorNavigation /> 
+<DecoratorNavigation />

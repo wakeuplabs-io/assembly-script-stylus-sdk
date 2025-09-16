@@ -5,6 +5,8 @@ The `@Contract` decorator is the foundational decorator that marks a TypeScript 
 ## Syntax
 
 ```typescript
+import { Contract } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class MyContract {
   // Contract implementation
@@ -23,10 +25,13 @@ The `@Contract` decorator:
 ## Rules and Constraints
 
 ### Single Contract Rule
+
 - **One per file**: Each contract file must contain exactly one `@Contract` decorated class
 - **No multiple contracts**: Multiple `@Contract` decorators in the same file will cause compilation errors
 
 ```typescript
+import { Contract } from "@wakeuplabs/as-stylus";
+
 // ✅ Valid - Single contract
 @Contract
 export class MyContract {
@@ -35,25 +40,26 @@ export class MyContract {
 
 // ❌ Invalid - Multiple contracts
 @Contract
-export class FirstContract { }
+export class FirstContract {}
 
-@Contract  // Error: Multiple contracts not allowed
-export class SecondContract { }
+@Contract // Error: Multiple contracts not allowed
+export class SecondContract {}
 ```
 
 ### Class Structure
+
 - **Export Required**: The contract class must be exported
-- **Static Members**: Contract storage and methods should typically be static
 - **Constructor Support**: Optional constructor for initialization logic
 
 ## Basic Example
 
 ```typescript
+import { Contract, U256 } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class SimpleStorage {
-  
   @View
-  static getValue(): U256 {
+  getValue(): U256 {
     return U256Factory.fromString("1");
   }
 }
@@ -64,22 +70,36 @@ export class SimpleStorage {
 ### With Constructor
 
 ```typescript
+import { Contract, External, U256, U256Factory, View } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class Counter {
-  static count: U256;
+  counter: U256;
 
   constructor() {
-    count = U256Factory.create();
+    this.counter = U256Factory.create();
   }
 
   @External
-  static increment(): void {
-    count = count.add(U256Factory.fromString("1"));
+  set(value: U256): void {
+    this.counter = value;
+  }
+
+  @External
+  increment(): void {
+    const delta: U256 = U256Factory.fromString("1");
+    this.counter = this.counter.addUnchecked(delta);
+  }
+
+  @External
+  decrement(): void {
+    const delta: U256 = U256Factory.fromString("1");
+    this.counter = this.counter.subUnchecked(delta);
   }
 
   @View
-  static getCount(): U256 {
-    return count;
+  get(): U256 {
+    return this.counter;
   }
 }
 ```
@@ -94,10 +114,8 @@ When you use `@Contract`, the compiler:
 4. **Creates ABI**: Generates JSON ABI for external interaction
 5. **Optimizes Code**: Performs AssemblyScript optimizations for Stylus
 
-
-
 ---
 
 import { DecoratorNavigation } from '@site/src/components/NavigationGrid';
 
-<DecoratorNavigation /> 
+<DecoratorNavigation />

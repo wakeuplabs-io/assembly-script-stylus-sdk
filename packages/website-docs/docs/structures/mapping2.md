@@ -2,15 +2,22 @@
 
 The `MappingNested` type provides nested key-value storage functionality with two-level keys in AssemblyScript Stylus smart contracts. It's used for complex data relationships that require two keys to access a value.
 
+## Import
+
+```typescript
+import { MappingNested } from "@wakeuplabs/as-stylus";
+```
+
 ## Syntax
 
 ```typescript
-MappingNested<KeyType1, KeyType2, ValueType>
+MappingNested<KeyType1, KeyType2, ValueType>;
 ```
 
 ## Overview
 
 MappingNested provides:
+
 - Two-level nested key-value storage
 - Complex data relationships
 - Efficient access to nested structures
@@ -22,45 +29,53 @@ MappingNested provides:
 ### Declaration and Initialization
 
 ```typescript
+import { Contract, MappingNested, Address, U256, String } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class NestedStorage {
   // User allowances: owner -> spender -> amount
-  static allowances: MappingNested<Address, Address, U256>;
-  
+  allowances: MappingNested<Address, Address, U256> = new MappingNested<Address, Address, U256>();
+
   // User settings: user -> setting -> value
-  static userSettings: MappingNested<Address, String, Boolean>;
-  
+  userSettings: MappingNested<Address, String, boolean> = new MappingNested<
+    Address,
+    String,
+    boolean
+  >();
+
   // Game scores: player -> level -> score
-  static gameScores: MappingNested<Address, U256, U256>;
+  gameScores: MappingNested<Address, U256, U256> = new MappingNested<Address, U256, U256>();
 }
 ```
 
 ### Basic Operations
 
 ```typescript
+import { Contract, External, View, MappingNested, Address, U256 } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class AllowanceManager {
-  static allowances: MappingNested<Address, Address, U256>;
+  allowances: MappingNested<Address, Address, U256> = new MappingNested<Address, Address, U256>();
 
   @External
-  static approve(owner: Address, spender: Address, amount: U256): void {
+  approve(owner: Address, spender: Address, amount: U256): void {
     // Set nested value with two keys
-    allowances.set(owner, spender, amount);
+    this.allowances.set(owner, spender, amount);
   }
 
   @View
-  static allowance(owner: Address, spender: Address): U256 {
+  allowance(owner: Address, spender: Address): U256 {
     // Get nested value with two keys
-    return allowances.get(owner, spender);
+    return this.allowances.get(owner, spender);
   }
 
   @External
-  static transferFrom(from: Address, spender: Address, to: Address, amount: U256): void {
-    const currentAllowance = allowances.get(from, spender);
-    
+  transferFrom(from: Address, spender: Address, to: Address, amount: U256): void {
+    const currentAllowance = this.allowances.get(from, spender);
+
     // Update allowance
     const newAllowance = currentAllowance.sub(amount);
-    allowances.set(from, spender, newAllowance);
+    this.allowances.set(from, spender, newAllowance);
   }
 }
 ```
@@ -68,29 +83,39 @@ export class AllowanceManager {
 ## Key Combinations
 
 ```typescript
+import {
+  Contract,
+  External,
+  View,
+  MappingNested,
+  Address,
+  U256,
+  String,
+} from "@wakeuplabs/as-stylus";
+
 @Contract
 export class SimpleMappingNested {
-  static data: MappingNested<Address, String, U256>;
-  static flags: MappingNested<String, U256, Boolean>;
+  data: MappingNested<Address, String, U256> = new MappingNested<Address, String, U256>();
+  flags: MappingNested<String, U256, boolean> = new MappingNested<String, U256, boolean>();
 
   @External
-  static setValue(user: Address, key: String, value: U256): void {
-    data.set(user, key, value);
+  setValue(user: Address, key: String, value: U256): void {
+    this.data.set(user, key, value);
   }
 
   @External
-  static setFlag(category: String, id: U256, flag: Boolean): void {
-    flags.set(category, id, flag);
+  setFlag(category: String, id: U256, flag: boolean): void {
+    this.flags.set(category, id, flag);
   }
 
   @View
-  static getValue(user: Address, key: String): U256 {
-    return data.get(user, key);
+  getValue(user: Address, key: String): U256 {
+    return this.data.get(user, key);
   }
 
   @View
-  static getFlag(category: String, id: U256): Boolean {
-    return flags.get(category, id);
+  getFlag(category: String, id: U256): boolean {
+    return this.flags.get(category, id);
   }
 }
 ```
@@ -98,34 +123,40 @@ export class SimpleMappingNested {
 ## Supported Key Combinations
 
 ```typescript
+import { Contract, MappingNested, Address, U256, String } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class KeyCombinations {
   // Address + Address keys
-  static addressPairs: MappingNested<Address, Address, U256>;
-  
-  // Address + String keys  
-  static userSettings: MappingNested<Address, String, Boolean>;
-  
+  addressPairs: MappingNested<Address, Address, U256> = new MappingNested<Address, Address, U256>();
+
+  // Address + String keys
+  userSettings: MappingNested<Address, String, boolean> = new MappingNested<
+    Address,
+    String,
+    boolean
+  >();
+
   // String + String keys
-  static stringMatrix: MappingNested<String, String, U256>;
-  
+  stringMatrix: MappingNested<String, String, U256> = new MappingNested<String, String, U256>();
+
   // U256 + Address keys
-  static indexedUsers: MappingNested<U256, Address, String>;
+  indexedUsers: MappingNested<U256, Address, String> = new MappingNested<U256, Address, String>();
 }
 ```
 
 ## Comparison with Mapping
 
-| Feature | Mapping | MappingNested |
-|---------|---------|----------|
-| **Keys** | Single key | Two keys |
-| **Access** | `mapping.get(key)` | `mapping2.get(key1, key2)` |
-| **Use Case** | Simple relationships | Complex relationships |
-| **Gas Cost** | Lower | Slightly higher |
-| **Complexity** | Simple | Nested data |
+| Feature        | Mapping              | MappingNested                   |
+| -------------- | -------------------- | ------------------------------- |
+| **Keys**       | Single key           | Two keys                        |
+| **Access**     | `mapping.get(key)`   | `mappingNested.get(key1, key2)` |
+| **Use Case**   | Simple relationships | Complex relationships           |
+| **Gas Cost**   | Lower                | Slightly higher                 |
+| **Complexity** | Simple               | Nested data                     |
 
 ---
 
 import { StructureNavigation } from '@site/src/components/NavigationGrid';
 
-<StructureNavigation /> 
+<StructureNavigation />

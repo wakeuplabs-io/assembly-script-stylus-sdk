@@ -6,7 +6,7 @@ The `@External` decorator marks a method as publicly callable from outside the c
 
 ```typescript
 @External
-static methodName(param1: Type1, param2: Type2): ReturnType {
+methodName(param1: Type1, param2: Type2): ReturnType {
   // Method implementation
 }
 ```
@@ -22,19 +22,21 @@ The `@External` decorator:
 ## Basic Example
 
 ```typescript
+import { Contract, External, U256Factory } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class SimpleStorage {
-  static value: U256;
+  value: U256;
 
   @External
-  static setValue(newValue: U256): void {
-    value = newValue;
+  setValue(newValue: U256): void {
+    this.value = newValue;
   }
 
   @External
-  static increment(): void {
+  increment(): void {
     const one = U256Factory.fromString("1");
-    value = value.add(one);
+    this.value = value.add(one);
   }
 }
 ```
@@ -42,18 +44,19 @@ export class SimpleStorage {
 ## Rules and Constraints
 
 ### Method Requirements
-- **Static Methods**: External methods must be static
+
 - **Within Contract**: Can only be used inside `@Contract` decorated classes
 - **Supported Types**: Parameters and return types must be supported by the ABI system
 
 ### Type Support
+
 Supported parameter and return types:
 
 ```typescript
 @External
-static examples(
+examples(
   uintValue: U256,          // ✅ Unsigned 256-bit integer
-  intValue: I256,           // ✅ Signed 256-bit integer  
+  intValue: I256,           // ✅ Signed 256-bit integer
   addressValue: Address,    // ✅ Ethereum address
   stringValue: String,      // ✅ Dynamic string
   boolValue: Boolean        // ✅ Boolean value
@@ -64,7 +67,7 @@ static examples(
 
 // ❌ Unsupported types
 @External
-static invalid(complexObject: CustomClass): void { } // Error
+invalid(complexObject: CustomClass): void { } // Error
 ```
 
 ## Advanced Usage
@@ -72,30 +75,30 @@ static invalid(complexObject: CustomClass): void { } // Error
 ### With Return Values
 
 ```typescript
+import { Contract, External, U256, U256Factory } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class Calculator {
   @External
-  static add(a: U256, b: U256): U256 {
+  add(a: U256, b: U256): U256 {
     return a.add(b);
   }
 
   @External
-  static subtract(a: U256, b: U256): U256 {
+  subtract(a: U256, b: U256): U256 {
     return a.sub(b);
   }
 
   @External
-  static double(value: U256): U256 {
+  double(value: U256): U256 {
     const two = U256Factory.fromString("2");
     return value.add(value);
   }
 }
 ```
 
-
-
 ---
 
 import { DecoratorNavigation } from '@site/src/components/NavigationGrid';
 
-<DecoratorNavigation /> 
+<DecoratorNavigation />

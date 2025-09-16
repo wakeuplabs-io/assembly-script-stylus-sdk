@@ -2,9 +2,16 @@
 
 The `Struct` type allows you to create custom data structures by grouping related data fields together. It's useful for organizing complex data and creating reusable data models.
 
+## Import
+
+```typescript
+import { StructTemplate, StructFactory, Struct } from "@wakeuplabs/as-stylus";
+```
+
 ## Syntax
 
 ```typescript
+@StructTemplate
 class StructName {
   field1: Type1;
   field2: Type2;
@@ -15,6 +22,7 @@ class StructName {
 ## Overview
 
 Struct provides:
+
 - Custom data grouping
 - Related field organization
 - Reusable data models
@@ -26,29 +34,37 @@ Struct provides:
 ### Simple Struct
 
 ```typescript
+import {
+  Contract,
+  StructTemplate,
+  External,
+  View,
+  U256,
+  String,
+  StructFactory,
+} from "@wakeuplabs/as-stylus";
+
+@StructTemplate
 class UserInfo {
   id: U256;
   name: String;
-  isActive: Boolean;
+  isActive: boolean;
 }
 
 @Contract
 export class UserManager {
-  static currentUser: UserInfo;
+  currentUser: Struct<UserInfo>;
 
   @External
-  static createUser(id: U256, name: String): void {
-    const user = new UserInfo();
-    user.id = id;
-    user.name = name;
-    user.isActive = true;
-    
-    currentUser = user;
+  createUser(id: U256, name: String): void {
+    this.currentUser.id = id;
+    this.currentUser.name = name;
+    this.currentUser.isActive = true;
   }
 
   @View
-  static getUser(): UserInfo {
-    return UserManager.currentUser;
+  getUser(): UserInfo {
+    return this.currentUser;
   }
 }
 ```
@@ -56,6 +72,16 @@ export class UserManager {
 ### Struct with Multiple Fields
 
 ```typescript
+import {
+  Contract,
+  Struct,
+  External,
+  View,
+  U256,
+  Address,
+  StructFactory,
+} from "@wakeuplabs/as-stylus";
+
 class TokenInfo {
   amount: U256;
   recipient: Address;
@@ -64,22 +90,18 @@ class TokenInfo {
 
 @Contract
 export class TokenTracker {
-  static lastTransfer: TokenInfo;
+  lastTransfer: Struct<TokenInfo>;
 
   @External
-  static recordTransfer(amount: U256, recipient: Address, timestamp: U256): void {
-    const transfer = StructFactory.create<TokenInfo>([
-      amount,
-      recipient,
-      timestamp,
-    ]);
-    
-    lastTransfer = transfer;
+  recordTransfer(amount: U256, recipient: Address, timestamp: U256): void {
+    this.lastTransfer.amount = amount;
+    this.lastTransfer.recipient = recipient;
+    this.lastTransfer.timestamp = timestamp;
   }
 
   @View
-  static getLastTransfer(): TokenInfo {
-    return TokenTracker.lastTransfer;
+  getLastTransfer(): TokenInfo {
+    return this.lastTransfer;
   }
 }
 ```
@@ -89,54 +111,23 @@ export class TokenTracker {
 ### Configuration Data
 
 ```typescript
+import { Contract, Struct, External, U256, Address } from "@wakeuplabs/as-stylus";
+
 class Config {
   maxSupply: U256;
   ownerAddress: Address;
-  isPaused: Boolean;
+  isPaused: boolean;
 }
 
 @Contract
 export class ConfigContract {
-  static settings: Config;
+  settings: TokenInfo<Config>;
 
   @External
-  static updateConfig(maxSupply: U256, owner: Address, paused: Boolean): void {
-    const config = new Config();
-    config.maxSupply = maxSupply;
-    config.ownerAddress = owner;
-    config.isPaused = paused;
-    
-    ConfigContract.settings = config;
-  }
-}
-```
-
-### User Profile
-
-```typescript
-class Profile {
-  username: String;
-  balance: U256;
-  joinDate: U256;
-}
-
-@Contract
-export class ProfileManager {
-  static userProfile: Profile;
-
-  @External
-  static createProfile(username: String, balance: U256, joinDate: U256): void {
-    const profile = StructFactory.create<Profile>([
-      username,
-      balance,
-      joinDate,
-    ]);
-    userProfile = profile;
-  }
-
-  @View
-  static getProfile(): Profile {
-    return userProfile;
+  updateConfig(maxSupply: U256, owner: Address, paused: boolean): void {
+    this.settings.maxSupply = maxSupply;
+    this.settings.ownerAddress = owner;
+    this.settings.isPaused = paused;
   }
 }
 ```
@@ -144,6 +135,8 @@ export class ProfileManager {
 ### Game Data
 
 ```typescript
+import { Contract, External, Struct, View, U256, StructFactory } from "@wakeuplabs/as-stylus";
+
 class PlayerStats {
   level: U256;
   score: U256;
@@ -152,21 +145,18 @@ class PlayerStats {
 
 @Contract
 export class GameContract {
-  static player: PlayerStats;
+  player: Struct<PlayerStats>;
 
   @External
-  static updateStats(level: U256, score: U256, lives: U256): void {
-    const stats = StructFactory.create<PlayerStats>([
-      level,
-      score,
-      lives
-    ])
-    player = stats;
+  updateStats(level: U256, score: U256, lives: U256): void {
+    this.player.level = level;
+    this.player.score = score;
+    this.player.lives = lives;
   }
 
   @View
-  static getStats(): PlayerStats {
-    return player;
+  getStats(): PlayerStats {
+    return this.player;
   }
 }
 ```
@@ -174,12 +164,14 @@ export class GameContract {
 ## Supported Field Types
 
 ```typescript
+import { U256, I256, Address, String } from "@wakeuplabs/as-stylus";
+
 class AllTypes {
-  numberField: U256;        // ✅ Numbers
-  signedField: I256;        // ✅ Signed numbers
-  addressField: Address;    // ✅ Addresses
-  textField: String;        // ✅ Text
-  flagField: Boolean;       // ✅ True/false
+  numberField: U256; // ✅ Numbers
+  signedField: I256; // ✅ Signed numbers
+  addressField: Address; // ✅ Addresses
+  textField: String; // ✅ Text
+  flagField: boolean; // ✅ True/false
 }
 ```
 
@@ -187,4 +179,4 @@ class AllTypes {
 
 import { StructureNavigation } from '@site/src/components/NavigationGrid';
 
-<StructureNavigation /> 
+<StructureNavigation />

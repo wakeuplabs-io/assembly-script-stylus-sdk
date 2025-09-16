@@ -1,21 +1,19 @@
 # @Event
 
-The `@Event` decorator defines event structures for logging blockchain events. Events provide a way to communicate with external applications and create an audit trail of contract activity.
+The `EventFactory` defines event structures for logging blockchain events. Events provide a way to communicate with external applications and create an audit trail of contract activity.
 
 ## Syntax
 
 ```typescript
-@Event
-class EventName {
-  field1: Type1;
-  field2: Type2;
-  field3: Type3;
-}
+const EventName = EventFactory.create<[Type1, Type2, Type3]>({
+  indexed: [true, true, false],
+});
 ```
 
 ## Purpose
 
 Events provide:
+
 - Structured blockchain logging
 - Contract activity tracking
 - Off-chain application communication
@@ -23,17 +21,16 @@ Events provide:
 ## Basic Example
 
 ```typescript
-@Event
-class Transfer {
-  from: Address;
-  to: Address;
-  amount: U256;
-}
+import { Contract, EventFactory, External, Address, U256 } from "@wakeuplabs/as-stylus";
+
+const Transfer = EventFactory.create<[Address, Address, U256]>({
+  indexed: [true, true, false],
+});
 
 @Contract
 export class SimpleContract {
   @External
-  static performTransfer(from: Address, to: Address, amount: U256): void {
+  performTransfer(from: Address, to: Address, amount: U256): void {
     // Emit event
     Transfer.emit(from, to, amount);
   }
@@ -43,18 +40,24 @@ export class SimpleContract {
 ## Event Types
 
 ```typescript
-@Event
-class SimpleEvent {
-  user: Address;
-  amount: U256;
-  message: String;
-  active: Boolean;
-}
+import {
+  Contract,
+  EventFactory,
+  External,
+  Address,
+  StrFactory,
+  String,
+  U256,
+} from "@wakeuplabs/as-stylus";
+
+const SimpleEvent = EventFactory.create<[Address, U256, String, boolean]>({
+  indexed: [true, true, true, true, true],
+});
 
 @Contract
 export class EventContract {
   @External
-  static doSomething(user: Address, amount: U256): void {
+  doSomething(user: Address, amount: U256): void {
     const message = StrFactory.fromString("Action completed");
     SimpleEvent.emit(user, amount, message, true);
   }
@@ -64,49 +67,30 @@ export class EventContract {
 ## Multiple Events
 
 ```typescript
-@Event
-class UserJoined {
-  user: Address;
-  timestamp: U256;
-}
+import { Contract, EventFactory, External, Address, U256 } from "@wakeuplabs/as-stylus";
 
-@Event
-class ValueUpdated {
-  oldValue: U256;
-  newValue: U256;
-}
+const UserJoined = EventFactory.create<[Address, U256]>({
+  indexed: [true, true],
+});
+
+const ValueUpdated = EventFactory.create<[U256, U256]>({
+  indexed: [true, true],
+});
 
 @Contract
 export class MultiEventContract {
-  static currentValue: U256;
+  currentValue: U256;
 
   @External
-  static join(user: Address, timestamp: U256): void {
+  join(user: Address, timestamp: U256): void {
     UserJoined.emit(user, timestamp);
   }
 
   @External
-  static updateValue(newValue: U256): void {
-    const oldValue = MultiEventContract.currentValue;
-    MultiEventContract.currentValue = newValue;
+  updateValue(newValue: U256): void {
+    const oldValue = this.currentValue;
+    this.currentValue = newValue;
     ValueUpdated.emit(oldValue, newValue);
-  }
-}
-
-  @External
-  static approve(spender: Address, amount: U256): void {
-    
-    ERC20Token.allowances.get(owner).set(spender, amount);
-    Approval.emit(owner, spender, amount);
-  }
-
-  @External
-  static mint(to: Address, amount: U256): void {
-    ERC20Token.balances.set(to, ERC20Token.balances.get(to).add(amount));
-    ERC20Token.totalSupply = ERC20Token.totalSupply.add(amount);
-    
-    Mint.emit(to, amount, ERC20Token.totalSupply);
-    Transfer.emit(Address.zero(), to, amount); // Mint as transfer from zero
   }
 }
 ```
@@ -114,37 +98,24 @@ export class MultiEventContract {
 ### Complex Event Data
 
 ```typescript
-@Event
-class OrderCreated {
-  @Indexed orderId: U256;
-  @Indexed creator: Address;
-  price: U256;
-  quantity: U256;
-  orderType: U256;      // 0 = buy, 1 = sell
-  timestamp: U256;
-  metadata: String;
-}
+import { Contract, EventFactory, External, Address, U256 } from "@wakeuplabs/as-stylus";
 
-@Event
-class OrderMatched {
-  @Indexed orderId1: U256;
-  @Indexed orderId2: U256;
-  matchedQuantity: U256;
-  matchedPrice: U256;
-  buyer: Address;
-  seller: Address;
-  timestamp: U256;
-}
+const OrderCreated = EventFactory.create<[U256, Address, U256, U256, U256, U256, String]>({
+  indexed: [true, true, false, false, false, false, false],
+});
+
+const OrderMatched = EventFactory.create<[U256, U256, U256, U256, Address, Address, U256]>({
+  indexed: [true, true, false, false, false, false, false],
+});
 
 @Contract
 export class DecentralizedExchange {
   @External
-  static createOrder(price: U256, quantity: U256, orderType: U256): void {
+  createOrder(price: U256, quantity: U256, orderType: U256): void {
     const orderId = DEX.generateOrderId();
-    
-    
+
     // Store order logic...
-    
+
     OrderCreated.emit(
       orderId,
       creator,
@@ -152,14 +123,14 @@ export class DecentralizedExchange {
       quantity,
       orderType,
       block.timestamp(),
-      String.from("Order created successfully")
+      String.from("Order created successfully"),
     );
   }
 
   @External
-  static matchOrders(orderId1: U256, orderId2: U256): void {
+  matchOrders(orderId1: U256, orderId2: U256): void {
     // Matching logic...
-    
+
     OrderMatched.emit(
       orderId1,
       orderId2,
@@ -167,7 +138,7 @@ export class DecentralizedExchange {
       matchedPrice,
       buyer,
       seller,
-      block.timestamp()
+      block.timestamp(),
     );
   }
 }
@@ -176,51 +147,44 @@ export class DecentralizedExchange {
 ### State Change Events
 
 ```typescript
-@Event
-class StateChanged {
-  @Indexed previousState: U256;
-  @Indexed newState: U256;
-  @Indexed changedBy: Address;
-  reason: String;
-  timestamp: U256;
-}
+import {
+  Contract,
+  EventFactory,
+  External,
+  Mapping,
+  String,
+  Address,
+  U256,
+} from "@wakeuplabs/as-stylus";
 
-@Event
-class ConfigUpdated {
-  @Indexed parameter: String;
-  previousValue: U256;
-  newValue: U256;
-  updatedBy: Address;
-}
+const StateChanged = EventFactory.create<[U256, U256, Address, String, U256]>({
+  indexed: [true, true, true, false, false],
+});
+
+const ConfigUpdated = EventFactory.create<[String, U256, U256, Address]>({
+  indexed: [true, false, false, false],
+});
 
 @Contract
 export class StateMachine {
-  static currentState: U256;
-  static config: Mapping<String, U256>;
+  currentState: U256;
+  config: Mapping<String, U256>;
 
   @External
-  static changeState(newState: U256, reason: String): void {
-    const previousState = StateMachine.currentState;
-    
-    
-    StateMachine.currentState = newState;
-    
-    StateChanged.emit(
-      previousState,
-      newState,
-      changer,
-      reason,
-      block.timestamp()
-    );
+  changeState(newState: U256, reason: String): void {
+    const previousState = this.currentState;
+
+    this.currentState = newState;
+
+    StateChanged.emit(previousState, newState, changer, reason, block.timestamp());
   }
 
   @External
-  static updateConfig(parameter: String, newValue: U256): void {
-    const previousValue = StateMachine.config.get(parameter);
-    
-    
-    StateMachine.config.set(parameter, newValue);
-    
+  updateConfig(parameter: String, newValue: U256): void {
+    const previousValue = this.config.get(parameter);
+
+    this.config.set(parameter, newValue);
+
     ConfigUpdated.emit(parameter, previousValue, newValue, updater);
   }
 }
@@ -240,7 +204,7 @@ ComplexEvent.emit(
   I256Factory.fromString("-456"),
   Address.fromString("0x1234..."),
   String.from("Hello World"),
-  Boolean.create(true)
+  Boolean.create(true),
 );
 ```
 
@@ -250,16 +214,14 @@ ComplexEvent.emit(
 @Contract
 export class ConditionalEvents {
   @External
-  static processTransaction(amount: U256): void {
-    
-    
+  processTransaction(amount: U256): void {
     // Emit different events based on conditions
     if (amount.greaterThan(U256Factory.fromString("1000000"))) {
       LargeTransaction.emit(sender, amount, block.timestamp());
     } else {
       RegularTransaction.emit(sender, amount);
     }
-    
+
     // Always emit a general event
     TransactionProcessed.emit(sender, amount, true);
   }
@@ -281,7 +243,7 @@ Events generate ABI entries:
       "indexed": true
     },
     {
-      "name": "to", 
+      "name": "to",
       "type": "address",
       "indexed": true
     },
@@ -299,4 +261,4 @@ Events generate ABI entries:
 
 import { DecoratorNavigation } from '@site/src/components/NavigationGrid';
 
-<DecoratorNavigation /> 
+<DecoratorNavigation />
