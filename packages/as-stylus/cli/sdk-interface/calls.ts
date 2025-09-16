@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Address } from "./address.js";
 import { Str } from "./string.js";
 import { U256 } from "./u256.js";
@@ -79,5 +80,4 @@ export class CallFactory {
   static send(to: Address, value: U256): boolean {
     throw new Error("Method not implemented.");
   }
-
 }

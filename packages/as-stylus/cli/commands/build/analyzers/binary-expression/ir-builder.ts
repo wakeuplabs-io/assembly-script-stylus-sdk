@@ -83,7 +83,7 @@ export class BinaryExpressionIRBuilder extends IRBuilder<
       } else if ("type" in right && right.type) {
         assignmentType = right.type as any;
       }
-      
+
       return {
         kind: "array_assignment",
         array: left.array,

@@ -41,7 +41,10 @@ export class MemberIRBuilder extends IRBuilder<IRExpression> {
       object: objectIR,
       property: propertyName,
       type: AbiType.Uint256,
-      originalType: (objectIR.kind === "var" || objectIR.kind === "call" || objectIR.kind === "member") ? objectIR.originalType : undefined,
+      originalType:
+        objectIR.kind === "var" || objectIR.kind === "call" || objectIR.kind === "member"
+          ? objectIR.originalType
+          : undefined,
     } as Member;
   }
 }

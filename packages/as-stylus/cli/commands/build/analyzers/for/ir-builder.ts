@@ -1,4 +1,10 @@
-import { ForStatement, SyntaxKind, Statement as TSStatement } from "ts-morph";
+import {
+  Expression,
+  ForStatement,
+  SyntaxKind,
+  Statement as TSStatement,
+  VariableDeclarationList,
+} from "ts-morph";
 
 import { IRStatement, For, IRCondition, IRExpression } from "@/cli/types/ir.types.js";
 
@@ -29,16 +35,14 @@ export class ForIRBuilder extends IRBuilder<IRStatement> {
   private processBlock<T extends TSStatement>(blockStatement: T): IRStatement[] {
     const block = blockStatement.asKind(SyntaxKind.Block);
     let statements: TSStatement[] = [];
-    
+
     if (block) {
       statements = block.getStatements();
     } else {
       statements = [blockStatement];
     }
 
-    return statements.map((stmt) => 
-      new StatementIRBuilder(stmt).validateAndBuildIR()
-    );
+    return statements.map((stmt) => new StatementIRBuilder(stmt).validateAndBuildIR());
   }
 
   buildIR(): IRStatement {
@@ -46,13 +50,13 @@ export class ForIRBuilder extends IRBuilder<IRStatement> {
     let initIR: IRStatement | undefined;
     if (initializer) {
       if (initializer.getKind() === SyntaxKind.VariableDeclarationList) {
-        const varDecl = (initializer as any).getDeclarations()[0];
+        const varDecl = (initializer as VariableDeclarationList).getDeclarations()[0];
         const variableBuilder = new VariableDeclarationIRBuilder(varDecl);
         initIR = variableBuilder.validateAndBuildIR();
       } else {
         initIR = {
           kind: "expr",
-          expr: new ExpressionIRBuilder(initializer as any).validateAndBuildIR()
+          expr: new ExpressionIRBuilder(initializer as Expression).validateAndBuildIR(),
         } as IRStatement;
       }
     }
@@ -61,7 +65,9 @@ export class ForIRBuilder extends IRBuilder<IRStatement> {
     let conditionIR: IRCondition | IRExpression | undefined;
     if (condition) {
       try {
-        conditionIR = new ConditionExpressionIRBuilder(condition).validateAndBuildIR() as IRCondition;
+        conditionIR = new ConditionExpressionIRBuilder(
+          condition,
+        ).validateAndBuildIR() as IRCondition;
       } catch {
         conditionIR = new ExpressionIRBuilder(condition).validateAndBuildIR() as IRExpression;
       }
@@ -85,4 +91,4 @@ export class ForIRBuilder extends IRBuilder<IRStatement> {
 
     return forIR;
   }
-} 
+}

@@ -23,7 +23,7 @@ export function ${name}_memory_get_${fieldName}(ptr: usize): usize {
   GENERIC: (name: string, fieldName: string, offset: number) => `
 export function ${name}_memory_get_${fieldName}(ptr: usize): usize {
   return StructMemory.getField(ptr, ${offset});
-}`
+}`,
 };
 
 const MEMORY_SETTER_TEMPLATES = {
@@ -35,20 +35,17 @@ export function ${name}_memory_set_${fieldName}(ptr: usize, v: usize): void {
   GENERIC: (name: string, fieldName: string, fieldOffset: number) => `
 export function ${name}_memory_set_${fieldName}(ptr: usize, v: usize): void {
   StructMemory.setField(ptr, ${fieldOffset}, v);
-}`
+}`,
 };
 
 /**
  * Generates memory allocation function for struct
  * Creates a function that allocates memory for a struct instance
- * 
+ *
  * @param struct - The struct definition containing field information
  * @param structName - Name of the struct (derived from struct.name if not provided)
  */
-export function generateMemoryAlloc(
-  struct: IRStruct,
-  structName?: string
-): string {
+export function generateMemoryAlloc(struct: IRStruct, structName?: string): string {
   const name = structName || struct.name;
 
   return ALLOCS_TEMPLATES.static(name, struct.size);
@@ -57,14 +54,11 @@ export function generateMemoryAlloc(
 /**
  * Generates memory getter functions for struct fields
  * Creates functions that can retrieve values from memory struct instances
- * 
+ *
  * @param struct - The struct definition containing field information
  * @param structName - Name of the struct (derived from struct.name if not provided)
  */
-export function generateMemoryGetters(
-  struct: IRStruct,
-  structName?: string
-): string[] {
+export function generateMemoryGetters(struct: IRStruct, structName?: string): string[] {
   const name = structName || struct.name;
   const helpers: string[] = [];
 
@@ -93,14 +87,11 @@ export function generateMemoryGetters(
 /**
  * Generates memory setter functions for struct fields
  * Creates functions that can set values on memory struct instances
- * 
+ *
  * @param struct - The struct definition containing field information
  * @param structName - Name of the struct (derived from struct.name if not provided)
  */
-export function generateMemorySetters(
-  struct: IRStruct,
-  structName?: string
-): string[] {
+export function generateMemorySetters(struct: IRStruct, structName?: string): string[] {
   const name = structName || struct.name;
   const helpers: string[] = [];
 
@@ -118,4 +109,3 @@ export function generateMemorySetters(
 
   return helpers;
 }
-

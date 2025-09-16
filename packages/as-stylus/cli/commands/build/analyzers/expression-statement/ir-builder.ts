@@ -1,4 +1,11 @@
-import { ExpressionStatement, SyntaxKind, BinaryExpression, PropertyAccessExpression, CallExpression, Expression } from "ts-morph";
+import {
+  ExpressionStatement,
+  SyntaxKind,
+  BinaryExpression,
+  PropertyAccessExpression,
+  CallExpression,
+  Expression,
+} from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRStatement, IRExpression } from "@/cli/types/ir.types.js";
@@ -26,7 +33,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
   private handleGenericPropertyAssignment(
     objectExpr: IRExpression,
     fieldName: string,
-    valueExpr: IRExpression
+    valueExpr: IRExpression,
   ): IRStatement {
     const args: IRExpression[] = [];
     if (objectExpr.kind !== "this") {
@@ -42,22 +49,22 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
         args,
         type: AbiType.Function,
         returnType: AbiType.Void,
-        scope: "memory"
+        scope: "memory",
       },
       type: AbiType.Void,
     };
   }
 
   private buildRevertExpressionIR(exprText: string, callExpr: CallExpression): IRStatement {
-    const errorName = exprText.slice(0, -'.revert'.length);
-    const args = callExpr.getArguments().map(arg => {
+    const errorName = exprText.slice(0, -".revert".length);
+    const args = callExpr.getArguments().map((arg) => {
       const builder = new ExpressionIRBuilder(arg as Expression);
       return builder.validateAndBuildIR();
     });
     return {
       kind: "revert",
       error: errorName,
-      args
+      args,
     };
   }
 
@@ -68,7 +75,7 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
       const callExpr = expr as CallExpression;
       const exprText = callExpr.getExpression().getText();
 
-      if (exprText.endsWith('.revert')) {
+      if (exprText.endsWith(".revert")) {
         return this.buildRevertExpressionIR(exprText, callExpr);
       }
     }
@@ -85,20 +92,32 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
         const variable = this.symbolTable.lookup(name);
 
         // Handle property access assignment (obj.field = value)
-        if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression && variable?.type === AbiType.Struct) {
+        if (
+          lhsNode.getKind() === SyntaxKind.PropertyAccessExpression &&
+          variable?.type === AbiType.Struct
+        ) {
           const propAccess = lhsNode as PropertyAccessExpression;
           const fieldName = propAccess.getName();
-          const objectExpr = new ExpressionIRBuilder(propAccess.getExpression()).validateAndBuildIR();
+          const objectExpr = new ExpressionIRBuilder(
+            propAccess.getExpression(),
+          ).validateAndBuildIR();
           const valueExpr = new ExpressionIRBuilder(rhsNode).validateAndBuildIR();
           if (objectExpr.type === AbiType.Struct) {
-            return new StructAssignmentBuilder(this.symbolTable, this.slotManager).buildIR(objectExpr, fieldName, valueExpr);
+            return new StructAssignmentBuilder(this.symbolTable, this.slotManager).buildIR(
+              objectExpr,
+              fieldName,
+              valueExpr,
+            );
           } else {
             return this.handleGenericPropertyAssignment(objectExpr, fieldName, valueExpr);
           }
         }
 
         if (lhsNode.getKind() === SyntaxKind.PropertyAccessExpression) {
-          const rhsExpr = this.buildExpressionWithAssignmentContext(rhsNode, variable?.scope ?? "memory");
+          const rhsExpr = this.buildExpressionWithAssignmentContext(
+            rhsNode,
+            variable?.scope ?? "memory",
+          );
           return {
             kind: "assign",
             target: target,
@@ -106,7 +125,6 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
             scope: variable?.scope ?? "memory",
           };
         }
-
       }
     }
 
@@ -119,7 +137,10 @@ export class ExpressionStatementIRBuilder extends IRBuilder<IRStatement> {
     };
   }
 
-  private buildExpressionWithAssignmentContext(expr: Expression, targetScope: "storage" | "memory"): IRExpression {
+  private buildExpressionWithAssignmentContext(
+    expr: Expression,
+    targetScope: "storage" | "memory",
+  ): IRExpression {
     // For CallExpression, we need to pass the assignment context
     if (expr.getKind() === SyntaxKind.CallExpression) {
       const callExpr = expr as CallExpression;

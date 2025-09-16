@@ -14,19 +14,19 @@ export class LiteralTransformer extends Handler {
 
   canHandle(expr: Literal): boolean {
     return expr.kind === "literal";
-  } 
+  }
 
-  handle( expr: Literal): EmitResult {
+  handle(expr: Literal): EmitResult {
     if (expr.type === AbiType.Bool) {
       return {
         setupLines: [],
-        valueExpr: `${expr.value}`
+        valueExpr: `${expr.value}`,
       };
     }
-    
+
     return {
       setupLines: [],
-      valueExpr: `"${expr.value}"`
+      valueExpr: `"${expr.value}"`,
     };
   }
 }

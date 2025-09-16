@@ -352,7 +352,7 @@ describe("Calls Contract — Contract Call Operations", () => {
     // it("should have consistent msg.sender across different functions", async () => {
     //   const sender1 = await contract.read("getMsgSender", []);
     //   const sender2 = await contract.read("getMyAddress", []); // This returns contractAddress
-      
+
     //   // msg.sender should be different from contract address for view calls
     //   expect(sender1).toBe(getOwnerAddress());
     //   expect(sender2).toBe(contract.address);

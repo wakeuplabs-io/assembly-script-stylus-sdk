@@ -160,7 +160,6 @@ export function loadSimple(name: string, slot: number, type?: AbiType): string {
   const returnSentence = type === AbiType.Bool ? "return Boolean.fromABI(ptr);" : "return ptr;";
   const returnType = type === AbiType.Bool ? "boolean" : "usize";
 
-
   switch (type) {
     case AbiType.Address:
       createCall = "Address.create()";

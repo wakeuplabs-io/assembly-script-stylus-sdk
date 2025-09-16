@@ -4,15 +4,17 @@ import { IRContract } from "@/cli/types/ir.types.js";
 import { generateArgsLoadBlock } from "./args.js";
 import { ContractContext } from "../core/contract-context.js";
 
-export function generateDeployFunction(contract: IRContract, contractContext: ContractContext): string {
+export function generateDeployFunction(
+  contract: IRContract,
+  contractContext: ContractContext,
+): string {
   const lines: string[] = [];
 
   if (contract.constructor) {
     const { inputs } = contract.constructor;
     const { callArgs } = generateArgsLoadBlock(inputs);
-    const argsSignature = callArgs.map(a => `${a.name}: ${a.type}`).join(", ");
+    const argsSignature = callArgs.map((a) => `${a.name}: ${a.type}`).join(", ");
     const aliasLines = inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i].name};`);
-
 
     lines.push(`export function ${contract.name}_constructor(${argsSignature}): void {`);
     lines.push(...aliasLines);
@@ -26,7 +28,7 @@ export function generateDeployFunction(contract: IRContract, contractContext: Co
       lines.push(constructorBody);
     }
   } else {
-    contract.storage.forEach(variable => {
+    contract.storage.forEach((variable) => {
       const defaultValue = getDefaultValueForType(variable.type);
       switch (variable.kind) {
         case "simple":
@@ -35,7 +37,9 @@ export function generateDeployFunction(contract: IRContract, contractContext: Co
             lines.push(`  store_${variable.name}(empty${variable.name});`);
           } else {
             const symbol = contract.symbolTable.lookup(variable.name);
-            lines.push(`  const default${variable.name} = ${getInitializer(variable.type as AbiType, defaultValue, symbol?.dynamicType)};`);
+            lines.push(
+              `  const default${variable.name} = ${getInitializer(variable.type as AbiType, defaultValue, symbol?.dynamicType)};`,
+            );
             lines.push(`  store_${variable.name}(default${variable.name});`);
           }
           break;

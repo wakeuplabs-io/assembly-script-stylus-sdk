@@ -13,17 +13,17 @@ import { RevertHandler } from "./handlers/revert-handler.js";
 import { VariableDeclarationHandler } from "./handlers/variable-declaration-handler.js";
 import { WhileHandler } from "./handlers/while-handler.js";
 
-export type StatementKind = 
-  | "assign" 
-  | "let" 
-  | "const" 
-  | "expr" 
-  | "return" 
-  | "if" 
-  | "for" 
-  | "while" 
-  | "do_while" 
-  | "block" 
+export type StatementKind =
+  | "assign"
+  | "let"
+  | "const"
+  | "expr"
+  | "return"
+  | "if"
+  | "for"
+  | "while"
+  | "do_while"
+  | "block"
   | "revert";
 
 /**

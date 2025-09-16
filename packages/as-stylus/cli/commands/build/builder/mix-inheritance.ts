@@ -20,10 +20,9 @@ function mixMethods(contract: IRContract, parent: IRContract): IRMethod[] {
       return false;
     }
 
-    
     return !contract.methods.some((childMethod) => isMethodOverridden(method, childMethod));
   });
-  
+
   const result = [...contract.methods, ...parentMethods];
   if (parent.constructor) {
     result.push(parent.constructor);
@@ -36,8 +35,6 @@ export function mixInheritance(contract: IRContract, parent?: IRContract): IRCon
   if (!parent) {
     return contract;
   }
-
-
 
   return {
     ...contract,

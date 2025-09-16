@@ -5,7 +5,8 @@ import { BaseValidator } from "../shared/base-validator.js";
 import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 
 const ERROR_MESSAGES = {
-  UNSUPPORTED_TYPE: (type: string, supportedTypes: string[]) => `Unsupported return type: ${type}. Supported types are: ${supportedTypes.join(", ")}`,
+  UNSUPPORTED_TYPE: (type: string, supportedTypes: string[]) =>
+    `Unsupported return type: ${type}. Supported types are: ${supportedTypes.join(", ")}`,
 } as const;
 
 export class ReturnSyntaxValidator extends BaseValidator {

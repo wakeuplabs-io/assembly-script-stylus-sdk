@@ -22,15 +22,15 @@ export class I256FromStringHandler extends Handler {
 
   canHandle(expr: Call): boolean {
     if (!expr.args || expr.args.length !== 1) return false;
-    
+
     // Legacy format
     if (expr.target === "I256Factory.fromString") return true;
-    
+
     // New receiver-based format
     if (expr.target === "fromString" && expr.receiver) {
       return expr.receiver.kind === "var" && expr.receiver.name === "I256Factory";
     }
-    
+
     return false;
   }
 
@@ -59,9 +59,7 @@ export class I256FromStringHandler extends Handler {
     } else {
       setup.push(`const ${lenVar}: u32   = ${argRes.valueExpr};`);
       setup.push(`const ${strPtr}: usize = malloc(66);`);
-      setup.push(
-        `const ${i256Ptr}: usize = I256.fromString(${strPtr}, ${lenVar});`
-      );
+      setup.push(`const ${i256Ptr}: usize = I256.fromString(${strPtr}, ${lenVar});`);
     }
 
     return {
@@ -70,4 +68,4 @@ export class I256FromStringHandler extends Handler {
       valueType: "I256",
     };
   }
-} 
+}

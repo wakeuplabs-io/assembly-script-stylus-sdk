@@ -8,7 +8,6 @@ import { ContractContext } from "../core/contract-context.js";
 import { ErrorRevertHandler } from "./handlers/revert-handler.js";
 
 export class ErrorTransformer extends BaseTypeTransformer {
-
   constructor(contractContext: ContractContext, errors: IRErrorDecl[]) {
     super(contractContext, "Error");
     this.registerHandler(new ErrorRevertHandler(contractContext, errors));
@@ -25,11 +24,11 @@ export class ErrorTransformer extends BaseTypeTransformer {
       setupLines: [],
       valueExpr: "/* unsupported error operation */",
     };
-  }  
+  }
 }
 
 export function generateErrorSignature(error: IRErrorDecl): string {
-  const signature = `${error.name}(${error.fields.map(f => mapTypeToAbi(f.type)).join(",")})`;
+  const signature = `${error.name}(${error.fields.map((f) => mapTypeToAbi(f.type)).join(",")})`;
   return signature;
 }
 
@@ -43,7 +42,7 @@ export function registerErrorTransformer(contract: IRContract): string[] {
       const signature = generateErrorSignature(error);
       const selector = toFunctionSelector(signature);
       const selectorBytes = hexToByteArray(selector);
-      
+
       const fnName = `__write_error_selector_${error.name}`;
       lines.push(`// Error: ${error.name}`);
       lines.push(`// Selector: ${selector}`);
@@ -56,18 +55,20 @@ export function registerErrorTransformer(contract: IRContract): string[] {
       lines.push("");
 
       const errorDataFnName = `__create_error_data_${error.name}`;
-      const totalSize = 4 + (error.fields.length * 32);
-      
-      lines.push(`export function ${errorDataFnName}(${error.fields.map((field, idx) => `arg${idx}: usize`).join(", ")}): usize {`);
+      const totalSize = 4 + error.fields.length * 32;
+
+      lines.push(
+        `export function ${errorDataFnName}(${error.fields.map((field, idx) => `arg${idx}: usize`).join(", ")}): usize {`,
+      );
       lines.push(`  const errorData: usize = malloc(${totalSize});`);
       lines.push(`  ${fnName}(errorData); // Write selector`);
-      
+
       error.fields.forEach((field, idx) => {
-        const offset = 4 + (idx * 32);
+        const offset = 4 + idx * 32;
         lines.push(`  // Write argument ${idx + 1}: ${field.name} (${field.type})`);
         lines.push(`  U256.copyInPlace(errorData + ${offset}, arg${idx});`);
       });
-      
+
       lines.push(`  return errorData;`);
       lines.push(`}`);
       lines.push("");
@@ -85,7 +86,7 @@ export function generateErrorABI(contract: IRContract): any[] {
       errorABI.push({
         type: "error",
         name: error.name,
-        inputs: error.fields.map(field => ({
+        inputs: error.fields.map((field) => ({
           name: field.name,
           type: convertType(contract.symbolTable, field.type),
           internalType: convertType(contract.symbolTable, field.type),
@@ -99,23 +100,29 @@ export function generateErrorABI(contract: IRContract): any[] {
 
 function mapTypeToAbi(type: string): string {
   switch (type) {
-    case "U256": return "uint256";
-    case "Address": return "address";
-    case "boolean": return "bool";
-    case "string": return "string";
-    case "u64": return "uint64";
-    default: return type;
+    case "U256":
+      return "uint256";
+    case "Address":
+      return "address";
+    case "boolean":
+      return "bool";
+    case "string":
+      return "string";
+    case "u64":
+      return "uint64";
+    default:
+      return type;
   }
 }
 
 function hexToByteArray(hex: string): string[] {
-  const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+  const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
   const bytes: string[] = [];
-  
+
   for (let i = 0; i < cleanHex.length; i += 2) {
     const byte = cleanHex.substring(i, i + 2);
     bytes.push(`0x${byte}`);
   }
-  
+
   return bytes;
-} 
+}

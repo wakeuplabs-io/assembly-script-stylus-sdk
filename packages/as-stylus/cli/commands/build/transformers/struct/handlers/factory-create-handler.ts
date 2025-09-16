@@ -1,6 +1,13 @@
 import { AbiType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
-import { Call, IRExpression, IRStruct, IRStructField, IRVariable, Member } from "@/cli/types/ir.types.js";
+import {
+  Call,
+  IRExpression,
+  IRStruct,
+  IRStructField,
+  IRVariable,
+  Member,
+} from "@/cli/types/ir.types.js";
 import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
 import { makeTemp } from "@/transformers/utils/temp-factory.js";
@@ -47,19 +54,25 @@ export class StructFactoryCreateHandler extends Handler {
   /**
    * Processes a single field and returns the generated setup lines
    */
-  private processField(field: IRStructField, valueArg: IRVariable, structType: string, structPtr: string): string[] {
+  private processField(
+    field: IRStructField,
+    valueArg: IRVariable,
+    structType: string,
+    structPtr: string,
+  ): string[] {
     const valueResult = this.contractContext.emitExpression(valueArg as unknown as IRExpression);
     const lines = [...valueResult.setupLines];
 
     if (field.type === AbiType.Bool) {
-      lines.push(`${structType}_memory_set_${field.name}(${structPtr}, Boolean.create(${valueResult.valueExpr}));`);
+      lines.push(
+        `${structType}_memory_set_${field.name}(${structPtr}, Boolean.create(${valueResult.valueExpr}));`,
+      );
     } else {
       lines.push(`${structType}_memory_set_${field.name}(${structPtr}, ${valueResult.valueExpr});`);
     }
 
     return lines;
   }
-
 
   /**
    * Processes all fields of a specific type
@@ -68,7 +81,7 @@ export class StructFactoryCreateHandler extends Handler {
     args: IRVariable[],
     struct: IRStruct,
     structType: string,
-    structPtr: string
+    structPtr: string,
   ): string[] {
     const setup: string[] = [];
 

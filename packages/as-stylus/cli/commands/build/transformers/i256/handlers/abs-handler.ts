@@ -36,4 +36,4 @@ export class I256AbsHandler extends Handler {
       valueType: "U256",
     };
   }
-} 
+}

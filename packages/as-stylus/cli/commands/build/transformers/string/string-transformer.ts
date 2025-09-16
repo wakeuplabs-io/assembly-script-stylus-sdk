@@ -28,7 +28,6 @@ export class StrTransformer extends BaseTypeTransformer {
     if (!expr || expr.kind !== "call") return false;
     const target = expr.target || "";
 
-
     if (target === "StrFactory.create" || target === "StrFactory.fromString") {
       return true;
     }

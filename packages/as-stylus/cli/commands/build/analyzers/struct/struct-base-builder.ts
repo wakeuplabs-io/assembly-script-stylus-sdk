@@ -4,12 +4,12 @@ import { IRExpression } from "@/cli/types/ir.types.js";
 import { isPrimitiveType } from "./struct-utils.js";
 import { SymbolTableStack } from "../shared/symbol-table.js";
 
-export class StructBaseBuilder  {
+export class StructBaseBuilder {
   constructor(protected symbolTable: SymbolTableStack) {}
 
   protected getStructInfo(structName: string, fieldName: string) {
     const struct = this.symbolTable.lookup(structName);
-    const structIR = this.symbolTable.getStructTemplateByName(struct?.dynamicType ?? '');
+    const structIR = this.symbolTable.getStructTemplateByName(struct?.dynamicType ?? "");
 
     if (!structIR) {
       return {
@@ -18,7 +18,7 @@ export class StructBaseBuilder  {
       };
     }
 
-    const field = structIR.fields.find(f => f.name === fieldName);
+    const field = structIR.fields.find((f) => f.name === fieldName);
 
     return {
       field: field ?? null,
@@ -32,25 +32,25 @@ export class StructBaseBuilder  {
     if (!fieldType || !isPrimitiveType(fieldType)) {
       return valueExpr;
     }
-  
+
     const copyTargets = {
       [AbiType.Uint256]: "U256.copy",
       [AbiType.Bool]: "boolean.copy",
       [AbiType.Address]: "Address.copy",
     };
-  
+
     const copyTarget = copyTargets[fieldType as keyof typeof copyTargets];
     if (!copyTarget) {
       return valueExpr;
     }
-  
+
     return {
-        kind: "call",
-        target: copyTarget,
-        args: [valueExpr],
-        type: AbiType.Function,
-        returnType: fieldType,
-        scope: "memory"
+      kind: "call",
+      target: copyTarget,
+      args: [valueExpr],
+      type: AbiType.Function,
+      returnType: fieldType,
+      scope: "memory",
     };
   }
 }

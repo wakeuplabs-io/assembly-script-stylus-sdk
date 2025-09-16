@@ -1,5 +1,11 @@
 import { EmitResult } from "../../../../types/emit.types.js";
-import { IRStruct, IRContract, IRSimpleVar, IRExpression, Call } from "../../../../types/ir.types.js";
+import {
+  IRStruct,
+  IRContract,
+  IRSimpleVar,
+  IRExpression,
+  Call,
+} from "../../../../types/ir.types.js";
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 import { StructFactoryCreateHandler } from "./handlers/factory-create-handler.js";
 import { StructFieldAccessHandler } from "./handlers/field-access-handler.js";
@@ -7,7 +13,11 @@ import { StructFieldSetHandler } from "./handlers/field-set-handler.js";
 import { ContractContext } from "../core/contract-context.js";
 import { StructHelperCallHandler } from "./handlers/helper-call-handler.js";
 import { StructPropertySetHandler } from "./handlers/property-set-handler.js";
-import { generateMemoryAlloc, generateMemoryGetters, generateMemorySetters } from "./helpers/memory.js";
+import {
+  generateMemoryAlloc,
+  generateMemoryGetters,
+  generateMemorySetters,
+} from "./helpers/memory.js";
 import { generateStorageGetters, generateStorageSetters } from "./helpers/storage.js";
 
 export class StructTransformer extends BaseTypeTransformer {
@@ -21,7 +31,7 @@ export class StructTransformer extends BaseTypeTransformer {
   constructor(contractContext: ContractContext, structs: IRStruct[]) {
     super(contractContext, "Struct");
 
-    this.structs = new Map(structs.map(s => [s.name, s]));
+    this.structs = new Map(structs.map((s) => [s.name, s]));
     this.fieldAccessHandler = new StructFieldAccessHandler(contractContext, this.structs);
     this.fieldSetHandler = new StructFieldSetHandler(contractContext, this.structs);
     this.factoryCreateHandler = new StructFactoryCreateHandler(contractContext, this.structs);
@@ -102,7 +112,7 @@ export class StructTransformer extends BaseTypeTransformer {
           return {
             setupLines: [...objectArg.setupLines],
             valueExpr: `${structName}_get_${fieldName}()`,
-            valueType: "usize"
+            valueType: "usize",
           };
         }
       }
@@ -157,7 +167,6 @@ export function generateStructHelpers(struct: IRStruct, baseSlot: number): strin
 export function ${structName}_alloc(): usize {
   return Struct.alloc(${struct.size});
 }`);
-
 
   // Memory allocation helper using generateMemoryAlloc
   const memoryAllocHelper = generateMemoryAlloc(struct, structName);

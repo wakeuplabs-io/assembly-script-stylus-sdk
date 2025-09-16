@@ -5,7 +5,6 @@ import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
 import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
-
 export class AddressCopyHandler extends Handler {
   constructor(contractContext: ContractContext) {
     super(contractContext);
@@ -27,10 +26,10 @@ export class AddressCopyHandler extends Handler {
     return {
       setupLines: [
         ...srcArg.setupLines,
-        `const ${dstPtr}: usize = Address.copyNew(${srcArg.valueExpr});`
+        `const ${dstPtr}: usize = Address.copyNew(${srcArg.valueExpr});`,
       ],
       valueExpr: dstPtr,
       valueType: "Address",
     };
   }
-} 
+}

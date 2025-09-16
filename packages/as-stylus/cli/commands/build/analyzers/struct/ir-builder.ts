@@ -22,7 +22,7 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
         "STRUCT_NO_FIELDS",
         this.structClass.getSourceFile().getFilePath(),
         this.structClass.getStartLineNumber(),
-        [`El struct ${this.structClass.getName()} debe tener al menos un campo`]
+        [`El struct ${this.structClass.getName()} debe tener al menos un campo`],
       );
       return false;
     }
@@ -38,9 +38,9 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
   buildIR(): IRStruct {
     const name = this.structClass.getName() || "AnonymousStruct";
 
-    const basicFields = this.structClass.getProperties().map(property => ({
+    const basicFields = this.structClass.getProperties().map((property) => ({
       name: property.getName(),
-      type: convertType(this.symbolTable, property.getType().getText())
+      type: convertType(this.symbolTable, property.getType().getText()),
     }));
 
     const layout = calculateFieldLayout(basicFields);
@@ -74,7 +74,9 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
           "STRUCT_RECURSIVE_TYPE",
           this.structClass.getSourceFile().getFilePath(),
           property.getStartLineNumber(),
-          [`El campo ${property.getName()} no puede tener el mismo tipo que el struct ${structName}`]
+          [
+            `El campo ${property.getName()} no puede tener el mismo tipo que el struct ${structName}`,
+          ],
         );
         return true;
       }
@@ -93,4 +95,4 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
   static getAllRegisteredStructs(): IRStruct[] {
     return Array.from(StructIRBuilder.structRegistry.values());
   }
-} 
+}

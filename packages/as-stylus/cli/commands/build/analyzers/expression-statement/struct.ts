@@ -6,16 +6,15 @@ import { SymbolTableStack } from "../shared/symbol-table.js";
 import { StructBaseBuilder } from "../struct/struct-base-builder.js";
 
 export class StructAssignmentBuilder extends StructBaseBuilder {
-  constructor(symbolTable: SymbolTableStack, private slotManager: SlotManager) {
+  constructor(
+    symbolTable: SymbolTableStack,
+    private slotManager: SlotManager,
+  ) {
     super(symbolTable);
     this.slotManager = slotManager;
   }
 
-  buildIR(
-    objectExpr: IRExpression,
-    fieldName: string,
-    valueExpr: IRExpression
-  ): IRStatement {
+  buildIR(objectExpr: IRExpression, fieldName: string, valueExpr: IRExpression): IRStatement {
     const structName = (objectExpr as Variable).name;
     const { fieldType, struct, structTemplate } = this.getStructInfo(structName, fieldName);
     const finalValueExpr = this.wrapValueWithCopyIfNeeded(valueExpr, fieldType);
@@ -32,7 +31,7 @@ export class StructAssignmentBuilder extends StructBaseBuilder {
         args: [{ ...objectExpr, slot } as Variable, finalValueExpr],
         type: AbiType.Function,
         returnType: AbiType.Void,
-        scope: struct?.scope ?? "memory"
+        scope: struct?.scope ?? "memory",
       },
       type: AbiType.Void,
     };

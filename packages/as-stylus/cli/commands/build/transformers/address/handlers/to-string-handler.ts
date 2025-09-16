@@ -25,7 +25,7 @@ export class AddressToStringHandler extends Handler {
     return {
       setupLines: [...receiverRes.setupLines],
       valueExpr,
-      valueType : "string"
+      valueType: "string",
     };
   }
 }

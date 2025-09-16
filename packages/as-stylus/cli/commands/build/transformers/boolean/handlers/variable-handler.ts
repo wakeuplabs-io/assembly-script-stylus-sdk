@@ -26,7 +26,7 @@ export class BooleanVariableHandler extends Handler {
     if (expr.scope === "storage") {
       return {
         setupLines: [],
-        valueExpr: `load_${expr.name}()`
+        valueExpr: `load_${expr.name}()`,
       };
     }
 

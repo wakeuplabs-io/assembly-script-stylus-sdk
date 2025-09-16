@@ -20,43 +20,43 @@ export class BlockTransformer extends BaseTypeTransformer {
         return {
           setupLines: [],
           valueExpr: "Block.timestamp()",
-          valueType: "U256"
+          valueType: "U256",
         };
       case "number":
         return {
           setupLines: [],
           valueExpr: "Block.number()",
-          valueType: "U256"
+          valueType: "U256",
         };
       case "coinbase":
         return {
           setupLines: [],
           valueExpr: "Block.coinbase()",
-          valueType: "Address"
+          valueType: "Address",
         };
       case "basefee":
         return {
           setupLines: [],
           valueExpr: "Block.basefee()",
-          valueType: "U256"
+          valueType: "U256",
         };
       case "gaslimit":
         return {
           setupLines: [],
           valueExpr: "Block.gaslimit()",
-          valueType: "U256"
+          valueType: "U256",
         };
       case "hasBasefee":
         return {
           setupLines: [],
           valueExpr: "Block.hasBasefee()",
-          valueType: "boolean"
+          valueType: "boolean",
         };
       default:
         return {
           setupLines: [],
           valueExpr: `/* Unsupported block property: ${expr.property} */`,
-          valueType: "unknown"
+          valueType: "unknown",
         };
     }
   }

@@ -53,8 +53,10 @@ export class StructFactoryBuilder {
     const value = arrayArg.getKind();
     if (value === SyntaxKind.ObjectLiteralExpression) {
       const elements = (arrayArg as ObjectLiteralExpression).getProperties();
-      structTemplate?.fields.map(field => {
-        const element = elements.find(el => (el as PropertyAssignment).getNameNode().getText() === field.name);
+      structTemplate?.fields.map((field) => {
+        const element = elements.find(
+          (el) => (el as PropertyAssignment).getNameNode().getText() === field.name,
+        );
         if (element) {
           const pa = element as PropertyAssignment;
           const value = pa.getInitializer()!;
@@ -74,13 +76,13 @@ export class StructFactoryBuilder {
       // Add metadata for later processing
       metadata: {
         structType,
-        isStructCreation: true
-      }
+        isStructCreation: true,
+      },
     } as IRExpression & {
       metadata: {
         structType: string;
         isStructCreation: boolean;
-      }
+      };
     };
 
     return result;

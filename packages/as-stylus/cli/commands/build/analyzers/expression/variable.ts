@@ -1,4 +1,3 @@
-
 import { Identifier } from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
@@ -16,6 +15,6 @@ export function buildVariableIR(id: Identifier, symbolTable: SymbolTableStack): 
     name: name,
     type: variable?.type ?? AbiType.Void,
     originalType: variable?.dynamicType,
-    scope: variable?.scope ?? "memory"
+    scope: variable?.scope ?? "memory",
   };
 }

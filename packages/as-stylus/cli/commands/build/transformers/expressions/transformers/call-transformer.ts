@@ -24,13 +24,13 @@ export class CallTransformer extends Handler {
 
       return {
         setupLines: allSetupLines,
-        valueExpr: `${this.contractContext.getParentName()}_constructor(${argResults.map(r => r.valueExpr).join(", ")})`
+        valueExpr: `${this.contractContext.getParentName()}_constructor(${argResults.map((r) => r.valueExpr).join(", ")})`,
       };
     }
 
     // Handle chained calls with receiver field
     // BUT first check if this should be handled by a type-specific transformer
-    if ('receiver' in call && call.receiver) {
+    if ("receiver" in call && call.receiver) {
       // Let type-specific transformers handle type-specific chained calls
       // Only handle generic chained calls that don't belong to specific types
       if (!this.shouldDeferToTypeSpecificTransformer(call)) {
@@ -41,14 +41,14 @@ export class CallTransformer extends Handler {
     // Handle regular calls without receiver
     const argResults = this.transformArguments(call.args);
     const allSetupLines = this.combineSetupLines(argResults);
-    const argValues = argResults.map(r => r.valueExpr).join(", ");
+    const argValues = argResults.map((r) => r.valueExpr).join(", ");
 
     const baseCall = `${call.target}(${argValues})`;
 
     // Fallback: return the base call without re-delegating to avoid infinite loops
     return {
       setupLines: allSetupLines,
-      valueExpr: baseCall
+      valueExpr: baseCall,
     };
   }
 
@@ -68,24 +68,21 @@ export class CallTransformer extends Handler {
     const argResults = this.transformArguments(call.args);
 
     // Combine all setup lines
-    const allSetupLines = [
-      ...receiverResult.setupLines,
-      ...this.combineSetupLines(argResults)
-    ];
+    const allSetupLines = [...receiverResult.setupLines, ...this.combineSetupLines(argResults)];
 
-    const argValues = argResults.map(r => r.valueExpr).join(", ");
+    const argValues = argResults.map((r) => r.valueExpr).join(", ");
     const chainedCall = argValues
       ? `${receiverResult.valueExpr}.${call.target}(${argValues})`
       : `${receiverResult.valueExpr}.${call.target}()`;
 
     return {
       setupLines: allSetupLines,
-      valueExpr: chainedCall
+      valueExpr: chainedCall,
     };
   }
 
   private transformArguments(args: IRExpression[]): EmitResult[] {
-    return args.map(arg => this.contractContext.emitExpression(arg));
+    return args.map((arg) => this.contractContext.emitExpression(arg));
   }
 
   private combineSetupLines(argResults: EmitResult[]): string[] {
@@ -103,19 +100,33 @@ export class CallTransformer extends Handler {
     // Check if this is a type-specific method
     const typeSpecificMethods = [
       // U256/I256 methods
-      "add", "sub", "mul", "div", "mod", "pow",
-      "lessThan", "greaterThan", "equals", "notEqual",
-      "lessThanOrEqual", "greaterThanOrEqual",
-      "toString", "copy",
+      "add",
+      "sub",
+      "mul",
+      "div",
+      "mod",
+      "pow",
+      "lessThan",
+      "greaterThan",
+      "equals",
+      "notEqual",
+      "lessThanOrEqual",
+      "greaterThanOrEqual",
+      "toString",
+      "copy",
 
-      // Address methods  
-      "isZero", "hasCode",
+      // Address methods
+      "isZero",
+      "hasCode",
 
       // String methods
-      "length", "slice",
+      "length",
+      "slice",
 
       // Factory methods
-      "create", "fromString", "fromU256"
+      "create",
+      "fromString",
+      "fromU256",
     ];
 
     if (typeSpecificMethods.includes(target)) {
@@ -125,7 +136,8 @@ export class CallTransformer extends Handler {
         const receiverReturnType = call.receiver.kind === "call" ? call.receiver.returnType : null;
 
         // If receiver is or returns a specific type, defer to specific transformer
-        return receiverType === AbiType.Uint256 ||
+        return (
+          receiverType === AbiType.Uint256 ||
           receiverType === AbiType.Int256 ||
           receiverType === AbiType.Address ||
           receiverType === AbiType.String ||
@@ -135,7 +147,10 @@ export class CallTransformer extends Handler {
           receiverReturnType === AbiType.String ||
           // Factory calls should also be deferred
           (call.receiver.kind === "var" &&
-            ["U256Factory", "I256Factory", "AddressFactory", "StrFactory"].includes(call.receiver.name || ""));
+            ["U256Factory", "I256Factory", "AddressFactory", "StrFactory"].includes(
+              call.receiver.name || "",
+            ))
+        );
       }
     }
 

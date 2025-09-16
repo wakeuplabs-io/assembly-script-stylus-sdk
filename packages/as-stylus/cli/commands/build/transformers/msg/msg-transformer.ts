@@ -4,8 +4,6 @@ import { ContractContext } from "@/transformers/core/contract-context.js";
 
 import { BaseTypeTransformer } from "../core/base-transformer.js";
 
-
-
 export class MsgTransformer extends BaseTypeTransformer {
   constructor(contractContext: ContractContext) {
     super(contractContext, "Msg");
@@ -22,45 +20,44 @@ export class MsgTransformer extends BaseTypeTransformer {
         return {
           setupLines: [],
           valueExpr: "Msg.sender()",
-          valueType: "Address"
+          valueType: "Address",
         };
       case "value":
         return {
           setupLines: [],
           valueExpr: "Msg.value()",
-          valueType: "U256"
+          valueType: "U256",
         };
       case "data":
         return {
           setupLines: [],
           valueExpr: "Msg.data()",
-          valueType: "bytes"
+          valueType: "bytes",
         };
       case "sig":
         return {
           setupLines: [],
           valueExpr: "Msg.sig()",
-          valueType: "bytes4"
+          valueType: "bytes4",
         };
       case "reentrant":
         return {
           setupLines: [],
           valueExpr: "Msg.reentrant()",
-          valueType: "U256"
+          valueType: "U256",
         };
       case "hasValue":
         return {
           setupLines: [],
           valueExpr: "Msg.hasValue()",
-          valueType: "boolean"
+          valueType: "boolean",
         };
       default:
         return {
           setupLines: [],
           valueExpr: `/* Unsupported msg property: ${expr.property} */`,
-          valueType: "unknown"
+          valueType: "unknown",
         };
     }
   }
 }
-

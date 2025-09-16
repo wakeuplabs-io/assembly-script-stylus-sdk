@@ -4,7 +4,6 @@ import { Call } from "@/cli/types/ir.types.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
 import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
-
 export class BooleanCopyHandler extends Handler {
   constructor(contractContext: ContractContext) {
     super(contractContext);
@@ -19,12 +18,9 @@ export class BooleanCopyHandler extends Handler {
     const dstPtr = makeTemp("boolCopy");
 
     return {
-      setupLines: [
-        ...srcArg.setupLines,
-        `const ${dstPtr}: boolean = ${srcArg.valueExpr};`
-      ],
+      setupLines: [...srcArg.setupLines, `const ${dstPtr}: boolean = ${srcArg.valueExpr};`],
       valueExpr: dstPtr,
       valueType: "boolean",
     };
   }
-} 
+}

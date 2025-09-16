@@ -14,8 +14,12 @@ function extractGenericType(call: CallExpression): string | undefined {
   return undefined;
 }
 
-
-export function buildArrayIR(target: string, call: CallExpression, args: IRExpression[], scope: "memory" | "storage"): IRExpression {
+export function buildArrayIR(
+  target: string,
+  call: CallExpression,
+  args: IRExpression[],
+  scope: "memory" | "storage",
+): IRExpression {
   // Handle StaticArrayFactory methods specifically
   if (target.startsWith("StaticArrayFactory.")) {
     const [_, methodName] = target.split(".");

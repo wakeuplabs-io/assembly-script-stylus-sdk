@@ -42,7 +42,7 @@ export class ExpressionHandler extends BaseTypeTransformer {
   private createTransformers(): Record<TransformerKind, Handler> {
     return {
       member: new MemberTransformer(this.contractContext),
-      "this": new ThisTransformer(this.contractContext),
+      this: new ThisTransformer(this.contractContext),
       call: new CallTransformer(this.contractContext),
       binary: new BinaryTransformer(this.contractContext),
       condition: new ConditionTransformer(this.contractContext),

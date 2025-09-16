@@ -4,7 +4,8 @@ import { BaseValidator } from "../shared/base-validator.js";
 
 // TODO: move to shared/error-messages.ts
 const ERROR_MESSAGES = {
-  CONDITION_NOT_BOOLEAN: (conditionType: string) => `If condition must be a boolean expression, got ${conditionType}`,
+  CONDITION_NOT_BOOLEAN: (conditionType: string) =>
+    `If condition must be a boolean expression, got ${conditionType}`,
   THEN_INVALID: "Then clause must be either a block statement or a single statement",
   ELSE_INVALID: "Else clause must be either a block statement or a single statement",
 } as const;
@@ -20,10 +21,12 @@ export class IfSyntaxValidator extends BaseValidator {
   }
 
   private isValidStatement(statement: Statement): boolean {
-    return statement.isKind(SyntaxKind.Block) || 
-           statement.isKind(SyntaxKind.ExpressionStatement) ||
-           statement.isKind(SyntaxKind.ReturnStatement) ||
-           statement.isKind(SyntaxKind.VariableStatement);
+    return (
+      statement.isKind(SyntaxKind.Block) ||
+      statement.isKind(SyntaxKind.ExpressionStatement) ||
+      statement.isKind(SyntaxKind.ReturnStatement) ||
+      statement.isKind(SyntaxKind.VariableStatement)
+    );
   }
 
   validate(): boolean {

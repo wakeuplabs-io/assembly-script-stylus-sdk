@@ -1,9 +1,14 @@
 import { BinaryExpression, Expression, SyntaxKind } from "ts-morph";
 
 import { AbiType } from "@/cli/types/abi.types.js";
-import { ComparisonOperator, IRCondition, IRExpression, IRExpressionBinary } from "@/cli/types/ir.types.js";
+import {
+  ComparisonOperator,
+  IRCondition,
+  IRExpression,
+  IRExpressionBinary,
+} from "@/cli/types/ir.types.js";
 
-import {  ConditionSyntaxValidator } from "./syntax-validator.js";
+import { ConditionSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { LiteralIRBuilder } from "../literal/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
@@ -24,9 +29,15 @@ export class ConditionExpressionIRBuilder extends IRBuilder<IRExpressionBinary |
   buildIR(): IRCondition {
     const isBinary = this.expression.getKind() === SyntaxKind.BinaryExpression;
     if (isBinary) {
-      const binaryExpression = this.expression.asKindOrThrow(SyntaxKind.BinaryExpression) as BinaryExpression;
-      const left = new ExpressionIRBuilder(binaryExpression.getLeft() as Expression).validateAndBuildIR() as IRExpression;
-      const right = new ExpressionIRBuilder(binaryExpression.getRight() as Expression).validateAndBuildIR() as IRExpression;
+      const binaryExpression = this.expression.asKindOrThrow(
+        SyntaxKind.BinaryExpression,
+      ) as BinaryExpression;
+      const left = new ExpressionIRBuilder(
+        binaryExpression.getLeft() as Expression,
+      ).validateAndBuildIR() as IRExpression;
+      const right = new ExpressionIRBuilder(
+        binaryExpression.getRight() as Expression,
+      ).validateAndBuildIR() as IRExpression;
 
       return {
         kind: "condition",
@@ -37,11 +48,21 @@ export class ConditionExpressionIRBuilder extends IRBuilder<IRExpressionBinary |
       } satisfies IRCondition;
     }
 
-    const isLiteral = this.expression.getKind() === SyntaxKind.TrueKeyword || this.expression.getKind() === SyntaxKind.FalseKeyword;
+    const isLiteral =
+      this.expression.getKind() === SyntaxKind.TrueKeyword ||
+      this.expression.getKind() === SyntaxKind.FalseKeyword;
     if (isLiteral) {
-      return { kind: "condition", left: new LiteralIRBuilder(this.expression).validateAndBuildIR(), type: AbiType.Bool } satisfies IRCondition;
+      return {
+        kind: "condition",
+        left: new LiteralIRBuilder(this.expression).validateAndBuildIR(),
+        type: AbiType.Bool,
+      } satisfies IRCondition;
     }
 
-    return { kind: "condition", left: new ExpressionIRBuilder(this.expression).validateAndBuildIR(), type: AbiType.Bool } satisfies IRCondition;
+    return {
+      kind: "condition",
+      left: new ExpressionIRBuilder(this.expression).validateAndBuildIR(),
+      type: AbiType.Bool,
+    } satisfies IRCondition;
   }
 }

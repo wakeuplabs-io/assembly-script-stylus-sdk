@@ -1,4 +1,3 @@
-
 import { Handler } from "@/cli/commands/build/transformers/core/base-abstract-handlers.js";
 import { ContractContext } from "@/cli/commands/build/transformers/core/contract-context.js";
 import { makeTemp } from "@/cli/commands/build/transformers/utils/temp-factory.js";
@@ -10,21 +9,19 @@ export class ErrorRevertHandler extends Handler {
 
   constructor(contractContext: ContractContext, errors: IRErrorDecl[]) {
     super(contractContext);
-    this.errorsMap = new Map(errors.map(e => [e.name, e]));
+    this.errorsMap = new Map(errors.map((e) => [e.name, e]));
   }
 
   canHandle(expr: IRExpression): boolean {
     return (
-      expr.kind === "call" &&
-      typeof expr.target === "string" &&
-      expr.target.endsWith(".revert")
+      expr.kind === "call" && typeof expr.target === "string" && expr.target.endsWith(".revert")
     );
   }
 
   handle(expr: Call): EmitResult {
     const errorName = expr.target.replace(/\.revert$/, "");
     const errorDecl = this.errorsMap.get(errorName);
-    
+
     if (!errorDecl) {
       return {
         setupLines: [],
@@ -44,7 +41,7 @@ export class ErrorRevertHandler extends Handler {
       setup.push(`abort_with_data(${errorDataTemp}, 4);`);
     } else {
       const argResults: string[] = [];
-      
+
       expr.args.forEach((arg: IRExpression) => {
         const argResult = this.contractContext.emitExpression(arg);
         setup.push(...argResult.setupLines);
@@ -53,8 +50,8 @@ export class ErrorRevertHandler extends Handler {
 
       const argsList = argResults.join(", ");
       setup.push(`const ${errorDataTemp}: usize = __create_error_data_${errorName}(${argsList});`);
-      
-      const totalSize = 4 + (errorDecl.fields.length * 32);
+
+      const totalSize = 4 + errorDecl.fields.length * 32;
       setup.push(`abort_with_data(${errorDataTemp}, ${totalSize});`);
     }
 
@@ -63,4 +60,4 @@ export class ErrorRevertHandler extends Handler {
       valueExpr: "/* Custom error reverted */",
     };
   }
-} 
+}

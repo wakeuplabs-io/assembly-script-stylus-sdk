@@ -167,7 +167,6 @@ function generateArrayReturnLogic(
   ].join(`\n${INDENTATION.BODY}`);
 }
 
-
 function generateStructReturnLogic(
   methodName: string,
   callArgs: Array<{ name: string }>,
@@ -319,7 +318,6 @@ function processContractMethods(contract: IRContract): CodeBlock {
     functions.push(structFunctions);
   });
 
-
   for (const method of contract.methods) {
     if (
       [Visibility.PUBLIC, Visibility.EXTERNAL, StateMutability.NONPAYABLE].includes(
@@ -394,7 +392,6 @@ function processFallbackAndReceive(contract: IRContract): {
 
   return { imports, fallbackEntry, receiveEntry };
 }
-
 
 function processConstructor(contract: IRContract): CodeBlock {
   if (!contract.constructor) {
