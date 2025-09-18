@@ -33,17 +33,32 @@ export class EventIRBuilder extends IRBuilder<IREvent> {
     return { indexed };
   }
 
+  private getEventParamsDefinition(definition: string) {
+    const fields = definition.split("<")[1]?.split(">")[0]?.replace(/[[\]]/g, "").split(",");
+
+    return fields.reduce<{ name: string; type: string }[]>((acc, field) => {
+      const [name, type] = field.split(":").map((s) => s.trim());
+
+      acc.push({ name: name.trim(), type: type.trim() });
+      return acc;
+    }, []);
+  }
+
   buildIR(): IREvent {
     const initializer = this.eventVariable.getInitializer() as CallExpression;
     const args = initializer.getArguments();
     const { indexed } = this.parseEventConfig(args[0] as ObjectLiteralExpression);
 
     const fields: IREventField[] = [];
+    const fieldsDefined = this.getEventParamsDefinition(initializer.getText());
+
 
     indexed.forEach((isIndexed, index) => {
+      const field = fieldsDefined[index];
+
       fields.push({
-        name: `arg${index}`,
-        type: "any",
+        name: field.name,
+        type: field.type,
         indexed: isIndexed || false,
       });
     });
