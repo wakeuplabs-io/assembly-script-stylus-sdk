@@ -7,7 +7,7 @@ import {
   U256,
   U256Factory,
   msg,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 const ERC721InvalidOwner = ErrorFactory.create<[owner: Address]>();
 const ERC721NonexistentToken = ErrorFactory.create<[tokenId: U256]>();

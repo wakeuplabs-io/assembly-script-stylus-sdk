@@ -12,7 +12,7 @@ import {
   CallFactory,
   msg,
   block,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class CallsContract {

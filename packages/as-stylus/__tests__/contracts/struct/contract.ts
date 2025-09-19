@@ -10,7 +10,7 @@ import {
   U256Factory,
   StructTemplate,
   Struct,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 @StructTemplate
 export class StructTest {

@@ -54,7 +54,7 @@ my-counter/
 Edit `contract.ts`:
 
 ```typescript
-import { Contract, External, U256, U256Factory, View } from "as-stylus";
+import { Contract, External, U256, U256Factory, View } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class Counter {

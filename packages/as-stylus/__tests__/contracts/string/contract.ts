@@ -1,4 +1,4 @@
-import { Contract, External, Str, StrFactory, U256, View } from "as-stylus";
+import { Contract, External, Str, StrFactory, U256, View } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class StringStorage {
