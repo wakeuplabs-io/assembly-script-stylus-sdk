@@ -14,7 +14,7 @@ export class I256OperationHandler extends Handler {
    */
   canHandle(expr: Call): boolean {
     const target = expr.target || "";
-    
+
     // Handle new receiver-based IR structure
     if (expr.receiver) {
       return (
@@ -30,7 +30,7 @@ export class I256OperationHandler extends Handler {
         target === "modUnchecked"
       );
     }
-    
+
     // Handle legacy hybrid targets (for backward compatibility)
     return (
       target.endsWith(".add") ||
@@ -52,16 +52,17 @@ export class I256OperationHandler extends Handler {
   handle(expr: Call): EmitResult {
     let operation: string;
     let receiverExpr: string;
-    
+
     // Handle new receiver-based IR structure
     if (expr.receiver) {
       // Transform the receiver (e.g., variable, nested call)
       const receiverResult = this.contractContext.emitExpression(expr.receiver);
-      receiverExpr = receiverResult.setupLines.length > 0 
-        ? receiverResult.setupLines.join('\n') + '\n' + receiverResult.valueExpr
-        : receiverResult.valueExpr;
-        
-      // Use the target directly as operation name  
+      receiverExpr =
+        receiverResult.setupLines.length > 0
+          ? receiverResult.setupLines.join("\n") + "\n" + receiverResult.valueExpr
+          : receiverResult.valueExpr;
+
+      // Use the target directly as operation name
       operation = expr.target;
     } else {
       // Handle legacy hybrid targets (backward compatibility)
@@ -75,10 +76,12 @@ export class I256OperationHandler extends Handler {
     // Handle contract property operations differently
     if (expr.scope === "storage") {
       // For storage operations with receiver structure, we need to extract the property name
-      const propName = expr.receiver ? 
-        (expr.receiver.kind === "var" ? expr.receiver.name : receiverExpr) :
-        receiverExpr.split('.')[0];
-        
+      const propName = expr.receiver
+        ? expr.receiver.kind === "var"
+          ? expr.receiver.name
+          : receiverExpr
+        : receiverExpr.split(".")[0];
+
       return {
         setupLines: [...argRes.setupLines],
         valueExpr: `I256.${operation}(load_${propName}(), ${argRes.valueExpr})`,

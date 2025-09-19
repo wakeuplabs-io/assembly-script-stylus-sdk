@@ -16,6 +16,7 @@ const TEST_ADDRESS = "0x1234567890123456789012345678901234567890" as Address;
 const TEST_U256 = 42n;
 const TEST_U256_2 = 100n;
 const TEST_STRING = "Hello World!";
+const TEST_LONG_STRING = "This is a long string that is longer than 32 bytes";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as Address;
 
 // Test state
@@ -121,8 +122,6 @@ describe("Struct Contract Tests", () => {
     });
 
     it("should handle empty and long strings", async () => {
-      const LONG_STRING = "abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()";
-
       // Test empty string
       await contract.write(walletClient, "setStruct", [
         TEST_ADDRESS,
@@ -138,14 +137,37 @@ describe("Struct Contract Tests", () => {
       // Test long string
       await contract.write(walletClient, "setStruct", [
         TEST_ADDRESS,
-        LONG_STRING,
+        TEST_LONG_STRING,
         TEST_U256,
         true,
         TEST_U256_2,
       ]);
 
       contents = (await contract.read("getStructContents", [])) as string;
-      expect(contents).toBe(LONG_STRING);
+      expect(contents).toBe(TEST_LONG_STRING);
+    });
+
+    it("should get struct info", async () => {
+      await contract.write(walletClient, "setStruct", [
+        TEST_ADDRESS,
+        TEST_LONG_STRING,
+        TEST_U256,
+        true,
+        TEST_U256_2,
+      ]);
+
+      const info = (await contract.read("getInfo", [])) as {
+        to: Address;
+        contents: string;
+        value: bigint;
+        flag: boolean;
+        value2: bigint;
+      };
+      expect(info.to).toBe(TEST_ADDRESS);
+      expect(info.contents).toBe(TEST_LONG_STRING);
+      expect(info.value).toBe(TEST_U256);
+      expect(info.flag).toBe(true);
+      expect(info.value2).toBe(TEST_U256_2);
     });
   });
 
@@ -161,7 +183,6 @@ describe("Struct Contract Tests", () => {
     });
 
     it("should perform memory operations correctly using individual field methods", async () => {
-      // Use the new helper methods that work around struct ABI return issues
       const to = (await contract.read("getProcessedStructTo", [])) as Address;
       const contents = (await contract.read("getProcessedStructContents", [])) as string;
       const value = (await contract.read("getProcessedStructValue", [])) as bigint;
@@ -170,9 +191,9 @@ describe("Struct Contract Tests", () => {
 
       expect(to.toLowerCase()).toBe(TEST_ADDRESS.toLowerCase());
       expect(contents).toBe(TEST_STRING);
-      expect(value).toBe(TEST_U256 + 1n); // Original value + 1 (delta)
+      expect(value).toBe(TEST_U256 + 1n);
       expect(flag).toBe(true);
-      expect(value2).toBe(TEST_U256); // Set to original value (tempValue)
+      expect(value2).toBe(TEST_U256);
     });
 
     it("should handle empty string in memory operations", async () => {
@@ -186,15 +207,19 @@ describe("Struct Contract Tests", () => {
     });
 
     it("should handle long string in memory operations", async () => {
-      const long =
-        "This is a very long string that exceeds thirty-two characters and should test padding";
-      await contract.write(walletClient, "setStruct", [TEST_ADDRESS, long, 123n, true, 456n]);
+      await contract.write(walletClient, "setStruct", [
+        TEST_ADDRESS,
+        TEST_LONG_STRING,
+        123n,
+        true,
+        456n,
+      ]);
 
       const value = (await contract.read("getProcessedStructValue", [])) as bigint;
       const contents = (await contract.read("getProcessedStructContents", [])) as string;
 
       expect(value).toBe(124n); // 123 + 1
-      expect(contents).toBe(long);
+      expect(contents).toBe(TEST_LONG_STRING);
     });
 
     it("should handle zero values in memory operations", async () => {

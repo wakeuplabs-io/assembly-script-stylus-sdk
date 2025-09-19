@@ -1,9 +1,8 @@
+import { AbiType } from "@/cli/types/abi.types.js";
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call, IRExpression, IRStruct, Member } from "@/cli/types/ir.types.js";
 import { Handler } from "@/transformers/core/base-abstract-handlers.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
-
-import { getStructInfoFromVariableName } from "../../../analyzers/struct/struct-utils.js";
 
 export class StructFieldAccessHandler extends Handler {
   private structs: Map<string, IRStruct>;
@@ -14,17 +13,12 @@ export class StructFieldAccessHandler extends Handler {
   }
 
   canHandle(expr: Call | Member): boolean {
-    return (
-      expr.kind === "member" &&
-      !!expr.object &&
-      !!expr.property &&
-      this.isStructAccess(expr)
-    );
+    return expr.kind === "member" && !!expr.object && !!expr.property && this.isStructAccess(expr);
   }
 
   handle(expr: Member): EmitResult {
     const objectResult = this.contractContext.emitExpression(expr.object);
-    
+
     const structInfo = this.getStructInfo(expr.object);
 
     if (!structInfo.isStruct || !structInfo.structName) {
@@ -36,10 +30,11 @@ export class StructFieldAccessHandler extends Handler {
     }
 
     const struct = this.structs.get(structInfo.structName);
+
     if (!struct) {
       return {
         setupLines: [...objectResult.setupLines],
-        valueExpr: `/* Unknown struct type: ${structInfo.structName} */`,
+        valueExpr: `/* Unknown struct type at access time: ${structInfo.structName} */`,
         valueType: "usize",
       };
     }
@@ -83,24 +78,12 @@ export class StructFieldAccessHandler extends Handler {
     structName?: string;
     variableName?: string;
   } {
-    if (objectExpr.kind === "var") {
-      const variableName = objectExpr.name;
-
-      const storageInfo = getStructInfoFromVariableName(variableName);
-      if (storageInfo.isStruct) {
-        return storageInfo;
-      }
-
-      if (objectExpr.type === "struct") {
-        const structNames = Array.from(this.structs.keys());
-        if (structNames.length > 0) {
-          return {
-            isStruct: true,
-            structName: structNames[0],
-            variableName,
-          };
-        }
-      }
+    if (objectExpr.kind === "var" && objectExpr.type === AbiType.Struct) {
+      return {
+        isStruct: true,
+        structName: objectExpr.originalType ?? "",
+        variableName: objectExpr.name,
+      };
     }
 
     return { isStruct: false };

@@ -23,8 +23,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     step: "Step 4: Deploy to Arbitrum",
-    description: "Deploy your contract to Arbitrum Sepolia testnet. The system will securely prompt for your wallet's private key (no need to expose it in the command).",
-    command: "npx @wakeuplabs/as-stylus deploy contract.ts --endpoint https://sepolia-rollup.arbitrum.io/rpc --constructor-args \"MyToken\" \"MYT\"",
-    hint: "Your private key will be requested securely during deployment (similar to sudo password prompt)",
+    description: "Deploy your contract to Arbitrum Sepolia testnet. You can provide your private key via --private-key parameter or the system will securely prompt for it.",
+    command: "npx @wakeuplabs/as-stylus deploy contract.ts --endpoint https://sepolia-rollup.arbitrum.io/rpc --constructor-args \"MyToken\" \"MYT\" --private-key YOUR_PRIVATE_KEY",
+    hint: "Alternative: Remove --private-key to be prompted securely (recommended for production)",
   },
 ]

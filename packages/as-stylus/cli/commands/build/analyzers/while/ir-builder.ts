@@ -28,23 +28,21 @@ export class WhileIRBuilder extends IRBuilder<IRStatement> {
   private processBlock<T extends TSStatement>(blockStatement: T): IRStatement[] {
     const block = blockStatement.asKind(SyntaxKind.Block);
     let statements: TSStatement[] = [];
-    
+
     if (block) {
       statements = block.getStatements();
     } else {
       statements = [blockStatement];
     }
 
-    return statements.map((stmt) => 
-      new StatementIRBuilder(stmt).validateAndBuildIR()
-    );
+    return statements.map((stmt) => new StatementIRBuilder(stmt).validateAndBuildIR());
   }
 
   buildIR(): IRStatement {
     // Process condition (required)
     const condition = this.statement.getExpression();
     let conditionIR: IRCondition | IRExpression;
-    
+
     // Try to build as condition first, fall back to expression
     try {
       conditionIR = new ConditionExpressionIRBuilder(condition).validateAndBuildIR() as IRCondition;
@@ -63,4 +61,4 @@ export class WhileIRBuilder extends IRBuilder<IRStatement> {
 
     return whileIR;
   }
-} 
+}

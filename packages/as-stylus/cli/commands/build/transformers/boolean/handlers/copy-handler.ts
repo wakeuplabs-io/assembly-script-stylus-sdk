@@ -4,7 +4,6 @@ import { Call } from "@/cli/types/ir.types.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
 import { makeTemp } from "@/transformers/utils/temp-factory.js";
 
-
 export class BooleanCopyHandler extends Handler {
   constructor(contractContext: ContractContext) {
     super(contractContext);
@@ -18,18 +17,10 @@ export class BooleanCopyHandler extends Handler {
     const srcArg = this.contractContext.emitExpression(expr.args[0]);
     const dstPtr = makeTemp("boolCopy");
 
-    // Use create for direct boolean values (from function parameters)
-    // Use copyNew for pointer-based booleans (from memory/storage)
-    // Cast usize to u8 since entrypoint passes everything as usize
-    const copyMethod = "Boolean.create";
-
     return {
-      setupLines: [
-        ...srcArg.setupLines,
-        `const ${dstPtr}: usize = ${copyMethod}(${srcArg.valueExpr});`
-      ],
+      setupLines: [...srcArg.setupLines, `const ${dstPtr}: boolean = ${srcArg.valueExpr};`],
       valueExpr: dstPtr,
       valueType: "boolean",
     };
   }
-} 
+}

@@ -83,4 +83,40 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/expert-counter"),
     abi: path.join(ROOT_PATH, "/expert-counter/artifacts/abi/contract-abi.json"),
   },
+  CALLS: {
+    contract: path.join(ROOT_PATH, "/calls"),
+    abi: path.join(ROOT_PATH, "/calls/artifacts/abi/contract-abi.json"),
+  },
+  WHILE: {
+    contract: path.join(ROOT_PATH, "/while"),
+    abi: path.join(ROOT_PATH, "/while/artifacts/abi/contract-abi.json"),
+  },
+  NEW_STRUCT: {
+    contract: path.join(ROOT_PATH, "/new-struct"),
+    abi: path.join(ROOT_PATH, "/new-struct/artifacts/abi/contract-abi.json"),
+  },
+  FALLBACK_RECEIVE: {
+    contract: path.join(ROOT_PATH, "/fallback-receive"),
+    abi: path.join(ROOT_PATH, "/fallback-receive/artifacts/abi/contract-abi.json"),
+  },
+  FALLBACK_ONLY: {
+    contract: path.join(ROOT_PATH, "/fallback-receive"),
+    abi: path.join(ROOT_PATH, "/fallback-receive/artifacts/abi/fallback_only-abi.json"),
+  },
+  RECEIVE_ONLY: {
+    contract: path.join(ROOT_PATH, "/fallback-receive"),
+    abi: path.join(ROOT_PATH, "/fallback-receive/artifacts/abi/receive_only-abi.json"),
+  },
+  RECEIVE_FALLBACK_REVERSE: {
+    contract: path.join(ROOT_PATH, "/fallback-receive"),
+    abi: path.join(ROOT_PATH, "/fallback-receive/artifacts/abi/receive_fallback_reverse-abi.json"),
+  },
+  NO_FALLBACK_NO_RECEIVE: {
+    contract: path.join(ROOT_PATH, "/fallback-receive"),
+    abi: path.join(ROOT_PATH, "/fallback-receive/artifacts/abi/no_fallback_no_receive-abi.json"),
+  },
+  ARRAYS: {
+    contract: path.join(ROOT_PATH, "/arrays"),
+    abi: path.join(ROOT_PATH, "/arrays/artifacts/abi/contract-abi.json"),
+  },
 } as const;

@@ -22,7 +22,7 @@ export class UnaryExpressionIRBuilder extends IRBuilder<IRExpression> {
   private getUnaryOp(): string {
     // Get the operator from the prefix unary expression
     const operatorKind = this.expression.getOperatorToken();
-    
+
     if (operatorKind === SyntaxKind.ExclamationToken) {
       return "!";
     } else if (operatorKind === SyntaxKind.MinusToken) {
@@ -45,12 +45,11 @@ export class UnaryExpressionIRBuilder extends IRBuilder<IRExpression> {
   }
 
   buildIR(): IRUnaryExpression {
-    
     // Get the operand expression and build it recursively
     const operandExpression = this.expression.getOperand();
     const expressionBuilder = new ExpressionIRBuilder(operandExpression);
     const expr = expressionBuilder.validateAndBuildIR();
-    
+
     const op = this.getUnaryOp();
     const type = this.getUnaryType(op);
 
@@ -62,4 +61,4 @@ export class UnaryExpressionIRBuilder extends IRBuilder<IRExpression> {
       returnType: AbiType.Bool,
     };
   }
-} 
+}

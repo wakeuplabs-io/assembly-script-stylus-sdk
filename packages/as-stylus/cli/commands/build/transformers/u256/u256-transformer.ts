@@ -12,7 +12,6 @@ import { U256CreateHandler } from "./handlers/create-handler.js";
 import { U256FromStringHandler } from "./handlers/from-string-handler.js";
 import { U256FunctionCallHandler } from "./handlers/function-call-handler.js";
 import { U256OperationHandler } from "./handlers/operation-handler.js";
-import { U256ToStringHandler } from "./handlers/to-string-handler.js";
 
 /**
  * **U256 Type Transformer**
@@ -71,7 +70,6 @@ export class U256Transformer extends BaseTypeTransformer {
     this.registerHandler(new U256FromStringHandler(contractContext));
     this.registerHandler(new U256OperationHandler(contractContext));
     this.registerHandler(new U256ComparisonHandler(contractContext));
-    this.registerHandler(new U256ToStringHandler(contractContext));
     this.registerHandler(new U256FunctionCallHandler(contractContext));
   }
 
@@ -102,7 +100,6 @@ export class U256Transformer extends BaseTypeTransformer {
 
     const target = expr.target || "";
 
-    // PRIORITY: Chained factory calls (modern receiver structure)
     if (expr.receiver && expr.receiver.kind === "call") {
       const receiverTarget = expr.receiver.target || "";
       const receiverReceiver = expr.receiver.receiver;
@@ -126,18 +123,32 @@ export class U256Transformer extends BaseTypeTransformer {
         ];
         return u256ChainableMethods.includes(target as MethodName);
       }
+
+      // GENERAL CASE: Any chained call where receiver returns uint256
+      if (expr.receiver.returnType === AbiType.Uint256 || expr.receiver.type === AbiType.Uint256) {
+        const u256ChainableMethods = [
+          MethodName.Add,
+          MethodName.Sub,
+          MethodName.Mul,
+          MethodName.Div,
+          MethodName.Mod,
+          MethodName.Pow,
+          MethodName.LessThan,
+          MethodName.GreaterThan,
+          MethodName.Equals,
+          MethodName.ToString,
+        ];
+        return u256ChainableMethods.includes(target as MethodName);
+      }
     }
 
-    // Factory methods with receiver structure (modern)
+    // Handle U256Factory methods with receiver
     if ((target === MethodName.Create || target === MethodName.FromString) && expr.receiver) {
-      // Check if receiver is U256Factory
       if (expr.receiver.kind === "var" && expr.receiver.name === "U256Factory") {
         return true;
       }
     }
 
-    // Check returnType first - most reliable indicator
-    // But exclude expressions that belong to structs
     if (expr.returnType === AbiType.Uint256) {
       if (expr.originalType || target.includes("_get_") || target.includes("_set_")) {
         return false;
@@ -150,7 +161,6 @@ export class U256Transformer extends BaseTypeTransformer {
     }
 
     if (target.includes(".") || expr.receiver) {
-      // Type exclusion: Prevent conflicts with other transformers
       if (
         target.startsWith("boolean.") ||
         target.startsWith("address.") ||
@@ -173,6 +183,7 @@ export class U256Transformer extends BaseTypeTransformer {
         ...METHOD_GROUPS.COMPARISON,
         MethodName.ToString,
         "copy",
+        "toI32",
       ];
 
       if (u256Methods.includes(methodName)) {
@@ -181,7 +192,10 @@ export class U256Transformer extends BaseTypeTransformer {
           const hasU256Return =
             (expr.returnType as AbiType) === AbiType.Uint256 ||
             (expr.returnType as AbiType) === AbiType.Bool;
-
+          // TODO: check if this is needed
+          // if (arg.type === AbiType.Uint256) {
+          //   return true;
+          // }
           return hasU256Receiver || hasU256Return;
         }
 

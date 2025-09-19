@@ -1,5 +1,6 @@
+import { Address } from "./address";
+import { Boolean } from "./boolean";
 import { Str } from "./str";
-import { storeU32BE, loadU32BE } from "../modules/endianness";
 import {
   storage_load_bytes32,
   storage_cache_bytes32,
@@ -8,6 +9,7 @@ import {
 import { malloc } from "../modules/memory";
 import { createStorageKey } from "../modules/storage";
 
+// TODO: convert it to StructStorage
 export class Struct {
   /**
    * Allocates and zero-initializes memory for a struct
@@ -28,16 +30,6 @@ export class Struct {
    */
   static copy(d: usize, s: usize, sz: u32): void {
     memory.copy(d, s, sz);
-  }
-
-  /**
-   * Gets a pointer to a field within a struct
-   * @param ptr - Base struct pointer
-   * @param off - Field offset in bytes
-   * @returns Pointer to the field
-   */
-  static getField(ptr: usize, off: u32): usize {
-    return ptr + off;
   }
 
   /**
@@ -67,13 +59,18 @@ export class Struct {
 
   /**
    * Sets an address field in a struct and stores to storage
-   * @param p - Struct pointer
-   * @param v - Address value pointer
    * @param slot - Storage slot identifier
+   * @param v - Address value pointer
    */
-  static setAddress(p: usize, v: usize, slot: u64): void {
-    for (let i = 0; i < 32; i++) store<u8>(p + i, load<u8>(v + i));
-    storage_cache_bytes32(createStorageKey(slot), p);
+  static setAddress(slot: u64, v: usize): void {
+    storage_cache_bytes32(createStorageKey(slot), v);
+    storage_flush_cache(0);
+  }
+
+  static getAddress(slot: u64): usize {
+    const out = malloc(32);
+    storage_load_bytes32(createStorageKey(slot), out);
+    return Address.copyNew(out);
   }
 
   /**
@@ -82,10 +79,8 @@ export class Struct {
    * @param strObj - String object pointer
    * @param slot - Storage slot identifier
    */
-  static setString(ptr: usize, strObj: usize, slot: u64): void {
+  static setString(slot: u64, strObj: usize): void {
     Str.storeTo(slot, strObj);
-    for (let i = 0; i < 32; i++) store<u8>(ptr + i, 0);
-    storeU32BE(ptr + 28, strObj as u32);
   }
 
   /**
@@ -109,55 +104,12 @@ export class Struct {
   }
 
   /**
-   * Encodes a struct with dynamic data for ABI compatibility
-   * @param structPtr - Base struct pointer (modified in place)
-   * @param stringFieldOffset - Offset of string field in the struct
-   * @param stringABIBlob - Pointer to ABI-encoded string data
-   * @returns Total size of the encoded struct
-   */
-  static encodeStructForABI(structPtr: usize, stringFieldOffset: u32, stringABIBlob: usize): u32 {
-    const baseSize: u32 = 160;
-
-    for (let i = 0; i < 32; i++) store<u8>(structPtr + stringFieldOffset + i, 0);
-    storeU32BE(structPtr + stringFieldOffset + 28, baseSize);
-
-    const strLen: u32 = loadU32BE(stringABIBlob + 0x20 + 28);
-    const paddedLen = (strLen + 31) & ~31;
-
-    const stringDataPtr = structPtr + baseSize;
-    for (let i = 0; i < 32; i++) store<u8>(stringDataPtr + i, 0);
-    storeU32BE(stringDataPtr + 28, strLen);
-
-    const stringContentPtr = stringDataPtr + 32;
-    for (let i: u32 = 0; i < paddedLen; i++) {
-      store<u8>(stringContentPtr + i, load<u8>(stringABIBlob + 0x40 + i));
-    }
-
-    return baseSize + 32 + paddedLen;
-  }
-
-  /**
    * Retrieves a string from storage and converts to ABI format
    * @param slot - Storage slot identifier
    * @returns Pointer to ABI-encoded string data
    */
   static getString(slot: u64): usize {
-    const strObj = Str.loadFrom(slot);
-    return Str.toABI(strObj);
-  }
-
-  /**
-   * Gets a string from a struct field and converts to ABI format
-   * @param ptr - Struct pointer
-   * @param offset - Field offset in the struct
-   * @returns Pointer to ABI-encoded string data, or 0 if null
-   */
-  static getStringFromField(ptr: usize, offset: u32): usize {
-    const stringPtr = load<usize>(ptr + offset);
-    if (stringPtr != 0) {
-      return Str.rawStringToABI(stringPtr);
-    }
-    return 0;
+    return Str.loadFrom(slot);
   }
 
   /**
@@ -176,9 +128,9 @@ export class Struct {
    * @param slot - Storage slot identifier
    * @returns Pointer to the retrieved boolean value
    */
-  static getBoolean(slot: u64): usize {
+  static getBoolean(slot: u64): boolean {
     const out = malloc(32);
     storage_load_bytes32(createStorageKey(slot), out);
-    return out;
+    return Boolean.fromABI(out);
   }
 }

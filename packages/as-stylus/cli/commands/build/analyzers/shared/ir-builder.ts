@@ -2,16 +2,19 @@ import { Node } from "ts-morph";
 
 import { AnalysisContextFactory } from "./analysis-context-factory.js";
 import { ErrorManager } from "./error-manager.js";
+import { SlotManager } from "./slot-manager.js";
 import { SymbolTableStack } from "./symbol-table.js";
 
 export abstract class IRBuilder<TResult> {
   public readonly errorManager: ErrorManager;
   public readonly symbolTable: SymbolTableStack;
+  public readonly slotManager: SlotManager;
 
   constructor(node: Node) {
     const id = node.getSourceFile().getBaseNameWithoutExtension();
     this.errorManager = AnalysisContextFactory.getContext(id).getErrorManager();
     this.symbolTable = AnalysisContextFactory.getContext(id).getSymbolTable();
+    this.slotManager = AnalysisContextFactory.getContext(id).getSlotManager();
   }
 
   protected abstract validate(): boolean;

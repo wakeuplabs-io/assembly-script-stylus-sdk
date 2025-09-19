@@ -43,5 +43,50 @@ export function buildU256IR(
     } satisfies IRCondition;
   }
 
-  return { kind: "call", target, args, type: AbiType.Function, returnType: AbiType.Uint256, scope };
+  if (varName === "U256Factory") {
+    return {
+      kind: "call" as const,
+      target: operation,
+      args,
+      type: AbiType.Function,
+      returnType: AbiType.Uint256,
+      scope,
+      receiver: {
+        kind: "var" as const,
+        name: "U256Factory",
+        type: AbiType.Function,
+        scope: "memory" as const,
+      },
+    };
+  }
+
+  // For all other U256 operations (like variable.add), parse receiver and method separately
+  const parts = target.split(".");
+  if (parts.length === 2) {
+    const receiverName = parts[0];
+    const methodName = parts[1];
+    return {
+      kind: "call",
+      target: methodName, // Just the method name
+      args,
+      type: AbiType.Function,
+      returnType: AbiType.Uint256,
+      scope,
+      receiver: {
+        kind: "var" as const,
+        name: receiverName,
+        type: AbiType.Uint256,
+        scope: scope as "memory" | "storage",
+      },
+    };
+  }
+  // Fallback for patterns we don't understand
+  return {
+    kind: "call",
+    target: target,
+    args,
+    type: AbiType.Function,
+    returnType: AbiType.Uint256,
+    scope,
+  };
 }

@@ -13,6 +13,7 @@ import { Logger } from "@/cli/services/logger.js";
 import { AbiType } from "@/cli/types/abi.types.js";
 import { IRExpression } from "@/cli/types/ir.types.js";
 
+import { buildVariableIR } from "./variable.js";
 import { BinaryExpressionIRBuilder } from "../binary-expression/ir-builder.js";
 import { CallFunctionIRBuilder } from "../call-function/ir-builder.js";
 import { ChainedCallAnalyzer } from "../chained-call/ir-builder.js";
@@ -51,16 +52,11 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
 
       /* ---------- Variables ---------- */
       // Example: counter, value, amount
+      case SyntaxKind.ThisKeyword: {
+        return { kind: "this", type: AbiType.Void };
+      }
       case SyntaxKind.Identifier: {
-        const id = this.expression as Identifier;
-        const [name] = id.getText().split(".");
-        const variable = this.symbolTable.lookup(name);
-        return {
-          kind: "var",
-          name: id.getText(),
-          type: variable?.type ?? AbiType.Void,
-          scope: variable?.scope ?? "memory",
-        };
+        return buildVariableIR(this.expression as Identifier, this.symbolTable);
       }
 
       /* ---------- Function calls ---------- */
@@ -82,9 +78,114 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
       // For method access obj.prop, this is a PropertyAccessExpression
       // For property access obj["prop"], this is an ElementAccessExpression
       case SyntaxKind.PropertyAccessExpression: {
+        const count = this.expression.getText().split(".").length;
+        if (this.expression.getText().startsWith("this.") && count === 2) {
+          return buildVariableIR(this.expression as Identifier, this.symbolTable);
+        }
+
         // Example: contract.balance, u256value.toString()
         const member = new MemberIRBuilder(this.expression as PropertyAccessExpression);
         return member.validateAndBuildIR();
+      }
+
+      /* ---------- Array access ---------- */
+      // Example: array[index]
+      case SyntaxKind.ElementAccessExpression: {
+        const elementAccess = this.expression as any;
+
+        const arrayExpr = elementAccess.getExpression();
+        const indexExpr = elementAccess.getArgumentExpression();
+
+        const arrayIR = new ExpressionIRBuilder(arrayExpr).validateAndBuildIR();
+        const indexIR = new ExpressionIRBuilder(indexExpr).validateAndBuildIR();
+
+        let resultType = AbiType.Unknown;
+
+        if (arrayIR.kind === "var" && arrayIR.scope === "storage") {
+          const arrayVar = this.symbolTable.lookup(arrayIR.name);
+
+          if (arrayVar?.dynamicType?.includes("[")) {
+            const elementTypeMatch = arrayVar.dynamicType.match(/^([^[]+)/);
+            if (elementTypeMatch) {
+              const elementTypeName = elementTypeMatch[1];
+
+              switch (elementTypeName) {
+                case "U256":
+                  resultType = AbiType.Uint256;
+                  break;
+                case "I256":
+                  resultType = AbiType.Int256;
+                  break;
+                case "Address":
+                  resultType = AbiType.Address;
+                  break;
+                default:
+                  resultType = AbiType.Unknown;
+              }
+            }
+          }
+        }
+
+        if (arrayIR.kind === "var" && arrayIR.scope === "memory") {
+          const arrayVar = this.symbolTable.lookup(arrayIR.name);
+
+          if (arrayVar?.type === AbiType.ArrayDynamic || arrayVar?.type === AbiType.ArrayStatic) {
+            if (arrayVar.dynamicType?.includes("[")) {
+              const elementTypeMatch = arrayVar.dynamicType.match(/^([^[]+)/);
+              if (elementTypeMatch) {
+                const elementTypeName = elementTypeMatch[1];
+
+                switch (elementTypeName) {
+                  case "U256":
+                    resultType = AbiType.Uint256;
+                    break;
+                  case "I256":
+                    resultType = AbiType.Int256;
+                    break;
+                  case "Address":
+                    resultType = AbiType.Address;
+                    break;
+                  case "String":
+                    resultType = AbiType.String;
+                    break;
+                  default:
+                    resultType = AbiType.Unknown;
+                }
+              }
+            }
+          }
+        }
+
+        const arrayAccessIR: IRExpression = {
+          kind: "array_access",
+          array: arrayIR,
+          index: indexIR,
+          type: resultType,
+        };
+
+        return arrayAccessIR;
+      }
+
+      /* ---------- Array literals ---------- */
+      // Example: [a, b, c] or []
+      case SyntaxKind.ArrayLiteralExpression: {
+        const arrayLiteral = this.expression as any; // ArrayLiteralExpression type
+
+        const elements = arrayLiteral.getElements();
+
+        const elementIRs: IRExpression[] = [];
+        for (const element of elements) {
+          const elementIR = new ExpressionIRBuilder(element).validateAndBuildIR();
+          elementIRs.push(elementIR);
+        }
+
+        const arrayLiteralIR: IRExpression = {
+          kind: "array_literal",
+          elements: elementIRs,
+          type: AbiType.Array,
+        };
+
+        return arrayLiteralIR;
       }
 
       case SyntaxKind.BinaryExpression: {
@@ -105,7 +206,6 @@ export class ExpressionIRBuilder extends IRBuilder<IRExpression> {
         const whenTrue = new ExpressionIRBuilder(conditional.getWhenTrue()).validateAndBuildIR();
         const whenFalse = new ExpressionIRBuilder(conditional.getWhenFalse()).validateAndBuildIR();
 
-        // For now, return a simple representation (TODO: implement proper conditional IR)
         return {
           kind: "call",
           target: "conditional",

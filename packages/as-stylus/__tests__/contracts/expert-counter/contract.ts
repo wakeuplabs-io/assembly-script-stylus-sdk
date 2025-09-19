@@ -1,69 +1,78 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import {
+  Contract,
+  External,
+  I256,
+  I256Factory,
+  U256,
+  U256Factory,
+  View,
+} from "@wakeuplabs/as-stylus";
+
 @Contract
 export class ExpertCounter {
-  static unsignedCounter: U256;
-  static signedCounter: I256;
+  unsignedCounter: U256;
+  signedCounter: I256;
 
-  static maxIterations: U256;
-  static stepSize: U256;
-  static negativeStepSize: I256;
+  maxIterations: U256;
+  stepSize: U256;
+  negativeStepSize: I256;
 
   constructor() {
-    unsignedCounter = U256Factory.create();
-    signedCounter = I256Factory.create();
+    this.unsignedCounter = U256Factory.create();
+    this.signedCounter = I256Factory.create();
 
-    maxIterations = U256Factory.fromString("10");
-    stepSize = U256Factory.fromString("1");
-    negativeStepSize = I256Factory.fromString("-1");
+    this.maxIterations = U256Factory.fromString("10");
+    this.stepSize = U256Factory.fromString("1");
+    this.negativeStepSize = I256Factory.fromString("-1");
   }
 
   @External
-  static setCounters(unsignedValue: U256, signedValue: I256): void {
-    unsignedCounter = unsignedValue;
-    signedCounter = signedValue;
+  setCounters(unsignedValue: U256, signedValue: I256): void {
+    this.unsignedCounter = unsignedValue;
+    this.signedCounter = signedValue;
   }
 
   @External
-  static setConfiguration(maxIter: U256, step: U256, negStep: I256): void {
-    maxIterations = maxIter;
-    stepSize = step;
-    negativeStepSize = negStep;
+  setConfiguration(maxIter: U256, step: U256, negStep: I256): void {
+    this.maxIterations = maxIter;
+    this.stepSize = step;
+    this.negativeStepSize = negStep;
   }
 
   @External
-  static tripleIncrement(): void {
+  tripleIncrement(): void {
     let iterator = U256Factory.create();
     const three = U256Factory.fromString("3");
     do {
-      unsignedCounter = unsignedCounter.add(stepSize);
+      this.unsignedCounter = this.unsignedCounter.add(this.stepSize);
       iterator = iterator.add(U256Factory.fromString("1"));
     } while (iterator.lessThan(three));
 
     let iterator2 = I256Factory.create();
     const signedOne = I256Factory.fromString("1");
+    const signedThree = I256Factory.fromString("3");
     do {
-      signedCounter = signedCounter.add(signedOne);
+      this.signedCounter = this.signedCounter.add(signedOne);
       iterator2 = iterator2.add(signedOne);
-    } while (iterator2.lessThan(three));
+    } while (iterator2.lessThan(signedThree));
   }
 
   @External
-  static bulkIncrement(times: U256): void {
+  bulkIncrement(times: U256): void {
     let iterator = U256Factory.create();
     let actualTimes = times;
-    if (times.greaterThan(maxIterations)) {
-      actualTimes = maxIterations;
+    if (times.greaterThan(this.maxIterations)) {
+      actualTimes = this.maxIterations;
     }
 
     while (iterator.lessThan(actualTimes)) {
-      unsignedCounter = unsignedCounter.add(stepSize);
+      this.unsignedCounter = this.unsignedCounter.add(this.stepSize);
 
       const two = U256Factory.fromString("2");
       if (iterator.lessThan(two)) {
-        signedCounter = signedCounter.add(I256Factory.fromString("1"));
+        this.signedCounter = this.signedCounter.add(I256Factory.fromString("1"));
       } else {
-        signedCounter = signedCounter.add(negativeStepSize);
+        this.signedCounter = this.signedCounter.add(this.negativeStepSize);
       }
 
       iterator = iterator.add(U256Factory.fromString("1"));
@@ -71,10 +80,10 @@ export class ExpertCounter {
   }
 
   @External
-  static fibonacci(n: U256): void {
+  fibonacci(n: U256): void {
     const one = U256Factory.fromString("1");
     if (n.lessThanOrEqual(one)) {
-      unsignedCounter = n;
+      this.unsignedCounter = n;
       return;
     }
 
@@ -89,38 +98,38 @@ export class ExpertCounter {
       iterator = iterator.add(U256Factory.fromString("1"));
     }
 
-    unsignedCounter = b;
+    this.unsignedCounter = b;
   }
 
   @External
-  static countDown(start: U256): void {
+  countDown(start: U256): void {
     let current = start;
     const zero = U256Factory.create();
     const one = U256Factory.fromString("1");
 
-    unsignedCounter = current;
+    this.unsignedCounter = current;
 
     while (current.greaterThan(zero)) {
       current = current.sub(one);
       if (current.greaterThan(zero)) {
-        unsignedCounter = current;
+        this.unsignedCounter = current;
       }
     }
   }
 
   @External
-  static signedZigzag(cycles: U256): void {
+  signedZigzag(cycles: U256): void {
     let iterator = U256Factory.create();
     let direction = I256Factory.fromString("1");
 
-    signedCounter = I256Factory.create();
+    this.signedCounter = I256Factory.create();
 
     while (iterator.lessThan(cycles)) {
       const steps = I256Factory.fromString("3");
       let step = I256Factory.create();
 
       while (step.lessThan(steps)) {
-        signedCounter = signedCounter.add(direction);
+        this.signedCounter = this.signedCounter.add(direction);
         step = step.add(I256Factory.fromString("1"));
       }
 
@@ -129,130 +138,127 @@ export class ExpertCounter {
     }
   }
 
-
   @External
-  static simpleMultiply(a: U256, b: U256): void {
-    unsignedCounter = a.mul(b);
+  simpleMultiply(a: U256, b: U256): void {
+    this.unsignedCounter = a.mul(b);
   }
 
-
   @External
-  static factorial(n: U256): void {
-    const zero = U256Factory.create();
+  factorial(n: U256): void {
     const one = U256Factory.fromString("1");
 
     if (n.lessThanOrEqual(one)) {
-      unsignedCounter = one;
+      this.unsignedCounter = one;
       return;
     }
 
     let i = U256Factory.fromString("2");
-    let acc: U256 = one.copy();  
+    let acc: U256 = one.copy();
     while (i.lessThanOrEqual(n)) {
       acc = acc.mul(i);
       i = i.add(one);
     }
-    unsignedCounter = acc;
+    this.unsignedCounter = acc;
   }
 
   @External
-  static pow(base: U256, exp: U256): void {
+  pow(base: U256, exp: U256): void {
     const zero = U256Factory.create();
     const one = U256Factory.fromString("1");
 
     if (exp.equals(zero)) {
-      unsignedCounter = one;
+      this.unsignedCounter = one;
       return;
     }
-    
+
     if (exp.equals(one)) {
-      unsignedCounter = base;
+      this.unsignedCounter = base;
       return;
     }
 
     let result = one;
     let iterator = U256Factory.create();
-    
+
     while (iterator.lessThan(exp)) {
       result = result.mul(base);
       iterator = iterator.add(one);
     }
-    
-    unsignedCounter = result;
+
+    this.unsignedCounter = result;
   }
 
   @External
-  static gcd(a: U256, b: U256): void {
+  gcd(a: U256, b: U256): void {
     const zero = U256Factory.create();
     let x = a.copy();
     let y = b.copy();
-    
+
     while (!y.equals(zero)) {
       const tmp = y.copy();
       y = x.mod(y);
       x = tmp;
     }
-    
-    unsignedCounter = x;
+
+    this.unsignedCounter = x;
   }
 
   @External
-  static reset(): void {
-    unsignedCounter = U256Factory.create();
-    signedCounter = I256Factory.create();
+  reset(): void {
+    this.unsignedCounter = U256Factory.create();
+    this.signedCounter = I256Factory.create();
   }
 
   @External
-  static resetToValues(unsignedValue: U256, signedValue: I256): void {
-    unsignedCounter = unsignedValue;
-    signedCounter = signedValue;
+  resetToValues(unsignedValue: U256, signedValue: I256): void {
+    this.unsignedCounter = unsignedValue;
+    this.signedCounter = signedValue;
   }
 
   @External
-  static forceU256Overflow(): void {
+  forceU256Overflow(): void {
     const nearMax = U256Factory.fromString(
       "115792089237316195423570985008687907853269984665640564039457584007913129639930",
     );
-    unsignedCounter = nearMax;
+    this.unsignedCounter = nearMax;
 
     const increment = U256Factory.fromString("10");
-    unsignedCounter = unsignedCounter.add(increment);
+    this.unsignedCounter = this.unsignedCounter.add(increment);
   }
 
   @External
-  static forceU256Underflow(): void {
-    unsignedCounter = U256Factory.fromString("5");
+  forceU256Underflow(): void {
+    this.unsignedCounter = U256Factory.fromString("5");
 
     const decrement = U256Factory.fromString("10");
-    unsignedCounter = unsignedCounter.sub(decrement);
+    this.unsignedCounter = this.unsignedCounter.sub(decrement);
   }
 
   @External
-  static forceI256Overflow(): void {
+  forceI256Overflow(): void {
     const nearMaxPositive = I256Factory.fromString(
       "57896044618658097711785492504343953926634992332820282019728792003956564819960",
     );
-    signedCounter = nearMaxPositive;
+    this.signedCounter = nearMaxPositive;
 
     const increment = I256Factory.fromString("20");
-    signedCounter = signedCounter.add(increment);
+    this.signedCounter = this.signedCounter.add(increment);
   }
 
   @External
-  static forceI256Underflow(): void {
+  forceI256Underflow(): void {
     const nearMinNegative = I256Factory.fromString(
       "-57896044618658097711785492504343953926634992332820282019728792003956564819960",
     );
-    signedCounter = nearMinNegative;
+    this.signedCounter = nearMinNegative;
     const decrement = I256Factory.fromString("20");
-    signedCounter = signedCounter.sub(decrement);
+    this.signedCounter = this.signedCounter.sub(decrement);
   }
 
   @External
-  static testOverflowInLoop(): void {
+  testOverflowInLoop(): void {
     const one = U256Factory.fromString("1");
     const five = U256Factory.fromString("5");
-    unsignedCounter = U256Factory.fromString(
+    this.unsignedCounter = U256Factory.fromString(
       "115792089237316195423570985008687907853269984665640564039457584007913129639933",
     );
 
@@ -262,63 +268,63 @@ export class ExpertCounter {
       iterator = iterator.add(one)
     ) {
       // Overflow in iteration 3
-      unsignedCounter = unsignedCounter.add(one);
+      this.unsignedCounter = this.unsignedCounter.add(one);
     }
   }
 
   @External
-  static testSignedOverflowInLoop(): void {
+  testSignedOverflowInLoop(): void {
     const five = I256Factory.fromString("5");
-    signedCounter = I256Factory.fromString(
+    this.signedCounter = I256Factory.fromString(
       "57896044618658097711785492504343953926634992332820282019728792003956564819965",
     );
 
     let iterator = I256Factory.create();
     do {
       // Overflow in iteration 3
-      signedCounter = signedCounter.add(I256Factory.fromString("1"));
+      this.signedCounter = this.signedCounter.add(I256Factory.fromString("1"));
       iterator = iterator.add(I256Factory.fromString("1"));
     } while (iterator.lessThan(five));
   }
 
   @View
-  static getUnsigned(): U256 {
-    return unsignedCounter;
+  getUnsigned(): U256 {
+    return this.unsignedCounter;
   }
 
   @View
-  static getSigned(): I256 {
-    return signedCounter;
+  getSigned(): I256 {
+    return this.signedCounter;
   }
 
   @View
-  static getStepSize(): U256 {
-    return stepSize;
+  getStepSize(): U256 {
+    return this.stepSize;
   }
 
   @View
-  static getNegativeStepSize(): I256 {
-    return negativeStepSize;
+  getNegativeStepSize(): I256 {
+    return this.negativeStepSize;
   }
 
   @View
-  static getMaxIterations(): U256 {
-    return maxIterations;
+  getMaxIterations(): U256 {
+    return this.maxIterations;
   }
 
   @View
-  static isSignedNegative(): boolean {
-    const isNegative: boolean = signedCounter.isNegative();
+  isSignedNegative(): boolean {
+    const isNegative: boolean = this.signedCounter.isNegative();
     return isNegative;
   }
 
   @View
-  static getSum(): I256 {
+  getSum(): I256 {
     const signedOne = I256Factory.fromString("1");
-    let result = signedCounter;
+    let result = this.signedCounter;
 
     let iterator = U256Factory.create();
-    while (iterator.lessThan(unsignedCounter)) {
+    while (iterator.lessThan(this.unsignedCounter)) {
       result = result.add(signedOne);
       iterator = iterator.add(U256Factory.fromString("1"));
     }

@@ -21,7 +21,7 @@ export class BinaryTransformer extends Handler {
     if (expr.op === "=") {
       return this.handleAssignment(expr);
     }
-    
+
     return this.handleArithmetic(expr);
   }
 
@@ -29,52 +29,46 @@ export class BinaryTransformer extends Handler {
     if (expr.left.kind === "var" && expr.left.scope === "storage") {
       const property = expr.left.name;
       const rightResult = this.contractContext.emitExpression(expr.right);
-      
+
       if (expr.left.type === AbiType.Bool) {
         return this.handleBooleanStorageAssignment(property, expr, rightResult);
       }
-      
+
       return {
         setupLines: rightResult.setupLines,
-        valueExpr: `store_${property}(${rightResult.valueExpr})`
+        valueExpr: `store_${property}(${rightResult.valueExpr})`,
       };
     }
-    
+
     const leftResult = this.contractContext.emitExpression(expr.left);
     const rightResult = this.contractContext.emitExpression(expr.right);
-   
+
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
-      valueExpr: `${leftResult.valueExpr} = ${rightResult.valueExpr}`
+      valueExpr: `${leftResult.valueExpr} = ${rightResult.valueExpr}`,
     };
   }
 
   private handleBooleanStorageAssignment(
     property: string,
     expr: IRExpressionBinary,
-    rightResult: EmitResult
+    rightResult: EmitResult,
   ): EmitResult {
-    let result = rightResult.valueExpr;
+    const result = rightResult.valueExpr;
 
-    if (["literal", "var"].includes(expr.right.kind) && expr.right.type === AbiType.Bool) {
-      result = `Boolean.create(${rightResult.valueExpr})`;
-    }
-    
     return {
       setupLines: rightResult.setupLines,
-      valueExpr: `store_${property}(${result})`
+      valueExpr: `store_${property}(${result})`,
     };
   }
 
-  private handleArithmetic(
-    expr: IRExpressionBinary,
-  ): EmitResult {
+  private handleArithmetic(expr: IRExpressionBinary): EmitResult {
     const leftResult = this.contractContext.emitExpression(expr.left);
     const rightResult = this.contractContext.emitExpression(expr.right);
-    
+
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
-      valueExpr: `${leftResult.valueExpr} ${expr.op} ${rightResult.valueExpr}`
+      valueExpr: `${leftResult.valueExpr} ${expr.op} ${rightResult.valueExpr}`,
     };
   }
 }

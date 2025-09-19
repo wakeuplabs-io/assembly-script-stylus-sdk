@@ -1,0 +1,8 @@
+{
+  "extends": "@wakeuplabs/as-stylus/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./artifacts/build"
+  },
+  "include": ["contract.ts"],
+  "exclude": ["node_modules/**/*", "artifacts/**/*"]
+}

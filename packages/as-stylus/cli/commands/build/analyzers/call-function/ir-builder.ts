@@ -1,29 +1,47 @@
-import { CallExpression, Expression, PropertyAccessExpression, SyntaxKind } from "ts-morph";
+import { CallExpression, Expression } from "ts-morph";
 
-import { ctx } from "@/cli/shared/compilation-context.js";
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRExpression, IRMapGet, IRMapGet2, IRMapSet, IRMapSet2 } from "@/cli/types/ir.types.js";
+import { IRExpression } from "@/cli/types/ir.types.js";
 import { FunctionSymbol, VariableSymbol } from "@/cli/types/symbol-table.types.js";
 
 import { buildAddressIR } from "./address.js";
+import { buildArrayIR } from "./array.js";
 import { buildI256IR } from "./i256.js";
+import { buildMappingIR } from "./mapping.js";
 import { buildStringIR } from "./string.js";
 import { buildU256IR } from "./u256.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { SupportedType } from "../shared/supported-types.js";
+import { parseNameWithMethod, parseThis } from "../shared/utils/parse-this.js";
 import { StructFactoryBuilder } from "../struct/struct-factory-builder.js";
 
 export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
   private call: CallExpression;
+  private assignmentContext?: { targetScope: "storage" | "memory" };
 
   constructor(expr: CallExpression) {
     super(expr);
     this.call = expr;
   }
 
+  setAssignmentContext(targetScope: "storage" | "memory"): void {
+    this.assignmentContext = { targetScope };
+  }
+
   validate(): boolean {
     return true;
+  }
+
+  private extractGenericType(): string | undefined {
+    // The generic type arguments are on the CallExpression itself, not the expression
+    const typeArgs = this.call.getTypeArguments();
+
+    if (typeArgs.length > 0) {
+      return typeArgs[0].getText();
+    }
+
+    return undefined;
   }
 
   private getReturnType(target: string): SupportedType {
@@ -56,128 +74,19 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
     const expr = this.call.getExpression();
 
     if (StructFactoryBuilder.isStructFactoryCreate(this.call)) {
-      return StructFactoryBuilder.buildStructCreateIR(this.call);
+      return StructFactoryBuilder.buildStructCreateIR(this.symbolTable, this.call);
     }
 
-    // ChainedCallAnalyzer now handles all chained expressions at ExpressionIRBuilder level
-    // This fallback should only handle non-chained calls
-    // if (this.isChainedExpression(expr)) {
-    //   return this.buildSimpleChainedCall();
-    // }
-
-    // Try to detect Mapping access: Balances.balances.get(user) or .set(user, value)
-    if (expr.getKindName() === "PropertyAccessExpression") {
-      const methodAccess = expr as PropertyAccessExpression;
-      const methodName = methodAccess.getName();
-      const mappingExpr = methodAccess.getExpression();
-
-      if (mappingExpr.getKindName() === "Identifier") {
-        const mappingName = mappingExpr.getText();
-
-        const slot = this.lookupSlot(mappingName);
-        const args = this.call.getArguments().map((arg) => {
-          const builder = new ExpressionIRBuilder(arg as Expression);
-          return builder.validateAndBuildIR();
-        });
-
-        if (slot !== undefined) {
-          // Get mapping type information from context
-          const mappingTypeInfo = ctx.mappingTypes.get(mappingName);
-
-          if (methodName === "get" && args.length === 1) {
-            // Convert valueType to AbiType for returnType
-            const valueType = mappingTypeInfo?.valueType || "U256";
-            let returnType: SupportedType;
-            switch (valueType) {
-              case "Address":
-                returnType = AbiType.Address;
-                break;
-              case "U256":
-                returnType = AbiType.Uint256;
-                break;
-              case "I256":
-                returnType = AbiType.Int256;
-                break;
-              case "boolean":
-                returnType = AbiType.Bool;
-                break;
-              default:
-                returnType = AbiType.Unknown;
-            }
-            return {
-              kind: "map_get",
-              slot,
-              key: args[0],
-              keyType: mappingTypeInfo?.keyType || "Address",
-              valueType,
-              type: AbiType.Mapping,
-              returnType,
-            } as IRMapGet;
-          } else if (methodName === "set" && args.length === 2) {
-            return {
-              kind: "map_set",
-              slot,
-              key: args[0],
-              value: args[1],
-              keyType: mappingTypeInfo?.keyType || "Address",
-              valueType: mappingTypeInfo?.valueType || "U256",
-            } as IRMapSet;
-          } else if (methodName === "get" && args.length === 2) {
-            // Convert valueType to AbiType for returnType
-            const valueType = mappingTypeInfo?.valueType || "U256";
-            let returnType: SupportedType;
-            switch (valueType) {
-              case "Address":
-                returnType = AbiType.Address;
-                break;
-              case "U256":
-                returnType = AbiType.Uint256;
-                break;
-              case "I256":
-                returnType = AbiType.Int256;
-                break;
-              case "boolean":
-                returnType = AbiType.Bool;
-                break;
-              default:
-                returnType = AbiType.Unknown;
-            }
-            return {
-              kind: "map_get2",
-              slot,
-              key1: args[0],
-              key2: args[1],
-              keyType1: mappingTypeInfo?.keyType1 || "Address",
-              keyType2: mappingTypeInfo?.keyType2 || "Address",
-              valueType,
-              type: AbiType.MappingNested,
-              returnType,
-            } as IRMapGet2;
-          } else if (methodName === "set" && args.length === 3) {
-            return {
-              kind: "map_set2",
-              slot,
-              key1: args[0],
-              key2: args[1],
-              value: args[2],
-              keyType1: mappingTypeInfo?.keyType1 || "Address",
-              keyType2: mappingTypeInfo?.keyType2 || "Address",
-              valueType: mappingTypeInfo?.valueType || "U256",
-            } as IRMapSet2;
-          }
-        }
-      }
-    }
-    const target = expr.getText();
-
+    const target = parseThis(expr.getText());
     const args = this.call.getArguments().map((argument) => {
       const expressionBuilder = new ExpressionIRBuilder(argument as Expression);
       return expressionBuilder.validateAndBuildIR();
     });
 
-    const [varName] = target.split(".");
+    const { name: varName } = parseNameWithMethod(target);
     const variable = this.symbolTable.lookup(varName);
-    const scope = variable?.scope ?? "memory";
+    // Use assignment context if available, otherwise fall back to variable scope or memory
+    const scope = this.assignmentContext?.targetScope ?? variable?.scope ?? "memory";
 
     if (variable?.type === AbiType.Uint256) {
       return buildU256IR(target, this.call, this.symbolTable);
@@ -195,203 +104,71 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       return buildAddressIR(target, this.call, this.symbolTable);
     }
 
+    if (variable?.type === AbiType.ArrayStatic || variable?.type === AbiType.ArrayDynamic) {
+      const [receiverName, methodName] = target.split(".");
+      const receiverVariable = this.symbolTable.lookup(receiverName);
+
+      if (receiverVariable && methodName) {
+        return {
+          kind: "call",
+          target: methodName,
+          args,
+          type: AbiType.Function,
+          returnType: methodName === "length" ? AbiType.Uint256 : AbiType.Void,
+          scope,
+          receiver: {
+            kind: "var",
+            name: receiverName,
+            type: variable.type,
+            scope: receiverVariable.scope ?? "storage",
+          },
+        };
+      }
+    }
+
+    if (variable?.type === AbiType.Mapping || variable?.type === AbiType.MappingNested) {
+      const slot = this.slotManager.getSlotForVariable(varName);
+      const result = buildMappingIR(variable, this.call, slot ?? 0);
+      if (result) {
+        return result;
+      }
+    }
+
+    const targetIsArrayFactory =
+      target.startsWith("StaticArrayFactory.") ||
+      target.startsWith("DynamicArrayFactory.") ||
+      target.startsWith("MemoryArrayFactory.");
+
+    if (targetIsArrayFactory) {
+      return buildArrayIR(target, this.call, args, scope);
+    }
+
     const isUserDefinedFunction = (this.symbolTable.lookup(target) as FunctionSymbol)
       ?.isDeclaredByUser;
     const type = isUserDefinedFunction ? AbiType.UserDefinedFunction : AbiType.Function;
 
-    return { kind: "call", target, args, type, returnType: this.getReturnType(target), scope };
-  }
-
-  private lookupSlot(fqName: string): number | undefined {
-    return ctx.slotMap.get(fqName);
-  }
-
-  /**
-   * Detects if an expression is a chained call that needs special IR structure
-   */
-  private isChainedExpression(expr: Expression): boolean {
-    // Check if this is a PropertyAccessExpression (method call on an object)
-    if (expr.getKind() === SyntaxKind.PropertyAccessExpression) {
-      const propAccess = expr as PropertyAccessExpression;
-      const leftSide = propAccess.getExpression();
-      // Check if the left side is itself a call expression (chained calls)
-      if (leftSide.getKind() === SyntaxKind.CallExpression) {
-        return true;
-      }
+    // Handle complex expressions like "(i + one).toString"
+    let finalReturnType = this.getReturnType(target);
+    if (target.includes(".toString")) {
+      finalReturnType = AbiType.String;
+    } else if (target.includes(".toI32")) {
+      finalReturnType = AbiType.Int256;
+    } else if (
+      target.includes(".add") ||
+      target.includes(".sub") ||
+      target.includes(".mul") ||
+      target.includes(".div")
+    ) {
+      finalReturnType = AbiType.Uint256;
     }
-
-    return false;
-  }
-
-  /**
-   * Builds IR for chained expressions with proper receiver structure
-   * Handles recursive chaining like owners.get(tokenId).isZero()
-   */
-  private buildSimpleChainedCall(): IRExpression {
-    const callTarget = this.call.getExpression();
-
-    if (callTarget.getKind() === SyntaxKind.PropertyAccessExpression) {
-      const propAccess = callTarget as PropertyAccessExpression;
-      const methodName = propAccess.getName();
-      const receiverExpr = propAccess.getExpression();
-
-      // Build IR for the receiver recursively
-      let receiver: IRExpression;
-
-      // Build receiver with proper IR structure
-      if (receiverExpr.getKind() === SyntaxKind.CallExpression) {
-        const receiverBuilder = new CallFunctionIRBuilder(receiverExpr as CallExpression);
-        receiver = receiverBuilder.validateAndBuildIR();
-      } else if (receiverExpr.getKind() === SyntaxKind.PropertyAccessExpression) {
-        // This handles cases like result.mul() in result.mul(three).div(divisor)
-        const propAccess = receiverExpr as PropertyAccessExpression;
-        const baseExpr = propAccess.getExpression();
-        const methodName = propAccess.getName();
-
-        // Build IR for the base expression (e.g., 'result')
-        const baseBuilder = new ExpressionIRBuilder(baseExpr);
-        const baseReceiver = baseBuilder.validateAndBuildIR();
-
-        // Create a proper call IR for the method (e.g., result.mul())
-        receiver = {
-          kind: "call",
-          target: methodName,
-          receiver: baseReceiver,
-          args: [], // PropertyAccessExpression has no args, actual args come from full call
-          type: AbiType.Function,
-          returnType: this.getChainedReturnType(
-            "returnType" in baseReceiver ? baseReceiver.returnType : AbiType.Unknown,
-            methodName,
-          ),
-          scope: "memory",
-        };
-      } else {
-        const receiverBuilder = new ExpressionIRBuilder(receiverExpr);
-        receiver = receiverBuilder.validateAndBuildIR();
-      }
-
-      // Build IR for the arguments
-      const args = this.call.getArguments().map((argument) => {
-        const expressionBuilder = new ExpressionIRBuilder(argument as Expression);
-        return expressionBuilder.validateAndBuildIR();
-      });
-
-      // Determine return type based on receiver and method
-      const receiverReturnType = "returnType" in receiver ? receiver.returnType : AbiType.Unknown;
-      const returnType = this.getChainedReturnType(receiverReturnType, methodName);
-
-      return {
-        kind: "call",
-        target: methodName,
-        receiver: receiver,
-        args,
-        type: AbiType.Function,
-        returnType,
-        scope: "memory",
-      };
-    }
-
-    // Fallback to regular call handling
-    const args = this.call.getArguments().map((argument) => {
-      const expressionBuilder = new ExpressionIRBuilder(argument as Expression);
-      return expressionBuilder.validateAndBuildIR();
-    });
 
     return {
-      kind: "call",
-      target: callTarget.getText(),
+      kind: "call" as const,
+      target,
       args,
-      type: AbiType.Function,
-      returnType: AbiType.Unknown,
-      scope: "memory",
+      type,
+      returnType: finalReturnType,
+      scope,
     };
-  }
-
-  /**
-   * Extracts the method name from a chained call
-   * Example: "U256Factory.fromString(\"2\").add" + "U256Factory.fromString(\"2\")" -> "add"
-   */
-  private extractMethodNameFromChainedCall(fullTarget: string, baseTarget: string): string {
-    // Remove the base part and the dot to get the method name
-    if (fullTarget.startsWith(baseTarget) && fullTarget.length > baseTarget.length) {
-      return fullTarget.substring(baseTarget.length + 1); // +1 for the dot
-    }
-
-    // Fallback: try to extract method name from the end
-    const parts = fullTarget.split(".");
-    return parts[parts.length - 1] || "unknown";
-  }
-
-  /**
-   * Determines the return type for a chained method call
-   */
-  private getChainedReturnType(baseReturnType: SupportedType, methodName: string): SupportedType {
-    // For U256 methods, most return U256 except comparisons
-    if (baseReturnType === AbiType.Uint256) {
-      const comparisonMethods = [
-        "lessThan",
-        "greaterThan",
-        "equals",
-        "lessThanOrEqual",
-        "greaterThanOrEqual",
-        "notEqual",
-      ];
-      if (comparisonMethods.includes(methodName)) {
-        return AbiType.Bool;
-      }
-      return AbiType.Uint256;
-    }
-
-    // For I256 methods, similar logic
-    if (baseReturnType === AbiType.Int256) {
-      const comparisonMethods = [
-        "lessThan",
-        "greaterThan",
-        "equals",
-        "lessThanOrEqual",
-        "greaterThanOrEqual",
-        "notEqual",
-      ];
-      if (comparisonMethods.includes(methodName)) {
-        return AbiType.Bool;
-      }
-      return AbiType.Int256;
-    }
-
-    // For Address methods
-    if (baseReturnType === AbiType.Address) {
-      if (methodName === "isZero") {
-        return AbiType.Bool;
-      }
-      if (methodName === "toString") {
-        return AbiType.String;
-      }
-      return AbiType.Address;
-    }
-
-    // For Mapping methods
-    if (baseReturnType === AbiType.Mapping) {
-      // Mapping.get() can return various types - need to infer from context
-      if (methodName === "get") {
-        // For now, assume Address since that's what owners mapping returns
-        // TODO: Should get this from mapping type information
-        return AbiType.Address;
-      }
-      return baseReturnType;
-    }
-
-    // For String methods
-    if (baseReturnType === AbiType.String) {
-      if (methodName === "length") {
-        return AbiType.Uint256;
-      }
-      if (methodName === "slice") {
-        return AbiType.String;
-      }
-      return AbiType.String;
-    }
-
-    // For other types, assume same type
-    return baseReturnType;
   }
 }

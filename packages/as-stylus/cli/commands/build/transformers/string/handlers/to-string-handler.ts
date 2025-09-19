@@ -20,7 +20,7 @@ export class StrToStringHandler extends Handler {
     return {
       setupLines: [...recv.setupLines],
       valueExpr: `Str.toString(${recv.valueExpr})`,
-      valueType: "string"
+      valueType: "string",
     };
   }
 }

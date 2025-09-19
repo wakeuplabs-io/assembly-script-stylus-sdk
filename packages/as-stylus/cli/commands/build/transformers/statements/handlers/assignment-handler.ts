@@ -17,23 +17,16 @@ export class AssignmentHandler extends StatementHandler {
     const exprResult = this.contractContext.emitExpression(assignment.expr);
     const lines: string[] = [];
 
-    // Add setup lines if any
     if (exprResult.setupLines.length > 0) {
       lines.push(...exprResult.setupLines.map((line) => `${indent}${line}`));
     }
 
-    // Handle different assignment types
-    if (assignment.target.indexOf(".") === -1) {
-      // Simple variable assignment
-      lines.push(`${indent}${assignment.target} = ${exprResult.valueExpr};`);
-    } else {
-      // Property assignment (e.g., this.counter)
+    if (assignment.target.indexOf(".") !== -1) {
       const parts = assignment.target.split(".");
       const property = parts[0];
       lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);
     }
 
-    // Handle storage scope assignments
     if (assignment.scope === "storage") {
       const property = assignment.target;
       lines.push(`${indent}store_${property}(${exprResult.valueExpr});`);

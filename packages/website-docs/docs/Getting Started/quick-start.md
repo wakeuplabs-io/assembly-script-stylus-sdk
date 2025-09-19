@@ -28,6 +28,7 @@ cd my-contract
 ```
 
 This creates a complete project structure with:
+
 - Contract template
 - Configuration files
 - Package dependencies
@@ -38,29 +39,36 @@ This creates a complete project structure with:
 The generator creates a simple counter contract for you:
 
 ```typescript
+import { Contract, External, U256, U256Factory, View } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class Counter {
-  static counter: U256;
+  counter: U256;
 
   constructor() {
-    counter = U256Factory.create();
+    this.counter = U256Factory.create();
   }
 
   @External
-  static increment(): void {
-    const delta: U256 = U256Factory.fromString("1");
-    counter = counter.add(delta);
+  set(value: U256): void {
+    this.counter = value;
   }
 
   @External
-  static decrement(): void {
+  increment(): void {
     const delta: U256 = U256Factory.fromString("1");
-    counter = counter.sub(delta);
+    this.counter = this.counter.addUnchecked(delta);
+  }
+
+  @External
+  decrement(): void {
+    const delta: U256 = U256Factory.fromString("1");
+    this.counter = this.counter.subUnchecked(delta);
   }
 
   @View
-  static get(): U256 {
-    return counter;
+  get(): U256 {
+    return this.counter;
   }
 }
 ```

@@ -1,0 +1,39 @@
+import { AbiType } from "@/cli/types/abi.types.js";
+import { IRStatement, IRExpression, Variable } from "@/cli/types/ir.types.js";
+
+import { SlotManager } from "../shared/slot-manager.js";
+import { SymbolTableStack } from "../shared/symbol-table.js";
+import { StructBaseBuilder } from "../struct/struct-base-builder.js";
+
+export class StructAssignmentBuilder extends StructBaseBuilder {
+  constructor(
+    symbolTable: SymbolTableStack,
+    private slotManager: SlotManager,
+  ) {
+    super(symbolTable);
+    this.slotManager = slotManager;
+  }
+
+  buildIR(objectExpr: IRExpression, fieldName: string, valueExpr: IRExpression): IRStatement {
+    const structName = (objectExpr as Variable).name;
+    const { fieldType, struct, structTemplate } = this.getStructInfo(structName, fieldName);
+    const finalValueExpr = this.wrapValueWithCopyIfNeeded(valueExpr, fieldType);
+
+    const scope = struct?.scope === "memory" ? "_memory" : "";
+    const target = `${structTemplate?.name}${scope}_set_${fieldName}`;
+    const slot = this.slotManager.calculateStructFieldSlot(struct!, fieldName, structTemplate!);
+
+    return {
+      kind: "expr",
+      expr: {
+        kind: "call",
+        target,
+        args: [{ ...objectExpr, slot } as Variable, finalValueExpr],
+        type: AbiType.Function,
+        returnType: AbiType.Void,
+        scope: struct?.scope ?? "memory",
+      },
+      type: AbiType.Void,
+    };
+  }
+}

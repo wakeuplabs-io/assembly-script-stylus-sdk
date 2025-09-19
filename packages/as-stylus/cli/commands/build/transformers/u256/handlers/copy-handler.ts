@@ -10,7 +10,7 @@ export class U256CopyHandler extends Handler {
 
   canHandle(expr: Call): boolean {
     if (!expr?.target) return false;
-    
+
     return (
       (expr.target === "U256.copy" && expr.args.length === 1) ||
       (expr.target.endsWith(".copy") && expr.args.length === 0)

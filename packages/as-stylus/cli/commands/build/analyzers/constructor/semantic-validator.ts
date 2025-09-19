@@ -14,7 +14,11 @@ export class ConstructorSemanticValidator extends BaseValidator {
   validate(): boolean {
     let hasErrors = false;
 
-    if (this.constructorDecl.getModifiers().some(modifier => modifier.getText() === "private" || modifier.getText() === "protected")) {
+    if (
+      this.constructorDecl
+        .getModifiers()
+        .some((modifier) => modifier.getText() === "private" || modifier.getText() === "protected")
+    ) {
       this.addSemanticError(ERROR_CODES.NO_CONSTRUCTOR_FOUND);
       hasErrors = true;
     }

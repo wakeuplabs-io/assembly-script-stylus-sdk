@@ -106,11 +106,7 @@ export class MappingTransformer extends Handler {
 
     const baseExpr = `MappingNested.${method}(${slot}, ${key1Result.valueExpr}, ${key2Result.valueExpr})`;
 
-    // For boolean mappings, use Boolean.fromABI() in statement context
-    let valueExpr = baseExpr;
-    if (expr.valueType === "boolean") {
-      valueExpr = `Boolean.fromABI(${baseExpr})`;
-    }
+    const valueExpr = baseExpr;
 
     return {
       setupLines: [...key1Result.setupLines, ...key2Result.setupLines],
@@ -165,7 +161,7 @@ export class MappingTransformer extends Handler {
       case "string":
         return "String";
       default:
-        return "U256"; // fallback
+        throw new Error(`Unsupported value type: ${valueType}`);
     }
   }
 

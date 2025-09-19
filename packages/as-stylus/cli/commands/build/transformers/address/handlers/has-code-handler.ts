@@ -4,7 +4,6 @@ import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call } from "@/cli/types/ir.types.js";
 import { ContractContext } from "@/transformers/core/contract-context.js";
 
-
 /**
  * a.hasCode()  ─►  Address.hasCode(a)
  */
@@ -26,8 +25,8 @@ export class AddressHasCodeHandler extends Handler {
 
     return {
       setupLines: [...recv.setupLines],
-      valueExpr : `Address.hasCode(${recv.valueExpr})`,
-      valueType : "bool",
+      valueExpr: `Address.hasCode(${recv.valueExpr})`,
+      valueType: "bool",
     };
   }
 }

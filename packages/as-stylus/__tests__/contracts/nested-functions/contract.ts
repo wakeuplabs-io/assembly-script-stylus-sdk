@@ -1,102 +1,114 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import {
+  Contract,
+  Internal,
+  U256,
+  U256Factory,
+  I256,
+  I256Factory,
+  Mapping,
+  Address,
+  AddressFactory,
+  External,
+  Str,
+  StrFactory,
+  View,
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class NestedFunctions {
-  static unsignedCounter: U256;
-  static signedCounter: I256;
-  static stepSize: U256;
-  static negativeStepSize: I256;
-  static maxIterations: U256;
-  static owners: Mapping<U256, Address>;
+  unsignedCounter: U256;
+  signedCounter: I256;
+  stepSize: U256;
+  negativeStepSize: I256;
+  maxIterations: U256;
+  owners: Mapping<U256, Address> = new Mapping<U256, Address>();
 
-  @Constructor
-  static constructor(): void {
-    unsignedCounter = U256Factory.create();
-    signedCounter = I256Factory.create();
-    stepSize = U256Factory.fromString("5");
-    negativeStepSize = I256Factory.fromString("-2");
-    maxIterations = U256Factory.fromString("100");
+  constructor() {
+    this.unsignedCounter = U256Factory.create();
+    this.signedCounter = I256Factory.create();
+    this.stepSize = U256Factory.fromString("5");
+    this.negativeStepSize = I256Factory.fromString("-2");
+    this.maxIterations = U256Factory.fromString("100");
   }
 
   @Internal
-  static toggle(arg: boolean): boolean {
+  toggle(arg: boolean): boolean {
     return !arg;
   }
 
   @External
-  static getBooleanExternal(): boolean {
-    return toggle(false) && !toggle(true);
+  getBooleanExternal(): boolean {
+    return this.toggle(false) && !this.toggle(true);
   }
 
   @Internal
-  static increment(value: U256): U256 {
+  increment(value: U256): U256 {
     return value.add(U256Factory.fromString("1"));
   }
 
   @External
-  static getIncremented(value: U256): U256 {
-    return increment(value);
+  getIncremented(value: U256): U256 {
+    return this.increment(value);
   }
 
   @External
-  static incrementThreeTimes(value: U256): U256 {
-    return increment(increment(increment(value)));
+  incrementThreeTimes(value: U256): U256 {
+    return this.increment(this.increment(this.increment(value)));
   }
 
   @Internal
-  static getString(arg: Str): Str {
+  getString(arg: Str): Str {
     return arg;
   }
 
   @External
-  static getStringExternal(): Str {
+  getStringExternal(): Str {
     const arg = StrFactory.fromString("Hello, world!");
-    const result = getString(arg);
+    const result = this.getString(arg);
     return result;
   }
 
   @Internal
-  static getAddress(arg: Address): Address {
+  getAddress(arg: Address): Address {
     return arg;
   }
 
   @External
-  static getAddressExternal(): Address {
+  getAddressExternal(): Address {
     const sender = AddressFactory.fromString("0x3f1Eae7D46d88F08fc2F8ed27FCb2AB183EB2d0E");
     return sender;
   }
 
   @External
-  static tripleIncrement(): void {
+  tripleIncrement(): void {
     let iterator = U256Factory.create();
     do {
-      unsignedCounter = unsignedCounter.add(stepSize);
+      this.unsignedCounter = this.unsignedCounter.add(this.stepSize);
       iterator = iterator.add(U256Factory.fromString("1"));
     } while (iterator.lessThan(U256Factory.fromString("3")));
 
     let iterator2 = I256Factory.create();
     do {
-      signedCounter = signedCounter.add(I256Factory.fromString("1"));
+      this.signedCounter = this.signedCounter.add(I256Factory.fromString("1"));
       iterator2 = iterator2.add(I256Factory.fromString("1"));
     } while (iterator2.lessThan(I256Factory.fromString("3")));
   }
 
   @External
-  static bulkIncrement(times: U256): void {
+  bulkIncrement(times: U256): void {
     let iterator = U256Factory.create();
     let actualTimes = times;
-    if (times.greaterThan(maxIterations)) {
-      actualTimes = maxIterations;
+    if (times.greaterThan(this.maxIterations)) {
+      actualTimes = this.maxIterations;
     }
 
     while (iterator.lessThan(actualTimes)) {
-      unsignedCounter = unsignedCounter.add(stepSize);
+      this.unsignedCounter = this.unsignedCounter.add(this.stepSize);
 
       if (iterator.lessThan(U256Factory.fromString("2"))) {
-        signedCounter = signedCounter.add(I256Factory.fromString("1"));
+        this.signedCounter = this.signedCounter.add(I256Factory.fromString("1"));
       } else {
-        signedCounter = signedCounter.add(negativeStepSize);
+        this.signedCounter = this.signedCounter.add(this.negativeStepSize);
       }
 
       iterator = iterator.add(U256Factory.fromString("1"));
@@ -104,16 +116,16 @@ export class NestedFunctions {
   }
 
   @External
-  static complexCalculation(baseValue: U256): U256 {
+  complexCalculation(baseValue: U256): U256 {
     let result = baseValue;
     let multiplier = U256Factory.create();
-    
+
     // Mix of constants and nested calls to demonstrate both patterns
     const zero = U256Factory.fromString("0");
     const one = U256Factory.fromString("1");
     const two = U256Factory.fromString("2");
     const three = U256Factory.fromString("3");
-    
+
     while (multiplier.lessThan(U256Factory.fromString("5"))) {
       if (multiplier.equals(zero)) {
         // Nested factory call inside method call
@@ -131,25 +143,25 @@ export class NestedFunctions {
       }
       multiplier = multiplier.add(U256Factory.fromString("1"));
     }
-    
+
     return result;
   }
 
   @View
-  static getUnsignedCounter(): U256 {
-    return unsignedCounter;
+  getUnsignedCounter(): U256 {
+    return this.unsignedCounter;
   }
 
   @View
-  static getSignedCounter(): I256 {
-    return signedCounter;
+  getSignedCounter(): I256 {
+    return this.signedCounter;
   }
 
   @External
-  static moderateComplexityTest(input: U256): U256 {
+  moderateComplexityTest(input: U256): U256 {
     let result = input;
     let counter = U256Factory.create();
-    
+
     while (counter.lessThan(U256Factory.fromString("2"))) {
       const ten = U256Factory.fromString("10");
       if (result.greaterThan(ten)) {
@@ -162,23 +174,23 @@ export class NestedFunctions {
         const divisor = U256Factory.fromString("2");
         result = result.mul(three).div(divisor);
       }
-      
+
       counter = counter.add(U256Factory.fromString("1"));
     }
-    
+
     return result;
   }
 
   @External
-  static resetCounters(): void {
-    unsignedCounter = U256Factory.create();
-    signedCounter = I256Factory.create();
+  resetCounters(): void {
+    this.unsignedCounter = U256Factory.create();
+    this.signedCounter = I256Factory.create();
   }
 
   @View
-  static ownerOf(tokenId: U256): Address {
-    const isZero = owners.get(tokenId).isZero();
+  ownerOf(tokenId: U256): Address {
+    const isZero = this.owners.get(tokenId).isZero();
     if (isZero) return AddressFactory.create();
-    return owners.get(tokenId);
+    return this.owners.get(tokenId);
   }
 }

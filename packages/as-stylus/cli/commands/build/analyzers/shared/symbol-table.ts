@@ -1,14 +1,25 @@
 import { AbiType } from "@/cli/types/abi.types.js";
-import { FunctionSymbol, SymbolInfo, SymbolTable, VariableSymbol } from "@/cli/types/symbol-table.types.js";
+import { IRStruct } from "@/cli/types/ir.types.js";
+import {
+  FunctionSymbol,
+  SymbolInfo,
+  SymbolTable,
+  VariableSymbol,
+} from "@/cli/types/symbol-table.types.js";
+
+import { SlotManager } from "./slot-manager.js";
 
 export class SymbolTableStack {
+  private structTemplates: Map<string, IRStruct> = new Map();
   private types: Set<AbiType> = new Set();
   private scopes: SymbolTable[] = [];
   private currentScope: number;
-  
-  constructor() {
+  private slotManager: SlotManager;
+
+  constructor(slotManager: SlotManager) {
     this.enterScope();
     this.currentScope = 0;
+    this.slotManager = slotManager;
   }
 
   enterScope() {
@@ -20,29 +31,55 @@ export class SymbolTableStack {
     return this.types;
   }
 
-  exitScope() { 
+  exitScope() {
     if (this.scopes.length <= 1) {
       throw new Error("Cannot exit global scope");
     }
     this.scopes.pop();
   }
 
-  declareVariable(name: string, info: Omit<VariableSymbol, "scopeLevel">): boolean {  
+  declareStruct(name: string, info: IRStruct): boolean {
+    const current = this.scopes[0];
+    if (current.has(name)) return false;
+    this.types.add(AbiType.Struct);
+    this.structTemplates.set(name, info);
+    return true;
+  }
+
+  declareVariable(name: string, info: Omit<VariableSymbol, "scopeLevel">): boolean {
     const current = this.scopes[this.scopes.length - 1];
     if (current.has(name)) return false;
 
     this.types.add(info.type);
-    current.set(name, { ...info, scopeLevel: this.scopes.length - 1 }); 
+    current.set(name, { ...info, scopeLevel: this.scopes.length - 1 });
+
+    if (info.scope === "storage") {
+      let fields = info.length ?? 1;
+      if (info.type === AbiType.Struct) {
+        const structTemplate = this.getStructTemplateByName(info.dynamicType!);
+        fields = structTemplate?.fields.length ?? 1;
+      }
+      this.slotManager.allocateSlot(name, {
+        type: info.type,
+        dynamicType: info.dynamicType,
+        length: fields,
+      });
+    }
+
     return true;
   }
 
-  declareFunction(name: string, info: Omit<FunctionSymbol, "scopeLevel" | "type">): boolean {  
+  declareFunction(name: string, info: Omit<FunctionSymbol, "scopeLevel" | "type">): boolean {
     const current = this.scopes[this.scopes.length - 1];
     if (current.has(name)) return false;
-    
+
     this.types.add(info.returnType);
     current.set(name, { ...info, scopeLevel: this.scopes.length - 1, type: AbiType.Function });
     return true;
+  }
+
+  getStructTemplateByName(name: string): IRStruct | undefined {
+    return this.structTemplates.get(name);
   }
 
   lookup(name: string): SymbolInfo | undefined {
@@ -74,10 +111,10 @@ export class SymbolTableStack {
   }
 
   toJSON() {
-    return this.scopes.map(scope => {
+    return this.scopes.map((scope) => {
       return {
         scopeLevel: scope.get("scopeLevel"),
-        symbols: Array.from(scope.values())
+        symbols: Array.from(scope.values()),
       };
     });
   }

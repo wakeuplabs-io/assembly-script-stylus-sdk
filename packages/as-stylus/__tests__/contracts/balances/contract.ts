@@ -1,26 +1,25 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import { Address, Contract, Mapping, MappingNested, U256, View } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class Token {
-  static balances: Mapping<Address, U256>;
-  static allowance: MappingNested<Address, Address, U256>;
+  balances: Mapping<Address, U256> = new Mapping<Address, U256>();
+  allowance: MappingNested<Address, Address, U256> = new MappingNested<Address, Address, U256>();
 
-  static setBalance(user: Address, amount: U256): void {
-    balances.set(user, amount);
+  setBalance(user: Address, amount: U256): void {
+    this.balances.set(user, amount);
   }
 
   @View
-  static getBalance(user: Address): U256 {
-    return balances.get(user);
+  getBalance(user: Address): U256 {
+    return this.balances.get(user);
   }
 
-  static approve(owner: Address, spender: Address, amt: U256): void {
-    allowance.set(owner, spender, amt);
+  approve(owner: Address, spender: Address, amt: U256): void {
+    this.allowance.set(owner, spender, amt);
   }
 
   @View
-  static allowanceOf(owner: Address, spender: Address): U256 {
-    return allowance.get(owner, spender);
+  allowanceOf(owner: Address, spender: Address): U256 {
+    return this.allowance.get(owner, spender);
   }
 }

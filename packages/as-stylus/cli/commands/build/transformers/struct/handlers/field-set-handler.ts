@@ -13,9 +13,9 @@ export class StructFieldSetHandler extends Handler {
 
   canHandle(expr: Call | Member): boolean {
     if (expr.kind !== "call") return false;
-    
+
     const target = expr.target;
-    
+
     // Detect setter calls: StructName_set_field
     if (target.includes("_set_")) {
       const parts = target.split("_set_");
@@ -23,15 +23,15 @@ export class StructFieldSetHandler extends Handler {
         const structName = parts[0];
         const fieldName = parts[1];
         const struct = this.structs.get(structName);
-        
+
         if (struct) {
           // Check if the field exists
-          const field = struct.fields.find(f => f.name === fieldName);
+          const field = struct.fields.find((f) => f.name === fieldName);
           return !!field;
         }
       }
     }
-    
+
     return false;
   }
 
@@ -40,26 +40,26 @@ export class StructFieldSetHandler extends Handler {
     const parts = target.split("_set_");
     const structName = parts[0];
     const fieldName = parts[1];
-    
+
     if (!expr.args || expr.args.length !== 2) {
       return {
         setupLines: [],
         valueExpr: `/* Invalid args for ${target} */`,
-        valueType: "void"
+        valueType: "void",
       };
     }
-    
+
     const objectArg = this.contractContext.emitExpression(expr.args[0]);
     const valueArg = this.contractContext.emitExpression(expr.args[1]);
-    
+
     return {
       setupLines: [
         ...objectArg.setupLines,
         ...valueArg.setupLines,
-        `${structName}_set_${fieldName}(${objectArg.valueExpr}, ${valueArg.valueExpr});`
+        `${structName}_set_${fieldName}(${objectArg.valueExpr}, ${valueArg.valueExpr});`,
       ],
       valueExpr: "/* void */",
-      valueType: "void"
+      valueType: "void",
     };
   }
-} 
+}

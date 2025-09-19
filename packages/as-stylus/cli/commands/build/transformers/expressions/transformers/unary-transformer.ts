@@ -18,24 +18,21 @@ export class UnaryTransformer extends Handler {
 
   handle(unary: IRUnaryExpression): EmitResult {
     const exprResult = this.contractContext.emitExpression(unary.expr);
-    
+
     // Handle boolean operations with Boolean class
     if (unary.op === "!" || unary.op === "not") {
-      let result = `Boolean.not(${exprResult.valueExpr})`;
-      if (unary.expr.kind === "call" && !exprResult.valueExpr.includes("Boolean.fromABI")) {
-        result = `Boolean.not(Boolean.fromABI(${exprResult.valueExpr}))`;
-      }
+      const result = `Boolean.not(${exprResult.valueExpr})`;
 
       return {
         setupLines: exprResult.setupLines,
-        valueExpr: result
+        valueExpr: result,
       };
     }
-    
+
     // Handle other unary operations
     return {
       setupLines: exprResult.setupLines,
-      valueExpr: `${unary.op}${exprResult.valueExpr}`
+      valueExpr: `${unary.op}${exprResult.valueExpr}`,
     };
   }
 }

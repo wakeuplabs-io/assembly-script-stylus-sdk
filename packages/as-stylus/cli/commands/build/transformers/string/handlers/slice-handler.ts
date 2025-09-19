@@ -31,13 +31,13 @@ export class StrSliceHandler extends Handler {
     if (!expr.receiver) {
       const chain = expr.target.slice(0, -".slice".length);
       expr.receiver = this.makeReceiver(chain, expr.scope);
-      expr.target   = "Str.slice";
+      expr.target = "Str.slice";
     }
 
     // Emit the original nodes
-    const recvIR   = this.contractContext.emitExpression(expr.receiver!);
-    const offIR    = this.contractContext.emitExpression(expr.args[0]);
-    const lenIR    = this.contractContext.emitExpression(expr.args[1]);
+    const recvIR = this.contractContext.emitExpression(expr.receiver!);
+    const offIR = this.contractContext.emitExpression(expr.args[0]);
+    const lenIR = this.contractContext.emitExpression(expr.args[1]);
 
     // Temps for big-endian decode
     const offsetBE = makeTemp("offsetBE");
@@ -57,8 +57,8 @@ export class StrSliceHandler extends Handler {
 
     return {
       setupLines: setup,
-      valueExpr : sliceRes,
-      valueType : "Str",
+      valueExpr: sliceRes,
+      valueType: "Str",
     };
   }
 }

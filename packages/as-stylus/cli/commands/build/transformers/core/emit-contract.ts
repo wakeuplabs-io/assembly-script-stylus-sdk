@@ -1,8 +1,13 @@
+import { AbiType } from "@/cli/types/abi.types.js";
+
 import { ContractContext } from "./contract-context.js";
 import { TransformerRegistry } from "./transformer-registry.js";
 import { IRContract, IRMethod } from "../../../../types/ir.types.js";
 import { AddressTransformer } from "../address/address-transformer.js";
+import { ArrayTransformer } from "../array/array-transformer.js";
+import { BlockTransformer } from "../block/block-transformer.js";
 import { BooleanTransformer } from "../boolean/boolean-transformer.js";
+import { CallsTransformer } from "../calls/calls-transformer.js";
 import { ErrorTransformer, registerErrorTransformer } from "../error/error-transformer.js";
 import { EventTransformer } from "../event/event-transformer.js";
 import { registerEventTransformer } from "../event/utils/register-events.js";
@@ -31,15 +36,25 @@ function generateMethodSignature(method: IRMethod): ArgumentSignature {
   const { callArgs } = generateArgsLoadBlock(method.inputs);
   const argsSignature = callArgs.map(arg => `${arg.name}: ${arg.type}`).join(", ");
   const aliasLines = method.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i].name};`);
-  
-  if (method.inputs.some(inp => inp.type === "string")) {
-    aliasLines.push(`  const argsStart: usize = arg0;`);
-  }
+
 
   return {
     argsSignature,
     aliasLines,
   };
+}
+
+function generateReturnType(method: IRMethod): string {
+  if (!method.outputs || method.outputs.length === 0) {
+    return "void";
+  }
+
+  if (method.outputs[0].type === AbiType.Bool) {
+    return "boolean";
+  }
+
+  // Otherwise, it's a pointer
+  return "usize";
 }
 
 /**
@@ -49,10 +64,7 @@ function generateMethodSignature(method: IRMethod): ArgumentSignature {
  */
 function generateMethod(method: IRMethod, contractContext: ContractContext): string {
   const statementHandler = new StatementHandler(contractContext);
-  let returnType = "void";
-  if (method.outputs && method.outputs.length > 0 && method.outputs[0].type !== "void") {
-    returnType = "usize";
-  }
+  const returnType = generateReturnType(method);
   const { argsSignature, aliasLines } = generateMethodSignature(method);
   const body = statementHandler.handleStatements(method.ir);
 
@@ -74,28 +86,30 @@ function generateMethod(method: IRMethod, contractContext: ContractContext): str
 export function emitContract(contract: IRContract): string {
   // Initialize context-aware expression handler with contract information
   const transformerRegistry = new TransformerRegistry();
-  const contractContext = new ContractContext(transformerRegistry, contract.name, contract.parent?.name);
-  
+  const contractContext = new ContractContext(transformerRegistry, contract);
   // Register type-specific transformers FIRST (highest priority)
+  transformerRegistry.register(new ArrayTransformer(contractContext));
   transformerRegistry.register(new U256Transformer(contractContext));
   transformerRegistry.register(new I256Transformer(contractContext));
   transformerRegistry.register(new AddressTransformer(contractContext));
   transformerRegistry.register(new StrTransformer(contractContext));
   transformerRegistry.register(new BooleanTransformer(contractContext));
   transformerRegistry.register(new MsgTransformer(contractContext));
+  transformerRegistry.register(new BlockTransformer(contractContext));
+  transformerRegistry.register(new CallsTransformer(contractContext));
   transformerRegistry.register(new ErrorTransformer(contractContext, contract.errors || []));
   transformerRegistry.register(new EventTransformer(contractContext, contract.events || []));
   transformerRegistry.register(new StructTransformer(contractContext, contract.structs || []));
-  
+
   // Register ExpressionHandler LAST as fallback
   transformerRegistry.register(new ExpressionHandler(contractContext));
 
   const parts: string[] = [];
-
   // Add imports
   parts.push(generateImports(contract));
 
   // Add storage slots
+  contract.slotManager.generateSlotConstants().forEach(line => parts.push(line));
   parts.push(...generateStorageHelpers(contract.storage, contract.structs || []));
 
   // Struct helpers
@@ -103,21 +117,28 @@ export function emitContract(contract: IRContract): string {
 
   // Add events
   if (contract.events && contract.events.length > 0) {
-    parts.push(...registerEventTransformer(contract.events || [])); 
+    parts.push(...registerEventTransformer(contract.events || []));
   }
 
   // Custom Errors
   parts.push(...registerErrorTransformer(contract));
-  
+
   // Add constructor
   if (contract.constructor) {
     parts.push(generateDeployFunction(contract, contractContext));
     parts.push("");
   }
-
   // Add methods
   const methodParts = contract.methods.map(method => generateMethod(method, contractContext));
-  
+
+  // Add fallback and receive functions
+  if (contract.fallback) {
+    methodParts.push(generateMethod(contract.fallback, contractContext));
+  }
+  if (contract.receive) {
+    methodParts.push(generateMethod(contract.receive, contractContext));
+  }
+
   parts.push(...methodParts);
 
   return parts.join("\n");

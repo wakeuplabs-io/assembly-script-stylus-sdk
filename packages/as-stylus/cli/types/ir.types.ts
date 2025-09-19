@@ -1,4 +1,5 @@
 import { AbiType, AbiInput, AbiOutput, StateMutability, Visibility } from "./abi.types.js";
+import { SlotManager } from "../commands/build/analyzers/shared/slot-manager.js";
 import { SupportedType } from "../commands/build/analyzers/shared/supported-types.js";
 import { SymbolTableStack } from "../commands/build/analyzers/shared/symbol-table.js";
 
@@ -21,6 +22,7 @@ export type Variable = {
   type: SupportedType;
   originalType?: string;
   scope: "storage" | "memory";
+  slot?: number;
 };
 export type Call = {
   kind: "call";
@@ -36,6 +38,28 @@ export type Call = {
     isStructCreation?: boolean;
     structType?: string;
   };
+  genericType?: string;
+};
+
+export type ArrayAccess = {
+  kind: "array_access";
+  array: IRExpression;
+  index: IRExpression;
+  type: SupportedType;
+};
+
+export type ArrayLiteral = {
+  kind: "array_literal";
+  elements: IRExpression[];
+  type: SupportedType;
+};
+
+export type ArrayAssignment = {
+  kind: "array_assignment";
+  array: IRExpression;
+  index: IRExpression;
+  value: IRExpression;
+  type: SupportedType;
 };
 export type Member = {
   kind: "member";
@@ -105,9 +129,14 @@ export type IRCondition = {
   type: AbiType.Bool;
 };
 
+export type IRThis = {
+  kind: "this";
+  type: SupportedType;
+};
+
 export type ChainedCall = {
   kind: "call";
-  target: string; // Will be "chainedCall_methodName"
+  target: string;
   baseExpression: IRExpression;
   methodName: string;
   args: IRExpression[];
@@ -135,7 +164,11 @@ export type IRExpression =
   | IRMapSet
   | IRMapGet2
   | IRMapSet2
-  | ChainedCall;
+  | IRThis
+  | ChainedCall
+  | ArrayAccess
+  | ArrayLiteral
+  | ArrayAssignment;
 
 // ───────────────────────
 // Statements
@@ -218,7 +251,29 @@ export type IRMappingNestedVar = {
   kind: "mapping2";
 };
 
-export type IRVariable = IRSimpleVar | IRMappingVar | IRMappingNestedVar;
+export type IRArrayStaticVar = {
+  name: string;
+  type: AbiType.ArrayStatic;
+  slot: number;
+  elementType: string;
+  length: number;
+  kind: "array_static";
+};
+
+export type IRArrayDynamicVar = {
+  name: string;
+  type: AbiType.ArrayDynamic;
+  slot: number;
+  elementType: string;
+  kind: "array_dynamic";
+};
+
+export type IRVariable =
+  | IRSimpleVar
+  | IRMappingVar
+  | IRMappingNestedVar
+  | IRArrayStaticVar
+  | IRArrayDynamicVar;
 
 // ───────────────────────
 // Contract structure
@@ -233,6 +288,7 @@ export type IRMethod = {
   inputs: AbiInput[];
   outputs: AbiOutput[];
   ir: IRStatement[];
+  methodType?: "normal" | "fallback" | "receive";
 };
 
 export type IRConstructor = {
@@ -295,9 +351,12 @@ export interface IRContract {
   parent?: IRContract;
   methods: IRMethod[];
   constructor?: IRMethod;
+  fallback?: IRMethod;
+  receive?: IRMethod;
   storage: IRVariable[];
   events?: IREvent[];
   structs?: IRStruct[];
   errors?: IRErrorDecl[];
   symbolTable: SymbolTableStack;
+  slotManager: SlotManager;
 }

@@ -111,7 +111,6 @@ export class I256Transformer extends BaseTypeTransformer {
     if (expr.kind !== "call") return false;
     const target = expr.target || "";
 
-    // Factory methods - legacy format
     if (
       target === "I256Factory.create" ||
       target === "I256Factory.fromString" ||
@@ -120,12 +119,10 @@ export class I256Transformer extends BaseTypeTransformer {
       return true;
     }
 
-    // Factory methods with receiver structure
     if (
       (target === MethodName.Create || target === MethodName.FromString || target === "fromU256") &&
       expr.receiver
     ) {
-      // Check if receiver is I256Factory
       if (expr.receiver.kind === "var" && expr.receiver.name === "I256Factory") {
         return true;
       }
@@ -135,7 +132,6 @@ export class I256Transformer extends BaseTypeTransformer {
       return true;
     }
 
-    // Check returnType first - this is the most reliable indicator
     if (expr.returnType === AbiType.Int256) {
       if (expr.originalType || target.includes("_get_") || target.includes("_set_")) {
         return false;
@@ -143,25 +139,23 @@ export class I256Transformer extends BaseTypeTransformer {
       return true;
     }
 
-    // For boolean return types, only match I256-specific methods
     if (expr.returnType === AbiType.Bool) {
       if (target.endsWith(".isNegative")) {
-        // isNegative is only available on I256 variables
         return true;
       }
 
-      // Comparison methods - only for I256 variables
+      //const arg = expr.args[0];
       const comparisonMethods = METHOD_GROUPS.COMPARISON.map((method) => `.${method}`);
       if (comparisonMethods.some((method) => target.endsWith(method))) {
+        // if (arg.type === AbiType.Int256) {
+        //   return true;
+        // }
         return true;
       }
     }
 
-    // For string return types, only match I256-specific methods
     if (expr.returnType === AbiType.String) {
       if (target.endsWith(`.${MethodName.ToString}`)) {
-        // toString could be on any type, so we need to be more specific
-        // For now, only match if it's explicitly an I256 method
         if (target.startsWith("I256.")) {
           return true;
         }

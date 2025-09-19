@@ -17,23 +17,25 @@ export class VariableTransformer extends Handler {
   }
 
   handle(variable: Variable): EmitResult {
-    if (variable.scope === "storage") {
-      if (variable.type === AbiType.Bool) {
-        return {
-          setupLines: [],
-          valueExpr: `Boolean.fromABI(load_${variable.name}())`
-        };
-      }
+    if (variable.scope === "memory") {
+      return {
+        setupLines: [],
+        valueExpr: variable.name,
+      };
+    }
+
+    if (variable.type === AbiType.Struct) {
+      const slot = `__SLOT${variable.slot!.toString(16).padStart(2, "0")}`;
 
       return {
         setupLines: [],
-        valueExpr: `load_${variable.name}()`
+        valueExpr: slot,
       };
     }
-    
+
     return {
       setupLines: [],
-      valueExpr: variable.name
+      valueExpr: `load_${variable.name}()`,
     };
   }
 }

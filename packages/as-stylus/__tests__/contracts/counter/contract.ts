@@ -1,33 +1,32 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import { Contract, External, U256, U256Factory, View } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class Counter {
-  static counter: U256;
+  counter: U256;
 
   constructor() {
-    counter = U256Factory.create();
+    this.counter = U256Factory.create();
   }
 
   @External
-  static set(value: U256): void {
-    counter = value;
+  set(value: U256): void {
+    this.counter = value;
   }
 
   @External
-  static increment(): void {
+  increment(): void {
     const delta: U256 = U256Factory.fromString("1");
-    counter = counter.addUnchecked(delta);
+    this.counter = this.counter.addUnchecked(delta);
   }
 
   @External
-  static decrement(): void {
+  decrement(): void {
     const delta: U256 = U256Factory.fromString("1");
-    counter = counter.subUnchecked(delta);
+    this.counter = this.counter.subUnchecked(delta);
   }
 
   @View
-  static get(): U256 {
-    return counter.toString();
+  get(): U256 {
+    return this.counter;
   }
 }

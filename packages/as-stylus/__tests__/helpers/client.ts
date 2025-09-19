@@ -15,6 +15,8 @@ import {
   BaseError,
   ContractFunctionRevertedError,
   ContractFunctionExecutionError,
+  keccak256,
+  toBytes,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arbitrumSepolia } from "viem/chains";
@@ -53,7 +55,13 @@ export const getWalletClient = (privateKey: string) =>
 
 export function contractService(contractAddr: Address, abi: Abi, verbose: boolean = false) {
   return {
-    write: async (walletClient: WalletClient, functionName: string, args: ContractArgs) => {
+    address: contractAddr,
+    write: async (
+      walletClient: WalletClient,
+      functionName: string,
+      args: ContractArgs,
+      value?: bigint,
+    ) => {
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ write calldata:", data);
 
@@ -64,6 +72,7 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
         args,
         account: walletClient.account as Account,
         chain,
+        value,
       });
 
       const result = await walletClient.writeContract(request);
@@ -73,19 +82,18 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
 
     read: async (
       functionName: string,
-      args: (string | boolean | Address | bigint)[],
+      args: (string | boolean | Address | bigint | (string | boolean | Address | bigint)[])[],
       gasLimit?: bigint,
     ) => {
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ calldata:", data);
 
-      const callParams: any = { to: contractAddr, data };
-      if (gasLimit) {
-        callParams.gas = gasLimit;
-        if (verbose) console.log("→ using custom gas limit:", gasLimit);
-      }
+      const { data: raw } = await publicClient.call({
+        to: contractAddr,
+        data,
+        gas: gasLimit,
+      } as const);
 
-      const { data: raw } = await publicClient.call(callParams);
       if (verbose) console.log("← raw:", raw);
       const decoded = decodeFunctionResult({ abi, functionName, data: raw || "0x" });
       if (verbose) console.log("← decoded:", decoded);
@@ -93,7 +101,32 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
       return decoded;
     },
 
-    readRaw: async (functionName: string, args: (string | boolean | Address | bigint)[] = []) => {
+    readWithAccount: async (
+      walletClient: WalletClient,
+      functionName: string,
+      args: (string | boolean | Address | bigint | (string | boolean | Address | bigint)[])[] = [],
+      value?: bigint,
+      gasLimit?: bigint,
+    ) => {
+      const data = encodeFunctionData({ abi, functionName, args });
+      if (verbose) console.log("→ calldata with account:", data);
+
+      const { data: raw } = await publicClient.call({
+        to: contractAddr,
+        data,
+        account: walletClient.account as Account,
+        value,
+        gas: gasLimit,
+      } as const);
+
+      if (verbose) console.log("← raw with account:", raw);
+      const decoded = decodeFunctionResult({ abi, functionName, data: raw || "0x" });
+      if (verbose) console.log("← decoded with account:", decoded);
+
+      return decoded;
+    },
+
+    readRaw: async (functionName: string, args: ContractArgs = []) => {
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ calldata:", data);
 
@@ -119,13 +152,13 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
           if (revertError instanceof ContractFunctionRevertedError) {
             const errorData = revertError.data;
             if (errorData && typeof errorData === "object" && "data" in errorData) {
-              revertData = (errorData as any).data as Hex;
+              revertData = (errorData as { data: Hex }).data;
             }
           }
         }
 
         if (!revertData && err.cause && typeof err.cause === "object") {
-          const cause = err.cause as any;
+          const cause = err.cause as { cause: { data: Hex } };
 
           if (cause.cause && typeof cause.cause === "object" && "data" in cause.cause) {
             const deepCauseData = cause.cause.data;
@@ -143,8 +176,8 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
         }
         if (!revertData && err.details) {
           const detailsMatch = err.details.match(/0x[a-fA-F0-9]+/);
-          if (detailsMatch) {
-            revertData = detailsMatch[0] as Hex;
+          if (detailsMatch?.[0]) {
+            revertData = detailsMatch[0] as `0x${string}`;
           }
         }
 
@@ -195,12 +228,14 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
         if (verbose) console.log("← txHash:", txHash);
 
         return { success: true, txHash };
-      } catch (err) {
+        //TODO: revise catch because typing is not correct
+      } catch (err: any) {
         if (verbose) console.log("← write error caught:", err);
 
         if (!(err instanceof ContractFunctionExecutionError)) throw err;
 
         const errAny = err as any;
+        // this if statement cannot be accessed
         if (errAny.data && typeof errAny.data === "object" && "errorName" in errAny.data) {
           const errorData = errAny.data;
           if (verbose) console.log("← error data from ContractFunctionExecutionError:", errorData);
@@ -270,6 +305,76 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
           return { success: false, error: { name: "DecodeError", args: [] } };
         }
       }
+    },
+
+    /**
+     * Executes a raw transaction with custom calldata, bypassing ABI validation
+     * @param walletClient - Wallet client for signing transactions
+     * @param calldata - Raw hex calldata to send
+     * @param value - ETH value to send (optional)
+     * @param gasLimit - Gas limit for transaction (optional, defaults to 30M)
+     * @returns Transaction result with success status
+     */
+    writeRawTransaction: async (
+      walletClient: WalletClient,
+      calldata: Hex,
+      value?: bigint,
+      gasLimit?: bigint,
+    ) => {
+      if (verbose) console.log("→ raw transaction calldata:", calldata);
+
+      try {
+        const txRequest = {
+          to: contractAddr,
+          data: calldata,
+          value: value || 0n,
+          gas: gasLimit || 30000000n, // Default 30M gas for raw transactions
+          account: walletClient.account as Account,
+          chain,
+        };
+
+        const txHash = await walletClient.sendTransaction(txRequest);
+        if (verbose) console.log("← raw txHash:", txHash);
+
+        const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        if (verbose) console.log("← raw transaction receipt status:", receipt.status);
+
+        const success = receipt.status === "success";
+
+        return { success, txHash, receipt };
+      } catch (error: any) {
+        if (verbose) console.log("← raw transaction error:", error);
+
+        return {
+          success: false,
+          error: {
+            name: error.name || "RawTransactionError",
+            args: error.message ? [error.message] : [],
+          },
+        };
+      }
+    },
+
+    /**
+     * Generates invalid calldata to trigger fallback function
+     * @param fakeFunctionName - Name for fake function (default: "invalidFunction")
+     * @returns 4-byte function selector that doesn't exist in ABI
+     */
+    buildInvalidCalldata: (fakeFunctionName: string = "invalidFunction"): Hex => {
+      const functionSignature = `${fakeFunctionName}()`;
+      const hash = keccak256(toBytes(functionSignature));
+      const selector = hash.slice(0, 10) as Hex;
+      if (verbose)
+        console.log("→ generated invalid selector:", selector, "for signature:", functionSignature);
+      return selector;
+    },
+
+    /**
+     * Generates empty calldata to trigger receive function
+     * @returns Empty hex string "0x"
+     */
+    buildEmptyCalldata: (): Hex => {
+      return "0x";
     },
   };
 }

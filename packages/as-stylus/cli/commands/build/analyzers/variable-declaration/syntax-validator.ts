@@ -7,8 +7,8 @@ import { SUPPORTED_TYPES } from "../shared/supported-types.js";
 const ERROR_MESSAGES = {
   MISSING_INITIALIZER: "Variable declaration must have an initializer",
   INVALID_NAME: "Variable must have a valid name",
-  UNSUPPORTED_TYPE: (type: string, supportedTypes: string[]) => 
-    `Unsupported variable type: ${type}. Supported types are: ${supportedTypes.join(", ")}`
+  UNSUPPORTED_TYPE: (type: string, supportedTypes: string[]) =>
+    `Unsupported variable type: ${type}. Supported types are: ${supportedTypes.join(", ")}`,
 } as const;
 
 export class VariableDeclarationSyntaxValidator extends BaseValidator {
@@ -36,7 +36,7 @@ export class VariableDeclarationSyntaxValidator extends BaseValidator {
       hasErrors = true;
     }
 
-    if (!SUPPORTED_TYPES.includes(convertType(type))) {
+    if (!SUPPORTED_TYPES.includes(convertType(this.symbolTable, type))) {
       this.addSyntaxError(ERROR_MESSAGES.UNSUPPORTED_TYPE(type, SUPPORTED_TYPES));
       hasErrors = true;
     }

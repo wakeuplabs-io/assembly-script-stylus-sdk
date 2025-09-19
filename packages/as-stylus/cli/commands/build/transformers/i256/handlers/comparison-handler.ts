@@ -1,8 +1,6 @@
-
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { Call } from "@/cli/types/ir.types.js";
 import { Handler } from "@/transformers/core/base-abstract-handlers.js";
-
 
 /**
  * Handler for I256 comparison methods (lessThan, greaterThan, equal, etc.)
@@ -32,7 +30,7 @@ export class I256ComparisonHandler extends Handler {
       lessThanOrEqual: "lessThanOrEqual",
       greaterThanOrEqual: "greaterThanOrEqual",
       equals: "equals",
-      notEqual: "notEquals"
+      notEqual: "notEquals",
     };
 
     const staticMethod = methodMap[method] || method;
@@ -53,4 +51,4 @@ export class I256ComparisonHandler extends Handler {
       valueType: "boolean",
     };
   }
-} 
+}

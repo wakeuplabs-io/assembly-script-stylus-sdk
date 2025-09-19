@@ -25,26 +25,26 @@ export class AddressFromStringHandler extends Handler {
   canHandle(expr: Call): boolean {
     if (expr.args.length !== 1) return false;
     if (expr.args[0].kind !== "literal" && expr.args[0].kind !== "var") return false;
-    
+
     // Legacy format
     if (expr.target === "AddressFactory.fromString") return true;
-    
+
     // New receiver-based format
     if (expr.target === "fromString" && expr.receiver) {
       return expr.receiver.kind === "var" && expr.receiver.name === "AddressFactory";
     }
-    
+
     return false;
   }
 
   handle(expr: Call): EmitResult {
-    const arg    = expr.args[0];
-    const argIR  = this.contractContext.emitExpression(arg);
-    const setup  = [...argIR.setupLines];
+    const arg = expr.args[0];
+    const argIR = this.contractContext.emitExpression(arg);
+    const setup = [...argIR.setupLines];
 
     const hexPtr = makeTemp("hexPtr");
     const hexLen = makeTemp("hexLen");
-    const addr   = makeTemp("addrPtr");
+    const addr = makeTemp("addrPtr");
 
     if (arg.kind === "literal") {
       const raw: string = arg.value as string;
@@ -55,10 +55,8 @@ export class AddressFromStringHandler extends Handler {
         setup.push(`store<u8>(${hexPtr} + ${i}, ${raw.charCodeAt(i)});`);
       }
       setup.push(`const ${hexLen}: u32 = ${L};`);
-    }
-
-    else {
-      const offBE  = makeTemp("offBE");
+    } else {
+      const offBE = makeTemp("offBE");
       const lenPtr = makeTemp("lenPtr");
 
       setup.push(`const ${offBE}: u32 = loadU32BE(${argIR.valueExpr} + 28);`);
@@ -72,8 +70,8 @@ export class AddressFromStringHandler extends Handler {
 
     return {
       setupLines: setup,
-      valueExpr : addr,
-      valueType : "Address",
+      valueExpr: addr,
+      valueType: "Address",
     };
   }
 }

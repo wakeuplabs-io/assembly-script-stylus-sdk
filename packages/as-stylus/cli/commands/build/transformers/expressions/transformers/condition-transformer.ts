@@ -4,7 +4,7 @@ import { EmitResult } from "@/cli/types/emit.types.js";
 import { IRExpression, IRCondition } from "@/cli/types/ir.types.js";
 
 const RELATIONAL_OPERATORS = ["<", ">", "<=", ">=", "==", "!="] as const;
-type RelationalOperator = typeof RELATIONAL_OPERATORS[number];
+type RelationalOperator = (typeof RELATIONAL_OPERATORS)[number];
 
 /**
  * Transformer for condition expressions.
@@ -23,39 +23,39 @@ export class ConditionTransformer extends Handler {
     if (condition.op && this.isRelationalOperator(condition.op)) {
       return this.handleRelationalComparison(condition);
     }
-    
+
     // Handle single expression conditions
     if (!condition.right) {
       const leftResult = this.contractContext.emitExpression(condition.left);
       return {
         setupLines: leftResult.setupLines,
-        valueExpr: leftResult.valueExpr
+        valueExpr: leftResult.valueExpr,
       };
     }
-    
+
     // Handle other binary conditions
     const leftResult = this.contractContext.emitExpression(condition.left);
     const rightResult = this.contractContext.emitExpression(condition.right!);
-    
+
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
-      valueExpr: `${leftResult.valueExpr} ${condition.op} ${rightResult.valueExpr}`
+      valueExpr: `${leftResult.valueExpr} ${condition.op} ${rightResult.valueExpr}`,
     };
   }
 
-  private handleRelationalComparison(
-    condition: IRCondition,
-  ): EmitResult {
+  private handleRelationalComparison(condition: IRCondition): EmitResult {
     const leftResult = this.contractContext.emitExpression(condition.left);
     const rightResult = this.contractContext.emitExpression(condition.right!);
-    
+
     // Detect type class (I256 vs U256)
     const typeClass = this.detectTypeClass(condition.left);
     const method = this.getComparisonMethod(condition.op!, typeClass);
-    
+
     return {
       setupLines: [...leftResult.setupLines, ...rightResult.setupLines],
-      valueExpr: method.replace("${left}", leftResult.valueExpr).replace("${right}", rightResult.valueExpr)
+      valueExpr: method
+        .replace("${left}", leftResult.valueExpr)
+        .replace("${right}", rightResult.valueExpr),
     };
   }
 

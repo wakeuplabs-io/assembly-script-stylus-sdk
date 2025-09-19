@@ -3,7 +3,6 @@ import { ContractContext } from "@/cli/commands/build/transformers/core/contract
 import { EmitResult } from "@/cli/types/emit.types.js";
 import { IRExpression, Literal } from "@/cli/types/ir.types.js";
 
-
 /**
  * Handler for boolean literals
  */

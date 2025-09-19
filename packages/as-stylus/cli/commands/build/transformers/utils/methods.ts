@@ -17,22 +17,20 @@ export function generateMethods(contract: IRContract, contractContext: ContractC
     }
 
     const { callArgs } = generateArgsLoadBlock(m.inputs);
-    const argsSignature = callArgs.map(arg => `${arg.name}: ${arg.type}`).join(", ");
-    
+    const argsSignature = callArgs.map((arg) => `${arg.name}: ${arg.type}`).join(", ");
+
     const body = contractContext.emitStatements(m.ir);
     const aliasLines = m.inputs.map((inp, i) => `  const ${inp.name} = ${callArgs[i]};`);
-    
-    if (m.inputs.some(inp => inp.type === "string")) {
-      aliasLines.push(`  const argsStart: usize = arg0;`);
-    }
 
     methodParts.push(
       `export function ${m.name}(${argsSignature}): ${returnType} {\n` +
-      aliasLines.join("\n") + "\n" +
-      body + "\n}"
+        aliasLines.join("\n") +
+        "\n" +
+        body +
+        "\n}",
     );
-    methodParts.push(""); 
+    methodParts.push("");
   });
 
   return methodParts;
-} 
+}

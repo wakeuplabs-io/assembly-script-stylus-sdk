@@ -1,24 +1,27 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import { Contract, External, Str, StrFactory, U256, View } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class StringStorage {
-  static storageVal: Str;
+  storageVal: Str;
+
+  constructor() {
+    this.storageVal = StrFactory.fromString("");
+  }
 
   @External
-  static setStorage(value: string): void {
+  setStorage(value: string): void {
     const s = StrFactory.fromString(value);
-    storageVal = s;
+    this.storageVal = s;
   }
 
   @View
-  static getStorage(): string {
-    return storageVal;
+  getStorage(): Str {
+    return this.storageVal;
   }
 
   @View
-  static substring(offset: U256, length: U256): string {
-    const substring: string = storageVal.slice(offset, length);
+  substring(offset: U256, length: U256): Str {
+    const substring = this.storageVal.slice(offset, length);
     return substring;
   }
 }

@@ -21,8 +21,8 @@ export class ContractSemanticValidator extends BaseValidator {
     if (classesWithDecorators.length === 0) {
       this.addSemanticError(ERROR_CODES.NO_CONTRACT_DECORATOR_FOUND);
       return true;
-    } 
-    
+    }
+
     if (classesWithDecorators.length > 1) {
       this.addSemanticError(ERROR_CODES.MULTIPLE_CONTRACTS_FOUND);
       return true;
@@ -30,11 +30,12 @@ export class ContractSemanticValidator extends BaseValidator {
 
     const classDefined = classesWithDecorators[0];
     if (classDefined.getDecorators().length > 1) {
-      this.addSemanticError(ERROR_CODES.MULTIPLE_CONTRACT_DECORATORS_FOUND, [classDefined.getName()!]);
+      this.addSemanticError(ERROR_CODES.MULTIPLE_CONTRACT_DECORATORS_FOUND, [
+        classDefined.getName()!,
+      ]);
       return true;
     }
 
     return false;
   }
 }
-

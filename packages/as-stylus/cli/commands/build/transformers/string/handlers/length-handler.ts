@@ -21,7 +21,7 @@ export class StrLengthHandler extends Handler {
     return {
       setupLines: [...recv.setupLines],
       valueExpr: `Str.length(${recv.valueExpr})`,
-      valueType: "U256"
+      valueType: "U256",
     };
   }
 }

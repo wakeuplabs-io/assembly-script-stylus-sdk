@@ -17,10 +17,10 @@ export class InheritanceIRBuilder extends IRBuilder<IRContract | undefined> {
     super(sourceFile);
     this.sourceFile = sourceFile;
 
-    const extendsExpr = contractClass.getHeritageClauses().find(
-      (h: HeritageClause) => h.getToken() === SyntaxKind.ExtendsKeyword
-    );
-    
+    const extendsExpr = contractClass
+      .getHeritageClauses()
+      .find((h: HeritageClause) => h.getToken() === SyntaxKind.ExtendsKeyword);
+
     const parentTypes = extendsExpr?.getTypeNodes() ?? [];
     this.parents = parentTypes.map((type) => type.getText());
   }
@@ -36,14 +36,18 @@ export class InheritanceIRBuilder extends IRBuilder<IRContract | undefined> {
   private getImportPath(parentType: string): string {
     const imports = this.sourceFile.getImportDeclarations();
 
-    const importPath = imports.find((i) => i.getText().includes(`import { ${parentType} } from`) || i.getText().includes(`import ${parentType} from`));
-    
+    const importPath = imports.find(
+      (i) =>
+        i.getText().includes(`import { ${parentType} } from`) ||
+        i.getText().includes(`import ${parentType} from`),
+    );
+
     if (!importPath) {
       return "";
     }
 
     const match = importPath.getText().match(/from\s+['"]([^'"]+)['"]/);
-    
+
     return (match?.[1] || "").replace(".js", ".ts");
   }
 

@@ -54,29 +54,36 @@ my-counter/
 Edit `contract.ts`:
 
 ```typescript
+import { Contract, External, U256, U256Factory, View } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class Counter {
-  static counter: U256;
+  counter: U256;
 
   constructor() {
-    counter = U256Factory.create();
+    this.counter = U256Factory.create();
   }
 
   @External
-  static increment(): void {
-    const delta: U256 = U256Factory.fromString("1");
-    counter = counter.add(delta);
+  set(value: U256): void {
+    this.counter = value;
   }
 
   @External
-  static decrement(): void {
+  increment(): void {
     const delta: U256 = U256Factory.fromString("1");
-    counter = counter.sub(delta);
+    this.counter = this.counter.addUnchecked(delta);
+  }
+
+  @External
+  decrement(): void {
+    const delta: U256 = U256Factory.fromString("1");
+    this.counter = this.counter.subUnchecked(delta);
   }
 
   @View
-  static get(): U256 {
-    return counter;
+  get(): U256 {
+    return this.counter;
   }
 }
 ```
@@ -92,13 +99,12 @@ npm run deploy <contract-file> --endpoint <rpc-url> --private-key <private-key> 
 
 The `as-stylus` CLI provides several commands for contract development:
 
-| Command      | Description                                  | Usage                               |
-| ------------ | -------------------------------------------- | ----------------------------------- |
+| Command      | Description                                  | Usage                                           |
+| ------------ | -------------------------------------------- | ----------------------------------------------- |
 | **generate** | Create a new Stylus project with boilerplate | `@wakeuplabs/as-stylus generate <project-name>` |
 | **compile**  | Compile AssemblyScript to WASM               | `@wakeuplabs/as-stylus compile <contract-path>` |
 | **deploy**   | Deploy contract to Stylus network            | `@wakeuplabs/as-stylus deploy <contract-path>`  |
 | **clean**    | Remove build artifacts and temporary files   | `@wakeuplabs/as-stylus clean`                   |
-
 
 ## Requirements
 

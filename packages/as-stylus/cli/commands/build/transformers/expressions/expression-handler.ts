@@ -11,10 +11,12 @@ import { FallbackTransformer } from "./transformers/fallback-transformer.js";
 import { LiteralTransformer } from "./transformers/literal-transformer.js";
 import { MappingTransformer } from "./transformers/mapping-transformer.js";
 import { MemberTransformer } from "./transformers/member-transformer.js";
+import { ThisTransformer } from "./transformers/this-transformer.js";
 import { UnaryTransformer } from "./transformers/unary-transformer.js";
 import { VariableTransformer } from "./transformers/variable-transformer.js";
 
 type TransformerKind =
+  | "this"
   | "member"
   | "call"
   | "binary"
@@ -40,6 +42,7 @@ export class ExpressionHandler extends BaseTypeTransformer {
   private createTransformers(): Record<TransformerKind, Handler> {
     return {
       member: new MemberTransformer(this.contractContext),
+      this: new ThisTransformer(this.contractContext),
       call: new CallTransformer(this.contractContext),
       binary: new BinaryTransformer(this.contractContext),
       condition: new ConditionTransformer(this.contractContext),
@@ -56,6 +59,7 @@ export class ExpressionHandler extends BaseTypeTransformer {
 
   canHandle(expr: { kind: string }): boolean {
     const expressions = [
+      "this",
       "expr",
       "call",
       "literal",

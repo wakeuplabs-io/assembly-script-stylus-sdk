@@ -16,13 +16,13 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
 
   validate(): boolean {
     const properties = this.structClass.getProperties();
-    
+
     if (properties.length === 0) {
       this.errorManager.addSemanticError(
         "STRUCT_NO_FIELDS",
         this.structClass.getSourceFile().getFilePath(),
         this.structClass.getStartLineNumber(),
-        [`El struct ${this.structClass.getName()} debe tener al menos un campo`]
+        [`El struct ${this.structClass.getName()} debe tener al menos un campo`],
       );
       return false;
     }
@@ -37,15 +37,14 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
 
   buildIR(): IRStruct {
     const name = this.structClass.getName() || "AnonymousStruct";
-    
-    const basicFields = this.structClass.getProperties().map(property => ({
+
+    const basicFields = this.structClass.getProperties().map((property) => ({
       name: property.getName(),
-      type: convertType(property.getType().getText())
+      type: convertType(this.symbolTable, property.getType().getText()),
     }));
 
     const layout = calculateFieldLayout(basicFields);
-    
-    const fields: IRStructField[] = layout.fields.map(field => ({
+    const fields: IRStructField[] = layout.fields.map((field) => ({
       name: field.name,
       type: field.type,
       offset: field.offset,
@@ -69,21 +68,23 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
   private hasRecursiveTypes(structName: string, properties: any[]): boolean {
     for (const property of properties) {
       const propertyType = property.getType().getText();
-      
+
       if (propertyType === structName) {
         this.errorManager.addSemanticError(
           "STRUCT_RECURSIVE_TYPE",
           this.structClass.getSourceFile().getFilePath(),
           property.getStartLineNumber(),
-          [`El campo ${property.getName()} no puede tener el mismo tipo que el struct ${structName}`]
+          [
+            `El campo ${property.getName()} no puede tener el mismo tipo que el struct ${structName}`,
+          ],
         );
         return true;
       }
-      
+
       // TODO: Detect indirect cycles (A -> B -> A)
       // This would require a deeper analysis of the dependency graph
     }
-    
+
     return false;
   }
 
@@ -94,4 +95,4 @@ export class StructIRBuilder extends IRBuilder<IRStruct> {
   static getAllRegisteredStructs(): IRStruct[] {
     return Array.from(StructIRBuilder.structRegistry.values());
   }
-} 
+}

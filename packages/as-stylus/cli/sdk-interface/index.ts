@@ -1,9 +1,15 @@
 export * from "./decorators.js";
+export * from "./error.js";
+export * from "./event.js";
 
 // Export original modules
+export * from "./struct.js";
 export * from "./address.js";
 export * from "./u256.js";
 export * from "./mapping.js";
 export * from "./mapping2.js";
 export * from "./msg.js";
+export * from "./block.js";
 export * from "./string.js";
+export * from "./calls.js";
+export * from "./i256.js";

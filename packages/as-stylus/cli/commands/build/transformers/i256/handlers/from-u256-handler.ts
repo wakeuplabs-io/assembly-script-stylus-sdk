@@ -10,10 +10,7 @@ export class I256FromU256Handler extends Handler {
    * Determines if this handler can process the given expression
    */
   canHandle(expr: Call): boolean {
-    return (
-      expr.target === "I256Factory.fromU256" &&
-      expr.args.length === 1
-    );
+    return expr.target === "I256Factory.fromU256" && expr.args.length === 1;
   }
 
   /**

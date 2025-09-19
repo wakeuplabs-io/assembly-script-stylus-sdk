@@ -2,14 +2,21 @@ import { BinaryExpression, Expression } from "ts-morph";
 
 import { Logger } from "@/cli/services/logger.js";
 import { AbiType } from "@/cli/types/abi.types.js";
-import { IRCondition, IRExpression, IRExpressionBinary } from "@/cli/types/ir.types.js";
+import {
+  IRCondition,
+  IRExpression,
+  IRExpressionBinary,
+  ArrayAssignment,
+} from "@/cli/types/ir.types.js";
 
 import { BinaryExpressionSyntaxValidator } from "./syntax-validator.js";
 import { ExpressionIRBuilder } from "../expression/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { SupportedType } from "../shared/supported-types.js";
 
-export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IRCondition> {
+export class BinaryExpressionIRBuilder extends IRBuilder<
+  IRExpressionBinary | IRCondition | ArrayAssignment
+> {
   private expression: BinaryExpression;
   private op: string;
   private left: Expression;
@@ -26,7 +33,10 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
   }
 
   validate(): boolean {
-    const syntaxValidator = new BinaryExpressionSyntaxValidator(this.expression, this.isConditional);
+    const syntaxValidator = new BinaryExpressionSyntaxValidator(
+      this.expression,
+      this.isConditional,
+    );
     return syntaxValidator.validate();
   }
 
@@ -44,17 +54,17 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
 
     if (leftType !== rightType) {
       Logger.getInstance().warn(`TODO: implement conversion from ${rightType} to ${leftType}`);
-      return leftType;  
+      return leftType;
     }
 
     return leftType;
   }
 
-  buildIR(): IRExpressionBinary | IRCondition {
+  buildIR(): IRExpressionBinary | IRCondition | ArrayAssignment {
     const left = new ExpressionIRBuilder(this.left).validateAndBuildIR();
     const right = new ExpressionIRBuilder(this.right).validateAndBuildIR();
     const type = this.getConversionType(left, right);
-    
+
     if (this.isConditional) {
       return {
         kind: "condition",
@@ -63,6 +73,24 @@ export class BinaryExpressionIRBuilder extends IRBuilder<IRExpressionBinary | IR
         right,
         type,
       } as IRCondition;
+    }
+
+    if (this.op === "=" && left.kind === "array_access") {
+      // Infer type from the value being assigned, not the array access
+      let assignmentType = left.type; // fallback to left.type
+      if ("returnType" in right && right.returnType) {
+        assignmentType = right.returnType as any;
+      } else if ("type" in right && right.type) {
+        assignmentType = right.type as any;
+      }
+
+      return {
+        kind: "array_assignment",
+        array: left.array,
+        index: left.index,
+        value: right,
+        type: assignmentType,
+      } as ArrayAssignment;
     }
 
     if (this.op === "&&" || this.op === "||") {

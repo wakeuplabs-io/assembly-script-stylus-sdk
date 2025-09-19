@@ -15,7 +15,7 @@ export function applyAnalysis(contractName: string, transformedFile: string): IR
   const sourceFile = project.addSourceFileAtPath(transformedFile);
 
   const analyzer = new ContractIRBuilder(sourceFile, contractName);
-  const result = analyzer.validateAndBuildIR();  
+  const result = analyzer.validateAndBuildIR();
 
   exportContractToJSON(result);
   generateContractTree(result);

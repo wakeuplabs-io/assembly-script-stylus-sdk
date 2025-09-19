@@ -11,14 +11,20 @@ export function promptPrivateKey(): string {
   console.log("Your private key will not be displayed on screen for security.");
   console.log("");
 
-  const privateKey = prompt("Enter your wallet private key: ", { echo: "*" });
+  const rawPrivateKey = prompt("Enter your wallet private key: ", { echo: "*" });
 
-  if (!privateKey || privateKey.trim() === "") {
+  if (!rawPrivateKey || rawPrivateKey.trim() === "") {
     console.log("[X] Private key is required for deployment");
     process.exit(1);
   }
 
-  return privateKey.trim();
+  let privateKey = rawPrivateKey.trim();
+
+  if (!privateKey.startsWith("0x")) {
+    privateKey = `0x${privateKey}`;
+  }
+
+  return privateKey;
 }
 
 export function displayDeploymentStart(contractPath: string, endpoint: string): void {

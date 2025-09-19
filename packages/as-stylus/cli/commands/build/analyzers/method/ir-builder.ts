@@ -1,6 +1,6 @@
 import { Block, MethodDeclaration } from "ts-morph";
 
-import { AbiType, StateMutability, Visibility, AbiOutput } from "@/cli/types/abi.types.js";
+import { StateMutability, Visibility, AbiOutput } from "@/cli/types/abi.types.js";
 import { IRMethod } from "@/cli/types/ir.types.js";
 
 import { MethodSemanticValidator } from "./semantic-validator.js";
@@ -38,9 +38,19 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       Object.values(StateMutability).includes(d.getName().toLowerCase() as StateMutability),
     );
 
+    // Check for special method decorators
+    const fallbackDecorator = decorators.find((d) => d.getName() === "Fallback");
+    const receiveDecorator = decorators.find((d) => d.getName() === "Receive");
+
     const visibility = visDecorators[0]?.getName()?.toLowerCase() ?? Visibility.PUBLIC;
-    const stateMutability =
-      stateDecorators[0]?.getName()?.toLowerCase() ?? StateMutability.NONPAYABLE;
+
+    // Determine method type
+    let methodType: "normal" | "fallback" | "receive" = "normal";
+    if (fallbackDecorator) {
+      methodType = "fallback";
+    } else if (receiveDecorator) {
+      methodType = "receive";
+    }
 
     const inputs = this.methodDecl.getParameters().map((param) => {
       const argumentBuilder = new ArgumentIRBuilder(param);
@@ -54,18 +64,12 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       return statementBuilder.validateAndBuildIR();
     });
 
-    const outputs: AbiOutput[] =
-      returnType === AbiType.Void
-        ? []
-        : (() => {
-            const convertedType = convertTypeForIR(returnType);
-            return [
-              {
-                type: convertedType.type,
-                ...(convertedType.originalType && { originalType: convertedType.originalType }),
-              },
-            ];
-          })();
+    const stateMutability =
+      stateDecorators[0]?.getName()?.toLowerCase() ??
+      autoDetectStateMutability(name) ??
+      StateMutability.NONPAYABLE;
+
+    const outputs: AbiOutput[] = this.buildOutputs(returnType);
 
     this.symbolTable.exitScope();
     return {
@@ -75,6 +79,54 @@ export class MethodIRBuilder extends IRBuilder<IRMethod> {
       outputs,
       stateMutability: stateMutability as StateMutability,
       ir: irBody,
+      methodType,
     };
   }
+
+  /**
+   * Builds outputs array from return type
+   * @param returnType The return type string from method declaration
+   * @returns Array of AbiOutput objects
+   */
+  private buildOutputs(returnType: string): AbiOutput[] {
+    // Early return for void types
+    if (returnType === "void") {
+      return [];
+    }
+
+    const convertedType = convertTypeForIR(this.symbolTable, returnType);
+
+    return [
+      {
+        type: convertedType.type,
+        ...(convertedType.originalType && { originalType: convertedType.originalType }),
+      },
+    ];
+  }
+}
+
+/**
+ * Auto-detects state mutability based on method name patterns
+ * Simple pattern-based approach to avoid complex IR type checking
+ */
+function autoDetectStateMutability(methodName: string): StateMutability | null {
+  const purePatterns = ["calldata", "len", "sum", "echo"];
+  const isPureByName = purePatterns.some((pattern) =>
+    methodName.toLowerCase().includes(pattern.toLowerCase()),
+  );
+
+  if (isPureByName) {
+    return StateMutability.PURE;
+  }
+
+  const viewPatterns = ["get", "read", "length"];
+  const isViewByName = viewPatterns.some((pattern) =>
+    methodName.toLowerCase().startsWith(pattern.toLowerCase()),
+  );
+
+  if (isViewByName) {
+    return StateMutability.VIEW;
+  }
+
+  return null;
 }

@@ -1,7 +1,18 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import {
+  Address,
+  Str,
+  U256,
+  Contract,
+  External,
+  View,
+  Mapping,
+  StructFactory,
+  U256Factory,
+  StructTemplate,
+  Struct,
+} from "@wakeuplabs/as-stylus";
 
-@Struct
+@StructTemplate
 export class StructTest {
   to: Address;
   contents: Str;
@@ -12,113 +23,109 @@ export class StructTest {
 
 @Contract
 export class StructContract {
-  static myStruct: Struct<StructTest>;
-  static balances: Mapping<Address, U256> = new Mapping<Address, U256>();
-  static isEnabled: boolean;
+  myStruct: Struct<StructTest>;
+  balances: Mapping<Address, U256> = new Mapping<Address, U256>();
+  isEnabled: boolean;
 
   @External
-  static setStruct(to: Address, contents: Str, value: U256, flag: boolean, value2: U256) {
-    myStruct.to = to;
-    myStruct.contents = contents;
-    myStruct.value = value;
-    myStruct.flag = flag;
-    myStruct.value2 = value2;
+  setStruct(to: Address, contents: Str, value: U256, flag: boolean, value2: U256) {
+    this.myStruct.to = to;
+    this.myStruct.contents = contents;
+    this.myStruct.value = value;
+    this.myStruct.flag = flag;
+    this.myStruct.value2 = value2;
   }
 
   @View
-  static getStructTo(): Address {
-    return myStruct.to;
+  getStructTo(): Address {
+    return this.myStruct.to;
   }
 
   @View
-  static getStructContents(): Str {
-    return myStruct.contents;
+  getStructContents(): Str {
+    return this.myStruct.contents;
   }
 
   @View
-  static getStructValue(): U256 {
-    return myStruct.value;
+  getStructValue(): U256 {
+    return this.myStruct.value;
   }
 
   @View
-  static getStructFlag(): boolean {
-    return myStruct.flag;
+  getStructFlag(): boolean {
+    return this.myStruct.flag;
   }
 
   @View
-  static getStructValue2(): U256 {
-    return myStruct.value2;
+  getStructValue2(): U256 {
+    return this.myStruct.value2;
   }
 
   @View
-  static getInfo(): StructTest {
-    const toAddr = myStruct.to;
-    const contents = myStruct.contents;
-    const valueMemory = myStruct.value;
-    const flag = myStruct.flag;
-    const value2Memory = myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
-    const tempValue = structTemp.value;
-    structTemp.value2 = tempValue;
-    const delta: U256 = U256Factory.fromString("1");
-    structTemp.value = tempValue.add(delta);
+  getInfo(): StructTest {
+    const toAddr = this.myStruct.to;
+    const contents = this.myStruct.contents;
+    const valueMemory = this.myStruct.value;
+    const flag = this.myStruct.flag;
+    const value2Memory = this.myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     return structTemp;
   }
 
   @View
-  static getProcessedStructTo(): Address {
-    const toAddr = myStruct.to;
-    const contents = myStruct.contents;
-    const valueMemory = myStruct.value;
-    const flag = myStruct.flag;
-    const value2Memory = myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+  getProcessedStructTo(): Address {
+    const toAddr = this.myStruct.to;
+    const contents = this.myStruct.contents;
+    const valueMemory = this.myStruct.value;
+    const flag = this.myStruct.flag;
+    const value2Memory = this.myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     return structTemp.to;
   }
 
   @View
-  static getProcessedStructContents(): Str {
-    const toAddr = myStruct.to;
-    const contents = myStruct.contents;
-    const valueMemory = myStruct.value;
-    const flag = myStruct.flag;
-    const value2Memory = myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+  getProcessedStructContents(): Str {
+    const toAddr = this.myStruct.to;
+    const contents = this.myStruct.contents;
+    const valueMemory = this.myStruct.value;
+    const flag = this.myStruct.flag;
+    const value2Memory = this.myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     return structTemp.contents;
   }
 
   @View
-  static getProcessedStructValue(): U256 {
-    const toAddr = myStruct.to;
-    const contents = myStruct.contents;
-    const valueMemory = myStruct.value;
-    const flag = myStruct.flag;
-    const value2Memory = myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+  getProcessedStructValue(): U256 {
+    const toAddr = this.myStruct.to;
+    const contents = this.myStruct.contents;
+    const valueMemory = this.myStruct.value;
+    const flag = this.myStruct.flag;
+    const value2Memory = this.myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     const tempValue = structTemp.value;
     const delta: U256 = U256Factory.fromString("1");
     structTemp.value = tempValue.add(delta);
@@ -126,36 +133,36 @@ export class StructContract {
   }
 
   @View
-  static getProcessedStructFlag(): boolean {
-    const toAddr = myStruct.to;
-    const contents = myStruct.contents;
-    const valueMemory = myStruct.value;
-    const flag = myStruct.flag;
-    const value2Memory = myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+  getProcessedStructFlag(): boolean {
+    const toAddr = this.myStruct.to;
+    const contents = this.myStruct.contents;
+    const valueMemory = this.myStruct.value;
+    const flag = this.myStruct.flag;
+    const value2Memory = this.myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     return structTemp.flag;
   }
 
   @View
-  static getProcessedStructValue2(): U256 {
-    const toAddr = myStruct.to;
-    const contents = myStruct.contents;
-    const valueMemory = myStruct.value;
-    const flag = myStruct.flag;
-    const value2Memory = myStruct.value2;
-    const structTemp = StructFactory.create<StructTest>([
-      toAddr,
-      contents,
-      valueMemory,
-      flag,
-      value2Memory,
-    ]);
+  getProcessedStructValue2(): U256 {
+    const toAddr = this.myStruct.to;
+    const contents = this.myStruct.contents;
+    const valueMemory = this.myStruct.value;
+    const flag = this.myStruct.flag;
+    const value2Memory = this.myStruct.value2;
+    const structTemp = StructFactory.create<StructTest>({
+      to: toAddr,
+      contents: contents,
+      value: valueMemory,
+      flag: flag,
+      value2: value2Memory,
+    });
     const tempValue = structTemp.value;
     structTemp.value2 = tempValue;
     return structTemp.value2;

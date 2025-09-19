@@ -15,12 +15,12 @@ export class AddressIsZeroHandler extends Handler {
   canHandle(expr: Call): boolean {
     // Legacy format
     if (expr.target.endsWith(".isZero")) return true;
-    
+
     // New receiver-based format
     if (expr.target === "isZero" && expr.receiver) {
       return true; // Let AddressTransformer.canHandle() do the type checking
     }
-    
+
     return false;
   }
 
@@ -28,20 +28,20 @@ export class AddressIsZeroHandler extends Handler {
     // Handle legacy format - create receiver from target
     if (!expr.receiver && expr.target.endsWith(".isZero")) {
       const chain = expr.target.slice(0, -".isZero".length);
-      expr.receiver = { kind:"var", name: chain, type: AbiType.Address, scope: "memory" };
+      expr.receiver = { kind: "var", name: chain, type: AbiType.Address, scope: "memory" };
     }
-    
+
     // Ensure we have a receiver (should always be true after the above)
     if (!expr.receiver) {
       throw new Error("AddressIsZeroHandler called without receiver");
     }
-    
+
     const recv = this.contractContext.emitExpression(expr.receiver);
 
     return {
       setupLines: [...recv.setupLines],
-      valueExpr : `Address.isZero(${recv.valueExpr})`,
-      valueType : "bool"
+      valueExpr: `Address.isZero(${recv.valueExpr})`,
+      valueType: "bool",
     };
   }
 }
