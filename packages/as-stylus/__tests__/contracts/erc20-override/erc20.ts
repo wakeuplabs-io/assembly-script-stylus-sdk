@@ -8,7 +8,7 @@ import {
   MappingNested,
   msg,
   EventFactory,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 const Transfer = EventFactory.create<[from: Address, to: Address, amount: U256]>({
   indexed: [true, true, false],

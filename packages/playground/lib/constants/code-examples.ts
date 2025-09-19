@@ -13,7 +13,7 @@ import {
   U256Factory,
   StrFactory,
   EventFactory,
-} from "as-stylus";
+} from"@wakeuplabs/as-stylus";
 
 const Transfer = EventFactory.create<[from: Address, to: Address, amount: U256]>({
   indexed: [true, true, false],
@@ -165,7 +165,7 @@ import {
   msg,
   AddressFactory,
   EventFactory,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 const ERC721InvalidOwner = ErrorFactory.create<[owner: Address]>();
 const ERC721NonexistentToken = ErrorFactory.create<[tokenId: U256]>();

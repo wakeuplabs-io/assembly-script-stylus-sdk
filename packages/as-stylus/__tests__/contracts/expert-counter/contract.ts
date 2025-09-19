@@ -1,4 +1,12 @@
-import { Contract, External, I256, I256Factory, U256, U256Factory, View } from "as-stylus";
+import {
+  Contract,
+  External,
+  I256,
+  I256Factory,
+  U256,
+  U256Factory,
+  View,
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class ExpertCounter {

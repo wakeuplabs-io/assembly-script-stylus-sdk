@@ -1,4 +1,4 @@
-import { Address, AddressFactory, Contract, External, View } from "as-stylus";
+import { Address, AddressFactory, Contract, External, View } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class AdminRegistry {

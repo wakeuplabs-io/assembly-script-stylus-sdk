@@ -12,7 +12,7 @@ import {
   Str,
   StrFactory,
   View,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class NestedFunctions {

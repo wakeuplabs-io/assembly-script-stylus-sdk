@@ -1,4 +1,4 @@
-import { Contract, External, U256, U256Factory } from "as-stylus";
+import { Contract, External, U256, U256Factory } from "@wakeuplabs/as-stylus";
 
 import { Parent } from "./parent.js";
 

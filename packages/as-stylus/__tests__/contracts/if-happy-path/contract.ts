@@ -1,4 +1,4 @@
-import { Contract, External, View, U256, U256Factory } from "as-stylus";
+import { Contract, External, View, U256, U256Factory } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class IfHappyPath {

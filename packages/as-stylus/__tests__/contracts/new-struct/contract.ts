@@ -9,7 +9,7 @@ import {
   StructTemplate,
   U256,
   View,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 @StructTemplate
 export class User {
