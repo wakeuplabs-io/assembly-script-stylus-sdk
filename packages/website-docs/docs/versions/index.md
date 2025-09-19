@@ -8,7 +8,11 @@ You can find an archive of previous major/minor versions below.
 
 **Latest version: v0.1.0**
 
-- [v0.1.0 (August 2025)](./latest.md)
+- [v0.2.0 (September 2025)](./latest.md)
+
+**Previous version: v0.1.0**
+
+- [v0.1.0 (August 2025)](./v0.1.md)
 
 ## Playground Demo
 
