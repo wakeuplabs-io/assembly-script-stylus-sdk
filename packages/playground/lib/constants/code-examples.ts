@@ -879,7 +879,8 @@ export class ERC721 {
   isApprovedForAll(owner: Address, operator: Address): boolean {
     return this.operatorApprovals.get(owner, operator);
   }
-} `
+}
+`
 
 export const ERC721_ENTRYPOINT_CODE = `// ERC-721 Entrypoint
 // Auto-generated contract template
