@@ -87,6 +87,10 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/calls"),
     abi: path.join(ROOT_PATH, "/calls/artifacts/abi/contract-abi.json"),
   },
+  STATIC_CALLS: {
+    contract: path.join(ROOT_PATH, "/static-calls"),
+    abi: path.join(ROOT_PATH, "/static-calls/artifacts/abi/contract-abi.json"),
+  },
   WHILE: {
     contract: path.join(ROOT_PATH, "/while"),
     abi: path.join(ROOT_PATH, "/while/artifacts/abi/contract-abi.json"),

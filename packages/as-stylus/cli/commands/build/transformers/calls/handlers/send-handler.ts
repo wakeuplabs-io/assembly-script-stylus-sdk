@@ -38,7 +38,7 @@ export class SendHandler extends Handler {
 
     const setupLines = argResults.flatMap((result: EmitResult) => result.setupLines);
 
-    const callExpr = `Boolean.create(Calls.send(${toResult.valueExpr}, ${valueResult.valueExpr}))`;
+    const callExpr = `Calls.send(${toResult.valueExpr}, ${valueResult.valueExpr})`;
 
     return {
       setupLines,
