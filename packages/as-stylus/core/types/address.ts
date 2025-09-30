@@ -156,4 +156,17 @@ export class Address {
     }
     return false;
   }
+
+  /**
+   * Creates a short representation of an address (last 20 bytes)
+   * @param addr - Pointer to the 32 bytes address
+   * @returns Pointer to the newly allocated short address
+   */
+  static toShort(addr: usize): usize {
+    const short = malloc(20);
+    for (let i: u32 = 0; i < 20; ++i) {
+      store<u8>(short + i, load<u8>(addr + i + 12));
+    }
+    return short;
+  }
 }
