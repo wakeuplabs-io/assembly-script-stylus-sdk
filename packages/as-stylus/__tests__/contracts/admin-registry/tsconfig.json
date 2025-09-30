@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strictPropertyInitialization": false
   },
-  "include": ["contract.ts"]
+  "include": ["admin.ts"]
 }

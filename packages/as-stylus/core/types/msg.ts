@@ -2,8 +2,6 @@ import { msg_sender, msg_value, msg_reentrant, read_args } from "../modules/host
 import { malloc } from "../modules/memory";
 
 export class Msg {
-  private constructor() {}
-
   /**
    * Gets the address of the message sender (caller)
    * Equivalent to Solidity's msg.sender
@@ -50,17 +48,17 @@ export class Msg {
   public static sig(): usize {
     const dataPtr = Msg.data();
     const sigPtr = malloc(32);
-    
+
     // Clear all bytes first (padding)
     for (let i = 0; i < 32; i++) {
       store<u8>(sigPtr + i, 0);
     }
-    
+
     // Copy first 4 bytes of calldata to the end (big-endian style)
     for (let i = 0; i < 4; i++) {
       store<u8>(sigPtr + 28 + i, load<u8>(dataPtr + i));
     }
-    
+
     return sigPtr;
   }
 
@@ -72,15 +70,15 @@ export class Msg {
   public static reentrant(): usize {
     const reentrantStatus = msg_reentrant();
     const ptr = malloc(32);
-    
+
     // Clear all bytes first
     for (let i = 0; i < 32; i++) {
       store<u8>(ptr + i, 0);
     }
-    
+
     // Store i32 value in last 4 bytes (big-endian style)
     store<i32>(ptr + 28, reentrantStatus);
-    
+
     return ptr;
   }
 
@@ -88,14 +86,14 @@ export class Msg {
    * Helper function to check if any value was sent with the transaction
    * @returns true if msg.value > 0
    */
-  public static hasValue(): bool {
+  public static hasValue(): boolean {
     const valuePtr = Msg.value();
     for (let i = 0; i < 32; i++) {
       if (load<u8>(valuePtr + i) !== 0) {
         return true;
       }
     }
-    
+
     return false;
   }
 }

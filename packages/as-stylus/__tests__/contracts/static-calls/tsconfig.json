@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strictPropertyInitialization": false
   },
-  "include": ["token.ts"]
+  "include": ["contract.ts"]
 }

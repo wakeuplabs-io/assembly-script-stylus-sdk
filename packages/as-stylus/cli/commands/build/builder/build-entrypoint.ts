@@ -283,7 +283,7 @@ function generateConstructorEntry(
   const { argLines, callArgs } = generateArgsLoadBlock(inputs);
 
   const deployMethod: IRMethod = {
-    name: `contract_constructor`,
+    name: `${contractName}_constructor`,
     visibility: Visibility.PUBLIC,
     stateMutability: StateMutability.NONPAYABLE,
     inputs: inputs.map((input) => ({

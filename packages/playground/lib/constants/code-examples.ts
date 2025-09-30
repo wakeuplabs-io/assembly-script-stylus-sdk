@@ -147,7 +147,7 @@ export class ERC20Full {
     const AddressZero = AddressFactory.fromString("0x0000000000000000000000000000000000000000");
     Transfer.emit(sender, AddressZero, amount);
   }
-}`
+}`;
 
 export const ERC20_ENTRYPOINT_CODE = `// ERC-20 Entrypoint
 // Auto-generated contract template
@@ -294,7 +294,7 @@ export function user_entrypoint(args_len: usize): i32 {
   }
   return 0;
 }
-`
+`;
 
 export const ERC20_CONTRACT_TRANSFORMED = `// ERC-20 Token Contract Transformed
 import { addTopic, emitTopics } from "@wakeuplabs/as-stylus/core/modules/events";
@@ -652,7 +652,7 @@ export function burn(arg0: usize): void {
   U256.copyInPlace(__data_23 + 0, amount);
   emitTopics(__topics_22, 3, __data_23, 32);
 }
-`
+`;
 
 export const ERC721_CONTRACT_CODE = `// ERC-721 NFT Contract
 import {
@@ -880,7 +880,7 @@ export class ERC721 {
     return this.operatorApprovals.get(owner, operator);
   }
 }
-`
+`;
 
 export const ERC721_ENTRYPOINT_CODE = `// ERC-721 Entrypoint
 // Auto-generated contract template
@@ -1026,7 +1026,7 @@ export function user_entrypoint(args_len: usize): i32 {
   }
   return 0;
 }
-`
+`;
 
 export const ERC721_CONTRACT_TRANSFORMED = `// ERC-721 NFT Contract Transformed
 import { abort_with_data } from "@wakeuplabs/as-stylus/core/modules/errors";
@@ -1692,4 +1692,4 @@ export function isApprovedForAll(arg0: usize, arg1: usize): boolean {
   const operator = arg1;
   return MappingNested.getBoolean(__SLOT03, owner, operator);
 }
-`
+`;

@@ -57,7 +57,7 @@ declare function _static_call_contract(
   data_len: usize,
   gas: u64,
   outs_len: usize
-): u8;            
+): u8;
 
 @external("vm_hooks", "account_balance")
 declare function _account_balance(address: usize, dest: usize): void;

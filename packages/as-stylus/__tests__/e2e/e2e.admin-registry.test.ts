@@ -26,6 +26,8 @@ const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.ADMIN_REGISTRY;
 beforeAll(async () => {
   try {
     contract = await setupE2EContract(contractPath, abiPath, {
+      constructorName: "admin_constructor",
+      contractFileName: "admin.ts",
       deployArgs: [ADMIN as Address],
       walletClient,
     });

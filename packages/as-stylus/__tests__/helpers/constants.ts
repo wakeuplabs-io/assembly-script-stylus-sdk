@@ -21,7 +21,7 @@ export const CONTRACT_PATHS = {
   },
   ADMIN_REGISTRY: {
     contract: path.join(ROOT_PATH, "/admin-registry"),
-    abi: path.join(ROOT_PATH, "/admin-registry/artifacts/abi/contract-abi.json"),
+    abi: path.join(ROOT_PATH, "/admin-registry/artifacts/abi/admin-abi.json"),
   },
   BALANCES: {
     contract: path.join(ROOT_PATH, "/balances"),
@@ -86,6 +86,10 @@ export const CONTRACT_PATHS = {
   CALLS: {
     contract: path.join(ROOT_PATH, "/calls"),
     abi: path.join(ROOT_PATH, "/calls/artifacts/abi/contract-abi.json"),
+  },
+  STATIC_CALLS: {
+    contract: path.join(ROOT_PATH, "/static-calls"),
+    abi: path.join(ROOT_PATH, "/static-calls/artifacts/abi/contract-abi.json"),
   },
   WHILE: {
     contract: path.join(ROOT_PATH, "/while"),
