@@ -154,7 +154,7 @@ export class Calls {
     to: usize,
     calldata: usize,
     calldataLen: usize,
-    gasLimit: u64 = DEFAULT_GAS_LIMIT,
+    gasLimit: u32 = DEFAULT_GAS_LIMIT,
   ): usize {
     const outsLenPtr = malloc(8);
     store<usize>(outsLenPtr, 0);

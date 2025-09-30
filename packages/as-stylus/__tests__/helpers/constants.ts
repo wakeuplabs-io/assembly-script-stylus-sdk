@@ -21,7 +21,7 @@ export const CONTRACT_PATHS = {
   },
   ADMIN_REGISTRY: {
     contract: path.join(ROOT_PATH, "/admin-registry"),
-    abi: path.join(ROOT_PATH, "/admin-registry/artifacts/abi/contract-abi.json"),
+    abi: path.join(ROOT_PATH, "/admin-registry/artifacts/abi/admin-abi.json"),
   },
   BALANCES: {
     contract: path.join(ROOT_PATH, "/balances"),
