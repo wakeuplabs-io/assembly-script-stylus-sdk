@@ -38,6 +38,8 @@ beforeAll(async () => {
   try {
     fundUser(getUserBAddress());
     contract = await setupE2EContract(contractPath, abiPath, {
+      constructorName: "token_constructor",
+      contractFileName: "token.ts",
       deployArgs: [INIT_SUPPLY],
       walletClient: ownerWallet,
     });
