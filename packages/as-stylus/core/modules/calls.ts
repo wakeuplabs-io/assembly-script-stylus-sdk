@@ -5,6 +5,7 @@ import {
   read_return_data,
 } from "./hostio";
 import { malloc } from "./memory";
+import { Address } from "../types/address";
 
 const DEFAULT_GAS_LIMIT: u32 = 500_000;
 
@@ -92,7 +93,9 @@ export class Calls {
     const outsLenPtr = malloc(8);
     store<u32>(outsLenPtr, 0);
 
-    const status = call_contract(to, calldata, calldataLen, value, gasLimit, outsLenPtr);
+    const shortTo = Address.toShort(to);
+
+    const status = call_contract(shortTo, calldata, calldataLen, value, gasLimit, outsLenPtr);
     const returnDataLen = load<u32>(outsLenPtr);
 
     let returnDataPtr: usize = 0;
@@ -123,8 +126,9 @@ export class Calls {
   ): usize {
     const outsLenPtr = malloc(8);
     store<u32>(outsLenPtr, 0);
+    const shortTo = Address.toShort(to);
 
-    const status = delegate_call_contract(to, calldata, calldataLen, gasLimit, outsLenPtr);
+    const status = delegate_call_contract(shortTo, calldata, calldataLen, gasLimit, outsLenPtr);
     const returnDataLen = load<u32>(outsLenPtr);
 
     let returnDataPtr: usize = 0;
@@ -150,11 +154,14 @@ export class Calls {
     to: usize,
     calldata: usize,
     calldataLen: usize,
-    gasLimit: u32 = DEFAULT_GAS_LIMIT,
+    gasLimit: u64 = DEFAULT_GAS_LIMIT,
   ): usize {
-    const outsLenPtr = malloc(4);
+    const outsLenPtr = malloc(8);
+    store<usize>(outsLenPtr, 0);
 
-    const status = static_call_contract(to, calldata, calldataLen, gasLimit, outsLenPtr);
+    const shortTo = Address.toShort(to);
+
+    const status = static_call_contract(shortTo, calldata, calldataLen, <u64>gasLimit, outsLenPtr);
     const returnDataLen = load<u32>(outsLenPtr);
 
     let returnDataPtr: usize = 0;
@@ -179,7 +186,9 @@ export class Calls {
     const emptyCalldata: usize = 0;
     const emptyCalldataLen: usize = 0;
 
-    return Calls.call(to, emptyCalldata, emptyCalldataLen, value, gasLimit);
+    const shortTo = Address.toShort(to);
+
+    return Calls.call(shortTo, emptyCalldata, emptyCalldataLen, value, gasLimit);
   }
 
   /**
@@ -199,8 +208,10 @@ export class Calls {
     const outsLenPtr = malloc(8);
     store<u32>(outsLenPtr, 0);
 
+    const shortTo = Address.toShort(to);
+
     const status = call_contract(
-      to,
+      shortTo,
       emptyCalldata,
       emptyCalldataLen,
       value,
