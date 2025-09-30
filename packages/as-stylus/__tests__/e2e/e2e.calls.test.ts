@@ -165,80 +165,78 @@ describe("Calls Contract — Contract Call Operations", () => {
     });
   });
 
-  // TODO: Uncomment when boolean to entrypoint conversion is implemented
-  // describe("Send operations with boolean returns", () => {
-  //   it("should execute testSend successfully and return true", async () => {
-  //     const initialContractBalance = getBalance(contract.address);
-  //     const transferAmount = "1000000000000000"; // 0.001 ETH in wei
+  describe("Send operations with boolean returns", () => {
+    it("should handle send with insufficient balance gracefully", async () => {
+      // Test when contract has no balance to send
+      const initialContractBalance = getBalance(contract.address);
 
-  //     // Send ETH to contract for testSend to work
-  //     await contract.write(ownerWallet, "testSend", [], BigInt(transferAmount));
+      // This should not revert even if contract has insufficient balance
+      // because send() returns false instead of reverting
+      await expect(contract.write(ownerWallet, "testSendToOwner", [])).resolves.toBeDefined();
 
-  //     // testSend should return true when successful
-  //     // Note: The function returns boolean but we're testing the transaction success
-  //     const finalContractBalance = getBalance(contract.address);
+      // Contract balance should remain unchanged
+      expect(getBalance(contract.address)).toBe(initialContractBalance); // Only 1 wei sent if any
+    });
 
-  //     // Contract should receive the ETH sent via the transaction value
-  //     expect(finalContractBalance).toBeGreaterThan(initialContractBalance);
-  //   });
+    it("should execute testSend successfully and return true", async () => {
+      const initialContractBalance = getBalance(contract.address);
+      const transferAmount = "1000000000000000"; // 0.001 ETH in wei
 
-  //   it("should execute testSendToOwner successfully and return true", async () => {
-  //     const initialOwnerBalance = getBalance(getOwnerAddress());
-  //     const initialContractBalance = getBalance(contract.address);
-  //     const transferAmount = "1000000000000000"; // 0.001 ETH in wei
+      // Send ETH to contract for testSend to work
+      await contract.write(ownerWallet, "testSend", [], BigInt(transferAmount));
 
-  //     // Send ETH to contract first, then it will send 1 wei to owner
-  //     await contract.write(
-  //       ownerWallet,
-  //       "testSendToOwner",
-  //       [],
-  //       BigInt(transferAmount), // Contract receives this amount
-  //     );
+      // testSend should return true when successful
+      // Note: The function returns boolean but we're testing the transaction success
+      const finalContractBalance = getBalance(contract.address);
 
-  //     const finalOwnerBalance = getBalance(getOwnerAddress());
-  //     const finalContractBalance = getBalance(contract.address);
+      // Contract should receive the ETH sent via the transaction value
+      expect(finalContractBalance).toBeGreaterThan(initialContractBalance);
+    });
 
-  //     // Owner pays gas but receives 1 wei back from contract
-  //     expect(finalOwnerBalance).toBeLessThan(initialOwnerBalance);
-  //     expect(finalOwnerBalance).toBeGreaterThan(initialOwnerBalance - MAX_GAS_COST);
+    it("should execute testSendToOwner successfully and return true", async () => {
+      const initialOwnerBalance = getBalance(getOwnerAddress());
+      const initialContractBalance = getBalance(contract.address);
+      const transferAmount = "1000000000000000"; // 0.001 ETH in wei
 
-  //     // Contract should have less than what it received (sent 1 wei to owner)
-  //     expect(finalContractBalance).toBeLessThan(initialContractBalance + BigInt(transferAmount));
-  //   });
+      // Send ETH to contract first, then it will send 1 wei to owner
+      await contract.write(
+        ownerWallet,
+        "testSendToOwner",
+        [],
+        BigInt(transferAmount), // Contract receives this amount
+      );
 
-  //   it("should handle send with insufficient balance gracefully", async () => {
-  //     // Test when contract has no balance to send
-  //     const initialContractBalance = getBalance(contract.address);
+      const finalOwnerBalance = getBalance(getOwnerAddress());
+      const finalContractBalance = getBalance(contract.address);
 
-  //     // This should not revert even if contract has insufficient balance
-  //     // because send() returns false instead of reverting
-  //     await expect(contract.write(ownerWallet, "testSendToOwner", [])).resolves.toBeDefined();
+      // Owner pays gas but receives 1 wei back from contract
+      expect(finalOwnerBalance).toBeLessThan(initialOwnerBalance);
+      expect(finalOwnerBalance).toBeGreaterThan(initialOwnerBalance - MAX_GAS_COST);
 
-  //     // Contract balance should remain unchanged
-  //     expect(getBalance(contract.address)).toBe(initialContractBalance);
-  //   });
-  // });
+      // Contract should have less than what it received (sent 1 wei to owner)
+      expect(finalContractBalance).toBeLessThan(initialContractBalance + BigInt(transferAmount));
+    });
+  });
 
-  // TODO: Uncomment when boolean to entrypoint conversion is implemented
-  // describe("Send vs Transfer comparison", () => {
-  //   it("should demonstrate send vs transfer behavior differences", async () => {
-  //     const transferAmount = "1000000000000000"; // 0.001 ETH in wei
+  describe("Send vs Transfer comparison", () => {
+    it("should demonstrate send vs transfer behavior differences", async () => {
+      const transferAmount = "1000000000000000"; // 0.001 ETH in wei
 
-  //     // Fund contract first
-  //     await contract.write(ownerWallet, "testTransfer", [transferAmount], BigInt(transferAmount));
+      // Fund contract first
+      await contract.write(ownerWallet, "testTransfer", [transferAmount], BigInt(transferAmount));
 
-  //     const ownerBalanceAfterTransfer = getBalance(getOwnerAddress());
+      const ownerBalanceAfterTransfer = getBalance(getOwnerAddress());
 
-  //     // testSend should not revert even if there are issues
-  //     await expect(
-  //       contract.write(ownerWallet, "testSend", [], BigInt(transferAmount)),
-  //     ).resolves.toBeDefined();
+      // testSend should not revert even if there are issues
+      await expect(
+        contract.write(ownerWallet, "testSend", [], BigInt(transferAmount)),
+      ).resolves.toBeDefined();
 
-  //     // Both operations should complete (send doesn't revert, transfer might)
-  //     const ownerBalanceAfterSend = getBalance(getOwnerAddress());
-  //     expect(ownerBalanceAfterSend).toBeLessThan(ownerBalanceAfterTransfer);
-  //   });
-  // });
+      // Both operations should complete (send doesn't revert, transfer might)
+      const ownerBalanceAfterSend = getBalance(getOwnerAddress());
+      expect(ownerBalanceAfterSend).toBeLessThan(ownerBalanceAfterTransfer);
+    });
+  });
 
   describe("Message (msg) context view functions", () => {
     it("should get correct msg.sender from getMsgSender", async () => {
@@ -392,22 +390,21 @@ describe("Calls Contract — Contract Call Operations", () => {
       expect(finalOwnerBalance).toBeGreaterThan(initialOwnerBalance - MAX_GAS_COST * 4n);
     });
 
-    // TODO: Uncomment when boolean to entrypoint conversion is implemented
-    // it("should handle multiple send operations consecutively", async () => {
-    //   const initialOwnerBalance = getBalance(getOwnerAddress());
-    //   const transferAmount = "1000000000000000"; // 0.001 ETH in wei
+    it("should handle multiple send operations consecutively", async () => {
+      const initialOwnerBalance = getBalance(getOwnerAddress());
+      const transferAmount = "1000000000000000"; // 0.001 ETH in wei
 
-    //   // Multiple send operations
-    //   await contract.write(ownerWallet, "testSend", [], BigInt(transferAmount));
-    //   await contract.write(ownerWallet, "testSendToOwner", [], BigInt(transferAmount));
-    //   await contract.write(ownerWallet, "testSend", [], BigInt(transferAmount));
+      // Multiple send operations
+      await contract.write(ownerWallet, "testSend", [], BigInt(transferAmount));
+      await contract.write(ownerWallet, "testSendToOwner", [], BigInt(transferAmount));
+      await contract.write(ownerWallet, "testSend", [], BigInt(transferAmount));
 
-    //   const finalOwnerBalance = getBalance(getOwnerAddress());
+      const finalOwnerBalance = getBalance(getOwnerAddress());
 
-    //   // Owner should have paid gas for 3 transactions
-    //   expect(finalOwnerBalance).toBeLessThan(initialOwnerBalance);
-    //   expect(finalOwnerBalance).toBeGreaterThan(initialOwnerBalance - MAX_GAS_COST * 3n);
-    // });
+      // Owner should have paid gas for 3 transactions
+      expect(finalOwnerBalance).toBeLessThan(initialOwnerBalance);
+      expect(finalOwnerBalance).toBeGreaterThan(initialOwnerBalance - MAX_GAS_COST * 3n);
+    });
 
     it("should handle calls with balance checking capability", async () => {
       const ownerBalance = getBalance(getOwnerAddress());

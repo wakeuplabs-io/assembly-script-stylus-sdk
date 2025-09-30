@@ -6,7 +6,7 @@ import {
 } from "./hostio";
 import { malloc } from "./memory";
 
-const DEFAULT_GAS_LIMIT: u64 = 500_000;
+const DEFAULT_GAS_LIMIT: u32 = 500_000;
 
 export enum CallStatus {
   SUCCESS = 0,
@@ -87,21 +87,21 @@ export class Calls {
     calldata: usize,
     calldataLen: usize,
     value: usize,
-    gasLimit: u64 = DEFAULT_GAS_LIMIT,
+    gasLimit: u32 = DEFAULT_GAS_LIMIT,
   ): usize {
     const outsLenPtr = malloc(8);
-    store<u64>(outsLenPtr, 0);
+    store<u32>(outsLenPtr, 0);
 
     const status = call_contract(to, calldata, calldataLen, value, gasLimit, outsLenPtr);
-    const returnDataLen = load<u64>(outsLenPtr);
+    const returnDataLen = load<u32>(outsLenPtr);
 
     let returnDataPtr: usize = 0;
     if (returnDataLen > 0) {
-      returnDataPtr = malloc(<i32>returnDataLen);
-      read_return_data(returnDataPtr, 0, <i32>returnDataLen);
+      returnDataPtr = malloc(returnDataLen);
+      read_return_data(returnDataPtr, 0, returnDataLen);
     }
 
-    return CallResult.create(status, returnDataPtr, <u32>returnDataLen);
+    return CallResult.create(status, returnDataPtr, returnDataLen);
   }
 
   /**
@@ -119,13 +119,13 @@ export class Calls {
     to: usize,
     calldata: usize,
     calldataLen: usize,
-    gasLimit: u64 = DEFAULT_GAS_LIMIT,
+    gasLimit: u32 = DEFAULT_GAS_LIMIT,
   ): usize {
     const outsLenPtr = malloc(8);
-    store<u64>(outsLenPtr, 0);
+    store<u32>(outsLenPtr, 0);
 
     const status = delegate_call_contract(to, calldata, calldataLen, gasLimit, outsLenPtr);
-    const returnDataLen = load<u64>(outsLenPtr);
+    const returnDataLen = load<u32>(outsLenPtr);
 
     let returnDataPtr: usize = 0;
     if (returnDataLen > 0) {
@@ -150,13 +150,12 @@ export class Calls {
     to: usize,
     calldata: usize,
     calldataLen: usize,
-    gasLimit: u64 = DEFAULT_GAS_LIMIT,
+    gasLimit: u32 = DEFAULT_GAS_LIMIT,
   ): usize {
-    const outsLenPtr = malloc(8);
-    store<u64>(outsLenPtr, 0);
+    const outsLenPtr = malloc(4);
 
     const status = static_call_contract(to, calldata, calldataLen, gasLimit, outsLenPtr);
-    const returnDataLen = load<u64>(outsLenPtr);
+    const returnDataLen = load<u32>(outsLenPtr);
 
     let returnDataPtr: usize = 0;
     if (returnDataLen > 0) {
@@ -176,7 +175,7 @@ export class Calls {
    * @param gasLimit - Gas limit for the call
    * @returns Pointer to CallResult structure
    */
-  static transfer(to: usize, value: usize, gasLimit: u64 = DEFAULT_GAS_LIMIT): usize {
+  static transfer(to: usize, value: usize, gasLimit: u32 = DEFAULT_GAS_LIMIT): usize {
     const emptyCalldata: usize = 0;
     const emptyCalldataLen: usize = 0;
 
@@ -192,13 +191,13 @@ export class Calls {
    * @param value - Wei amount to transfer (32 bytes)
    * @returns true if successful, false if failed
    */
-  static send(to: usize, value: usize): bool {
-    const SEND_GAS_STIPEND: u64 = 2300;
+  static send(to: usize, value: usize): boolean {
+    const SEND_GAS_STIPEND: u32 = 2300;
     const emptyCalldata: usize = 0;
     const emptyCalldataLen: usize = 0;
 
     const outsLenPtr = malloc(8);
-    store<u64>(outsLenPtr, 0);
+    store<u32>(outsLenPtr, 0);
 
     const status = call_contract(
       to,
@@ -210,7 +209,7 @@ export class Calls {
     );
 
     // Opcional: leer return data para debugging (sin afectar el resultado)
-    const returnDataLen = load<u64>(outsLenPtr);
+    const returnDataLen = load<u32>(outsLenPtr);
     if (returnDataLen > 0) {
       const returnDataPtr = malloc(<i32>returnDataLen);
       read_return_data(returnDataPtr, 0, <i32>returnDataLen);
