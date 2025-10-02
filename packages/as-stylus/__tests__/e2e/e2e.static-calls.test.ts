@@ -50,12 +50,14 @@ describe("Calls Contract — Contract Call Operations", () => {
     it("should have correct owner address stored", async () => {
       await counterContract.write(ownerWallet, "increment", []);
       await counterContract.write(ownerWallet, "increment", []);
+      await counterContract.write(ownerWallet, "increment", []);
 
       const value = await counterContract.read("get", []);
-      expect(value).toBe(2n);
+      expect(value).toBe(3n);
 
       const result = await contract.read("testStaticCall", []);
-      expect(result).toBe(2n);
+      console.log("Result from static call:", result);
+      expect(result).toBe(3n);
     });
   });
 });
