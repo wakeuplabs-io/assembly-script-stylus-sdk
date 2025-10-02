@@ -4,6 +4,7 @@ import { ProjectFinder } from "@/cli/services/project-finder.js";
 import { runCommand, runFunction } from "@/cli/utils/command-runner.js";
 import { BUILD_PATH, BUILD_WASM_PATH } from "@/cli/utils/constants.js";
 import { getCurrentWorkingDirectory } from "@/cli/utils/fs.js";
+import { createAStylusError, ErrorCode } from "@/cli/utils/global-error-handler.js";
 
 import { ErrorManager } from "../build/analyzers/shared/error-manager.js";
 import { runBuild } from "../build/build.js";
@@ -36,6 +37,25 @@ export class CompileRunner {
     );
   }
 
+  private runTypeScriptChecker(projectTargetPath: string, contractName: string): void {
+    try {
+      const command = `npx tsc ${contractName}.ts --noEmit --skipLibCheck`;
+
+      runCommand(command, {
+        cwd: projectTargetPath,
+        successMessage: "TypeScript type checking completed successfully",
+        errorMessage: "TypeScript type checking failed",
+      });
+    } catch (error) {
+      const commandError = createAStylusError(
+        ErrorCode.SYNTAX_ERROR,
+        "TypeScript type checking failed",
+        error instanceof Error ? error : undefined,
+      );
+      throw commandError;
+    }
+  }
+
   private runAssemblyScriptCompiler(projectTargetPath: string, contractName: string): void {
     const command = `npx asc ${contractName}.entrypoint.ts --outFile ${BUILD_WASM_PATH}/${contractName}.wasm --textFile ${BUILD_WASM_PATH}/${contractName}.wat --optimizeLevel 3 --shrinkLevel 2`;
 
@@ -64,9 +84,11 @@ export class CompileRunner {
   }
 
   compile(endpoint?: string): void {
+    const cwd = getCurrentWorkingDirectory();
     const projectTargetPath = this.projectFinder.getProjectBuildPath();
     const contractName = this.projectFinder.getContractName(this.contractPath);
 
+    this.runTypeScriptChecker(cwd, contractName);
     this.runBuild();
     this.runAssemblyScriptCompiler(projectTargetPath, contractName);
     this.runAssemblyScriptChecker(projectTargetPath, contractName, endpoint);
