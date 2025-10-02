@@ -186,9 +186,7 @@ export class Calls {
     const emptyCalldata: usize = 0;
     const emptyCalldataLen: usize = 0;
 
-    const shortTo = Address.toShort(to);
-
-    return Calls.call(shortTo, emptyCalldata, emptyCalldataLen, value, gasLimit);
+    return Calls.call(to, emptyCalldata, emptyCalldataLen, value, gasLimit);
   }
 
   /**
