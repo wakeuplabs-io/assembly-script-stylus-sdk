@@ -56,6 +56,25 @@ export class CompileRunner {
     }
   }
 
+  private runEslintChecker(projectTargetPath: string, contractName: string): void {
+    try {
+      const command = `npx eslint ${contractName}.ts --ext .ts`;
+
+      runCommand(command, {
+        cwd: projectTargetPath,
+        successMessage: "Eslint type checking completed successfully",
+        errorMessage: "Eslint type checking failed",
+      });
+    } catch (error) {
+      const commandError = createAStylusError(
+        ErrorCode.SYNTAX_ERROR,
+        "Eslint type checking failed",
+        error instanceof Error ? error : undefined,
+      );
+      throw commandError;
+    }
+  }
+
   private runAssemblyScriptCompiler(projectTargetPath: string, contractName: string): void {
     const command = `npx asc ${contractName}.entrypoint.ts --outFile ${BUILD_WASM_PATH}/${contractName}.wasm --textFile ${BUILD_WASM_PATH}/${contractName}.wat --optimizeLevel 3 --shrinkLevel 2`;
 
@@ -89,6 +108,7 @@ export class CompileRunner {
     const contractName = this.projectFinder.getContractName(this.contractPath);
 
     this.runTypeScriptChecker(cwd, contractName);
+    this.runEslintChecker(cwd, contractName);
     this.runBuild();
     this.runAssemblyScriptCompiler(projectTargetPath, contractName);
     this.runAssemblyScriptChecker(projectTargetPath, contractName, endpoint);

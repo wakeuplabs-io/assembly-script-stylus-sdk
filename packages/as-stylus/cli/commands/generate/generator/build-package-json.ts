@@ -31,7 +31,10 @@ export function buildPackageJson(targetPath: string, projectName: string) {
           "@wakeuplabs/as-stylus": "*",
         },
         devDependencies: {
-          assemblyscript: "^0.27.35",
+          assemblyscript: "0.27.35",
+          eslint: "8.56.0",
+          "@typescript-eslint/eslint-plugin": "6.21.0",
+          "@typescript-eslint/parser": "6.21.0",
         },
       },
       null,

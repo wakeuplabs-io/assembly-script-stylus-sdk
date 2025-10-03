@@ -3,6 +3,7 @@ import path from "path";
 import { ensureDir } from "@/cli/utils/fs.js";
 
 import { buildContract } from "./build-contract.js";
+import { buildEslint } from "./build-eslint.js";
 import { buildPackageJson } from "./build-package-json.js";
 import { buildTsconfig } from "./build-tsconfig.js";
 
@@ -21,5 +22,6 @@ export class ProjectGenerator {
     buildTsconfig(targetPath);
     buildPackageJson(targetPath, this.projectName);
     buildContract(targetPath);
+    buildEslint(targetPath);
   }
 }
