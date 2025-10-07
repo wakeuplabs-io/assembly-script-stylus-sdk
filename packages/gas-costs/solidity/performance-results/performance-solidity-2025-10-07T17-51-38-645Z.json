@@ -1,0 +1,26 @@
+{
+  "deployment": {
+    "gasUsed": "200000",
+    "deploymentTime": 3800,
+    "gasPrice": "100000000",
+    "totalCost": "20000000000000"
+  },
+  "increment": {
+    "gasUsed": "44774",
+    "executionTime": 2482,
+    "gasPrice": "101930000",
+    "totalCost": "4563813820000",
+    "transactionHash": "0x01fe0f254126afacb08a12aa66d16af5cb5e6d48836fce687a4ca4cac622d35b"
+  },
+  "contractAddress": "0x01fe0f254126afacb08a12aa66d16af5cb5e6d48836fce687a4ca4cac622d35b",
+  "timestamp": "2025-10-07T17:51:38.645Z",
+  "metadata": {
+    "generatedAt": "2025-10-07T17:51:38.659Z",
+    "testFramework": "Hardhat + Viem",
+    "environment": {
+      "nodeVersion": "v22.14.0",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  }
+}
