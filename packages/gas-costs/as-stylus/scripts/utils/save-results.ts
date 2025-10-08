@@ -1,12 +1,11 @@
 import { join } from "path";
 import { execSync } from "child_process";
 import { writeFileSync } from "fs";
-import { PerformanceResult } from "./types/performance.js";
+import { PerformanceResult } from "../../../shared/types/performance.js";
 
 export function saveResults(name: string, results: PerformanceResult): void {
   const resultsDir = join(process.cwd(), "performance-results");
   const filepath = join(resultsDir, `${name}-${results.timestamp.replace(/[:.]/g, "-")}.json`);
-  console.log("filepath", filepath);
 
   try {
     // Create results directory if it doesn't exist
@@ -17,7 +16,7 @@ export function saveResults(name: string, results: PerformanceResult): void {
       ...results,
       metadata: {
         generatedAt: new Date().toISOString(),
-        testFramework: "Hardhat + Viem",
+        testFramework: "AS Stylus + Viem",
         environment: {
           nodeVersion: process.version,
           platform: process.platform,
