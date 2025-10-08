@@ -1,16 +1,9 @@
 #!/usr/bin/env node
 
-import { DeploymentMetrics, IncrementMetrics } from "../test/CounterPerformance.js";
-import { deploy } from "./utils/deploy.js";
-import { increment } from "./utils/increment.js";
-import { saveResults } from "../../shared/save-results.js";
-
-interface PerformanceResult {
-  deployment?: DeploymentMetrics;
-  increment?: IncrementMetrics;
-  contractAddress: string;
-  timestamp: string;
-}
+import { deploy } from "./methods/deploy.js";
+import { increment } from "./methods/increment.js";
+import { saveResults } from "./utils/save-results.js";
+import { PerformanceResult } from "../../shared/types/performance.js";
 
 async function runPerformanceTests(): Promise<PerformanceResult> {
   console.log("🎯 Running full performance test suite...");

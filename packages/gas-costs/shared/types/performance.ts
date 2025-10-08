@@ -1,15 +1,14 @@
 export interface DeploymentMetrics {
-  gasUsed: string;
   deploymentTime: number;
-  gasPrice: string;
-  totalCost: string;
+  gasUsed?: string;
+  address?: string;
+  transactionHash?: string;
+  size?: string;
 }
 
 export interface IncrementMetrics {
   gasUsed: string;
   executionTime: number;
-  gasPrice: string;
-  totalCost: string;
   transactionHash: string;
 }
 

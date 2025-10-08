@@ -35,21 +35,15 @@ async function testIncrementPerformance(viem: any, publicClient: any): Promise<I
   const executionTime = endTime - startTime;
 
   const functionCallGas = incReceipt.gasUsed;
-  const gasPrice = await publicClient.getGasPrice();
-  const totalCost = BigInt(functionCallGas) * BigInt(gasPrice);
 
   const metrics: IncrementMetrics = {
     gasUsed: functionCallGas.toString(),
     executionTime,
-    gasPrice: gasPrice.toString(),
-    totalCost: totalCost.toString(),
     transactionHash: incTx,
   };
 
   console.log("📊 Increment Performance Metrics:");
   console.log(`   Function Call Gas: ${functionCallGas.toLocaleString()} gas`);
-  console.log(`   Gas Price: ${gasPrice.toLocaleString()} wei`);
-  console.log(`   Total Cost: ${totalCost.toLocaleString()} wei`);
   console.log(`   Execution Time: ${executionTime}ms`);
   console.log(`   Transaction Hash: ${incTx}`);
 
