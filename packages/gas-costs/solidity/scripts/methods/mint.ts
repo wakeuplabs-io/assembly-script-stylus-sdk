@@ -1,28 +1,28 @@
-import { writeContract } from "viem/actions";
 import { network } from "hardhat";
-import { WriteMetrics } from "../../../shared/types/performance.js";
-import { CONTRACT_PATHS } from "../utils/constants.js";
 import { Account, Address, PublicClient, WalletClient } from "viem";
+import { writeContract } from "viem/actions";
+import { CONTRACT_PATHS } from "../utils/constants.js";
+import { WriteMetrics } from "../../../shared/types/performance.js";
 import { getWalletClient } from "../utils/client.js";
 
-async function testIncrementPerformance(
+async function testMintPerformance(
   contractAddress: Address,
   publicClient: PublicClient,
   walletClient: WalletClient,
 ): Promise<WriteMetrics> {
-  const abi = CONTRACT_PATHS.COUNTER.abi;
+  const abi = CONTRACT_PATHS.ERC20.abi;
 
   const startTime = Date.now();
-
-  const incTx = await walletClient.writeContract({
+  const incTx = await writeContract(walletClient, {
     address: contractAddress,
     abi: abi,
     chain: walletClient.chain,
     account: walletClient.account as Account,
-    functionName: "inc",
-    args: [],
+    functionName: "mint",
+    args: [walletClient.account?.address as Address, 1n],
   });
   const endTime = Date.now();
+
   const receipt = await publicClient.waitForTransactionReceipt({ hash: incTx });
 
   const executionTime = endTime - startTime;
@@ -30,7 +30,7 @@ async function testIncrementPerformance(
   const functionCallGas = receipt.gasUsed;
 
   const metrics: WriteMetrics = {
-    gasUsed: functionCallGas?.toString() ?? "0",
+    gasUsed: functionCallGas.toString(),
     executionTime,
     transactionHash: incTx,
   };
@@ -38,10 +38,9 @@ async function testIncrementPerformance(
   return metrics;
 }
 
-export async function increment(contractAddress: Address): Promise<WriteMetrics> {
+export async function mint(contractAddress: Address): Promise<WriteMetrics> {
   const { viem } = (await network.connect("arbitrumSepolia")) as any;
   const publicClient = await viem.getPublicClient();
   const walletClient = getWalletClient();
-
-  return testIncrementPerformance(contractAddress, publicClient, walletClient);
+  return testMintPerformance(contractAddress, publicClient, walletClient);
 }

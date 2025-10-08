@@ -1,17 +1,22 @@
-import { IncrementMetrics } from "../../../shared/types/performance";
+import { WriteMetrics } from "../../../shared/types/performance";
 import { getWalletClient, publicClient } from "../config/clients";
 import { CONTRACT_PATHS } from "../config/constants";
-import { contractService } from "./contract-service";
-import { getAbi } from "./utils";
+import { getAbi } from "../utils/utils";
 
-export async function increment(address: `0x${string}`): Promise<IncrementMetrics> {
+export async function increment(address: `0x${string}`): Promise<WriteMetrics> {
   const abiPath = CONTRACT_PATHS.COUNTER.abi;
   const abi = getAbi(abiPath);
-  const contract = contractService(address, abi, false);
   const walletClient = getWalletClient();
 
   const startTime = Date.now();
-  const incTx = await contract.write(walletClient, "inc", []);
+  const incTx = await walletClient.writeContract({
+    address: address,
+    abi: abi,
+    chain: walletClient.chain,
+    account: walletClient.account,
+    functionName: "inc",
+    args: [],
+  });
   const endTime = Date.now();
 
   const receipt = await publicClient.waitForTransactionReceipt({ hash: incTx });

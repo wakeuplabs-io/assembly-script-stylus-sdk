@@ -6,51 +6,40 @@ import { privateKeyToAccount } from "viem/accounts";
 async function testDeploymentPerformance(
   publicClient: PublicClient,
   walletClient: WalletClient,
+  contractName: keyof typeof CONTRACT_PATHS,
 ): Promise<DeploymentMetrics> {
-  console.log("🚀 Starting Counter contract deployment performance test...");
-
   const startTime = Date.now();
   const deploymentTx = await walletClient.deployContract({
-    abi: CONTRACT_PATHS.COUNTER.abi,
-    bytecode: CONTRACT_PATHS.COUNTER.bytecode,
+    abi: CONTRACT_PATHS[contractName].abi,
+    bytecode: CONTRACT_PATHS[contractName].bytecode,
     chain: walletClient.chain,
     account: walletClient.account as Account,
-    args: [],
+    args: CONTRACT_PATHS[contractName].args,
   });
 
   const endTime = Date.now();
   const deploymentTime = endTime - startTime;
 
-  console.log("Transaction hash:", deploymentTx);
-
-  console.log("⏳ Waiting for transaction confirmation...");
   const receipt = await publicClient.waitForTransactionReceipt({
     hash: deploymentTx,
     confirmations: 1,
   });
 
-  console.log("Transaction receipt:", receipt);
-
   const metrics: DeploymentMetrics = {
     deploymentTime,
-    size: CONTRACT_PATHS.COUNTER.bytecodeSize.toString(),
+    size: CONTRACT_PATHS[contractName].bytecodeSize.toString(),
     gasUsed: receipt.gasUsed.toString(),
     address: receipt.contractAddress as string,
     transactionHash: deploymentTx,
+    contractName,
   };
-
-  // Log the results
-  console.log("📊 Deployment Performance Metrics:");
-  console.log(`   Deployment Time: ${deploymentTime}ms`);
-  console.log(`   Contract Address: ${receipt.contractAddress}`);
-  console.log(`   Transaction Hash: ${deploymentTx}`);
-
-  console.log("✅ Deployment performance test completed successfully!");
 
   return metrics;
 }
 
-export async function deploy(): Promise<DeploymentMetrics> {
+export async function deploy(
+  contractName: keyof typeof CONTRACT_PATHS,
+): Promise<DeploymentMetrics> {
   try {
     const { network } = await import("hardhat");
     const { viem } = (await network.connect("arbitrumSepolia")) as any;
@@ -60,7 +49,7 @@ export async function deploy(): Promise<DeploymentMetrics> {
       transport: http(process.env.RPC_URL),
     });
 
-    const result = await testDeploymentPerformance(publicClient, walletClient);
+    const result = await testDeploymentPerformance(publicClient, walletClient, contractName);
 
     return result;
   } catch (error) {

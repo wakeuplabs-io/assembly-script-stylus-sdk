@@ -1,0 +1,26 @@
+{
+  "deployment": {
+    "deploymentTime": 1324,
+    "size": "577",
+    "gasUsed": "171507",
+    "address": "0xf32314a7c406bcf4a57c225a3c6c429209a64586",
+    "transactionHash": "0x7fece93dde368096d3c4f076a16279d6c9544ea8277e0d08ecdb3fc1695a5524",
+    "contractName": "COUNTER"
+  },
+  "increment": {
+    "gasUsed": "43460",
+    "executionTime": 1310,
+    "transactionHash": "0x95af3fe58075ff6286a8a6f460adf6c7238e28a4cee05abc5dd118e451b59e48"
+  },
+  "contractAddress": "0xf32314a7c406bcf4a57c225a3c6c429209a64586",
+  "timestamp": "2025-10-08T15:27:05.178Z",
+  "metadata": {
+    "generatedAt": "2025-10-08T15:27:05.194Z",
+    "testFramework": "Hardhat + Viem",
+    "environment": {
+      "nodeVersion": "v22.14.0",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  }
+}

@@ -4,9 +4,10 @@ export interface DeploymentMetrics {
   address?: string;
   transactionHash?: string;
   size?: string;
+  contractName?: string;
 }
 
-export interface IncrementMetrics {
+export interface WriteMetrics {
   gasUsed: string;
   executionTime: number;
   transactionHash: string;
@@ -14,7 +15,8 @@ export interface IncrementMetrics {
 
 export interface PerformanceResult {
   deployment?: DeploymentMetrics;
-  increment?: IncrementMetrics;
-  contractAddress: string;
-  timestamp: string;
+  increment?: WriteMetrics;
+  mint?: WriteMetrics;
+  contractAddress?: string;
+  timestamp?: string;
 }
