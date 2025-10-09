@@ -1,0 +1,8 @@
+{
+  "extends": "assemblyscript/std/assembly.json",
+  "allowImportingTsExtensions": true,
+  "compilerOptions": {
+    "strictPropertyInitialization": false
+  },
+  "include": ["raffle.ts", "admin.ts"]
+}

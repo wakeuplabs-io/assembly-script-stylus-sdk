@@ -1,0 +1,25 @@
+{
+  "deployment": {
+    "deploymentTime": 3676,
+    "address": "0x9a9744796457a6f8bcb0431df44bad93a3941c5c",
+    "size": "993 bytes",
+    "gasUsed": "268022",
+    "transactionHash": "0x9a55b45c1b37507aefc82deb26325d0bcf49f10a45ad1cccc9beccf76299f8ca"
+  },
+  "increment": {
+    "gasUsed": "54259",
+    "executionTime": 1591,
+    "transactionHash": "0xa9484555e5f65afb92bd8be21265dbecdf128042e1f63588c2d9ecb71d6a35c6"
+  },
+  "contractAddress": "0x9a9744796457a6f8bcb0431df44bad93a3941c5c",
+  "timestamp": "2025-10-08T13:58:34.875Z",
+  "metadata": {
+    "generatedAt": "2025-10-08T13:58:34.889Z",
+    "testFramework": "AS Stylus + Viem",
+    "environment": {
+      "nodeVersion": "v22.14.0",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  }
+}
