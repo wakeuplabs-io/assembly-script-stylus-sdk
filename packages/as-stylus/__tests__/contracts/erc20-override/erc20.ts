@@ -8,13 +8,13 @@ import {
   MappingNested,
   msg,
   EventFactory,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
-const Transfer = EventFactory.create<[Address, Address, U256]>({
+const Transfer = EventFactory.create<[from: Address, to: Address, amount: U256]>({
   indexed: [true, true, false],
 });
 
-const Approval = EventFactory.create<[Address, Address, U256]>({
+const Approval = EventFactory.create<[owner: Address, spender: Address, amount: U256]>({
   indexed: [true, true, false],
 });
 

@@ -15,19 +15,6 @@ export class StructMemberBuilder extends StructBaseBuilder {
     this.slotManager = slotManager;
   }
 
-  private calculateSlot(variable: VariableSymbol, fieldName: string) {
-    if (variable.scope !== "storage") {
-      return undefined;
-    }
-
-    const { structTemplate } = this.getStructInfo(variable.name, fieldName);
-    const baseSlot = this.slotManager.getSlotForVariable(variable.name);
-    const fieldIndex = structTemplate!.fields.findIndex((f) => f.name === fieldName);
-    if (fieldIndex === -1) {
-      throw new Error(`Field ${fieldName} not found in struct ${variable.dynamicType}`);
-    }
-    return baseSlot + fieldIndex;
-  }
 
   private buildTarget(
     objectIR: Variable,
@@ -36,10 +23,10 @@ export class StructMemberBuilder extends StructBaseBuilder {
     structTemplate: IRStruct | undefined,
   ) {
     let scope = "";
-    let name = objectIR.name;
+    let name = `${objectIR.name}.${propertyName}`;
     if (struct?.scope === "memory") {
       scope = "_memory";
-      name = `${objectIR.name}.${propertyName}`;
+      name = objectIR.name;
     }
 
     return { target: `${structTemplate?.name}${scope}_get_${propertyName}`, name };
@@ -51,7 +38,7 @@ export class StructMemberBuilder extends StructBaseBuilder {
     propertyName: string,
   ): IRExpression {
     const { field, struct, structTemplate } = this.getStructInfo(variable.name, propertyName);
-    const slot = this.calculateSlot(variable as VariableSymbol, propertyName);
+    const slot = this.slotManager.calculateStructFieldSlot(struct!, propertyName, structTemplate!);
 
     const { name, target } = this.buildTarget(objectIR, propertyName, struct!, structTemplate);
 

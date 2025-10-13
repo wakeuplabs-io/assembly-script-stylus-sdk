@@ -1,0 +1,29 @@
+{
+  "name": "contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test:performance": "npx tsx scripts/deploy-and-test.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "build/release.js",
+      "types": "build/release.d.ts"
+    }
+  },
+  "dependencies": {
+    "@types/jest": "^30.0.0",
+    "@wakeuplabs/as-stylus": "^0.2.5",
+    "jest": "^30.2.0",
+    "path": "^0.12.7",
+    "strip-ansi": "^7.1.2",
+    "ts-jest": "^29.4.4"
+  },
+  "devDependencies": {
+    "assemblyscript": "0.27.35"
+  }
+}

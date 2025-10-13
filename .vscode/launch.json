@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Debugging test",
       "skipFiles": ["<node_internals>/**"],
-      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/if-happy-path",
+      "cwd": "${workspaceFolder}/packages/as-stylus/__tests__/contracts/erc20",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["as-stylus", "build", "contract.ts"],
       "console": "integratedTerminal"

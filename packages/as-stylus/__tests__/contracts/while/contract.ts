@@ -8,7 +8,7 @@ import {
   U256Factory,
   I256Factory,
   StrFactory,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class WhileTest {

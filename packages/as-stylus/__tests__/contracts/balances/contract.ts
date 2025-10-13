@@ -1,4 +1,4 @@
-import { Address, Contract, Mapping, MappingNested, U256, View } from "as-stylus";
+import { Address, Contract, Mapping, MappingNested, U256, View } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class Token {

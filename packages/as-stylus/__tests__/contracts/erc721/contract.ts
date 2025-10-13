@@ -13,7 +13,7 @@ import {
   msg,
   AddressFactory,
   EventFactory,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 const ERC721InvalidOwner = ErrorFactory.create<[owner: Address]>();
 const ERC721NonexistentToken = ErrorFactory.create<[tokenId: U256]>();
@@ -25,15 +25,15 @@ const ERC721InvalidApprover = ErrorFactory.create<[approver: Address]>();
 const ERC721InvalidOperator = ErrorFactory.create<[operator: Address]>();
 const ERC721InvalidSender = ErrorFactory.create<[sender: Address]>();
 
-const Transfer = EventFactory.create<[Address, Address, U256]>({
+const Transfer = EventFactory.create<[from: Address, to: Address, tokenId: U256]>({
   indexed: [true, true, true],
 });
 
-const Approval = EventFactory.create<[Address, Address, U256]>({
+const Approval = EventFactory.create<[owner: Address, spender: Address, tokenId: U256]>({
   indexed: [true, true, true],
 });
 
-const ApprovalForAll = EventFactory.create<[Address, Address, boolean]>({
+const ApprovalForAll = EventFactory.create<[owner: Address, operator: Address, approved: boolean]>({
   indexed: [true, true, false],
 });
 

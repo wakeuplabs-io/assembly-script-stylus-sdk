@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-
 import {
   Address,
   Contract,
@@ -12,7 +10,7 @@ import {
   CallFactory,
   msg,
   block,
-} from "as-stylus";
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class CallsContract {
@@ -60,13 +58,12 @@ export class CallsContract {
   /**
    * Test send helper - Send 1 wei to myAddress (returns bool directly)
    */
-  // TODO: Implement when boolean to entyrpoint conversion is implemented
-  // @External
-  // testSend(): boolean {
-  //   const oneWei = U256Factory.fromString("1");
+  @External
+  testSend(): boolean {
+    const oneWei = U256Factory.fromString("1");
 
-  //   return CallFactory.send(this.contractAddress, oneWei);
-  // }
+    return CallFactory.send(this.contractAddress, oneWei);
+  }
 
   /**
    * Test call to owner address - Send 1 wei to owners.get(1)
@@ -84,14 +81,14 @@ export class CallsContract {
    * Test send to owner address - Send 1 wei to owners.get(1)
    */
   // TODO: Implement when boolean to entyrpoint conversion is implemented
-  // @External
-  // testSendToOwner(): boolean {
-  //   const oneKey = U256Factory.fromString("1");
-  //   const ownerAddress = this.owners.get(oneKey);
-  //   const oneWei = U256Factory.fromString("1");
+  @External
+  testSendToOwner(): boolean {
+    const oneKey = U256Factory.fromString("1");
+    const ownerAddress = this.owners.get(oneKey);
+    const oneWei = U256Factory.fromString("1");
 
-  //   return CallFactory.send(ownerAddress, oneWei);
-  // }
+    return CallFactory.send(ownerAddress, oneWei);
+  }
 
   @External
   setOwner(key: U256, owner: Address): void {

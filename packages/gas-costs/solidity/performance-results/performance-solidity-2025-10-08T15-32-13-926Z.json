@@ -1,0 +1,26 @@
+{
+  "deployment": {
+    "deploymentTime": 1709,
+    "size": "5048",
+    "gasUsed": "930744",
+    "address": "0x30c2705435aceb44136888e4df9f7dfa542b7129",
+    "transactionHash": "0xb8eea32a3185b09e9fe2a55b319fa2aed2ba716acfe21678b818549e980092fd",
+    "contractName": "ERC20"
+  },
+  "mint": {
+    "gasUsed": "69055",
+    "executionTime": 1453,
+    "transactionHash": "0x1d495d293aee8220ae700f819d8c69e4788054b8b750bad445eb643bbef9a077"
+  },
+  "contractAddress": "0x30c2705435aceb44136888e4df9f7dfa542b7129",
+  "timestamp": "2025-10-08T15:32:13.926Z",
+  "metadata": {
+    "generatedAt": "2025-10-08T15:32:13.954Z",
+    "testFramework": "Hardhat + Viem",
+    "environment": {
+      "nodeVersion": "v22.14.0",
+      "platform": "darwin",
+      "arch": "arm64"
+    }
+  }
+}
