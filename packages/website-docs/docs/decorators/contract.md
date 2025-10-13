@@ -5,6 +5,8 @@ The `@Contract` decorator is the foundational decorator that marks a TypeScript 
 ## Syntax
 
 ```typescript
+import { Contract } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class MyContract {
   // Contract implementation
@@ -28,6 +30,8 @@ The `@Contract` decorator:
 - **No multiple contracts**: Multiple `@Contract` decorators in the same file will cause compilation errors
 
 ```typescript
+import { Contract } from "@wakeuplabs/as-stylus";
+
 // ✅ Valid - Single contract
 @Contract
 export class MyContract {
@@ -45,16 +49,17 @@ export class SecondContract {}
 ### Class Structure
 
 - **Export Required**: The contract class must be exported
-- **Static Members**: Contract storage and methods should typically be static
 - **Constructor Support**: Optional constructor for initialization logic
 
 ## Basic Example
 
 ```typescript
+import { Contract, U256 } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class SimpleStorage {
   @View
-  static getValue(): U256 {
+  getValue(): U256 {
     return U256Factory.fromString("1");
   }
 }

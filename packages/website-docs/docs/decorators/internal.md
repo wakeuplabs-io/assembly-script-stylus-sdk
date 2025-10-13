@@ -6,7 +6,7 @@ The `@Internal` decorator marks a method as callable only from within the same c
 
 ```typescript
 @Internal
-static methodName(param1: Type1, param2: Type2): ReturnType {
+methodName(param1: Type1, param2: Type2): ReturnType {
   // Method implementation
 }
 ```
@@ -23,27 +23,29 @@ The `@Internal` decorator:
 ## Basic Example
 
 ```typescript
+import { Contract, U256, Internal, External, U256Factory } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class AdvancedStorage {
-  static value: U256;
-  static maxValue: U256;
+  value: U256;
+  maxValue: U256;
 
   @Internal
-  static validateValue(newValue: U256): boolean {
-    return newValue.lt(maxValue);
+  validateValue(newValue: U256): boolean {
+    return newValue.lt(this.maxValue);
   }
 
   @External
-  static setValue(newValue: U256): void {
+  setValue(newValue: U256): void {
     if (validateValue(newValue)) {
-      value = newValue;
+      this.value = newValue;
     }
   }
 
   @Internal
-  static increment(): void {
+  increment(): void {
     const one = U256Factory.fromString("1");
-    value = value.add(one);
+    this.value = value.add(one);
   }
 }
 ```
@@ -51,21 +53,22 @@ export class AdvancedStorage {
 ## Rules and Constraints
 
 ### Method Requirements
-- **Static Methods**: Internal methods must be static
+
 - **Within Contract**: Can only be used inside `@Contract` decorated classes
 - **Internal Calls**: Can only be called from other methods within the same contract
 - **Supported Types**: Parameters and return types must be supported by the ABI system
 
 ### Type Support
+
 Supported parameter and return types:
 
 ```typescript
 @Internal
-static examples(
+examples(
   uintValue: U256,          // ✅ Unsigned 256-bit integer
-  intValue: I256,           // ✅ Signed 256-bit integer  
+  intValue: I256,           // ✅ Signed 256-bit integer
   addressValue: Address,    // ✅ Ethereum address
-  stringValue: String,      // ✅ Dynamic string
+  stringValueStr,      // ✅ Dynamic string
   boolValue: Boolean        // ✅ Boolean value
 ): U256 {                   // ✅ Any supported type as return
   // Implementation
@@ -74,7 +77,7 @@ static examples(
 
 // ❌ Unsupported types
 @Internal
-static invalid(complexObject: CustomClass): void { } // Error
+invalid(complexObject: CustomClass): void { } // Error
 ```
 
 ## Advanced Usage
@@ -82,32 +85,42 @@ static invalid(complexObject: CustomClass): void { } // Error
 ### Helper Functions
 
 ```typescript
+import {
+  Contract,
+  Mapping,
+  Address,
+  U256,
+  Internal,
+  External,
+  U256Factory,
+} from "@wakeuplabs/as-stylus";
+
 @Contract
 export class TokenContract {
-  static balances: Mapping<Address, U256>;
-  static totalSupply: U256;
+  balances: Mapping<Address, U256>;
+  totalSupply: U256;
 
   @Internal
-  static transferHelper(from: Address, to: Address, amount: U256): boolean {
-    const fromBalance = balances.get(from);
+  transferHelper(from: Address, to: Address, amount: U256): boolean {
+    const fromBalance = this.balances.get(from);
     if (fromBalance.lt(amount)) {
       return false;
     }
-    
-    balances.set(from, fromBalance.sub(amount));
-    balances.set(to, balances.get(to).add(amount));
+
+    this.balances.set(from, fromBalance.sub(amount));
+    this.balances.set(to, this.balances.get(to).add(amount));
     return true;
   }
 
   @External
-  static transfer(to: Address, amount: U256): boolean {
+  transfer(to: Address, amount: U256): boolean {
     return transferHelper(msg.sender, to, amount);
   }
 
   @Internal
-  static mintHelper(to: Address, amount: U256): void {
-    balances.set(to, balances.get(to).add(amount));
-    totalSupply = totalSupply.add(amount);
+  mintHelper(to: Address, amount: U256): void {
+    this.balances.set(to, this.balances.get(to).add(amount));
+    this.totalSupply = this.totalSupply.add(amount);
   }
 }
 ```
