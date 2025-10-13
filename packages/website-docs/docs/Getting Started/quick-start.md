@@ -18,7 +18,55 @@ The AssemblyScript Stylus SDK is a complete development framework that allows de
 - **AssemblyScript** >= 0.27.x
 - **cargo stylus** (Rust CLI tool for Stylus validation and deployment)
 
-### Generate a new project
+## Prerequisites
+
+Make sure you have the required tools installed before getting started.
+
+### Quick Install (convenience)
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Install Rust + rustup (skip if already installed). Then source `"$HOME/.cargo/env"`.
+
+### Rust Setup (in order)
+
+cargo-stylus requires Rust 1.81+ and the wasm32-unknown-unknown target.
+
+```bash
+rustup update
+```
+
+Update rustup and installed toolchains.
+
+```bash
+rustup default stable
+```
+
+Use stable toolchain by default.
+
+```bash
+rustc --version
+```
+
+Verify version (cargo-stylus requires Rust ≥ 1.81).
+
+```bash
+rustup target add wasm32-unknown-unknown
+```
+
+Add WASM target (mandatory for Stylus).
+
+### Install cargo-stylus
+
+```bash
+cargo install cargo-stylus
+```
+
+Install the Stylus CLI (latest version published on crates.io).
+
+## Generate a new project
 
 Create a new contract project with built-in scaffolding:
 

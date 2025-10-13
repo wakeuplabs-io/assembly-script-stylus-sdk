@@ -1,4 +1,4 @@
-import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
+import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 
 /**
  * Creating a sidebar enables you to:
@@ -26,20 +26,80 @@ const sidebars: SidebarsConfig = {
         "decorators/public",
         "decorators/internal",
         "decorators/view",
-        "decorators/event",
-        "decorators/error",
         "decorators/visibility",
       ],
     },
     {
+      type: "doc",
+      label: "Inheritance",
+      id: "inheritance",
+    },
+    {
+      type: "doc",
+      label: "Events",
+      id: "events",
+    },
+    {
+      type: "doc",
+      label: "Errors",
+      id: "errors",
+    },
+    {
+      type: "doc",
+      label: "Sending & Receiving ETH",
+      id: "sending-ethers",
+    },
+    {
       type: "category",
       label: "Data Types",
-      items: ["types/u256", "types/i256", "types/address", "types/string", "types/boolean"],
+      items: [
+        {
+          type: "doc",
+          id: "types/u256",
+          label: "Unsigned 256-bit Integer",
+        },
+        {
+          type: "doc",
+          id: "types/i256",
+          label: "Signed 256-bit Integer",
+        },
+        {
+          type: "doc",
+          id: "types/address",
+          label: "Ethereum Address",
+        },
+        {
+          type: "doc",
+          id: "types/string",
+          label: "String",
+        },
+        {
+          type: "doc",
+          id: "types/boolean",
+          label: "Boolean",
+        },
+      ],
     },
     {
       type: "category",
       label: "Data Structures",
-      items: ["structures/mapping", "structures/mapping2", "structures/struct"],
+      items: [
+        {
+          type: "doc",
+          id: "structures/mapping",
+          label: "Mapping",
+        },
+        {
+          type: "doc",
+          id: "structures/mapping2",
+          label: "Nested Mapping",
+        },
+        {
+          type: "doc",
+          id: "structures/struct",
+          label: "Struct",
+        },
+      ],
     },
     {
       type: "category",
