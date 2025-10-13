@@ -12,9 +12,27 @@ This document evaluates how easily new developers can get started with the langu
   Also, a missing `@Struct` decorator or similar reference may be required.
 - Missing documentation for:
   - **Inheritance**
-  - **`msg` object**
+  - **Events**
+  - **Errors**
+  - **Sending Ethers**
 - [Structs parameters](https://as-stylus.wakeuplabs.io/structures/struct) are incorrectly shown as arrays instead of JSON objects.
 - [External decorators page](https://as-stylus.wakeuplabs.io/decorators/external): outdated — currently says methods must be `static`, which is no longer necessary.
+
+### Documentation Improvements
+
+Following the identification of the above documentation gaps, comprehensive improvements were implemented to address these inconsistencies:
+
+- **Pre-requisites**: Added a dedicated prerequisites section to the main documentation, clearly listing all required dependencies and setup steps.
+- **Structs Documentation**: Updated the structs page with clear instantiation examples, clarifying the use of `StructFactory.create` and proper decorator usage.
+- **New Documentation Pages**: Created complete documentation for:
+  - **Inheritance**: Detailed guide on class inheritance patterns and best practices.
+  - **Events**: Comprehensive documentation on event declaration and emission.
+  - **Errors**: Guide for error handling and custom error types.
+  - **Sending Ethers**: Instructions for native token transfers and value handling.
+- **Struct Parameters**: Corrected the struct parameters documentation to properly show JSON object syntax instead of arrays.
+- **External Decorators**: Updated the external decorators page to reflect current requirements, removing outdated information about `static` methods.
+
+These improvements ensure that new developers have accurate, comprehensive documentation to get started with the SDK effectively.
 
 ---
 
@@ -38,6 +56,5 @@ Although there are many features out of scopes, after this QA stage we detect so
 - Allow **contract instantiation and deployment** within another contract.
 - Support **constants declared outside the main contract**.
 - Add **smaller integer types** (e.g., `U32`).
-- Create a **Stylus VS Code extension** (or CLI feature) to run tests without a separate node — similar to Hardhat.
 
 ---
