@@ -6,7 +6,7 @@ The `@Public` decorator marks a method as publicly callable from both outside th
 
 ```typescript
 @Public
-static methodName(param1: Type1, param2: Type2): ReturnType {
+methodName(param1: Type1, param2: Type2): ReturnType {
   // Method implementation
 }
 ```
@@ -23,24 +23,26 @@ The `@Public` decorator:
 ## Basic Example
 
 ```typescript
+import { Contract, Public, U256, Address } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class PublicStorage {
-  static value: U256;
-  static owner: Address;
+  value: U256;
+  owner: Address;
 
   @Public
-  static setValue(newValue: U256): void {
-    value = newValue;
+  setValue(newValue: U256): void {
+    this.value = newValue;
   }
 
   @Public
-  static getValue(): U256 {
-    return value;
+  getValue(): U256 {
+    return this.value;
   }
 
   @Public
-  static transferOwnership(newOwner: Address): void {
-    owner = newOwner;
+  transferOwnership(newOwner: Address): void {
+    this.owner = newOwner;
   }
 }
 ```
@@ -48,20 +50,21 @@ export class PublicStorage {
 ## Rules and Constraints
 
 ### Method Requirements
-- **Static Methods**: Public methods must be static
+
 - **Within Contract**: Can only be used inside `@Contract` decorated classes
 - **Supported Types**: Parameters and return types must be supported by the ABI system
 
 ### Type Support
+
 Supported parameter and return types:
 
 ```typescript
 @Public
-static examples(
+examples(
   uintValue: U256,          // ✅ Unsigned 256-bit integer
-  intValue: I256,           // ✅ Signed 256-bit integer  
+  intValue: I256,           // ✅ Signed 256-bit integer
   addressValue: Address,    // ✅ Ethereum address
-  stringValue: String,      // ✅ Dynamic string
+  stringValueStr,      // ✅ Dynamic string
   boolValue: Boolean        // ✅ Boolean value
 ): U256 {                   // ✅ Any supported type as return
   // Implementation
@@ -70,7 +73,7 @@ static examples(
 
 // ❌ Unsupported types
 @Public
-static invalid(complexObject: CustomClass): void { } // Error
+invalid(complexObject: CustomClass): void { } // Error
 ```
 
 ## Advanced Usage
@@ -78,30 +81,32 @@ static invalid(complexObject: CustomClass): void { } // Error
 ### State Management
 
 ```typescript
+import { Contract, Public, U256, Address, Mapping, Str } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class UserRegistry {
-  static users: Mapping<Address, String>;
-  static userCount: U256;
+  users: Mapping<Address, Str>;
+  userCount: U256;
 
   @Public
-  static registerUser(name: String): void {
-    users.set(msg.sender, name);
-    userCount = userCount.add(U256Factory.fromString("1"));
+  registerUser(name: Str): void {
+    this.users.set(msg.sender, name);
+    this.userCount = this.userCount.add(U256Factory.fromString("1"));
   }
 
   @Public
-  static updateUserName(newName: String): void {
-    users.set(msg.sender, newName);
+  updateUserName(newName: Str): void {
+    this.users.set(msg.sender, newName);
   }
 
   @Public
-  static getUserName(userAddress: Address): String {
-    return users.get(userAddress);
+  getUserName(userAddress: Address): String {
+    return this.users.get(userAddress);
   }
 
   @Public
-  static getTotalUsers(): U256 {
-    return userCount;
+  getTotalUsers(): U256 {
+    return this.userCount;
   }
 }
 ```
@@ -109,36 +114,38 @@ export class UserRegistry {
 ### Complex Operations
 
 ```typescript
+import { Contract, U256Factory, Public, U256, Address, Mapping, Str } from "@wakeuplabs/as-stylus";
+
 @Contract
 export class MultiFunctionContract {
-  static data: U256;
-  static history: Mapping<U256, U256>;
+  data: U256;
+  history: Mapping<U256, U256>;
 
   @Public
-  static performCalculation(input: U256): U256 {
+  performCalculation(input: U256): U256 {
     const result = input.mul(U256Factory.fromString("2"));
-    data = result;
+    this.data = result;
     return result;
   }
 
   @Public
-  static batchOperation(values: U256[]): U256 {
+  batchOperation(values: U256[]): U256 {
     let sum = U256Factory.fromString("0");
     for (let i = 0; i < values.length; i++) {
       sum = sum.add(values[i]);
     }
-    data = sum;
+    this.data = sum;
     return sum;
   }
 
   @Public
-  static storeInHistory(key: U256, value: U256): void {
-    history.set(key, value);
+  storeInHistory(key: U256, value: U256): void {
+    this.history.set(key, value);
   }
 
   @Public
-  static retrieveFromHistory(key: U256): U256 {
-    return history.get(key);
+  retrieveFromHistory(key: U256): U256 {
+    return this.history.get(key);
   }
 }
 ```

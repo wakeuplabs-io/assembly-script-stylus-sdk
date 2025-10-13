@@ -5,12 +5,13 @@ The `Str` type represents dynamic, UTF-8 encoded text data in AssemblyScript Sty
 ## Import
 
 ```typescript
-import { Str, StrFactory } from '@as-stylus/as-stylus';
+import { Str, StrFactory } from "@wakeuplabs/as-stylus";
 ```
 
 ## Overview
 
 Str provides:
+
 - UTF-8 encoded text representation
 - Basic string creation and manipulation
 - Length operations for string measurements
@@ -22,10 +23,12 @@ Str provides:
 Based on the available transformers, Str supports these operations:
 
 ### Factory Methods
+
 - `StrFactory.create(): Str` - Create new Str instance (empty)
 - `StrFactory.fromString(value: string): Str` - Create from string literal
 
 ### Core Operations
+
 - `.toString(): string` - Convert to native string representation
 - `.slice(start: U256, length: U256): string` - Extract substring
 - Automatic conversion for return values
@@ -35,10 +38,7 @@ Based on the available transformers, Str supports these operations:
 ### Creating String Values
 
 ```typescript
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
-import { Str, StrFactory } from '@as-stylus/as-stylus';
+import { Str, StrFactory } from "@wakeuplabs/as-stylus";
 
 // Create empty string
 const empty = StrFactory.create();
@@ -61,9 +61,10 @@ const text = StrFactory.fromString("Hello, Blockchain!");
 const nativeStr = text.toString(); // "Hello, Blockchain!"
 
 // Extract substring using slice
-const hello = text.slice(U256Factory.create(), U256Factory.fromString("5"));     // "Hello"
+const hello = text.slice(U256Factory.create(), U256Factory.fromString("5")); // "Hello"
 const blockchain = text.slice(U256Factory.fromString("7"), U256Factory.fromString("10")); // "Blockchain"
 ```
+
 ## String Manipulation Patterns
 
 ### Basic Text Processing
@@ -72,11 +73,11 @@ const blockchain = text.slice(U256Factory.fromString("7"), U256Factory.fromStrin
 function truncateString(input: Str, maxLength: U256): Str {
   const inputStr = input.toString();
   const maxLengthNum = parseInt(maxLength.toString());
-  
+
   if (inputStr.length <= maxLengthNum) {
     return input;
   }
-  
+
   return StrFactory.fromString(inputStr.substring(0, maxLengthNum));
 }
 
@@ -98,7 +99,7 @@ function validateTokenSymbol(symbol: string): boolean {
   if (symbol.length < 3 || symbol.length > 5) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -116,18 +117,26 @@ function requireNonEmpty(input: string, fieldName: string): void {
 ## String Registry
 
 ```typescript
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import {
+  Contract,
+  External,
+  View,
+  Mapping,
+  Address,
+  Str,
+  StrFactory,
+  msg,
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class NameRegistry {
-  static names: Mapping<Address, Str> = new Mapping<Address, Str>();
-  static addresses: Mapping<Str, Address> = new Mapping<Str, Address>();
+  names: Mapping<Address, Str> = new Mapping<Address, Str>();
+  addresses: Mapping<Str, Address> = new Mapping<Str, Address>();
 
   @External
-  static registerName(name: string): void {
+  registerName(name: string): void {
     requireNonEmpty(name, "name");
-    
+
     if (name.length > 32) {
       const nameStr = StrFactory.fromString(name);
       InvalidStringLength.revert(nameStr, U256Factory.fromString("32"));
@@ -135,36 +144,36 @@ export class NameRegistry {
 
     const caller = msg.sender;
     const nameStr = StrFactory.fromString(name);
-    
+
     // Check if name is already taken
-    const existingAddr = addresses.get(nameStr);
+    const existingAddr = this.addresses.get(nameStr);
     if (!existingAddr.isZero()) {
       // Name already taken
       return;
     }
 
     // Register name
-    names.set(caller, nameStr);
-    addresses.set(nameStr, caller);
-    
+    this.names.set(caller, nameStr);
+    this.addresses.set(nameStr, caller);
+
     NameChanged.emit(nameStr);
   }
 
   @View
-  static resolveName(name: string): Address {
+  resolveName(name: string): Address {
     const nameStr = StrFactory.fromString(name);
-    return addresses.get(nameStr);
+    return this.addresses.get(nameStr);
   }
 
   @View
-  static getNameOf(addr: Address): string {
-    return names.get(addr);
+  getNameOf(addr: Address): string {
+    return this.names.get(addr);
   }
 
   @View
-  static isNameTaken(name: string): boolean {
+  isNameTaken(name: string): boolean {
     const nameStr = StrFactory.fromString(name);
-    const addr = addresses.get(nameStr);
+    const addr = this.addresses.get(nameStr);
     return !addr.isZero();
   }
 }
@@ -195,6 +204,7 @@ function requireNonEmptyField(input: string, fieldName: string): void {
 ## Best Practices
 
 ### Do
+
 - Use `StrFactory.fromString()` to create strings from literals
 - Validate length before storing
 - Use native strings for validation logic
@@ -202,12 +212,12 @@ function requireNonEmptyField(input: string, fieldName: string): void {
 - Validate inputs before processing
 
 ### Avoid
+
 - Storing extremely long strings
 - Not validating input length
 - Multiple unnecessary conversions
 - Complex string operations in contracts
 
-
 import { TypeNavigation } from '@site/src/components/NavigationGrid';
 
-<TypeNavigation /> 
+<TypeNavigation />

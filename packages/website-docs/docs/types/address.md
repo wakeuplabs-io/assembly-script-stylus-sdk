@@ -5,12 +5,13 @@ The `Address` type represents a 20-byte Ethereum address, used for identifying a
 ## Import
 
 ```typescript
-import { Address, AddressFactory } from '@as-stylus/as-stylus';
+import { Address, AddressFactory } from "@wakeuplabs/as-stylus";
 ```
 
 ## Overview
 
 Address provides:
+
 - 20-byte (160-bit) Ethereum address representation
 - Basic comparison and validation operations
 - String conversion for display
@@ -22,6 +23,7 @@ Address provides:
 Based on the interface, Address supports these operations:
 
 ### Core Operations
+
 - `clone(): Address` - Create a copy of the address
 - `toString(): string` - Convert to string representation
 - `isZero(): boolean` - Check if address is zero (null address)
@@ -29,6 +31,7 @@ Based on the interface, Address supports these operations:
 - `hasCode(): boolean` - Check if address contains contract code
 
 ### Factory Methods
+
 - `AddressFactory.create(): Address` - Create new Address instance (zero address)
 - `AddressFactory.fromString(hex: string): Address` - Create from hex string
 
@@ -37,10 +40,7 @@ Based on the interface, Address supports these operations:
 ### Creating Address Values
 
 ```typescript
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
-import { Address, AddressFactory } from '@as-stylus/as-stylus';
+import { Address, AddressFactory } from "@wakeuplabs/as-stylus";
 
 // Create zero address
 const zeroAddr = AddressFactory.create();
@@ -74,6 +74,7 @@ const ownerCopy = owner.clone();
 // Check if address is a contract
 const isContract = contractAddr.hasCode();
 ```
+
 ## Validation Patterns
 
 ### Address Validation
@@ -87,7 +88,7 @@ function validateAddressInput(addr: Address): void {
 
 function requireContract(addr: Address): void {
   validateAddressInput(addr);
-  
+
   if (!addr.hasCode()) {
     // Create custom error for EOA when contract expected
     InvalidAddress.revert(addr);
@@ -96,7 +97,7 @@ function requireContract(addr: Address): void {
 
 function requireEOA(addr: Address): void {
   validateAddressInput(addr);
-  
+
   if (addr.hasCode()) {
     // Create custom error for contract when EOA expected
     InvalidAddress.revert(addr);
@@ -111,10 +112,10 @@ function validateAddressArray(addresses: Address[]): void {
   if (addresses.length == 0) {
     return; // Empty array is valid
   }
-  
+
   for (let i = 0; i < addresses.length; i++) {
     validateAddressInput(addresses[i]);
-    
+
     // Check for duplicates
     for (let j = i + 1; j < addresses.length; j++) {
       if (addresses[i].equals(addresses[j])) {
@@ -138,49 +139,48 @@ function containsAddress(addresses: Address[], target: Address): boolean {
 ## Whitelist/Blacklist
 
 ```typescript
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
+import { Contract, External, View, Address, Mapping, msg } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class Whitelist {
-  static owner: Address;
-  static whitelist: Mapping<Address, boolean> = new Mapping<Address, boolean>();
+  owner: Address;
+  whitelist: Mapping<Address, boolean> = new Mapping<Address, boolean>();
 
   constructor() {
-    owner = msg.sender;
+    this.owner = msg.sender;
   }
 
   @External
-  static addToWhitelist(addr: Address): void {
-    if (!msg.sender.equals(owner)) {
-      Unauthorized.revert(msg.sender, owner);
+  addToWhitelist(addr: Address): void {
+    if (!msg.sender.equals(this.owner)) {
+      Unauthorized.revert(msg.sender, this.owner);
     }
 
     if (addr.isZero()) {
       InvalidAddress.revert(addr);
     }
 
-    whitelist.set(addr, true);
+    this.whitelist.set(addr, true);
   }
 
   @External
-  static removeFromWhitelist(addr: Address): void {
-    if (!msg.sender.equals(owner)) {
-      Unauthorized.revert(msg.sender, owner);
+  removeFromWhitelist(addr: Address): void {
+    if (!msg.sender.equals(this.owner)) {
+      Unauthorized.revert(msg.sender, this.owner);
     }
 
-    whitelist.set(addr, false);
+    this.whitelist.set(addr, false);
   }
 
   @View
-  static isWhitelisted(addr: Address): boolean {
-    return whitelist.get(addr);
+  isWhitelisted(addr: Address): boolean {
+    return this.whitelist.get(addr);
   }
 
   @External
-  static requireWhitelisted(addr: Address): void {
-    if (!whitelist.get(addr)) {
-      Unauthorized.revert(addr, owner);
+  requireWhitelisted(addr: Address): void {
+    if (!this.whitelist.get(addr)) {
+      Unauthorized.revert(addr, this.owner);
     }
   }
 }
@@ -189,6 +189,7 @@ export class Whitelist {
 ## Best Practices
 
 ### Do
+
 - Always validate that addresses are not zero before using them
 - Use `equals()` to compare addresses
 - Use `clone()` to create copies of addresses when needed
@@ -196,12 +197,12 @@ export class Whitelist {
 - Emit events for important changes (ownership transfers, etc.)
 
 ### Avoid
+
 - Comparing addresses with `==` or `!=` operators
 - Accepting zero addresses without validation
 - Not checking permissions in administrative functions
 - Operations without logging events
 
-
 import { TypeNavigation } from '@site/src/components/NavigationGrid';
 
-<TypeNavigation /> 
+<TypeNavigation />
