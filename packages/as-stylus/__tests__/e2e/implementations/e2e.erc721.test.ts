@@ -4,15 +4,15 @@
 import { config } from "dotenv";
 import { Address, Hex, WalletClient } from "viem";
 
-import { contractService, getWalletClient } from "../helpers/client.js";
+import { contractService, getWalletClient } from "@/tests/helpers/client.js";
 import {
   CONTRACT_PATHS,
   DEPLOY_TIMEOUT,
   PRIVATE_KEY,
   USER_B_PRIVATE_KEY,
-} from "../helpers/constants.js";
-import { fundUser, setupE2EContract } from "../helpers/setup.js";
-import { expectRevert, handleDeploymentError } from "../helpers/utils.js";
+} from "@/tests/helpers/constants.js";
+import { fundUser, setupE2EContract } from "@/tests/helpers/setup.js";
+import { expectRevert, handleDeploymentError } from "@/tests/helpers/utils.js";
 
 config();
 

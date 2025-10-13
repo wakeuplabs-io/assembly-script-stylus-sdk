@@ -4,15 +4,15 @@
 import { config } from "dotenv";
 import { Address, Hex, WalletClient } from "viem";
 
-import { contractService, getWalletClient } from "../helpers/client.js";
+import { contractService, getWalletClient } from "@/tests/helpers/client.js";
 import {
   CONTRACT_PATHS,
   DEPLOY_TIMEOUT,
   PRIVATE_KEY,
   USER_B_PRIVATE_KEY,
-} from "../helpers/constants.js";
-import { fundUser, setupE2EContract } from "../helpers/setup.js";
-import { handleDeploymentError } from "../helpers/utils.js";
+} from "@/tests/helpers/constants.js";
+import { fundUser, setupE2EContract } from "@/tests/helpers/setup.js";
+import { handleDeploymentError } from "@/tests/helpers/utils.js";
 
 config();
 
@@ -25,7 +25,7 @@ const ZERO = 0n;
 const ownerWallet: WalletClient = getWalletClient(PRIVATE_KEY as Hex);
 const userBWallet: WalletClient = getWalletClient(USER_B_PRIVATE_KEY as Hex);
 let contract: ReturnType<typeof contractService>;
-const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.ERC20;
+const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.ERC20_OVERRIDE;
 
 // Helper to get wallet addresses
 const getOwnerAddress = () => ownerWallet.account?.address as Address;
@@ -38,6 +38,8 @@ beforeAll(async () => {
   try {
     fundUser(getUserBAddress());
     contract = await setupE2EContract(contractPath, abiPath, {
+      constructorName: "token_constructor",
+      contractFileName: "token.ts",
       deployArgs: [INIT_SUPPLY],
       walletClient: ownerWallet,
     });
@@ -49,7 +51,7 @@ beforeAll(async () => {
 describe("ERC20 — Standard Token Operations", () => {
   describe("Initial state", () => {
     it("should have correct total supply", async () => {
-      const result = (await contract.read("totalSupply", [])) as bigint;
+      const result = (await contract.read("getTotalSupply", [])) as bigint;
       expect(result).toBe(INIT_SUPPLY);
     });
 
@@ -243,6 +245,13 @@ describe("ERC20 — Standard Token Operations", () => {
 
       expect(finalOwnerBalance).toBe(ownerBalance - 20n); // net -20
       expect(finalUserBBalance).toBe(userBBalance + 20n); // net +20
+    });
+  });
+
+  describe("Method overrides", () => {
+    it("should override methods", async () => {
+      const result = (await contract.read("decimals", [])) as bigint;
+      expect(result).toBe(8n);
     });
   });
 });

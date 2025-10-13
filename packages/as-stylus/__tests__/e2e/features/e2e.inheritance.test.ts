@@ -1,9 +1,9 @@
 import { WalletClient } from "viem";
 
-import { ContractService, getWalletClient } from "../helpers/client.js";
-import { CONTRACT_PATHS, DEPLOY_TIMEOUT, PRIVATE_KEY } from "../helpers/constants.js";
-import { setupE2EContract } from "../helpers/setup.js";
-import { handleDeploymentError } from "../helpers/utils.js";
+import { ContractService, getWalletClient } from "@/tests/helpers/client.js";
+import { CONTRACT_PATHS, DEPLOY_TIMEOUT, PRIVATE_KEY } from "@/tests/helpers/constants.js";
+import { setupE2EContract } from "@/tests/helpers/setup.js";
+import { handleDeploymentError } from "@/tests/helpers/utils.js";
 
 // Test state
 const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.INHERITANCE;
