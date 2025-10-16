@@ -36,7 +36,7 @@ export function buildU256IR(
   if (isComparisonOperation) {
     return {
       kind: "condition",
-      left: { kind: "var", name: varName, type: AbiType.Uint256, scope },
+      left: { kind: "var", name: varName, type: AbiType.Uint256, scope, isConstant: false },
       right: args[0],
       op: operationConvertor[operation as U256ComparisonOperation] as ComparisonOperator,
       type: AbiType.Bool,
@@ -56,6 +56,7 @@ export function buildU256IR(
         name: "U256Factory",
         type: AbiType.Function,
         scope: "memory" as const,
+        isConstant: false,
       },
     };
   }
@@ -77,6 +78,7 @@ export function buildU256IR(
         name: receiverName,
         type: AbiType.Uint256,
         scope: scope as "memory" | "storage",
+        isConstant: false,
       },
     };
   }

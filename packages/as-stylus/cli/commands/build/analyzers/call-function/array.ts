@@ -36,6 +36,7 @@ export function buildArrayIR(
         name: "StaticArrayFactory",
         type: AbiType.Function,
         scope: "memory" as const,
+        isConstant: false,
       },
       genericType,
     };
@@ -57,6 +58,7 @@ export function buildArrayIR(
         name: "DynamicArrayFactory",
         type: AbiType.Function,
         scope: "memory" as const,
+        isConstant: false,
       },
       genericType,
     };
@@ -78,6 +80,7 @@ export function buildArrayIR(
         name: "MemoryArrayFactory",
         type: AbiType.Function,
         scope: "memory" as const,
+        isConstant: false,
       },
       genericType,
     };

@@ -23,7 +23,9 @@ export type Variable = {
   originalType?: string;
   scope: "storage" | "memory";
   slot?: number;
+  isConstant: boolean;
 };
+
 export type Call = {
   kind: "call";
   target: string;
@@ -186,6 +188,7 @@ export type VariableDeclaration = {
   expr: IRExpression;
   scope: "storage" | "memory";
   type: SupportedType;
+  isConstant?: boolean;
 };
 export type ExpressionStatement = { kind: "expr"; expr: IRExpression; type: SupportedType };
 export type Return = { kind: "return"; expr?: IRExpression; type: SupportedType };
@@ -354,6 +357,7 @@ export interface IRContract {
   fallback?: IRMethod;
   receive?: IRMethod;
   storage: IRVariable[];
+  constants?: IRStatement[];
   events?: IREvent[];
   structs?: IRStruct[];
   errors?: IRErrorDecl[];

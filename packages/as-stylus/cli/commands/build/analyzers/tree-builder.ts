@@ -79,6 +79,14 @@ export function generateContractTree(contract: IRContract) {
     name: contract.name,
     children: [
       {
+        id: "constants",
+        name: "Constants",
+        children: contract.constants?.map((item, index) => ({
+          id: `constant-${index}`,
+          data: item,
+        })) || [],
+      },
+      {
         id: "storage",
         name: "Storage",
         children: contract.storage.map((item, index) => ({
