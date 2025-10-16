@@ -29,18 +29,21 @@ Mapping provides:
 ### Declaration and Initialization
 
 ```typescript
-import { Contract, Mapping, Address, U256, Str } from "@wakeuplabs/as-stylus";
+import { Contract, Mapping, Address, U256, I256 } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class StorageExample {
-  // User balances mapping
+  // User balances mapping (Address key, U256 value)
   balances: Mapping<Address, U256> = new Mapping<Address, U256>();
 
-  // Configuration flags
-  settings: Mapping<Str, boolean> = new Mapping<Str, boolean>();
+  // Token ownership (U256 key, Address value)
+  tokenOwners: Mapping<U256, Address> = new Mapping<U256, Address>();
 
-  // Numeric data storage
+  // Numeric data storage (U256 key, U256 value)
   counters: Mapping<U256, U256> = new Mapping<U256, U256>();
+
+  // Signed integer mapping (I256 key, U256 value)
+  signedData: Mapping<I256, U256> = new Mapping<I256, U256>();
 }
 ```
 
@@ -73,65 +76,85 @@ export class MappingBasics {
 }
 ```
 
-## Different Key-Value Types
+## Supported Key-Value Combinations
+
+Currently, the `Mapping` type supports a limited set of key-value combinations. The following table shows which combinations are currently available:
+
+| Key / Value | String | Boolean | U256 | I256 | Address |
+| ----------- | ------ | ------- | ---- | ---- | ------- |
+| String      | ❌     | ❌      | ❌   | ❌   | ❌      |
+| Boolean     | ❌     | ❌      | ❌   | ❌   | ❌      |
+| U256        | ❌     | ❌      | ✅   | ❌   | ✅      |
+| I256        | ❌     | ❌      | ✅   | ❌   | ✅      |
+| Address     | ❌     | ❌      | ✅   | ❌   | ❌      |
+
+### Current State
+
+The `Mapping` type currently supports:
+
+- **U256 keys** with U256 or Address values
+- **I256 keys** with U256 or Address values
+- **Address keys** with U256 values
+
+Other combinations (String keys/values, Boolean keys/values, etc.) are planned for future releases.
+
+## Working Examples
 
 ```typescript
-import { Contract, External, View, Mapping, Address, U256, Str } from "@wakeuplabs/as-stylus";
+import { Contract, External, View, Mapping, Address, U256, I256 } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MappingTypes {
-  addressToNumber: Mapping<Address, U256> = new Mapping<Address, U256>();
-  stringToFlag: Mapping<Str, boolean> = new Mapping<Str, boolean>();
-  numberToText: Mapping<U256, Str> = new Mapping<U256, Str>();
+  // U256 key with U256 value
+  balances: Mapping<U256, U256> = new Mapping<U256, U256>();
+
+  // U256 key with Address value
+  tokenOwners: Mapping<U256, Address> = new Mapping<U256, Address>();
+
+  // I256 key with U256 value
+  signedBalances: Mapping<I256, U256> = new Mapping<I256, U256>();
+
+  // I256 key with Address value
+  signedOwners: Mapping<I256, Address> = new Mapping<I256, Address>();
+
+  // Address key with U256 value
+  userBalances: Mapping<Address, U256> = new Mapping<Address, U256>();
 
   @External
-  setAddressValue(addr: Address, value: U256): void {
-    this.addressToNumber.set(addr, value);
+  setBalance(userId: U256, balance: U256): void {
+    this.balances.set(userId, balance);
   }
 
   @External
-  setStringFlag(keyStr, flag: boolean): void {
-    this.stringToFlag.set(key, flag);
+  setTokenOwner(tokenId: U256, owner: Address): void {
+    this.tokenOwners.set(tokenId, owner);
+  }
+
+  @External
+  setSignedBalance(signedId: I256, balance: U256): void {
+    this.signedBalances.set(signedId, balance);
   }
 
   @View
-  getAddressValue(addr: Address): U256 {
-    return this.addressToNumber.get(addr);
+  getBalance(userId: U256): U256 {
+    return this.balances.get(userId);
   }
 
   @View
-  getStringFlag(key: Str): boolean {
-    return this.stringToFlag.get(key);
+  getTokenOwner(tokenId: U256): Address {
+    return this.tokenOwners.get(tokenId);
   }
 }
 ```
 
-## Supported Key Types
+## Future Support
 
-```typescript
-import { Contract, Mapping, Address, U256, Str } from "@wakeuplabs/as-stylus";
+Additional key-value combinations will be added in future releases, including:
 
-@Contract
-export class KeyTypes {
-  addressMapping: Mapping<Address, U256> = new Mapping<Address, U256>(); // ✅ Address keys
-  stringMapping: Mapping<Str, boolean> = new Mapping<Str, boolean>(); // ✅ String keys
-  numberMapping: Mapping<U256, Address> = new Mapping<U256, Address>(); // ✅ U256 keys
-}
-```
-
-## Supported Value Types
-
-```typescript
-import { Contract, Mapping, Address, U256, Str } from "@wakeuplabs/as-stylus";
-
-@Contract
-export class ValueTypes {
-  numberValues: Mapping<Address, U256> = new Mapping<Address, U256>(); // ✅ U256 values
-  booleanValues: Mapping<Str, boolean> = new Mapping<Str, boolean>(); // ✅ Boolean values
-  addressValues: Mapping<U256, Address> = new Mapping<U256, Address>(); // ✅ Address values
-  stringValues: Mapping<Address, Str> = new Mapping<Address, Str>(); // ✅ String values
-}
-```
+- String keys and values
+- Boolean keys and values
+- Mixed type combinations
+- Complex data structures as values
 
 ---
 

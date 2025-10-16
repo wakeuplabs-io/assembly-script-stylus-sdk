@@ -9,10 +9,10 @@ import { IRExpression } from "@/cli/types/ir.types.js";
  */
 export function convertVariableInParams(target: string, type: AbiType): IRExpression {
   if (target.indexOf(".") === -1) {
-    return { kind: "var" as const, name: target, type, scope: "memory" };
+    return { kind: "var" as const, name: target, type, scope: "memory", isConstant: false };
   }
   const [head, ...rest] = target.split(".");
-  let node: IRExpression = { kind: "var" as const, name: head, type, scope: "memory" };
+  let node: IRExpression = { kind: "var" as const, name: head, type, scope: "memory", isConstant: false };
   for (const prop of rest) {
     node = { kind: "member" as const, object: node, property: prop, type };
   }

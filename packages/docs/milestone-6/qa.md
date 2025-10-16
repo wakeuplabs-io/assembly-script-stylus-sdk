@@ -56,5 +56,8 @@ Although there are many features out of scopes, after this QA stage we detect so
 - Allow **contract instantiation and deployment** within another contract.
 - Support **constants declared outside the main contract**.
 - Add **smaller integer types** (e.g., `U32`).
+  <<<<<<< HEAD
+- # Create a **Stylus VS Code extension** (or CLI feature) to run tests without a separate node — similar to Hardhat.
+  > > > > > > > main
 
 ---

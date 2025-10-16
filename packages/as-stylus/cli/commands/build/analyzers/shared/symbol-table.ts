@@ -48,10 +48,13 @@ export class SymbolTableStack {
 
   declareVariable(name: string, info: Omit<VariableSymbol, "scopeLevel">): boolean {
     const current = this.scopes[this.scopes.length - 1];
+    const scopeLevel = this.scopes.length - 1;
     if (current.has(name)) return false;
 
+    const isConstant = info.scope === "memory" && scopeLevel === 0;
+
     this.types.add(info.type);
-    current.set(name, { ...info, scopeLevel: this.scopes.length - 1 });
+    current.set(name, { ...info, scopeLevel, isConstant });
 
     if (info.scope === "storage") {
       let fields = info.length ?? 1;
