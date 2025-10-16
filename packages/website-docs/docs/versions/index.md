@@ -6,9 +6,9 @@ We aim to keep the docs updated within major/minor versions, and do not publish 
 
 You can find an archive of previous major/minor versions below.
 
-**Latest version: v0.1.0**
+**Latest version: v0.2.5**
 
-- [v0.2.0 (September 2025)](./latest.md)
+- [v0.2.5 (October 2025)](./latest.md)
 
 **Previous version: v0.1.0**
 

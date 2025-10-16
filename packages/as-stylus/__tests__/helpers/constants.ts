@@ -123,4 +123,16 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/arrays"),
     abi: path.join(ROOT_PATH, "/arrays/artifacts/abi/contract-abi.json"),
   },
+  MAPPING_ADDRESS: {
+    contract: path.join(ROOT_PATH, "/mapping"),
+    abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/address-abi.json"),
+  },
+  MAPPING_UINT256: {
+    contract: path.join(ROOT_PATH, "/mapping"),
+    abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/uint256-abi.json"),
+  },
+  MAPPING_INT256: {
+    contract: path.join(ROOT_PATH, "/mapping"),
+    abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/int256-abi.json"),
+  },
 } as const;
