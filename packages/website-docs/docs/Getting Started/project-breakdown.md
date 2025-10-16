@@ -149,8 +149,8 @@ The SDK provides efficient memory management through:
 
 ### Advanced Topics
 
-- [Error Handling](../decorators/error) - Custom error types and patterns
-- [Event System](../decorators/event) - Efficient logging and monitoring
+- [Error Handling](../errors) - Custom error types and patterns
+- [Event System](../events) - Efficient logging and monitoring
 - [Visibility Modifiers](../decorators/visibility) - Access control patterns
 
 ### Try it Live
@@ -169,7 +169,7 @@ Ready to build the future of smart contracts? Here are your next steps:
 1. **Start with the Basics**: Master the [decorator system](../decorators/contract) and understand how to structure contracts
 2. **Learn the Type System**: Dive deep into [U256](../types/u256) and other blockchain-optimized types
 3. **Build Your First Token**: Follow the [ERC20 tutorial](../examples/erc20) to create a complete token contract
-4. **Explore Advanced Features**: Learn about [events](../decorators/event), [errors](../decorators/error), and [data structures](../structures/mapping)
+4. **Explore Advanced Features**: Learn about [events](../events), [errors](../errors), and [data structures](../structures/mapping)
 5. **Deploy to Mainnet**: Use the CLI tools to deploy your contracts to Arbitrum
 
 The AssemblyScript Stylus SDK opens up new possibilities for high-performance smart contract development. With familiar TypeScript syntax and WebAssembly performance, you can build the next generation of decentralized applications!

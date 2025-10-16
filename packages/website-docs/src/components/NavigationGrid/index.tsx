@@ -1,6 +1,6 @@
-import React from 'react';
-import Link from '@docusaurus/Link';
-import './styles.css';
+import React from "react";
+import Link from "@docusaurus/Link";
+import "./styles.css";
 
 interface NavigationItem {
   title: string;
@@ -37,12 +37,12 @@ const decorators: NavigationItem[] = [
   {
     title: "@Event",
     description: "Blockchain event logging",
-    link: "/decorators/event",
+    link: "/events",
   },
   {
     title: "@Error",
     description: "Custom error definitions",
-    link: "/decorators/error",
+    link: "/errors",
   },
   {
     title: "State Mutability",
@@ -53,61 +53,61 @@ const decorators: NavigationItem[] = [
 
 const types: NavigationItem[] = [
   {
-    title: 'U256',
-    description: 'Unsigned 256-bit integers',
-    link: '/types/u256'
+    title: "U256",
+    description: "Unsigned 256-bit integers",
+    link: "/types/u256",
   },
   {
-    title: 'I256', 
-    description: 'Signed 256-bit integers',
-    link: '/types/i256'
+    title: "I256",
+    description: "Signed 256-bit integers",
+    link: "/types/i256",
   },
   {
-    title: 'Address',
-    description: 'Ethereum addresses',
-    link: '/types/address'
+    title: "Address",
+    description: "Ethereum addresses",
+    link: "/types/address",
   },
   {
-    title: 'String',
-    description: 'Text data handling',
-    link: '/types/string'
+    title: "String",
+    description: "Text data handling",
+    link: "/types/string",
   },
   {
-    title: 'Boolean',
-    description: 'Logical true/false values',
-    link: '/types/boolean'
-  }
+    title: "Boolean",
+    description: "Logical true/false values",
+    link: "/types/boolean",
+  },
 ];
 
 const structures: NavigationItem[] = [
   {
-    title: 'Mapping',
-    description: 'Key-value storage',
-    link: '/structures/mapping'
+    title: "Mapping",
+    description: "Key-value storage",
+    link: "/structures/mapping",
   },
   {
-    title: 'MappingNested',
-    description: 'Nested key-value storage',
-    link: '/structures/mapping2'
+    title: "MappingNested",
+    description: "Nested key-value storage",
+    link: "/structures/mapping2",
   },
   {
-    title: 'Struct',
-    description: 'Custom data structures',
-    link: '/structures/struct'
+    title: "Struct",
+    description: "Custom data structures",
+    link: "/structures/struct",
   },
 ];
 
 const examples: NavigationItem[] = [
   {
-    title: 'ERC20',
-    description: 'Fungible token standard',
-    link: '/examples/erc20'
+    title: "ERC20",
+    description: "Fungible token standard",
+    link: "/examples/erc20",
   },
   {
-    title: 'ERC721',
-    description: 'Non-fungible token (NFT)',
-    link: '/examples/erc721'
-  }
+    title: "ERC721",
+    description: "Non-fungible token (NFT)",
+    link: "/examples/erc721",
+  },
 ];
 
 export function DecoratorNavigation() {
@@ -116,11 +116,7 @@ export function DecoratorNavigation() {
       <h3>🎯 More Decorators</h3>
       <div className="navigation-grid">
         {decorators.map((item, index) => (
-          <Link
-            key={index}
-            to={item.link}
-            className="nav-card decorator-card"
-          >
+          <Link key={index} to={item.link} className="nav-card decorator-card">
             <span className="nav-title">{item.title}</span>
             <span className="nav-desc">{item.description}</span>
           </Link>
@@ -136,11 +132,7 @@ export function TypeNavigation() {
       <h3>📦 More Data Types</h3>
       <div className="navigation-grid">
         {types.map((item, index) => (
-          <Link
-            key={index}
-            to={item.link}
-            className="nav-card type-card"
-          >
+          <Link key={index} to={item.link} className="nav-card type-card">
             <span className="nav-title">{item.title}</span>
             <span className="nav-desc">{item.description}</span>
           </Link>
@@ -156,11 +148,7 @@ export function StructureNavigation() {
       <h3>🏗️ More Data Structures</h3>
       <div className="navigation-grid">
         {structures.map((item, index) => (
-          <Link
-            key={index}
-            to={item.link}
-            className="nav-card structure-card"
-          >
+          <Link key={index} to={item.link} className="nav-card structure-card">
             <span className="nav-title">{item.title}</span>
             <span className="nav-desc">{item.description}</span>
           </Link>
@@ -176,11 +164,7 @@ export function ExampleNavigation() {
       <h3>💡 More Examples</h3>
       <div className="navigation-grid">
         {examples.map((item, index) => (
-          <Link
-            key={index}
-            to={item.link}
-            className="nav-card example-card"
-          >
+          <Link key={index} to={item.link} className="nav-card example-card">
             <span className="nav-title">{item.title}</span>
             <span className="nav-desc">{item.description}</span>
           </Link>
@@ -193,4 +177,4 @@ export function ExampleNavigation() {
 // Componente por defecto (no usar)
 export default function NavigationGrid() {
   return null;
-} 
+}
