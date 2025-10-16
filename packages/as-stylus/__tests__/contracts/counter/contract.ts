@@ -1,11 +1,13 @@
 import { Contract, External, U256, U256Factory, View } from "@wakeuplabs/as-stylus";
 
+const zero = U256Factory.fromString("0");
+
 @Contract
 export class Counter {
   counter: U256;
 
   constructor() {
-    this.counter = U256Factory.create();
+    this.counter = zero;
   }
 
   @External

@@ -42,7 +42,7 @@ export function buildI256IR(
   if (isComparisonOperation) {
     return {
       kind: "condition",
-      left: { kind: "var", name: varName, type: AbiType.Int256, scope },
+      left: { kind: "var", name: varName, type: AbiType.Int256, scope, isConstant: false },
       right: args[0],
       op: operationConvertor[operation as I256ComparisonOperation] as ComparisonOperator,
       type: AbiType.Bool,

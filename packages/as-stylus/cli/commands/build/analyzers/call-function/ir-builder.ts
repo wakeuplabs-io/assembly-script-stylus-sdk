@@ -121,6 +121,7 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
             name: receiverName,
             type: variable.type,
             scope: receiverVariable.scope ?? "storage",
+            isConstant: false,
           },
         };
       }

@@ -5,9 +5,10 @@ import {
   SyntaxKind,
   CallExpression,
   VariableDeclaration,
+  Statement,
 } from "ts-morph";
 
-import { IRContract, IRErrorDecl, IREvent } from "@/cli/types/ir.types.js";
+import { IRContract, IRErrorDecl, IREvent, IRStatement } from "@/cli/types/ir.types.js";
 
 import { ContractSemanticValidator } from "./semantic-validator.js";
 import { ContractSyntaxValidator } from "./syntax-validator.js";
@@ -21,6 +22,7 @@ import { PropertyIRBuilder } from "../property/ir-builder.js";
 import { IRBuilder } from "../shared/ir-builder.js";
 import { SlotManager } from "../shared/slot-manager.js";
 import { SymbolTableStack } from "../shared/symbol-table.js";
+import { StatementIRBuilder } from "../statement/ir-builder.js";
 import { StructIRBuilder } from "../struct/ir-builder.js";
 
 const DECORATORS = {
@@ -72,6 +74,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
     const structs = this.processStructs(classes);
     const events = this.processEvents();
     const errors = this.processErrors(classes);
+    const constants = this.processGlobalConstants();
     const storage = this.processStorage(contractClass);
     const constructor = this.processConstructor(contractClass);
     const methodsResult = this.processMethods(contractClass);
@@ -85,6 +88,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       fallback: methodsResult.fallback,
       receive: methodsResult.receive,
       storage,
+      constants,
       events,
       structs,
       errors,
@@ -100,6 +104,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       constructor: undefined,
       methods: [],
       storage: [],
+      constants: [],
       symbolTable: new SymbolTableStack(this.slotManager),
       slotManager: this.slotManager,
     };
@@ -320,5 +325,22 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       fallback: fallbackMethod,
       receive: receiveMethod,
     };
+  }
+
+  private processGlobalConstants(): IRStatement[] {
+    const constants: IRStatement[] = [];
+    
+    // Get all variable statements at the file level (not inside classes)
+    const variableStatements = this.sourceFile.getVariableStatements();
+    const varStatementsFiltered = variableStatements.filter(stmt => 
+      !stmt.getText().includes("EventFactory.create") && 
+      !stmt.getText().includes("ErrorFactory.create"));
+    
+    for (const varStatement of varStatementsFiltered) {
+      const declarations = new StatementIRBuilder(varStatement as unknown as Statement).validateAndBuildIR();
+      constants.push({ ...declarations, isConstant: true } as any);
+    }
+    
+    return constants;
   }
 }

@@ -108,6 +108,12 @@ export function emitContract(contract: IRContract): string {
   // Add imports
   parts.push(generateImports(contract));
 
+  // Add global constants
+  if (contract.constants && contract.constants.length > 0) {
+    parts.push(contractContext.emitStatements(contract.constants));
+    parts.push(""); // Add empty line after constants
+  }
+
   // Add storage slots
   contract.slotManager.generateSlotConstants().forEach(line => parts.push(line));
   parts.push(...generateStorageHelpers(contract.storage, contract.structs || []));
