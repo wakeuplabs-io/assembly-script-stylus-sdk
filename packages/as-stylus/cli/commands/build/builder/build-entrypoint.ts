@@ -319,6 +319,11 @@ function processContractMethods(contract: IRContract): CodeBlock {
   });
 
   for (const method of contract.methods) {
+    const isConstructor = method.name?.includes("_constructor");
+    if (isConstructor) {
+      continue;
+    }
+
     if (
       [Visibility.PUBLIC, Visibility.EXTERNAL, StateMutability.NONPAYABLE].includes(
         method.visibility,

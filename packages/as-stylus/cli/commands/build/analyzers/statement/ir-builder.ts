@@ -13,10 +13,12 @@ import { WhileIRBuilder } from "../while/ir-builder.js";
 
 export class StatementIRBuilder extends IRBuilder<IRStatement> {
   private statement: Statement;
+  private isConstant: boolean;
 
-  constructor(statement: Statement) {
+  constructor(statement: Statement, isConstant: boolean = false) {
     super(statement);
     this.statement = statement;
+    this.isConstant = isConstant;
   }
 
   validate(): boolean {
@@ -33,7 +35,7 @@ export class StatementIRBuilder extends IRBuilder<IRStatement> {
         const decl = this.statement
           .asKindOrThrow(SyntaxKind.VariableStatement)
           .getDeclarations()[0];
-        const variableBuilder = new VariableDeclarationIRBuilder(decl);
+        const variableBuilder = new VariableDeclarationIRBuilder(decl, this.isConstant);
         return variableBuilder.validateAndBuildIR();
       }
 

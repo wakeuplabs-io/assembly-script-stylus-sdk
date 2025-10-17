@@ -1,25 +1,30 @@
-import { Contract, External, Internal, U256, U256Factory } from "@wakeuplabs/as-stylus";
+import { Contract, External, U256, U256Factory } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class Parent {
-  sum: U256;
+  value: U256;
 
-  constructor(init: U256) {
-    this.sum = init;
+  constructor(initialValue: U256) {
+    this.value = initialValue;
   }
 
   @External
-  setValue(a: U256, b: U256): void {
-    this.sum = a.add(b);
+  getValue(): U256 {
+    return this.value;
   }
 
   @External
-  overrideMethod(): U256 {
-    return U256Factory.fromString("50");
+  setValue(newValue: U256): void {
+    this.value = newValue;
   }
 
-  @Internal
-  getSumByParams(a: U256, b: U256): U256 {
-    return a.add(b);
+  @External
+  addToValue(amount: U256): void {
+    this.value = this.value.add(amount);
+  }
+
+  @External
+  getParentMessage(): U256 {
+    return U256Factory.fromString("10"); // Parent returns 10
   }
 }

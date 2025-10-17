@@ -20,10 +20,12 @@ import { parseThis } from "../shared/utils/parse-this.js";
  */
 export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
   private declaration: VariableDeclaration;
+  private isConstant: boolean;
 
-  constructor(declaration: VariableDeclaration) {
+  constructor(declaration: VariableDeclaration, isConstant?: boolean) {
     super(declaration);
     this.declaration = declaration;
+    this.isConstant = isConstant ?? false;
   }
 
   validate(): boolean {
@@ -48,6 +50,7 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       type: convertType(this.symbolTable, dynamicType),
       dynamicType,
       scope: "memory",
+      isConstant: this.isConstant,
     };
 
     return variable;

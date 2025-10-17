@@ -337,7 +337,7 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
       !stmt.getText().includes("ErrorFactory.create"));
     
     for (const varStatement of varStatementsFiltered) {
-      const declarations = new StatementIRBuilder(varStatement as unknown as Statement).validateAndBuildIR();
+      const declarations = new StatementIRBuilder(varStatement as unknown as Statement, true).validateAndBuildIR();
       constants.push({ ...declarations, isConstant: true } as any);
     }
     
