@@ -21,6 +21,12 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
   const abi: AbiItem[] = [];
 
   for (const method of contract.methods) {
+    const isConstructor = method.name?.includes("_constructor");
+
+    if (isConstructor) {
+      continue;
+    }
+
     if (method.visibility !== Visibility.PUBLIC && method.visibility !== Visibility.EXTERNAL)
       continue;
 
@@ -68,6 +74,11 @@ const createAbiRepresentation = (contract: IRContract, isParent: boolean = false
       }),
       outputs: [],
     });
+  }
+
+  const constructors = abi.filter((item) => item.name?.includes("_constructor"));
+  if (constructors.length > 1) {
+    throw new Error("Multiple constructors found");
   }
 
   const errorABI = generateErrorABI(contract);

@@ -61,7 +61,7 @@ export const CONTRACT_PATHS = {
   },
   INHERITANCE: {
     contract: path.join(ROOT_PATH, "/inheritance"),
-    abi: path.join(ROOT_PATH, "/inheritance/artifacts/abi/contract-abi.json"),
+    abi: path.join(ROOT_PATH, "/inheritance/artifacts/abi/child-abi.json"),
   },
   ERC20_OVERRIDE: {
     contract: path.join(ROOT_PATH, "/erc20-override"),
@@ -134,5 +134,17 @@ export const CONTRACT_PATHS = {
   MAPPING_INT256: {
     contract: path.join(ROOT_PATH, "/mapping"),
     abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/int256-abi.json"),
+  },
+  PAUSABLE: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/pausable-abi.json"),
+  },
+  OWNABLE: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/ownable-abi.json"),
+  },
+  REENTRANCY: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/reentrancyGuard-abi.json"),
   },
 } as const;

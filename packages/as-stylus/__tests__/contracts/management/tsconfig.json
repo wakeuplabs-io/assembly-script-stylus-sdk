@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strictPropertyInitialization": false
   },
-  "include": ["child.ts"]
+  "include": ["pausable.ts"]
 }
