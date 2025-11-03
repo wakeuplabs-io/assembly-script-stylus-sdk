@@ -2,6 +2,7 @@
 //  Utils — build / deploy / call helpers for Stylus e2e tests
 // ---------------------------------------------------------------
 import { readFileSync } from "fs";
+import { WalletClient } from "viem";
 
 import { ContractService } from "./client.js";
 import { ContractArgs } from "./setup.js";
@@ -71,6 +72,24 @@ export async function expectRevert(
   return {
     errorName: result.error.name,
     args: result.error.args,
+  };
+}
+
+export async function expectRevertWrite(
+  contract: ContractService,
+  walletClient: WalletClient,
+  functionName: string,
+  args: ContractArgs = [],
+): Promise<DecodedError> {
+  const result = await contract.writeRaw(walletClient, functionName, args);
+
+  if (result.success) {
+    throw new Error("Expected revert but write succeeded");
+  }
+
+  return {
+    errorName: result.error?.name || "Unknown",
+    args: result.error?.args || [],
   };
 }
 

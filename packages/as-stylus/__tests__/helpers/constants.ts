@@ -135,4 +135,16 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/mapping"),
     abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/int256-abi.json"),
   },
+  PAUSABLE: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/pausable-abi.json"),
+  },
+  OWNABLE: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/ownable-abi.json"),
+  },
+  REENTRANCY: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/reentrancyGuard-abi.json"),
+  },
 } as const;
