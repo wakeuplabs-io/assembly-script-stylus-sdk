@@ -21,7 +21,7 @@ export class MappingUint256 {
   tokenApprovals: Mapping<U256, Address> = new Mapping<U256, Address>();
 
   //tokenMetadata: Mapping<U256, I256> = new Mapping<U256, I256>();
-  //tokenActive: Mapping<U256, boolean> = new Mapping<U256, boolean>();
+  tokenActive: Mapping<U256, boolean> = new Mapping<U256, boolean>();
 
   constructor() {}
 
@@ -32,13 +32,13 @@ export class MappingUint256 {
     price: U256,
     approvedAddress: Address,
     _metadata: I256,
-    _active: boolean,
+    active: boolean,
   ): void {
     this.tokenOwners.set(tokenId, owner);
     this.tokenPrices.set(tokenId, price);
     this.tokenApprovals.set(tokenId, approvedAddress);
     //this.tokenMetadata.set(tokenId, metadata);
-    //this.tokenActive.set(tokenId, active);
+    this.tokenActive.set(tokenId, active);
   }
 
   @View
@@ -63,8 +63,7 @@ export class MappingUint256 {
   }
 
   @View
-  getTokenActive(_tokenId: U256): boolean {
-    //return this.tokenActive.get(tokenId);
-    return true;
+  getTokenActive(tokenId: U256): boolean {
+    return this.tokenActive.get(tokenId);
   }
 }

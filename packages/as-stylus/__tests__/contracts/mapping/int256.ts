@@ -22,7 +22,7 @@ export class MappingInt256 {
   positionCollateral: Mapping<I256, U256> = new Mapping<I256, U256>();
 
   //positionMetadata: Mapping<I256, I256> = new Mapping<I256, I256>();
-  //positionActive: Mapping<I256, boolean> = new Mapping<I256, boolean>();
+  positionActive: Mapping<I256, boolean> = new Mapping<I256, boolean>();
 
   constructor() {}
 
@@ -39,7 +39,7 @@ export class MappingInt256 {
     //this.positionSizes.set(positionId, size);
     this.positionCollateral.set(positionId, collateral);
     //this.positionMetadata.set(positionId, metadata);
-    //this.positionActive.set(positionId, active);
+    this.positionActive.set(positionId, active);
   }
 
   @View
@@ -65,8 +65,7 @@ export class MappingInt256 {
     return I256Factory.fromString("10");
   }
   @View
-  getPositionActive(_positionId: I256): boolean {
-    //return this.positionActive.get(positionId);
-    return true;
+  getPositionActive(positionId: I256): boolean {
+    return this.positionActive.get(positionId);
   }
 }

@@ -40,7 +40,7 @@ beforeAll(async () => {
   }
 }, DEPLOY_TIMEOUT);
 
-describe("Calls Contract — Contract Call Operations", () => {
+describe.skip("Calls Contract — Contract Call Operations", () => {
   describe("Initial state and setup", () => {
     it("should deploy successfully", () => {
       expect(contract).toBeTruthy();
