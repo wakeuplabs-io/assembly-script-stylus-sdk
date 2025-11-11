@@ -3,7 +3,11 @@ import path from "path";
 import { ensureDir } from "@/cli/utils/fs.js";
 
 import { buildContract } from "./build-contract.js";
+import { buildEnvSample } from "./build-env-sample.js";
+import { buildJestConfig } from "./build-jest.js";
 import { buildPackageJson } from "./build-package-json.js";
+import { buildTestsFolder } from "./build-tests-folder.js";
+import { buildTsconfigTest } from "./build-tsconfig-test.js";
 import { buildTsconfig } from "./build-tsconfig.js";
 
 export class ProjectGenerator {
@@ -21,5 +25,9 @@ export class ProjectGenerator {
     buildTsconfig(targetPath);
     buildPackageJson(targetPath, this.projectName);
     buildContract(targetPath);
+    buildJestConfig(targetPath);
+    buildTsconfigTest(targetPath);
+    buildTestsFolder(targetPath);
+    buildEnvSample(targetPath);
   }
 }

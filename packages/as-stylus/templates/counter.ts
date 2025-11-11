@@ -1,6 +1,8 @@
 export function getCounterTemplate(): string {
   return `
-import { Contract, External, U256, U256Factory, View } from "@wakeuplabs/as-stylus";
+import { Contract, ErrorFactory, External, U256, U256Factory, View } from "@wakeuplabs/as-stylus";
+
+const CounterZero = ErrorFactory.create<[]>();
 
 @Contract
 export class Counter {
@@ -23,6 +25,9 @@ export class Counter {
 
   @External
   decrement(): void {
+    if (this.counter.equals(U256Factory.create())) {
+      CounterZero.revert();
+    }
     const delta: U256 = U256Factory.fromString("1");
     this.counter = this.counter.subUnchecked(delta);
   }

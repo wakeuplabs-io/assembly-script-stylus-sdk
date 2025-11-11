@@ -7,6 +7,7 @@
 
 // Re-export all types and decorators from CLI
 export * from "./cli/sdk-interface/index.js";
+export * from "./cli/tests/index.js";
 
 // Re-export any core utilities if needed
 // export * from "./core/index.js";

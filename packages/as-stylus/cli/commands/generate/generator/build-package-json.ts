@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { BUILD_PATH, BUILD_WASM_PATH } from "@/cli/utils/constants.js";
+import { BUILD_WASM_PATH } from "@/cli/utils/constants.js";
 
 export function buildPackageJson(targetPath: string, projectName: string) {
   fs.writeFileSync(
@@ -13,10 +13,7 @@ export function buildPackageJson(targetPath: string, projectName: string) {
         description: "",
         main: "index.js",
         scripts: {
-          compile: `cd ${BUILD_PATH} && npm run compile`,
-          check: `cd ${BUILD_PATH} && npm run check`,
-          deploy: `cd ${BUILD_PATH} && npm run deploy`,
-          clean: "as-stylus clean",
+          test: "jest --runInBand --testPathPatterns=/tests",
         },
         author: "",
         license: "ISC",
@@ -29,6 +26,9 @@ export function buildPackageJson(targetPath: string, projectName: string) {
         },
         dependencies: {
           "@wakeuplabs/as-stylus": "*",
+          "@types/jest": "^30.0.0",
+          jest: "^30.2.0",
+          "ts-jest": "^29.4.4",
         },
         devDependencies: {
           assemblyscript: "^0.27.35",
