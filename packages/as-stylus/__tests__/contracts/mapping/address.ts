@@ -3,34 +3,39 @@ import {
   Contract,
   External,
   I256,
-  I256Factory,
   Mapping,
   U256,
   View,
   AddressFactory,
+  I256Factory,
 } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MappingAddress {
   //ids: Mapping<Address, I256> = new Mapping<Address, I256>();
   balances: Mapping<Address, U256> = new Mapping<Address, U256>();
-  //enabled: Mapping<Address, boolean> = new Mapping<Address, boolean>();
+  enabled: Mapping<Address, boolean> = new Mapping<Address, boolean>();
   //otherAddress: Mapping<Address, Address> = new Mapping<Address, Address>();
 
   constructor() {}
 
   @External
-  set(address: Address, value: U256, _enabled: boolean, otherAddress: Address, _id: I256): void {
+  set(
+    address: Address,
+    value: U256,
+    enabledValue: boolean,
+    _otherAddress: Address,
+    _id: I256,
+  ): void {
     //this.ids.set(address, id);
-    //this.enabled.set(address, enabled);
+    this.enabled.set(address, enabledValue);
     this.balances.set(address, value);
     //this.otherAddress.set(address, otherAddress);
   }
 
   @External
-  getEnabled(_address: Address): boolean {
-    //return this.enabled.get(address);
-    return true;
+  getEnabled(address: Address): boolean {
+    return this.enabled.get(address);
   }
 
   @View
@@ -39,8 +44,7 @@ export class MappingAddress {
   }
 
   @View
-  getOtherAddress(address: Address): Address {
-    //return this.otherAddress.get(address);
+  getOtherAddress(_address: Address): Address {
     //return this.otherAddress.get(address);
     return AddressFactory.fromString("0xabcdefabcdefabcdefabcdefabcdefabcdefabcd");
   }
