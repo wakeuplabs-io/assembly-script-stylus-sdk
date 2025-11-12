@@ -52,6 +52,12 @@ export class BlockTransformer extends BaseTypeTransformer {
           valueExpr: "Block.hasBasefee()",
           valueType: "boolean",
         };
+      case "chainId":
+        return {
+          setupLines: [],
+          valueExpr: "Block.chainId()",
+          valueType: "U256",
+        };
       default:
         return {
           setupLines: [],

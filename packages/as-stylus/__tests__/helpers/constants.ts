@@ -15,6 +15,10 @@ export const PROJECT_ROOT = path.join(ROOT, "/as-stylus/");
 export const ROOT_PATH = path.join(ROOT, "/as-stylus/__tests__/contracts");
 
 export const CONTRACT_PATHS = {
+  AFFORDANCE: {
+    contract: path.join(ROOT_PATH, "/affordance"),
+    abi: path.join(ROOT_PATH, "/affordance/artifacts/abi/contract-abi.json"),
+  },
   ACCESS_CONTROL: {
     contract: path.join(ROOT_PATH, "/management"),
     abi: path.join(ROOT_PATH, "/management/artifacts/abi/accessControl-abi.json"),

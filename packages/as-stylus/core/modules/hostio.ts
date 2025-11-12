@@ -71,6 +71,9 @@ declare function _exit_early(status: i32): void;
 @external("vm_hooks", "account_codehash")
 declare function _account_codehash(address: usize, dest: usize): void;
 
+@external("vm_hooks", "chainid")
+declare function _chainid(): u64;
+
 @external("vm_hooks", "block_timestamp")
 declare function _block_timestamp(): u64;
 
@@ -186,6 +189,10 @@ export function account_codehash(address: usize, dest: usize): void {
   _account_codehash(address, dest);
 }
 
+export function chainid(): u64 {
+  return _chainid();
+}
+
 export function block_timestamp(): u64 {
   return _block_timestamp();
 }
@@ -194,8 +201,9 @@ export function block_number(): u64 {
   return _block_number();
 }
 
-export function block_coinbase(dest: usize): void {
+export function block_coinbase(dest: usize): usize {
   _block_coinbase(dest);
+  return dest;
 }
 
 export function block_basefee(dest: usize): void {
