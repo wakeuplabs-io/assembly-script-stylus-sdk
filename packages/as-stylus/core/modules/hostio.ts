@@ -1,3 +1,6 @@
+@external("vm_hooks", "contract_address")
+declare function _contract_address(ptr: usize): void;
+
 @external("vm_hooks", "native_keccak256")
 declare function _native_keccak256(bytes: usize, len: usize, output: usize): void;
 
@@ -97,6 +100,10 @@ export declare function abort(
   col: u32
 ): void;
 
+export function contract_address(ptr: usize): usize {
+  _contract_address(ptr);
+  return ptr;
+}
 
 export function msg_reentrant(): i32 {
   return _msg_reentrant();

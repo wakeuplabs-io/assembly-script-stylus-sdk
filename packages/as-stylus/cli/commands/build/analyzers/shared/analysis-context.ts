@@ -157,6 +157,13 @@ export class AnalysisContext {
       returnType: AbiType.Address,
       isDeclaredByUser: false,
     });
+
+    this.symbolTable.declareFunction("contract.address", {
+      name: "contract.address",
+      parameters: [],
+      returnType: AbiType.Address,
+      isDeclaredByUser: false,
+    });
   }
 
   getErrorManager(): ErrorManager {
