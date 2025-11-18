@@ -38,9 +38,8 @@ export class block {
   static gaslimit: U256;
 
   /**
-   * Check if the current block has a non-zero base fee
-   * Useful for detecting post-EIP-1559 blocks
-   * Returns true if block.basefee > 0
+   * Current block's chain ID
+   * Equivalent to Solidity's block.chainId
    */
-  static hasBasefee: boolean;
+  static chainId: U256;
 }

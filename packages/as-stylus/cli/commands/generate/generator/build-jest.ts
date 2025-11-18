@@ -14,6 +14,9 @@ export default {
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
     "^@/(.*)\\.js$": "<rootDir>/$1",
+    "^@wakeuplabs/as-stylus$": "<rootDir>/node_modules/@wakeuplabs/as-stylus/index.ts",
+    "^@wakeuplabs/as-stylus/(.*)\\.js$":
+      "<rootDir>/node_modules/@wakeuplabs/as-stylus/$1.ts",
   },
   transform: {
     "^.+\\.tsx?$": [
@@ -25,12 +28,11 @@ export default {
     ],
   },
   transformIgnorePatterns: [
-    "node_modules/(?!(strip-ansi|ansi-regex)/)"
+    "node_modules/(?!(strip-ansi|ansi-regex|@wakeuplabs/as-stylus)/)",
   ],
   testMatch: ["**/tests/**/*.test.ts"],
   coverageDirectory: "coverage",
   collectCoverageFrom: ["tests/**/*.ts", "!**/node_modules/**", "!**/dist/**"],
-};
-    `,
+};`,
   );
 }

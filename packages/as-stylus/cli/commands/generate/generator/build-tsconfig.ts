@@ -6,11 +6,11 @@ export function buildTsconfig(targetPath: string) {
     path.join(targetPath, "tsconfig.json"),
     JSON.stringify(
       {
-        extends: "assemblyscript/std/assembly.json",
+        extends: "./tsconfig.test.json",
         compilerOptions: {
           strictPropertyInitialization: false,
         },
-        include: ["contract.ts"],
+        include: ["src/**/*"],
       },
       null,
       2,

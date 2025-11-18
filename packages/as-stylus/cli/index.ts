@@ -61,3 +61,4 @@ process.on("uncaughtException", (error) => {
 main().catch(handleGlobalError);
 
 export * from "./sdk-interface/index.js";
+export * from "./tests/index.js";
