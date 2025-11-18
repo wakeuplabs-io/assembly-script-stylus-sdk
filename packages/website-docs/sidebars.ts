@@ -46,6 +46,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "doc",
+      label: "VM Affordances",
+      id: "vm-affordances",
+    },
+    {
+      type: "doc",
       label: "Sending & Receiving ETH",
       id: "sending-ethers",
     },

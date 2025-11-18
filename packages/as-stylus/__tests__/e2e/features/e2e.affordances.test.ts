@@ -71,3 +71,24 @@ describe("Block affordances view functions", () => {
     expect(gaslimitHex).toBe(GAS_LIMIT);
   });
 });
+
+describe("Msg context view functions", () => {
+  const ownerWallet = getWalletClient(PRIVATE_KEY as Hex);
+  it("Sender: should return the sender", async () => {
+    const sender = await contract.readWithAccount(ownerWallet, "getMsgSender", []);
+    expect(sender).toBe(ownerWallet.account?.address);
+  });
+
+  it("Value: should return the value", async () => {
+    const value = await contract.read("getMsgValue", [], undefined, 1000000n);
+    console.log("value", value);
+    expect(value).toBe(1000000n);
+  });
+});
+
+describe("Contract context view functions", () => {
+  it("Address: should return the address", async () => {
+    const address = (await contract.read("getContractAddress", [])) as Address;
+    expect(address.toLowerCase()).toBe(contract.address.toLowerCase());
+  });
+});

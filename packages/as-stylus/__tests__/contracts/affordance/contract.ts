@@ -1,4 +1,4 @@
-import { Contract, block, U256, View, Address } from "@wakeuplabs/as-stylus";
+import { Contract, block, U256, View, Address, msg, contract, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class Affordance {
@@ -30,5 +30,20 @@ export class Affordance {
   @View
   getGaslimit(): U256 {
     return block.gaslimit;
+  }
+
+  @View
+  getMsgSender(): Address {
+    return msg.sender;
+  }
+
+  @View
+  getMsgValue(): U256 {
+    return msg.value;
+  }
+
+  @View
+  getContractAddress(): Address {
+    return contract.address;
   }
 }

@@ -84,6 +84,7 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
       functionName: string,
       args: (string | boolean | Address | bigint | (string | boolean | Address | bigint)[])[],
       gasLimit?: bigint,
+      value?: bigint,
     ) => {
       const data = encodeFunctionData({ abi, functionName, args });
       if (verbose) console.log("→ calldata:", data);
@@ -91,6 +92,7 @@ export function contractService(contractAddr: Address, abi: Abi, verbose: boolea
       const { data: raw } = await publicClient.call({
         to: contractAddr,
         data,
+        value,
         gas: gasLimit,
       } as const);
 
