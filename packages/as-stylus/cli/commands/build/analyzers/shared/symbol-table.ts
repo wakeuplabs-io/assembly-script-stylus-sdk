@@ -52,8 +52,10 @@ export class SymbolTableStack {
     const scopeLevel = this.scopes.length - 1;
     if (current.has(name)) return false;
 
+    const isConstant = info.scope === "memory" && scopeLevel === 0;
+
     this.types.add(info.type);
-    current.set(name, { ...info, scopeLevel });
+    current.set(name, { ...info, scopeLevel, isConstant });
 
     if (info.scope === "storage") {
       let fields = info.length ?? 1;
