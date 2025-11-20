@@ -15,6 +15,14 @@ export const PROJECT_ROOT = path.join(ROOT, "/as-stylus/");
 export const ROOT_PATH = path.join(ROOT, "/as-stylus/__tests__/contracts");
 
 export const CONTRACT_PATHS = {
+  AFFORDANCE: {
+    contract: path.join(ROOT_PATH, "/affordance"),
+    abi: path.join(ROOT_PATH, "/affordance/artifacts/abi/contract-abi.json"),
+  },
+  ACCESS_CONTROL: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/accessControl-abi.json"),
+  },
   IF_HAPPY_PATH: {
     contract: path.join(ROOT_PATH, "/if-happy-path"),
     abi: path.join(ROOT_PATH, "/if-happy-path/artifacts/abi/contract-abi.json"),
@@ -61,11 +69,11 @@ export const CONTRACT_PATHS = {
   },
   INHERITANCE: {
     contract: path.join(ROOT_PATH, "/inheritance"),
-    abi: path.join(ROOT_PATH, "/inheritance/artifacts/abi/contract-abi.json"),
+    abi: path.join(ROOT_PATH, "/inheritance/artifacts/abi/child-abi.json"),
   },
   ERC20_OVERRIDE: {
     contract: path.join(ROOT_PATH, "/erc20-override"),
-    abi: path.join(ROOT_PATH, "/erc20-override/artifacts/abi/contract-abi.json"),
+    abi: path.join(ROOT_PATH, "/erc20-override/artifacts/abi/token-abi.json"),
   },
   ADVANCED_COUNTER: {
     contract: path.join(ROOT_PATH, "/advanced-counter"),
@@ -134,5 +142,17 @@ export const CONTRACT_PATHS = {
   MAPPING_INT256: {
     contract: path.join(ROOT_PATH, "/mapping"),
     abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/int256-abi.json"),
+  },
+  PAUSABLE: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/pausable-abi.json"),
+  },
+  OWNABLE: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/ownable-abi.json"),
+  },
+  REENTRANCY: {
+    contract: path.join(ROOT_PATH, "/management"),
+    abi: path.join(ROOT_PATH, "/management/artifacts/abi/reentrancyGuard-abi.json"),
   },
 } as const;

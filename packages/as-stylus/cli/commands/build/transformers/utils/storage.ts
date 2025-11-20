@@ -313,6 +313,7 @@ export function generateImports(contract: IRContract): string {
   lines.push(`import { Struct } from "${packageName}/core/types/struct";`);
   lines.push(`import { StructMemory } from "${packageName}/core/memory/struct";`);
   lines.push(`import { Msg } from "${packageName}/core/types/msg";`);
+  lines.push(`import { Contract } from "${packageName}/core/types/contract";`);
   lines.push(`import { Block } from "${packageName}/core/types/block";`);
   lines.push(`import { malloc } from "${packageName}/core/modules/memory";`);
 

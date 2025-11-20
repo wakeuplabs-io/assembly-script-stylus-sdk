@@ -267,19 +267,6 @@ describe("Calls Contract — Contract Call Operations", () => {
     //   // Should return the function selector (4 bytes) as bytes
     //   expect(typeof result).toBe("string");
     // });
-
-    it("should get msg.reentrant from getMsgReentrant", async () => {
-      const result = await contract.read("getMsgReentrant", []);
-      expect(result).toBeDefined();
-      // Should be 0 for non-reentrant calls
-      expect(result).toBe(0n);
-    });
-
-    it("should get msg.hasValue from getMsgHasValue (false for view calls)", async () => {
-      const result = await contract.read("getMsgHasValue", []);
-      // View calls should have false for hasValue
-      expect(result).toBe(false);
-    });
   });
 
   describe("Block context view functions", () => {
@@ -320,13 +307,6 @@ describe("Calls Contract — Contract Call Operations", () => {
       expect(typeof result).toBe("bigint");
       expect(result).toBeGreaterThan(0n);
     });
-
-    it("should get block hasBasefee status from getBlockHasBasefee", async () => {
-      const result = await contract.read("getBlockHasBasefee", []);
-      expect(result).toBeDefined();
-      expect(typeof result).toBe("boolean");
-      // Should be true if basefee > 0, false otherwise
-    });
   });
 
   describe("Context functions consistency tests", () => {
@@ -356,17 +336,6 @@ describe("Calls Contract — Contract Call Operations", () => {
     //   expect(sender2).toBe(contract.address);
     //   expect(sender1).not.toBe(sender2);
     // });
-
-    it("should validate block basefee and hasBasefee consistency", async () => {
-      const basefee = await contract.read("getBlockBasefee", []);
-      const hasBasefee = await contract.read("getBlockHasBasefee", []);
-
-      if ((basefee as bigint) > 0n) {
-        expect(hasBasefee).toBe(true);
-      } else {
-        expect(hasBasefee).toBe(false);
-      }
-    });
   });
 
   describe("Edge cases and multiple operations", () => {

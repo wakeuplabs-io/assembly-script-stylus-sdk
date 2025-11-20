@@ -1,4 +1,6 @@
+import { Boolean } from "./boolean";
 import { U256 } from "./u256";
+import { malloc } from "../modules/memory";
 import { mapLoad, mapStore } from "../modules/storage";
 
 const ADDRESS_LEN: u32 = 32;
@@ -47,5 +49,15 @@ export class Mapping {
     const out = U256.create();
     mapLoad(slot, key, ADDRESS_LEN, out);
     return out;
+  }
+
+  static setBoolean(slot: u64, key: usize, value: boolean): void {
+    mapStore(slot, key, 32, Boolean.create(value));
+  }
+
+  static getBoolean(slot: u64, key: usize): boolean {
+    const out = malloc(32);
+    mapLoad(slot, key, 32, out);
+    return Boolean.fromABI(out);
   }
 }

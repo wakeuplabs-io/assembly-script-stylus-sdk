@@ -78,25 +78,27 @@ export class MappingBasics {
 
 ## Supported Key-Value Combinations
 
-Currently, the `Mapping` type supports a limited set of key-value combinations. The following table shows which combinations are currently available:
+> **Work in Progress**: The `Mapping` type currently supports a limited set of key-value combinations. We are actively working on adding support for additional combinations.
+
+The following table shows which combinations are currently available:
 
 | Key / Value | String | Boolean | U256 | I256 | Address |
 | ----------- | ------ | ------- | ---- | ---- | ------- |
 | String      | ❌     | ❌      | ❌   | ❌   | ❌      |
 | Boolean     | ❌     | ❌      | ❌   | ❌   | ❌      |
-| U256        | ❌     | ❌      | ✅   | ❌   | ✅      |
-| I256        | ❌     | ❌      | ✅   | ❌   | ✅      |
-| Address     | ❌     | ❌      | ✅   | ❌   | ❌      |
+| U256        | ❌     | ✅      | ✅   | ❌   | ✅      |
+| I256        | ❌     | ✅      | ✅   | ❌   | ✅      |
+| Address     | ❌     | ✅      | ✅   | ❌   | ❌      |
 
-### Current State
+### Currently Supported Combinations
 
 The `Mapping` type currently supports:
 
-- **U256 keys** with U256 or Address values
-- **I256 keys** with U256 or Address values
-- **Address keys** with U256 values
+- **U256 keys** with Boolean, U256, or Address values
+- **I256 keys** with Boolean, U256, or Address values
+- **Address keys** with Boolean or U256 values
 
-Other combinations (String keys/values, Boolean keys/values, etc.) are planned for future releases.
+We are working on adding support for other combinations, including String keys/values and additional type combinations.
 
 ## Working Examples
 
@@ -108,14 +110,23 @@ export class MappingTypes {
   // U256 key with U256 value
   balances: Mapping<U256, U256> = new Mapping<U256, U256>();
 
+  // U256 key with Boolean value
+  isActive: Mapping<U256, boolean> = new Mapping<U256, boolean>();
+
   // U256 key with Address value
   tokenOwners: Mapping<U256, Address> = new Mapping<U256, Address>();
 
   // I256 key with U256 value
   signedBalances: Mapping<I256, U256> = new Mapping<I256, U256>();
 
+  // I256 key with Boolean value
+  signedFlags: Mapping<I256, boolean> = new Mapping<I256, boolean>();
+
   // I256 key with Address value
   signedOwners: Mapping<I256, Address> = new Mapping<I256, Address>();
+
+  // Address key with Boolean value
+  userActive: Mapping<Address, boolean> = new Mapping<Address, boolean>();
 
   // Address key with U256 value
   userBalances: Mapping<Address, U256> = new Mapping<Address, U256>();
@@ -123,6 +134,11 @@ export class MappingTypes {
   @External
   setBalance(userId: U256, balance: U256): void {
     this.balances.set(userId, balance);
+  }
+
+  @External
+  setActive(userId: U256, active: boolean): void {
+    this.isActive.set(userId, active);
   }
 
   @External
@@ -149,10 +165,10 @@ export class MappingTypes {
 
 ## Future Support
 
-Additional key-value combinations will be added in future releases, including:
+We are actively working on adding support for additional key-value combinations, including:
 
 - String keys and values
-- Boolean keys and values
+- Boolean keys (currently only Boolean values are supported)
 - Mixed type combinations
 - Complex data structures as values
 

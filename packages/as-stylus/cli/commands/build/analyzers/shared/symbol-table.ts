@@ -36,7 +36,8 @@ export class SymbolTableStack {
       throw new Error("Cannot exit global scope");
     }
     this.scopes.pop();
-  }
+    this.currentScope--;
+  } 
 
   declareStruct(name: string, info: IRStruct): boolean {
     const current = this.scopes[0];
@@ -51,10 +52,8 @@ export class SymbolTableStack {
     const scopeLevel = this.scopes.length - 1;
     if (current.has(name)) return false;
 
-    const isConstant = info.scope === "memory" && scopeLevel === 0;
-
     this.types.add(info.type);
-    current.set(name, { ...info, scopeLevel, isConstant });
+    current.set(name, { ...info, scopeLevel });
 
     if (info.scope === "storage") {
       let fields = info.length ?? 1;

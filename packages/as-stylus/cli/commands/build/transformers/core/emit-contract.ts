@@ -8,6 +8,7 @@ import { ArrayTransformer } from "../array/array-transformer.js";
 import { BlockTransformer } from "../block/block-transformer.js";
 import { BooleanTransformer } from "../boolean/boolean-transformer.js";
 import { CallsTransformer } from "../calls/calls-transformer.js";
+import { ContractTransformer } from "../contract/contract-transformer.js";
 import { ErrorTransformer, registerErrorTransformer } from "../error/error-transformer.js";
 import { EventTransformer } from "../event/event-transformer.js";
 import { registerEventTransformer } from "../event/utils/register-events.js";
@@ -95,6 +96,7 @@ export function emitContract(contract: IRContract): string {
   transformerRegistry.register(new StrTransformer(contractContext));
   transformerRegistry.register(new BooleanTransformer(contractContext));
   transformerRegistry.register(new MsgTransformer(contractContext));
+  transformerRegistry.register(new ContractTransformer(contractContext));
   transformerRegistry.register(new BlockTransformer(contractContext));
   transformerRegistry.register(new CallsTransformer(contractContext));
   transformerRegistry.register(new ErrorTransformer(contractContext, contract.errors || []));
