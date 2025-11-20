@@ -119,26 +119,6 @@ export class CallsContract {
     return msg.value;
   }
 
-  @External
-  getMsgData(): Uint8Array {
-    return msg.data;
-  }
-
-  @External
-  getMsgSig(): Uint8Array {
-    return msg.sig;
-  }
-
-  @View
-  getMsgReentrant(): U256 {
-    return msg.reentrant;
-  }
-
-  @View
-  getMsgHasValue(): boolean {
-    return msg.hasValue;
-  }
-
   // ================================
   // BLOCK (Blockchain Context) View Functions
   // ================================
@@ -166,10 +146,5 @@ export class CallsContract {
   @View
   getBlockGaslimit(): U256 {
     return block.gaslimit;
-  }
-
-  @View
-  getBlockHasBasefee(): boolean {
-    return block.hasBasefee;
   }
 }

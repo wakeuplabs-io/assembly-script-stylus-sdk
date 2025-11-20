@@ -55,6 +55,11 @@ const sidebars: SidebarsConfig = {
       id: "sending-ethers",
     },
     {
+      type: "doc",
+      label: "Readonly Constants",
+      id: "readonly-constants",
+    },
+    {
       type: "category",
       label: "Data Types",
       items: [
