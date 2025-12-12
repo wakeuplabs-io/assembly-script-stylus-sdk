@@ -20,6 +20,7 @@ const APPROVED_ADDRESS = getAddress("0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"
 const TOKEN_PRICE = 1000n;
 const TOKEN_METADATA = 10n;
 const TOKEN_ACTIVE = true;
+const TOKEN_NAME = "Test Token";
 
 /**
  * Deploys the MappingUint256 contract and initializes the test environment
@@ -46,6 +47,7 @@ describe("MappingUint256 — Happy Path", () => {
       APPROVED_ADDRESS,
       TOKEN_METADATA,
       TOKEN_ACTIVE,
+      TOKEN_NAME,
     ]);
 
     // Get each field
@@ -54,12 +56,28 @@ describe("MappingUint256 — Happy Path", () => {
     const approval = (await contract.read("getTokenApproval", [TOKEN_ID])) as string;
     const metadata = (await contract.read("getTokenMetadata", [TOKEN_ID])) as bigint;
     const active = (await contract.read("getTokenActive", [TOKEN_ID])) as boolean;
-
+    const name = (await contract.read("getTokenName", [TOKEN_ID])) as string;
     // Verify all values
     expect(owner.toLowerCase()).toBe(OWNER_ADDRESS.toLowerCase());
     expect(price).toBe(TOKEN_PRICE);
     expect(approval.toLowerCase()).toBe(APPROVED_ADDRESS.toLowerCase());
     expect(metadata).toBe(TOKEN_METADATA);
     expect(active).toBe(TOKEN_ACTIVE);
+    expect(name).toBe(TOKEN_NAME);
+  });
+
+  it("should set token name longer than 32 bytes and retrieve it", async () => {
+    const longerName = "This is a test token name that is longer than 32 bytes";
+    await contract.write(ownerWallet, "setToken", [
+      TOKEN_ID,
+      OWNER_ADDRESS,
+      TOKEN_PRICE,
+      APPROVED_ADDRESS,
+      TOKEN_METADATA,
+      TOKEN_ACTIVE,
+      longerName,
+    ]);
+    const name = (await contract.read("getTokenName", [TOKEN_ID])) as string;
+    expect(name).toBe(longerName);
   });
 });

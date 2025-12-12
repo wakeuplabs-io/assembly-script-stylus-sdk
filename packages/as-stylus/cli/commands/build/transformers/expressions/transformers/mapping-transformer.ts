@@ -80,6 +80,21 @@ export class MappingTransformer extends Handler {
     const method = this.getMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
 
+    if (expr.keyType === "boolean") {
+      return {
+        setupLines: keyResult.setupLines,
+        valueExpr: `Mapping.${method}(${slot}, Boolean.create(${keyResult.valueExpr}))`,
+      };
+    }
+
+    const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
+    if (method === "getString") {
+      return {
+        setupLines: keyResult.setupLines,
+        valueExpr: `Mapping.getStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen})`,
+      };
+    }
+
     return {
       setupLines: keyResult.setupLines,
       valueExpr: `Mapping.${method}(${slot}, ${keyResult.valueExpr})`,
@@ -91,6 +106,21 @@ export class MappingTransformer extends Handler {
     const valueResult = this.contractContext.emitExpression(expr.value);
     const method = this.getMappingMethod(expr.valueType, "set");
     const slot = this.formatSlot(expr.slot);
+
+    if (expr.keyType === "boolean") {
+      return {
+        setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
+        valueExpr: `Mapping.${method}(${slot}, Boolean.create(${keyResult.valueExpr}), ${valueResult.valueExpr})`,
+      };
+    }
+
+    const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
+    if (method === "setString") {
+      return {
+        setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
+        valueExpr: `Mapping.setStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
+      };
+    }
 
     return {
       setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
@@ -153,6 +183,9 @@ export class MappingTransformer extends Handler {
       case "uint256":
       case "u256":
         return "U256";
+      case "int256":
+      case "i256":
+        return "I256";
       case "address":
         return "Address";
       case "bool":
@@ -167,5 +200,27 @@ export class MappingTransformer extends Handler {
 
   private formatSlot(slot: number): string {
     return `__SLOT${slot.toString(16).padStart(2, "0")}`;
+  }
+
+  private getKeyPtrAndLen(keyType: string, keyExpr: string): { keyPtr: string; keyLen: string } {
+    switch (keyType.toLowerCase()) {
+      case "uint256":
+      case "u256":
+      case "int256":
+      case "i256":
+      case "address":
+        return { keyPtr: keyExpr, keyLen: "32" }; // These types are always 32 bytes
+      case "string":
+        // For strings, the pointer points to the header (length), but createMappingKey needs data pointer
+        return {
+          keyPtr: `${keyExpr} + 4`, // Skip the 4-byte length header
+          keyLen: `load<u32>(${keyExpr})`, // String length is stored at the pointer (first 4 bytes)
+        };
+      case "bool":
+      case "boolean":
+        return { keyPtr: keyExpr, keyLen: "32" }; // Boolean is converted to 32-byte representation
+      default:
+        return { keyPtr: keyExpr, keyLen: "32" }; // Default to 32 bytes for unknown types
+    }
   }
 }

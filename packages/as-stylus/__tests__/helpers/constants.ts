@@ -143,6 +143,14 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/mapping"),
     abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/int256-abi.json"),
   },
+  MAPPING_BOOLEAN: {
+    contract: path.join(ROOT_PATH, "/mapping"),
+    abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/boolean-abi.json"),
+  },
+  MAPPING_STRING: {
+    contract: path.join(ROOT_PATH, "/mapping"),
+    abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/string-abi.json"),
+  },
   PAUSABLE: {
     contract: path.join(ROOT_PATH, "/management"),
     abi: path.join(ROOT_PATH, "/management/artifacts/abi/pausable-abi.json"),
