@@ -1,13 +1,4 @@
-import {
-  Address,
-  AddressFactory,
-  Contract,
-  External,
-  I256,
-  Mapping,
-  U256,
-  View,
-} from "@wakeuplabs/as-stylus";
+import { Address, Contract, External, I256, Mapping, U256, View } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MappingBoolean {
@@ -24,13 +15,14 @@ export class MappingBoolean {
     key: boolean,
     value: U256,
     enabledValue: boolean,
-    otherAddress: Address,
+    address: Address,
     id: I256,
     name: string,
   ): void {
     this.ids.set(key, id);
     this.enabled.set(key, enabledValue);
     this.balances.set(key, value);
+    this.otherAddress.set(key, address);
     this.names.set(key, name);
   }
 
@@ -46,7 +38,6 @@ export class MappingBoolean {
 
   @View
   getOtherAddress(_key: boolean): Address {
-    return AddressFactory.fromString("0x1234567890123456789012345678901234567890");
     return this.otherAddress.get(_key);
   }
 
