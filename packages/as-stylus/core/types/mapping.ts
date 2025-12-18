@@ -1,4 +1,5 @@
 import { Boolean } from "./boolean";
+import { I256 } from "./i256";
 import { Str } from "./str";
 import { U256 } from "./u256";
 import { malloc } from "../modules/memory";
@@ -110,5 +111,101 @@ export class Mapping {
   static getStringWithKeyLen(slot: u64, key: usize, keyLen: u32): usize {
     const baseSlot = createMappingKey(slot, key, keyLen);
     return Str.loadFromKey(baseSlot);
+  }
+
+  /**
+   * Stores a U256 value in a mapping with a string key
+   * @param slot - Storage slot identifier
+   * @param key - Raw byte key pointer
+   * @param keyLen - Length of the key in bytes
+   * @param value - U256 value pointer to store
+   */
+  static setU256WithStringKey(slot: u64, key: usize, keyLen: u32, value: usize): void {
+    mapStore(slot, key, keyLen, value);
+  }
+
+  /**
+   * Retrieves a U256 value from a mapping with a string key
+   * @param slot - Storage slot identifier
+   * @param key - Raw byte key pointer
+   * @param keyLen - Length of the key in bytes
+   * @returns Pointer to the retrieved U256 value
+   */
+  static getU256WithStringKey(slot: u64, key: usize, keyLen: u32): usize {
+    const out = U256.create();
+    mapLoad(slot, key, keyLen, out);
+    return out;
+  }
+
+  /**
+   * Stores an address value in a mapping with a string key
+   * @param slot - Storage slot identifier
+   * @param key - Raw byte key pointer
+   * @param keyLen - Length of the key in bytes
+   * @param value - Address value pointer to store
+   */
+  static setAddressWithStringKey(slot: u64, key: usize, keyLen: u32, value: usize): void {
+    mapStore(slot, key, keyLen, value);
+  }
+
+  /**
+   * Retrieves an address value from a mapping with a string key
+   * @param slot - Storage slot identifier
+   * @param key - Raw byte key pointer
+   * @param keyLen - Length of the key in bytes
+   * @returns Pointer to the retrieved address value
+   */
+  static getAddressWithStringKey(slot: u64, key: usize, keyLen: u32): usize {
+    const out = U256.create();
+    mapLoad(slot, key, keyLen, out);
+    return out;
+  }
+
+  /**
+   * Stores a boolean value in a mapping with a string key
+   * @param slot - Storage slot identifier
+   * @param key - Raw byte key pointer
+   * @param keyLen - Length of the key in bytes
+   * @param value - Boolean value to store
+   */
+  static setBooleanWithStringKey(slot: u64, key: usize, keyLen: u32, value: boolean): void {
+    mapStore(slot, key, keyLen, Boolean.create(value));
+  }
+
+  /**
+   * Retrieves a boolean value from a mapping with a string key
+   * @param slot - Storage slot identifier
+   * @param key - Raw byte key pointer
+   * @param keyLen - Length of the key in bytes
+   * @returns The retrieved boolean value
+   */
+  static getBooleanWithStringKey(slot: u64, key: usize, keyLen: u32): boolean {
+    const out = malloc(32);
+    mapLoad(slot, key, keyLen, out);
+    return Boolean.fromABI(out);
+  }
+
+  /**
+   * Stores an I256 value in a mapping with a string key
+   * @param slot - Storage slot identifier
+   * @param key - Raw byte key pointer
+   * @param keyLen - Length of the key in bytes
+   * @param value - I256 value pointer to store
+   */
+  static setI256WithStringKey(slot: u64, key: usize, keyLen: u32, value: usize): void {
+    mapStore(slot, key, keyLen, value);
+  }
+
+  /**
+   * Retrieves an I256 value from a mapping with a string key
+   * @param slot - Storage slot identifier
+   * @param key - Raw byte key pointer
+   * @param keyLen - Length of the key in bytes
+   * @returns Pointer to the retrieved I256 value
+   */
+  static getI256WithStringKey(slot: u64, key: usize, keyLen: u32): usize {
+    const out = I256.create();
+    mapLoad(slot, key, keyLen, out);
+    return out;
   }
 }

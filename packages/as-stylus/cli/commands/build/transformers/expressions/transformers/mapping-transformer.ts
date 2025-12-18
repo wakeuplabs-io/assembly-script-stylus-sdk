@@ -79,8 +79,9 @@ export class MappingTransformer extends Handler {
     const keyResult = this.contractContext.emitExpression(expr.key);
     const method = this.getMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
+    const normalizedKeyType = expr.keyType.toLowerCase();
 
-    if (expr.keyType === "boolean") {
+    if (normalizedKeyType === "boolean" || normalizedKeyType === "bool") {
       return {
         setupLines: keyResult.setupLines,
         valueExpr: `Mapping.${method}(${slot}, Boolean.create(${keyResult.valueExpr}))`,
@@ -88,10 +89,20 @@ export class MappingTransformer extends Handler {
     }
 
     const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
-    if (method === "getString") {
+    
+    // Handle string keys
+    if (normalizedKeyType === "string") {
+      if (method === "getString") {
+        return {
+          setupLines: keyResult.setupLines,
+          valueExpr: `Mapping.getStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen})`,
+        };
+      }
+      // For other value types with string keys, use the WithStringKey methods
+      const stringKeyMethod = this.getMappingMethodWithStringKey(expr.valueType, "get");
       return {
         setupLines: keyResult.setupLines,
-        valueExpr: `Mapping.getStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen})`,
+        valueExpr: `Mapping.${stringKeyMethod}(${slot}, ${keyPtr}, ${keyLen})`,
       };
     }
 
@@ -106,8 +117,9 @@ export class MappingTransformer extends Handler {
     const valueResult = this.contractContext.emitExpression(expr.value);
     const method = this.getMappingMethod(expr.valueType, "set");
     const slot = this.formatSlot(expr.slot);
+    const normalizedKeyType = expr.keyType.toLowerCase();
 
-    if (expr.keyType === "boolean") {
+    if (normalizedKeyType === "boolean" || normalizedKeyType === "bool") {
       return {
         setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
         valueExpr: `Mapping.${method}(${slot}, Boolean.create(${keyResult.valueExpr}), ${valueResult.valueExpr})`,
@@ -115,10 +127,20 @@ export class MappingTransformer extends Handler {
     }
 
     const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
-    if (method === "setString") {
+    
+    // Handle string keys
+    if (normalizedKeyType === "string") {
+      if (method === "setString") {
+        return {
+          setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
+          valueExpr: `Mapping.setStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
+        };
+      }
+      // For other value types with string keys, use the WithStringKey methods
+      const stringKeyMethod = this.getMappingMethodWithStringKey(expr.valueType, "set");
       return {
         setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
-        valueExpr: `Mapping.setStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
+        valueExpr: `Mapping.${stringKeyMethod}(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
       };
     }
 
@@ -166,6 +188,24 @@ export class MappingTransformer extends Handler {
     }
 
     return methods[operation];
+  }
+
+  private getMappingMethodWithStringKey(valueType: string, operation: "get" | "set"): string {
+    const normalizedType = this.normalizeValueType(valueType);
+    
+    switch (normalizedType) {
+      case "U256":
+        return operation === "get" ? "getU256WithStringKey" : "setU256WithStringKey";
+      case "Address":
+        return operation === "get" ? "getAddressWithStringKey" : "setAddressWithStringKey";
+      case "Boolean":
+        return operation === "get" ? "getBooleanWithStringKey" : "setBooleanWithStringKey";
+      case "I256":
+        return operation === "get" ? "getI256WithStringKey" : "setI256WithStringKey";
+      default:
+        // Fallback to U256 methods
+        return operation === "get" ? "getU256WithStringKey" : "setU256WithStringKey";
+    }
   }
 
   private getNestedMappingMethod(valueType: string, operation: "get" | "set"): string {
