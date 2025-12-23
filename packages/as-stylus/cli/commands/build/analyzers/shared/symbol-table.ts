@@ -37,7 +37,7 @@ export class SymbolTableStack {
     }
     this.scopes.pop();
     this.currentScope--;
-  } 
+  }
 
   declareStruct(name: string, info: IRStruct): boolean {
     const current = this.scopes[0];

@@ -18,7 +18,6 @@ export class VariableTransformer extends Handler {
 
   handle(variable: Variable): EmitResult {
     if (variable.scope === "memory") {
-
       if (variable.isConstant) {
         return {
           setupLines: [],
