@@ -132,6 +132,9 @@ export interface SetupLocalResult {
  * Complete setup for local e2e tests: starts local Nitro node, builds, deploys,
  * and initializes contract with constructor execution.
  *
+ * @requires Docker must be installed and running on the system
+ * @throws {Error} If Docker is not available or node fails to start
+ *
  * This function automatically:
  * 1. Starts a local Nitro devnet (using Docker if available)
  * 2. Compiles the contract

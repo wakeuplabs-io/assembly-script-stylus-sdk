@@ -40,8 +40,11 @@ describe("LocalNodeManager - E2E Tests", () => {
       );
       await execAsync("rm -rf /tmp/as-stylus-test-node-data* 2>/dev/null || true");
       await new Promise((resolve) => setTimeout(resolve, 300));
-    } catch {
-      // best-effort cleanup
+    } catch (error) {
+      // best-effort cleanup - log warning if verbose
+      if (process.env.VERBOSE_TESTS) {
+        console.warn("Cleanup warning in beforeEach:", error);
+      }
     }
   }, 15000);
 
@@ -50,8 +53,11 @@ describe("LocalNodeManager - E2E Tests", () => {
     for (const manager of managers) {
       try {
         await manager.stop();
-      } catch {
-        // Ignore cleanup errors
+      } catch (error) {
+        // Log cleanup errors if verbose
+        if (process.env.VERBOSE_TESTS) {
+          console.warn("Cleanup warning for manager:", error);
+        }
       }
     }
     managers = [];
@@ -64,8 +70,11 @@ describe("LocalNodeManager - E2E Tests", () => {
       await execAsync(
         "docker rm $(docker ps -aq --filter name=as-stylus-testnode) 2>/dev/null || true",
       );
-    } catch {
-      // Ignore
+    } catch (error) {
+      // Log cleanup errors if verbose
+      if (process.env.VERBOSE_TESTS) {
+        console.warn("Cleanup warning in afterEach:", error);
+      }
     }
   }, 30000);
 

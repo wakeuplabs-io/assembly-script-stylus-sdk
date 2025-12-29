@@ -1,9 +1,10 @@
-import { ChildProcess, exec, spawn } from "child_process";
+import { ChildProcess, exec, execFile, spawn } from "child_process";
 import { tmpdir } from "os";
 import path from "path";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export interface LocalNodeConfig {
   port?: number;
@@ -34,6 +35,12 @@ export class LocalNodeManager {
   private containerName: string;
 
   constructor(config: LocalNodeConfig = {}) {
+    // Validate port range
+    const port = config.port ?? DEFAULT_CONFIG.port;
+    if (port < 1 || port > 65535) {
+      throw new Error(`Invalid port: ${port}. Must be between 1 and 65535`);
+    }
+
     this.config = { ...DEFAULT_CONFIG, ...config };
     // Use OS temp dir with as-stylus-specific subdirectory (per port to avoid clashes)
     this.dataDir = path.join(tmpdir(), `as-stylus-test-node-data-${this.config.port}`);
@@ -145,8 +152,15 @@ export class LocalNodeManager {
 
     // Check if container already exists and clean up data directory
     try {
-      await execAsync(`docker rm -f ${this.containerName} 2>/dev/null || true`);
-      await execAsync(`rm -rf ${this.dataDir} && mkdir -p ${this.dataDir}`);
+      await execFileAsync("docker", ["rm", "-f", this.containerName]).catch(() => {});
+      // Use fs operations for data directory instead of shell commands
+      const fs = await import("fs/promises");
+      try {
+        await fs.rm(this.dataDir, { recursive: true, force: true });
+      } catch {
+        // Ignore if directory doesn't exist
+      }
+      await fs.mkdir(this.dataDir, { recursive: true });
     } catch {
       // Ignore errors
     }
@@ -205,6 +219,7 @@ export class LocalNodeManager {
 
   /**
    * Restarts the Docker container to reset state
+   * Verifies container exists before restarting to avoid race conditions
    */
   private async restartDockerNode(): Promise<void> {
     if (this.config.verbose) {
@@ -212,11 +227,41 @@ export class LocalNodeManager {
     }
 
     try {
-      await execAsync(`docker restart ${this.containerName} 2>/dev/null`);
+      // Verify that the container exists and is running before restarting
+      const { stdout } = await execFileAsync("docker", [
+        "ps",
+        "-q",
+        "-f",
+        `name=${this.containerName}`,
+      ]);
+
+      if (!stdout.trim()) {
+        // Container doesn't exist, start a new one instead
+        if (this.config.verbose) {
+          console.log(`   Container not found, starting new node...`);
+        }
+        await this.startDockerNode();
+        await this.waitForNode();
+        return;
+      }
+
+      // Container exists, restart it
+      await execFileAsync("docker", ["restart", this.containerName]);
       // Wait for node to be ready after restart
       await this.waitForNode();
     } catch (error) {
-      throw new Error(`Failed to restart Docker node: ${error}`);
+      // If restart fails, try starting a new container
+      if (this.config.verbose) {
+        console.log(`   Restart failed, starting new node...`);
+      }
+      try {
+        await this.startDockerNode();
+        await this.waitForNode();
+      } catch (startError) {
+        throw new Error(
+          `Failed to restart Docker node: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     }
   }
 
@@ -247,8 +292,8 @@ export class LocalNodeManager {
           );
         }
         try {
-          await execAsync(`docker stop ${this.containerName} 2>/dev/null || true`);
-          await execAsync(`docker rm ${this.containerName} 2>/dev/null || true`);
+          await execFileAsync("docker", ["stop", this.containerName]).catch(() => {});
+          await execFileAsync("docker", ["rm", this.containerName]).catch(() => {});
           // Wait a moment for port to be released
           await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -321,8 +366,12 @@ Please either:
     if (this.isDockerNode) {
       // Stop Docker container and clean up data directory
       try {
-        await execAsync(`docker stop ${this.containerName} 2>/dev/null || true`);
-        await execAsync(`rm -rf ${this.dataDir} 2>/dev/null || true`);
+        await execFileAsync("docker", ["stop", this.containerName]).catch(() => {});
+        // Use fs operations for data directory instead of shell commands
+        const fs = await import("fs/promises");
+        await fs.rm(this.dataDir, { recursive: true, force: true }).catch(() => {
+          // Ignore if directory doesn't exist
+        });
       } catch {
         // Ignore errors
       }
