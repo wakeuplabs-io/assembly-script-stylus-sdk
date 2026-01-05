@@ -80,4 +80,10 @@ describe("MappingUint256 — Happy Path", () => {
     const name = (await contract.read("getTokenName", [TOKEN_ID])) as string;
     expect(name).toBe(longerName);
   });
+
+  it("should increment token price", async () => {
+    await contract.write(ownerWallet, "incrementTokenPrice", [TOKEN_ID]);
+    const price = (await contract.read("getTokenPrice", [TOKEN_ID])) as bigint;
+    expect(price).toBe(TOKEN_PRICE + 1n);
+  });
 });

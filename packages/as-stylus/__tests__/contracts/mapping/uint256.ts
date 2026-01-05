@@ -1,4 +1,13 @@
-import { Address, Contract, External, I256, Mapping, U256, View } from "@wakeuplabs/as-stylus";
+import {
+  Address,
+  U256Factory,
+  Contract,
+  External,
+  I256,
+  Mapping,
+  U256,
+  View,
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MappingUint256 {
@@ -63,5 +72,11 @@ export class MappingUint256 {
   @View
   getTokenName(tokenId: U256): string {
     return this.tokenNames.get(tokenId);
+  }
+
+  @External
+  incrementTokenPrice(tokenId: U256): void {
+    const price = this.tokenPrices.get(tokenId);
+    this.tokenPrices.set(tokenId, price.add(U256Factory.fromString("1")));
   }
 }

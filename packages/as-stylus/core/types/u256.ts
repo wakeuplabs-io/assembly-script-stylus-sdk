@@ -431,7 +431,7 @@ export class U256 {
    * @returns true if a < b, false otherwise
    */
   static lessThan(a: usize, b: usize): boolean {
-    for (let i: i32 = 0; i < 32; ++i) {
+    for (let i: i32 = 31; i >= 0; --i) {
       const av = load<u8>(a + i);
       const bv = load<u8>(b + i);
       if (av < bv) return true;
@@ -447,7 +447,7 @@ export class U256 {
    * @returns true if a > b, false otherwise
    */
   static greaterThan(a: usize, b: usize): boolean {
-    for (let i: i32 = 0; i < 32; ++i) {
+    for (let i: i32 = 31; i >= 0; --i) {
       const av = load<u8>(a + i);
       const bv = load<u8>(b + i);
       if (av > bv) return true;
