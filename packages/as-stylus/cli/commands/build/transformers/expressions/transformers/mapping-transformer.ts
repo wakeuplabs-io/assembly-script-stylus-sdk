@@ -89,6 +89,7 @@ export class MappingTransformer extends Handler {
     }
 
     const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
+    const normalizedValueType = this.normalizeValueType(expr.valueType);
     
     // Handle string keys
     if (normalizedKeyType === "string" || normalizedKeyType === "str") {
@@ -103,6 +104,14 @@ export class MappingTransformer extends Handler {
       return {
         setupLines: keyResult.setupLines,
         valueExpr: `Mapping.${stringKeyMethod}(${slot}, ${keyPtr}, ${keyLen})`,
+      };
+    }
+
+    // Handle string values with non-string keys (I256, U256, Address, etc.)
+    if (normalizedValueType === "String" && method === "getString") {
+      return {
+        setupLines: keyResult.setupLines,
+        valueExpr: `Mapping.getStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen})`,
       };
     }
 
@@ -127,9 +136,10 @@ export class MappingTransformer extends Handler {
     }
 
     const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
+    const normalizedValueType = this.normalizeValueType(expr.valueType);
     
     // Handle string keys
-    if (normalizedKeyType === "string") {
+    if (normalizedKeyType === "string" || normalizedKeyType.toLowerCase() === "str") {
       if (method === "setString") {
         return {
           setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
@@ -141,6 +151,14 @@ export class MappingTransformer extends Handler {
       return {
         setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
         valueExpr: `Mapping.${stringKeyMethod}(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
+      };
+    }
+
+    // Handle string values with non-string keys (I256, U256, Address, etc.)
+    if (normalizedValueType === "String" && method === "setString") {
+      return {
+        setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
+        valueExpr: `Mapping.setStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
       };
     }
 

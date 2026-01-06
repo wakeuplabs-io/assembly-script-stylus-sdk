@@ -1,4 +1,15 @@
-import { Address, Contract, External, I256, Mapping, U256, View } from "@wakeuplabs/as-stylus";
+import {
+  Address,
+  Contract,
+  External,
+  I256,
+  Mapping,
+  U256,
+  View,
+  Str,
+  I256Factory,
+  U256Factory,
+} from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MappingInt256 {
@@ -13,7 +24,7 @@ export class MappingInt256 {
 
   positionMetadata: Mapping<I256, I256> = new Mapping<I256, I256>();
   positionActive: Mapping<I256, boolean> = new Mapping<I256, boolean>();
-  positionNames: Mapping<I256, string> = new Mapping<I256, string>();
+  positionNames: Mapping<I256, Str> = new Mapping<I256, Str>();
 
   constructor() {}
 
@@ -25,7 +36,7 @@ export class MappingInt256 {
     collateral: U256,
     metadata: I256,
     active: boolean,
-    name: string,
+    name: Str,
   ): void {
     this.positionTraders.set(positionId, trader);
     this.positionSizes.set(positionId, size);
@@ -41,8 +52,8 @@ export class MappingInt256 {
   }
 
   @View
-  getPositionSize(_positionId: I256): I256 {
-    return this.positionSizes.get(_positionId);
+  getPositionSize(positionId: I256): I256 {
+    return this.positionSizes.get(positionId);
   }
 
   @View
@@ -60,7 +71,7 @@ export class MappingInt256 {
   }
 
   @View
-  getPositionName(positionId: I256): string {
+  getPositionName(positionId: I256): Str {
     return this.positionNames.get(positionId);
   }
 }

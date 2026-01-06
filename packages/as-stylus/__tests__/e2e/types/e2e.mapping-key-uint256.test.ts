@@ -82,6 +82,18 @@ describe("MappingUint256 — Happy Path", () => {
   });
 
   it("should increment token price", async () => {
+    // First, ensure the token price is set to TOKEN_PRICE
+    await contract.write(ownerWallet, "setToken", [
+      TOKEN_ID,
+      OWNER_ADDRESS,
+      TOKEN_PRICE,
+      APPROVED_ADDRESS,
+      TOKEN_METADATA,
+      TOKEN_ACTIVE,
+      TOKEN_NAME,
+    ]);
+
+    // Then increment it
     await contract.write(ownerWallet, "incrementTokenPrice", [TOKEN_ID]);
     const price = (await contract.read("getTokenPrice", [TOKEN_ID])) as bigint;
     expect(price).toBe(TOKEN_PRICE + 1n);
