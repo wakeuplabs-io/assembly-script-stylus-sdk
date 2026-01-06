@@ -42,44 +42,77 @@ function extractArrayTypes(typeText: string): {
   return { isStatic: false };
 }
 
-function extractMappingTypes(typeText: string): {
+function extractMappingTypes(typeTextParam: string): {
   keyType?: string;
   valueType?: string;
   keyType1?: string;
   keyType2?: string;
 } {
-  const cleanType = typeText.replace(/\s/g, "");
+  const typeText = typeTextParam.match(/Mapping<[^>]+>/)?.[0] ?? "";
 
   // Handle MappingNested<K1,K2,V>
-  if (cleanType.startsWith("MappingNested<")) {
-    const nestedMatch = cleanType.match(/^MappingNested<(.+)>$/);
+  if (typeText.startsWith("MappingNested<")) {
+    const nestedMatch = typeText.match(/^MappingNested<(.+)>$/);
     if (nestedMatch) {
-      const types = nestedMatch[1].split(",");
+      const innerTypes = nestedMatch[1];
+      const types = parseGenericTypes(innerTypes);
       if (types.length === 3) {
+        const keyType1Parts = types[0].trim().split(".");
+        const keyType2Parts = types[1].trim().split(".");
+        const valueTypeParts = types[2].trim().split(".");
         return {
-          keyType1: types[0],
-          keyType2: types[1],
-          valueType: types[2],
+          keyType1: keyType1Parts[keyType1Parts.length - 1] || types[0].trim(),
+          keyType2: keyType2Parts[keyType2Parts.length - 1] || types[1].trim(),
+          valueType: valueTypeParts[valueTypeParts.length - 1] || types[2].trim(),
         };
       }
     }
   }
 
   // Handle regular Mapping<K,V>
-  if (cleanType.startsWith("Mapping<")) {
-    const mappingMatch = cleanType.match(/^Mapping<(.+)>$/);
-    if (mappingMatch) {
-      const types = mappingMatch[1].split(",");
-      if (types.length === 2) {
-        return {
-          keyType: types[0],
-          valueType: types[1],
-        };
-      }
+  if (typeText.startsWith("Mapping<")) {
+    const [keyType, valueType] = typeText.split("<")[1].split(">")[0].split(",");
+    const keyTypeParts = keyType.split(".");
+    const valueTypeParts = valueType.split(".");
+    return {
+      keyType: keyTypeParts[keyTypeParts.length - 1] || keyType,
+      valueType: valueTypeParts[valueTypeParts.length - 1] || valueType,
+    };
+  }
+
+  return { keyType: undefined, valueType: undefined };
+}
+
+/**
+ * Parses generic types handling nested generics correctly
+ */
+function parseGenericTypes(typeString: string): string[] {
+  const types: string[] = [];
+  let current = "";
+  let depth = 0;
+
+  for (let i = 0; i < typeString.length; i++) {
+    const char = typeString[i];
+
+    if (char === "<") {
+      depth++;
+      current += char;
+    } else if (char === ">") {
+      depth--;
+      current += char;
+    } else if (char === "," && depth === 0) {
+      types.push(current);
+      current = "";
+    } else {
+      current += char;
     }
   }
 
-  return {};
+  if (current) {
+    types.push(current);
+  }
+
+  return types;
 }
 
 export class PropertyIRBuilder extends IRBuilder<IRVariable> {

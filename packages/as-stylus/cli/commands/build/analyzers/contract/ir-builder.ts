@@ -329,18 +329,23 @@ export class ContractIRBuilder extends IRBuilder<IRContract> {
 
   private processGlobalConstants(): IRStatement[] {
     const constants: IRStatement[] = [];
-    
+
     // Get all variable statements at the file level (not inside classes)
     const variableStatements = this.sourceFile.getVariableStatements();
-    const varStatementsFiltered = variableStatements.filter(stmt => 
-      !stmt.getText().includes("EventFactory.create") && 
-      !stmt.getText().includes("ErrorFactory.create"));
-    
+    const varStatementsFiltered = variableStatements.filter(
+      (stmt) =>
+        !stmt.getText().includes("EventFactory.create") &&
+        !stmt.getText().includes("ErrorFactory.create"),
+    );
+
     for (const varStatement of varStatementsFiltered) {
-      const declarations = new StatementIRBuilder(varStatement as unknown as Statement, true).validateAndBuildIR();
+      const declarations = new StatementIRBuilder(
+        varStatement as unknown as Statement,
+        true,
+      ).validateAndBuildIR();
       constants.push({ ...declarations, isConstant: true } as any);
     }
-    
+
     return constants;
   }
 }

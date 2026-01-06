@@ -19,7 +19,13 @@ export class AddressHasCodeHandler extends Handler {
   handle(expr: Call): EmitResult {
     if (!expr.receiver && expr.target.endsWith(".hasCode")) {
       const chain = expr.target.slice(0, -".hasCode".length);
-      expr.receiver = { kind: "var", name: chain, type: AbiType.Address, scope: "memory", isConstant: false };
+      expr.receiver = {
+        kind: "var",
+        name: chain,
+        type: AbiType.Address,
+        scope: "memory",
+        isConstant: false,
+      };
     }
     const recv = this.contractContext.emitExpression(expr.receiver!);
 

@@ -1,12 +1,13 @@
 import {
   Address,
+  U256Factory,
   Contract,
   External,
   I256,
-  I256Factory,
   Mapping,
   U256,
   View,
+  Str,
 } from "@wakeuplabs/as-stylus";
 
 @Contract
@@ -20,8 +21,9 @@ export class MappingUint256 {
   // Token ID to approved address (like NFT approvals)
   tokenApprovals: Mapping<U256, Address> = new Mapping<U256, Address>();
 
-  //tokenMetadata: Mapping<U256, I256> = new Mapping<U256, I256>();
+  tokenMetadata: Mapping<U256, I256> = new Mapping<U256, I256>();
   tokenActive: Mapping<U256, boolean> = new Mapping<U256, boolean>();
+  tokenNames: Mapping<U256, Str> = new Mapping<U256, Str>();
 
   constructor() {}
 
@@ -33,12 +35,14 @@ export class MappingUint256 {
     approvedAddress: Address,
     _metadata: I256,
     active: boolean,
+    name: Str,
   ): void {
     this.tokenOwners.set(tokenId, owner);
     this.tokenPrices.set(tokenId, price);
     this.tokenApprovals.set(tokenId, approvedAddress);
-    //this.tokenMetadata.set(tokenId, metadata);
+    this.tokenMetadata.set(tokenId, _metadata);
     this.tokenActive.set(tokenId, active);
+    this.tokenNames.set(tokenId, name);
   }
 
   @View
@@ -58,12 +62,22 @@ export class MappingUint256 {
 
   @View
   getTokenMetadata(_tokenId: U256): I256 {
-    //return this.tokenMetadata.get(tokenId);
-    return I256Factory.fromString("10");
+    return this.tokenMetadata.get(_tokenId);
   }
 
   @View
   getTokenActive(tokenId: U256): boolean {
     return this.tokenActive.get(tokenId);
+  }
+
+  @View
+  getTokenName(tokenId: U256): Str {
+    return this.tokenNames.get(tokenId);
+  }
+
+  @External
+  incrementTokenPrice(tokenId: U256): void {
+    const price = this.tokenPrices.get(tokenId);
+    this.tokenPrices.set(tokenId, price.add(U256Factory.fromString("1")));
   }
 }

@@ -26,7 +26,7 @@ export class VariableDeclarationHandler extends StatementHandler {
 
     if (declaration.isConstant) {
       const lines = this.getUtilityLines(exprResult.setupLines, indent);
-      return`
+      return `
 function constant_${declaration.name}(): usize {
 ${lines.join("\n")}
   return ${exprResult.valueExpr};

@@ -79,6 +79,41 @@ export class MappingTransformer extends Handler {
     const keyResult = this.contractContext.emitExpression(expr.key);
     const method = this.getMappingMethod(expr.valueType, "get");
     const slot = this.formatSlot(expr.slot);
+    const normalizedKeyType = expr.keyType.toLowerCase();
+
+    if (normalizedKeyType === "boolean" || normalizedKeyType === "bool") {
+      return {
+        setupLines: keyResult.setupLines,
+        valueExpr: `Mapping.${method}(${slot}, Boolean.create(${keyResult.valueExpr}))`,
+      };
+    }
+
+    const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
+    const normalizedValueType = this.normalizeValueType(expr.valueType);
+    
+    // Handle string keys
+    if (normalizedKeyType === "string" || normalizedKeyType === "str") {
+      if (method === "getString") {
+        return {
+          setupLines: keyResult.setupLines,
+          valueExpr: `Mapping.getStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen})`,
+        };
+      }
+      // For other value types with string keys, use the WithStringKey methods
+      const stringKeyMethod = this.getMappingMethodWithStringKey(expr.valueType, "get");
+      return {
+        setupLines: keyResult.setupLines,
+        valueExpr: `Mapping.${stringKeyMethod}(${slot}, ${keyPtr}, ${keyLen})`,
+      };
+    }
+
+    // Handle string values with non-string keys (I256, U256, Address, etc.)
+    if (normalizedValueType === "String" && method === "getString") {
+      return {
+        setupLines: keyResult.setupLines,
+        valueExpr: `Mapping.getStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen})`,
+      };
+    }
 
     return {
       setupLines: keyResult.setupLines,
@@ -91,6 +126,41 @@ export class MappingTransformer extends Handler {
     const valueResult = this.contractContext.emitExpression(expr.value);
     const method = this.getMappingMethod(expr.valueType, "set");
     const slot = this.formatSlot(expr.slot);
+    const normalizedKeyType = expr.keyType.toLowerCase();
+
+    if (normalizedKeyType === "boolean" || normalizedKeyType === "bool") {
+      return {
+        setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
+        valueExpr: `Mapping.${method}(${slot}, Boolean.create(${keyResult.valueExpr}), ${valueResult.valueExpr})`,
+      };
+    }
+
+    const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
+    const normalizedValueType = this.normalizeValueType(expr.valueType);
+    
+    // Handle string keys
+    if (normalizedKeyType === "string" || normalizedKeyType.toLowerCase() === "str") {
+      if (method === "setString") {
+        return {
+          setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
+          valueExpr: `Mapping.setStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
+        };
+      }
+      // For other value types with string keys, use the WithStringKey methods
+      const stringKeyMethod = this.getMappingMethodWithStringKey(expr.valueType, "set");
+      return {
+        setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
+        valueExpr: `Mapping.${stringKeyMethod}(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
+      };
+    }
+
+    // Handle string values with non-string keys (I256, U256, Address, etc.)
+    if (normalizedValueType === "String" && method === "setString") {
+      return {
+        setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
+        valueExpr: `Mapping.setStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
+      };
+    }
 
     return {
       setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
@@ -138,6 +208,24 @@ export class MappingTransformer extends Handler {
     return methods[operation];
   }
 
+  private getMappingMethodWithStringKey(valueType: string, operation: "get" | "set"): string {
+    const normalizedType = this.normalizeValueType(valueType);
+    
+    switch (normalizedType) {
+      case "U256":
+        return operation === "get" ? "getU256WithStringKey" : "setU256WithStringKey";
+      case "Address":
+        return operation === "get" ? "getAddressWithStringKey" : "setAddressWithStringKey";
+      case "Boolean":
+        return operation === "get" ? "getBooleanWithStringKey" : "setBooleanWithStringKey";
+      case "I256":
+        return operation === "get" ? "getI256WithStringKey" : "setI256WithStringKey";
+      default:
+        // Fallback to U256 methods
+        return operation === "get" ? "getU256WithStringKey" : "setU256WithStringKey";
+    }
+  }
+
   private getNestedMappingMethod(valueType: string, operation: "get" | "set"): string {
     const methods = NESTED_MAPPING_METHODS[valueType as keyof typeof NESTED_MAPPING_METHODS];
 
@@ -153,12 +241,16 @@ export class MappingTransformer extends Handler {
       case "uint256":
       case "u256":
         return "U256";
+      case "int256":
+      case "i256":
+        return "I256";
       case "address":
         return "Address";
       case "bool":
       case "boolean":
         return "Boolean";
       case "string":
+      case "str":
         return "String";
       default:
         throw new Error(`Unsupported value type: ${valueType}`);
@@ -167,5 +259,28 @@ export class MappingTransformer extends Handler {
 
   private formatSlot(slot: number): string {
     return `__SLOT${slot.toString(16).padStart(2, "0")}`;
+  }
+
+  private getKeyPtrAndLen(keyType: string, keyExpr: string): { keyPtr: string; keyLen: string } {
+    switch (keyType.toLowerCase()) {
+      case "uint256":
+      case "u256":
+      case "int256":
+      case "i256":
+      case "address":
+        return { keyPtr: keyExpr, keyLen: "32" }; // These types are always 32 bytes
+      case "str":
+      case "string":
+        // For strings, the pointer points to the header (length), but createMappingKey needs data pointer
+        return {
+          keyPtr: `${keyExpr} + 4`, // Skip the 4-byte length header
+          keyLen: `load<u32>(${keyExpr})`, // String length is stored at the pointer (first 4 bytes)
+        };
+      case "bool":
+      case "boolean":
+        return { keyPtr: keyExpr, keyLen: "32" }; // Boolean is converted to 32-byte representation
+      default:
+        return { keyPtr: keyExpr, keyLen: "32" }; // Default to 32 bytes for unknown types
+    }
   }
 }

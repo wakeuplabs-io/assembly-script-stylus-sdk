@@ -1,21 +1,12 @@
-import {
-  Address,
-  Contract,
-  External,
-  I256,
-  Mapping,
-  U256,
-  View,
-  AddressFactory,
-  I256Factory,
-} from "@wakeuplabs/as-stylus";
+import { Address, Contract, External, I256, Mapping, U256, View } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MappingAddress {
-  //ids: Mapping<Address, I256> = new Mapping<Address, I256>();
+  ids: Mapping<Address, I256> = new Mapping<Address, I256>();
   balances: Mapping<Address, U256> = new Mapping<Address, U256>();
   enabled: Mapping<Address, boolean> = new Mapping<Address, boolean>();
-  //otherAddress: Mapping<Address, Address> = new Mapping<Address, Address>();
+  otherAddress: Mapping<Address, Address> = new Mapping<Address, Address>();
+  names: Mapping<Address, string> = new Mapping<Address, string>();
 
   constructor() {}
 
@@ -26,11 +17,13 @@ export class MappingAddress {
     enabledValue: boolean,
     _otherAddress: Address,
     _id: I256,
+    name: string,
   ): void {
-    //this.ids.set(address, id);
+    this.ids.set(address, _id);
     this.enabled.set(address, enabledValue);
     this.balances.set(address, value);
-    //this.otherAddress.set(address, otherAddress);
+    this.otherAddress.set(address, _otherAddress);
+    this.names.set(address, name);
   }
 
   @External
@@ -45,13 +38,16 @@ export class MappingAddress {
 
   @View
   getOtherAddress(_address: Address): Address {
-    //return this.otherAddress.get(address);
-    return AddressFactory.fromString("0xabcdefabcdefabcdefabcdefabcdefabcdefabcd");
+    return this.otherAddress.get(_address);
   }
 
   @View
   getIds(_address: Address): I256 {
-    //return this.ids.get(address);
-    return I256Factory.fromString("100");
+    return this.ids.get(_address);
+  }
+
+  @View
+  getAddressName(address: Address): string {
+    return this.names.get(address);
   }
 }

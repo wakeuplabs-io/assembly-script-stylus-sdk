@@ -9,7 +9,7 @@ import {
 import { malloc } from "../modules/memory";
 import { createStorageKey } from "../modules/storage";
 
-function zero(ptr: usize, len: u32): void {
+export function zero(ptr: usize, len: u32): void {
   for (let i: u32 = 0; i < len; ++i) store<u8>(ptr + i, 0);
 }
 
@@ -30,17 +30,6 @@ export class Str {
     const ptr = malloc(4);
     store<u32>(ptr, 0);
     return ptr;
-  }
-
-  /**
-   * Creates a string from ABI-encoded data
-   * @param pointer - Pointer to ABI-encoded string data
-   * @returns Pointer to the newly created string
-   */
-  static fromABI(pointer: usize): usize {
-    const len: u32 = loadU32BE(pointer + 0x20 + 28);
-    const dataPtr = pointer + 0x40;
-    return Str.fromBytes(dataPtr, len);
   }
 
   /**
@@ -162,15 +151,15 @@ export class Str {
   }
 
   /**
-   * Stores string to contract storage using Solidity-style layout
-   * @param slot - Storage slot identifier
+   * Stores string to contract storage using a storage key pointer
+   * @param keyPtr - Pointer to the 32-byte storage key
    * @param ptr - Pointer to the string to store
    */
-  static storeTo(slot: u64, ptr: usize): void {
+  static storeToKey(keyPtr: usize, ptr: usize): void {
     const len: u32 = load<u32>(ptr);
     if (len <= 28) {
       const packed = Str.toPacked(ptr);
-      storage_cache_bytes32(createStorageKey(slot), packed);
+      storage_cache_bytes32(keyPtr, packed);
       storage_flush_cache(0);
       return;
     }
@@ -178,12 +167,11 @@ export class Str {
     const lenBuf = malloc(32);
     zero(lenBuf, 32);
     store<u32>(lenBuf + 28, len);
-    storage_cache_bytes32(createStorageKey(slot), lenBuf);
+    storage_cache_bytes32(keyPtr, lenBuf);
     storage_flush_cache(0);
 
-    const slotKey = createStorageKey(slot);
     const base = malloc(32);
-    native_keccak256(slotKey, 32, base);
+    native_keccak256(keyPtr, 32, base);
 
     let remaining = len;
     let off: u32 = 0;
@@ -195,9 +183,9 @@ export class Str {
       zero(chunkBuf, 32);
       for (let i: u32 = 0; i < size; ++i) store<u8>(chunkBuf + i, load<u8>(ptr + 4 + off + i));
 
-      const keyPtr: usize = U256.add(base, U256.fromU64(chunk));
+      const chunkKeyPtr: usize = U256.add(base, U256.fromU64(chunk));
 
-      storage_cache_bytes32(keyPtr, chunkBuf);
+      storage_cache_bytes32(chunkKeyPtr, chunkBuf);
       storage_flush_cache(0);
 
       remaining -= size;
@@ -207,13 +195,22 @@ export class Str {
   }
 
   /**
-   * Loads string from contract storage using Solidity-style layout
+   * Stores string to contract storage using Solidity-style layout
    * @param slot - Storage slot identifier
+   * @param ptr - Pointer to the string to store
+   */
+  static storeTo(slot: u64, ptr: usize): void {
+    Str.storeToKey(createStorageKey(slot), ptr);
+  }
+
+  /**
+   * Loads string from contract storage using a storage key pointer
+   * @param keyPtr - Pointer to the 32-byte storage key
    * @returns Pointer to the loaded string
    */
-  static loadFrom(slot: u64): usize {
+  static loadFromKey(keyPtr: usize): usize {
     const lenBuf = malloc(32);
-    storage_load_bytes32(createStorageKey(slot), lenBuf);
+    storage_load_bytes32(keyPtr, lenBuf);
     const len: u32 = load<u32>(lenBuf + 28);
 
     if (len <= 28) return Str.fromPacked(lenBuf);
@@ -221,9 +218,8 @@ export class Str {
     const ptr = malloc(4 + len);
     store<u32>(ptr, len);
 
-    const slotKey = createStorageKey(slot);
     const base: usize = malloc(32);
-    native_keccak256(slotKey, 32, base);
+    native_keccak256(keyPtr, 32, base);
 
     let remaining = len;
     let off: u32 = 0;
@@ -231,10 +227,10 @@ export class Str {
 
     while (remaining > 0) {
       const size: u32 = remaining >= 32 ? 32 : remaining;
-      const keyPtr: usize = U256.add(base, U256.fromU64(chunk));
+      const chunkKeyPtr: usize = U256.add(base, U256.fromU64(chunk));
 
       const chunkBuf = malloc(32);
-      storage_load_bytes32(keyPtr, chunkBuf);
+      storage_load_bytes32(chunkKeyPtr, chunkBuf);
 
       for (let i: u32 = 0; i < size; ++i) store<u8>(ptr + 4 + off + i, load<u8>(chunkBuf + i));
 
@@ -244,6 +240,15 @@ export class Str {
     }
 
     return ptr;
+  }
+
+  /**
+   * Loads string from contract storage using Solidity-style layout
+   * @param slot - Storage slot identifier
+   * @returns Pointer to the loaded string
+   */
+  static loadFrom(slot: u64): usize {
+    return Str.loadFromKey(createStorageKey(slot));
   }
 
   /**

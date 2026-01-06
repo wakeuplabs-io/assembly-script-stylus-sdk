@@ -12,7 +12,13 @@ export function convertVariableInParams(target: string, type: AbiType): IRExpres
     return { kind: "var" as const, name: target, type, scope: "memory", isConstant: false };
   }
   const [head, ...rest] = target.split(".");
-  let node: IRExpression = { kind: "var" as const, name: head, type, scope: "memory", isConstant: false };
+  let node: IRExpression = {
+    kind: "var" as const,
+    name: head,
+    type,
+    scope: "memory",
+    isConstant: false,
+  };
   for (const prop of rest) {
     node = { kind: "member" as const, object: node, property: prop, type };
   }

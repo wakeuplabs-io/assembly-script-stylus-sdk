@@ -28,7 +28,13 @@ export class AddressIsZeroHandler extends Handler {
     // Handle legacy format - create receiver from target
     if (!expr.receiver && expr.target.endsWith(".isZero")) {
       const chain = expr.target.slice(0, -".isZero".length);
-      expr.receiver = { kind: "var", name: chain, type: AbiType.Address, scope: "memory", isConstant: false };
+      expr.receiver = {
+        kind: "var",
+        name: chain,
+        type: AbiType.Address,
+        scope: "memory",
+        isConstant: false,
+      };
     }
 
     // Ensure we have a receiver (should always be true after the above)

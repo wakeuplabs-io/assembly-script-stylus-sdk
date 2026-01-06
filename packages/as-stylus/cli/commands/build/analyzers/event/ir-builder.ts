@@ -52,7 +52,6 @@ export class EventIRBuilder extends IRBuilder<IREvent> {
     const fields: IREventField[] = [];
     const fieldsDefined = this.getEventParamsDefinition(initializer.getText());
 
-
     indexed.forEach((isIndexed, index) => {
       const field = fieldsDefined[index];
 

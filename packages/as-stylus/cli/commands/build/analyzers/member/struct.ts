@@ -15,7 +15,6 @@ export class StructMemberBuilder extends StructBaseBuilder {
     this.slotManager = slotManager;
   }
 
-
   private buildTarget(
     objectIR: Variable,
     propertyName: string,

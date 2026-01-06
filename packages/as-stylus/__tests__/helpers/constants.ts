@@ -143,6 +143,18 @@ export const CONTRACT_PATHS = {
     contract: path.join(ROOT_PATH, "/mapping"),
     abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/int256-abi.json"),
   },
+  MAPPING_BOOLEAN: {
+    contract: path.join(ROOT_PATH, "/mapping"),
+    abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/boolean-abi.json"),
+  },
+  MAPPING_STRING: {
+    contract: path.join(ROOT_PATH, "/mapping"),
+    abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/string-abi.json"),
+  },
+  MAPPING_STRUCT: {
+    contract: path.join(ROOT_PATH, "/mapping"),
+    abi: path.join(ROOT_PATH, "/mapping/artifacts/abi/struct-abi.json"),
+  },
   PAUSABLE: {
     contract: path.join(ROOT_PATH, "/management"),
     abi: path.join(ROOT_PATH, "/management/artifacts/abi/pausable-abi.json"),
@@ -154,5 +166,9 @@ export const CONTRACT_PATHS = {
   REENTRANCY: {
     contract: path.join(ROOT_PATH, "/management"),
     abi: path.join(ROOT_PATH, "/management/artifacts/abi/reentrancyGuard-abi.json"),
+  },
+  VOTING: {
+    contract: path.join(ROOT_PATH, "/voting"),
+    abi: path.join(ROOT_PATH, "/voting/artifacts/abi/contract-abi.json"),
   },
 } as const;
