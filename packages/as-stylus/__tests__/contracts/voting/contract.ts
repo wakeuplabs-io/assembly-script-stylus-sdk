@@ -22,7 +22,7 @@ export class Voting {
   voters: Mapping<Address, boolean> = new Mapping<Address, boolean>();
   votesFor: Mapping<U256, U256> = new Mapping<U256, U256>();
   votesAgainst: Mapping<U256, U256> = new Mapping<U256, U256>();
-  votersNames: Mapping<Address, string> = new Mapping<Address, string>();
+  votersNames: Mapping<Address, Str> = new Mapping<Address, Str>();
 
   constructor() {
     this.a = U256Factory.fromString("3");
@@ -40,7 +40,7 @@ export class Voting {
   }
 
   @External
-  voteFor(proposalId: U256, name: string): void {
+  voteFor(proposalId: U256, name: Str): void {
     if (this.voters.get(msg.sender)) {
       VoterAlreadyVoted.revert(msg.sender);
     }
@@ -51,7 +51,7 @@ export class Voting {
   }
 
   @External
-  voteAgainst(proposalId: U256, name: string): void {
+  voteAgainst(proposalId: U256, name: Str): void {
     if (this.voters.get(msg.sender)) {
       VoterAlreadyVoted.revert(msg.sender);
     }

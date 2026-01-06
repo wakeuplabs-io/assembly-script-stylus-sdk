@@ -91,7 +91,7 @@ export class MappingTransformer extends Handler {
     const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
     
     // Handle string keys
-    if (normalizedKeyType === "string") {
+    if (normalizedKeyType === "string" || normalizedKeyType === "str") {
       if (method === "getString") {
         return {
           setupLines: keyResult.setupLines,
@@ -232,6 +232,7 @@ export class MappingTransformer extends Handler {
       case "boolean":
         return "Boolean";
       case "string":
+      case "str":
         return "String";
       default:
         throw new Error(`Unsupported value type: ${valueType}`);
@@ -250,6 +251,7 @@ export class MappingTransformer extends Handler {
       case "i256":
       case "address":
         return { keyPtr: keyExpr, keyLen: "32" }; // These types are always 32 bytes
+      case "str":
       case "string":
         // For strings, the pointer points to the header (length), but createMappingKey needs data pointer
         return {
