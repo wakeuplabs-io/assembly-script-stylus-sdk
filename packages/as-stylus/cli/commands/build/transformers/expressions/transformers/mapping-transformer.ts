@@ -125,9 +125,9 @@ export class MappingTransformer extends Handler {
     }
 
     const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
-
+    
     // Handle string keys
-    if (normalizedKeyType === "string") {
+    if (normalizedKeyType === "string" || normalizedKeyType === "str") {
       if (method === "getString") {
         return {
           setupLines: keyResult.setupLines,
@@ -139,6 +139,14 @@ export class MappingTransformer extends Handler {
       return {
         setupLines: keyResult.setupLines,
         valueExpr: `Mapping.${stringKeyMethod}(${slot}, ${keyPtr}, ${keyLen})`,
+      };
+    }
+
+    // Handle string values with non-string keys (I256, U256, Address, etc.)
+    if (normalizedValueType === "String" && method === "getString") {
+      return {
+        setupLines: keyResult.setupLines,
+        valueExpr: `Mapping.getStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen})`,
       };
     }
 
@@ -194,9 +202,9 @@ export class MappingTransformer extends Handler {
     }
 
     const { keyPtr, keyLen } = this.getKeyPtrAndLen(expr.keyType, keyResult.valueExpr);
-
+    
     // Handle string keys
-    if (normalizedKeyType === "string") {
+    if (normalizedKeyType === "string" || normalizedKeyType.toLowerCase() === "str") {
       if (method === "setString") {
         return {
           setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
@@ -208,6 +216,14 @@ export class MappingTransformer extends Handler {
       return {
         setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
         valueExpr: `Mapping.${stringKeyMethod}(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
+      };
+    }
+
+    // Handle string values with non-string keys (I256, U256, Address, etc.)
+    if (normalizedValueType === "String" && method === "setString") {
+      return {
+        setupLines: [...keyResult.setupLines, ...valueResult.setupLines],
+        valueExpr: `Mapping.setStringWithKeyLen(${slot}, ${keyPtr}, ${keyLen}, ${valueResult.valueExpr})`,
       };
     }
 
@@ -259,7 +275,6 @@ export class MappingTransformer extends Handler {
 
   private getMappingMethodWithStringKey(valueType: string, operation: "get" | "set"): string {
     const normalizedType = this.normalizeValueType(valueType);
-
     switch (normalizedType) {
       case "U256":
         return operation === "get" ? "getU256WithStringKey" : "setU256WithStringKey";
@@ -316,6 +331,7 @@ export class MappingTransformer extends Handler {
       case "boolean":
         return "Boolean";
       case "string":
+      case "str":
         return "String";
       default:
         throw new Error(`Unsupported value type: ${valueType}`);
@@ -369,6 +385,7 @@ export class MappingTransformer extends Handler {
       case "i256":
       case "address":
         return { keyPtr: keyExpr, keyLen: "32" }; // These types are always 32 bytes
+      case "str":
       case "string":
         // For strings, the pointer points to the header (length), but createMappingKey needs data pointer
         return {
