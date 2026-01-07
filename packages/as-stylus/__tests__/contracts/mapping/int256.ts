@@ -1,15 +1,4 @@
-import {
-  Address,
-  Contract,
-  External,
-  I256,
-  Mapping,
-  U256,
-  View,
-  Str,
-  I256Factory,
-  U256Factory,
-} from "@wakeuplabs/as-stylus";
+import { Address, Contract, External, I256, Mapping, U256, View, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MappingInt256 {
