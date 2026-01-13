@@ -15,6 +15,10 @@ export const PROJECT_ROOT = path.join(ROOT, "/as-stylus/");
 export const ROOT_PATH = path.join(ROOT, "/as-stylus/__tests__/contracts");
 
 export const CONTRACT_PATHS = {
+  ONLY_MEMORY_STRUCT: {
+    contract: path.join(ROOT_PATH, "/struct/only-memory"),
+    abi: path.join(ROOT_PATH, "/struct/artifacts/abi/only-memory-abi.json"),
+  },
   AFFORDANCE: {
     contract: path.join(ROOT_PATH, "/affordance"),
     abi: path.join(ROOT_PATH, "/affordance/artifacts/abi/contract-abi.json"),
@@ -170,5 +174,9 @@ export const CONTRACT_PATHS = {
   VOTING: {
     contract: path.join(ROOT_PATH, "/voting"),
     abi: path.join(ROOT_PATH, "/voting/artifacts/abi/contract-abi.json"),
+  },
+  ONLY_MEMORY_STRUCT_TEST: {
+    contract: path.join(ROOT_PATH, "/struct"),
+    abi: path.join(ROOT_PATH, "/struct/artifacts/abi/only-memory-abi.json"),
   },
 } as const;
