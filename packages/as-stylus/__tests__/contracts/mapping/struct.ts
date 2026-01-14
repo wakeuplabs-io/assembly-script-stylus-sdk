@@ -3,12 +3,13 @@ import {
   Contract,
   External,
   Mapping,
-  Struct,
   StructFactory,
   StructTemplate,
   View,
   Str,
   U256,
+  U256Factory,
+  Struct,
 } from "@wakeuplabs/as-stylus";
 
 @StructTemplate
@@ -21,7 +22,7 @@ export class UserInfo {
 
 @Contract
 export class MappingStruct {
-  userInfo2: Struct<UserInfo>;
+  user: Struct<UserInfo>;
   users: Mapping<Address, UserInfo>;
   constructor() {}
 
@@ -39,5 +40,12 @@ export class MappingStruct {
   @View
   getUserInfo(to: Address): UserInfo {
     return this.users.get(to);
+  }
+
+  @External
+  incrementAge(to: Address): void {
+    const user = this.users.get(to);
+    user.age = user.age.add(U256Factory.fromString("1"));
+    this.users.set(to, user);
   }
 }

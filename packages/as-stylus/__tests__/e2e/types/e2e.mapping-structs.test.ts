@@ -60,4 +60,14 @@ describe("MappingStruct — Errors", () => {
     expect((userInfo as UserInfo).age).toBe(VALUE);
     expect((userInfo as UserInfo).name).toBe(TEST_STRING);
   });
+
+  it("should increment age", async () => {
+    await contract.write(ownerWallet, "incrementAge", [TEST_ADDRESS]);
+    const userInfo = await contract.read("getUserInfo", [TEST_ADDRESS]);
+
+    expect((userInfo as UserInfo).age).toBe(VALUE + 1n);
+    expect((userInfo as UserInfo).to.toLowerCase()).toBe(TEST_ADDRESS.toLowerCase());
+    expect((userInfo as UserInfo).isActive).toBe(ENABLED);
+    expect((userInfo as UserInfo).name).toBe(TEST_STRING);
+  });
 });
