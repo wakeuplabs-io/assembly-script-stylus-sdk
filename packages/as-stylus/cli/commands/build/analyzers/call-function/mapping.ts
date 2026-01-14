@@ -20,7 +20,7 @@ function getReturnType(valueType: string): SupportedType {
     case "boolean":
       return AbiType.Bool;
     default:
-      return AbiType.Unknown;
+      return AbiType.Struct;
   }
 }
 

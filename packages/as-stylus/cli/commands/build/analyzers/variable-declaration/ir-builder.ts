@@ -79,6 +79,9 @@ export class VariableDeclarationIRBuilder extends IRBuilder<IRStatement> {
       const inferredType = this.inferTypeFromExpression(expression);
       if (inferredType) {
         variable.type = inferredType;
+        if (variable.type === AbiType.Struct) {
+          variable.dynamicType = (expression as any).valueType;
+        }
       }
     }
     this.symbolTable.declareVariable(variable.name, variable);

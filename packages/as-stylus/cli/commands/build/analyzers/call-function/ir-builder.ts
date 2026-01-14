@@ -135,6 +135,41 @@ export class CallFunctionIRBuilder extends IRBuilder<IRExpression> {
       }
     }
 
+    if (variable?.type === AbiType.Struct) {
+      const terms = target.split(".");
+      const methodName = terms.slice(-1)[0];
+      const [structName, fieldName] = terms;
+
+      const structVariable = this.symbolTable.lookup(structName);
+
+      const structTemplate = this.symbolTable.getStructTemplateByName(structVariable?.dynamicType ?? "");
+      const returnType = structTemplate?.fields.find((field) => field.name === fieldName)?.type ?? AbiType.Unknown;
+
+      if (structVariable && fieldName && structTemplate) {
+        return {
+          kind: "call",
+          target: methodName,
+          args,
+          type: AbiType.Function,
+          returnType: returnType as SupportedType,
+          scope,
+          receiver: {
+            kind: "member",
+            object: {
+              kind: "var",
+              name: structName,
+              type: variable.type,
+              scope: structVariable.scope ?? "storage",
+              isConstant: false,
+              originalType: variable.dynamicType,
+            },
+            property: fieldName,
+            type: returnType as SupportedType,
+          },
+        };
+      }
+    }
+
     const targetIsArrayFactory =
       target.startsWith("StaticArrayFactory.") ||
       target.startsWith("DynamicArrayFactory.") ||
