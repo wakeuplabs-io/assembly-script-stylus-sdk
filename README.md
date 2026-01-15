@@ -1,5 +1,9 @@
 # Stylus AssemblyScript SDK
 
+> ℹ️ **Third-party SDK**  
+> Developed and maintained by **WakeUp Labs**.  
+> This is not an official Offchain Labs SDK.
+
 > ⚠️ **ALPHA VERSION NOTICE**
 >
 > This SDK is currently in **alpha development** and is actively being worked on.
@@ -151,6 +155,12 @@ assembly-script-stylus-sdk/
 ## Resources
 
 - [Assembly Script Stylus Documentation](https://as-stylus.wakeuplabs.io/)
+
+## Maintainers
+
+This project is developed and maintained by **WakeUp Labs**.
+
+It is an independent, third-party SDK and is not an official Offchain Labs project.
 
 ## License
 
