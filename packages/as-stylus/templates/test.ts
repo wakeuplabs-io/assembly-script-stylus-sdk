@@ -8,17 +8,20 @@ import {
   getPublicClient,
   getWalletClient,
   setup,
+  getTestAccount,
+  TESTS_ACCOUNTS_NAME,
 } from "@wakeuplabs/as-stylus";
 import path from "path";
 
 import { config } from "../config.js";
 
+const deployer = getTestAccount(TESTS_ACCOUNTS_NAME.Deployer);
 // Test state
 let contract: ReturnType<typeof contractService>;
 const publicClient = getPublicClient(ChainId.LocalArbitrumSepolia, config.rpcUrl);
 const walletClient: WalletClient = getWalletClient(
   ChainId.LocalArbitrumSepolia,
-  config.privateKey,
+  deployer.privateKey,
   config.rpcUrl,
 );
 
