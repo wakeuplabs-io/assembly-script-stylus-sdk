@@ -4,6 +4,7 @@ import { ensureDir } from "@/cli/utils/fs.js";
 
 import { buildContract } from "./build-contract.js";
 import { buildEnvSample } from "./build-env-sample.js";
+import { buildEslintConfig } from "./build-eslint.js";
 import { buildGlobalSetup } from "./build-global-setup.js";
 import { buildGlobalTeardown } from "./build-global-teardown.js";
 import { buildJestConfig } from "./build-jest.js";
@@ -33,5 +34,6 @@ export class ProjectGenerator {
     buildEnvSample(targetPath);
     buildGlobalSetup(targetPath);
     buildGlobalTeardown(targetPath);
+    buildEslintConfig(targetPath);
   }
 }

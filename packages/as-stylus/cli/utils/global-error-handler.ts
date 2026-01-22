@@ -262,8 +262,12 @@ export const ERROR_TEMPLATES: Record<ErrorCode, ErrorTemplate> = {
 
   [ErrorCode.GAS_ESTIMATION_FAILED]: {
     title: "Gas Estimation Failed",
-    description: "Unable to estimate gas for the transaction.",
-    solution: "Set a manual gas limit or check contract validity",
+    description:
+      "Unable to estimate gas for the transaction. This often occurs when max fee per gas is less than the block base fee.",
+    solution:
+      "Set a higher max fee per gas using --max-fee-per-gas-gwei <value> (e.g., --max-fee-per-gas-gwei 0.1) or wait for network congestion to decrease",
+    moreInfo:
+      "The max fee per gas must be higher than the current block base fee. Check the network's current base fee and set a value above it.",
   },
 
   [ErrorCode.NONCE_ERROR]: {

@@ -311,21 +311,6 @@ export class Mapping {
         memory.copy(fieldPtr, temp, bytesToLoad);
       } else {
         storage_load_bytes32(fieldKey, fieldPtr);
-
-        // Check if this is the last field and if it's zero (indicating a string was stored separately)
-        if (i == numSlots - 1) {
-          const fieldValue = load<usize>(fieldPtr);
-          // If the field is zero, try to load the string from the next slot
-          if (fieldValue == 0) {
-            const stringSlotKey = Mapping.incrementStorageKey(baseKey, numSlots);
-            // Try to load the string from the additional slot
-            const stringPtr = Str.loadFromKey(stringSlotKey);
-            if (stringPtr != 0) {
-              // Store the string pointer in the struct field
-              store<usize>(fieldPtr, stringPtr);
-            }
-          }
-        }
       }
     }
 

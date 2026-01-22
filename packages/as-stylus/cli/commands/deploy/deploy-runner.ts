@@ -34,7 +34,7 @@ export class DeployRunner {
       throw error;
     }
 
-    const command = `cargo stylus deploy --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm --private-key ${options.privateKey} --endpoint ${rpcEndpoint} --no-verify`;
+    const command = `cargo stylus deploy --wasm-file ${BUILD_WASM_PATH}/${contractName}.wasm --private-key ${options.privateKey} --endpoint ${rpcEndpoint}`;
 
     try {
       return runCommand(command, {

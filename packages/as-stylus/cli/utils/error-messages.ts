@@ -88,6 +88,13 @@ export function findErrorTemplate(errorMessage: string): ErrorTemplate | null {
     return ERROR_TEMPLATES[ErrorCode.TRANSACTION_FAILED as keyof typeof ERROR_TEMPLATES];
   }
 
+  if (
+    message.includes("max fee per gas") &&
+    (message.includes("less than") || message.includes("block base fee"))
+  ) {
+    return ERROR_TEMPLATES[ErrorCode.GAS_ESTIMATION_FAILED as keyof typeof ERROR_TEMPLATES];
+  }
+
   if (message.includes("gas") && (message.includes("estimation") || message.includes("failed"))) {
     return ERROR_TEMPLATES[ErrorCode.GAS_ESTIMATION_FAILED as keyof typeof ERROR_TEMPLATES];
   }
