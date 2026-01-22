@@ -10,6 +10,8 @@ export default {
   preset: "ts-jest",
   testEnvironment: "node",
   testTimeout: 30000,
+  globalSetup: "<rootDir>/globalSetup.ts",
+  globalTeardown: "<rootDir>/globalTeardown.ts",
   extensionsToTreatAsEsm: [".ts"],
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
