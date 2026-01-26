@@ -314,6 +314,42 @@ export class Mapping {
       }
     }
 
+    // Check if the last field is zero (indicating a string was stored separately)
+    // If so, reconstruct the string pointer by loading it from the next slot
+    // We need to verify that there's actually a string stored there, not just a zero value
+    if (structSize >= 32) {
+      const lastFieldPtr = out + (numSlots - 1) * 32;
+      const lastFieldValue = load<usize>(lastFieldPtr);
+
+      // If the last field is zero, check if there's a string stored in the next slot
+      if (lastFieldValue == 0) {
+        const stringSlotKey = Mapping.incrementStorageKey(baseKey, numSlots);
+
+        // Verify that there's actually a string stored by checking the slot format
+        // Strings are stored with length in the first 32 bytes
+        const lenBuf = malloc(32);
+        storage_load_bytes32(stringSlotKey, lenBuf);
+        const potentialLen: u32 = load<u32>(lenBuf + 28);
+
+        // If the length is reasonable (< 1MB) and the slot is not all zeros,
+        // it's likely a string that was stored separately
+        const isAllZeros =
+          potentialLen == 0 &&
+          load<u64>(lenBuf) == 0 &&
+          load<u64>(lenBuf + 8) == 0 &&
+          load<u64>(lenBuf + 16) == 0 &&
+          load<u64>(lenBuf + 24) == 0;
+
+        if (!isAllZeros && potentialLen <= 0x100000) {
+          // There's a string stored here, load it and restore the pointer
+          const stringPtr = Str.loadFromKey(stringSlotKey);
+          if (stringPtr != 0) {
+            store<usize>(lastFieldPtr, stringPtr);
+          }
+        }
+      }
+    }
+
     return out;
   }
 }
