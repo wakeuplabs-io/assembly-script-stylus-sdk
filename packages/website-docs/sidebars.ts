@@ -35,6 +35,11 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: "doc",
+          id: "guides/local-network",
+          label: "Local Network",
+        },
+        {
+          type: "doc",
           id: "guides/testing-contracts",
           label: "Testing Smart Contracts",
         },
@@ -144,7 +149,7 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Examples",
-      items: ["examples/erc20", "examples/erc721"],
+      items: ["examples/erc20", "examples/erc721", "examples/voting"],
     },
     // Previous versions at the bottom (similar to Hardhat's "Hardhat 2 docs" link)
     {
