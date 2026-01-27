@@ -56,6 +56,7 @@ function saveDeploymentInfo(deploymentOutput: string, contractPath: string, endp
   writeFile(DEPLOYMENT_INFO_PATH, JSON.stringify(deploymentInfo, null, 2));
   Logger.getInstance().info(`Deployment information saved to: ${DEPLOYMENT_INFO_PATH}`);
 
+  console.log("deploymentInfo", deploymentInfo);
   if (deploymentInfo.deployment.contractAddress) {
     Logger.getInstance().info(
       `Contract deployed at address: ${deploymentInfo.deployment.contractAddress}`,
@@ -68,7 +69,7 @@ function saveDeploymentInfo(deploymentOutput: string, contractPath: string, endp
   return deploymentInfo;
 }
 
-export function runDeploy(
+export async function runDeploy(
   contractPath: string,
   options: {
     endpoint?: string;
@@ -139,14 +140,22 @@ export function runDeploy(
     displayDeploymentStep("Processing deployment information...");
     const deploymentInfo = saveDeploymentInfo(deploymentOutput, contractPath, finalEndpoint);
 
-    if (options.constructorArgs && options.constructorArgs.length > 0) {
-      displayDeploymentStep("Executing constructor with arguments...");
-      executeConstructor(
+    if (deploymentInfo.deployment.contractAddress) {
+      runner.activateProgram(
+        deploymentInfo.deployment.contractAddress as Address,
+        privateKey,
+        finalEndpoint,
+      );
+      await executeConstructor(
         contractPath,
         deploymentInfo.deployment.contractAddress as Address,
         privateKey,
         finalEndpoint,
         options.constructorArgs,
+      );
+    } else {
+      Logger.getInstance().warn(
+        "Contract address not found in deployment output. Skipping activation and constructor execution.",
       );
     }
 

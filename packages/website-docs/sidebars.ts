@@ -113,6 +113,17 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Guides",
+      items: [
+        {
+          type: "doc",
+          id: "guides/testing-contracts",
+          label: "Testing Contracts",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Examples",
       items: ["examples/erc20", "examples/erc721"],
     },
@@ -128,7 +139,17 @@ const sidebars: SidebarsConfig = {
         {
           type: "doc",
           id: "versions/latest",
-          label: "Latest Release (v0.1.0 Alpha)",
+          label: "Latest Release (v0.3.0)",
+        },
+        {
+          type: "doc",
+          id: "versions/v0.2",
+          label: "v0.2.0",
+        },
+        {
+          type: "doc",
+          id: "versions/v0.1",
+          label: "v0.1.0",
         },
       ],
     },

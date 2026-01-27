@@ -1,14 +1,4 @@
-import {
-  Address,
-  Contract,
-  External,
-  I256,
-  I256Factory,
-  Mapping,
-  U256,
-  U256Factory,
-  View,
-} from "@wakeuplabs/as-stylus";
+import { Address, Contract, External, I256, Mapping, U256, View, Str } from "@wakeuplabs/as-stylus";
 
 @Contract
 export class MappingInt256 {
@@ -16,13 +6,14 @@ export class MappingInt256 {
   positionTraders: Mapping<I256, Address> = new Mapping<I256, Address>();
 
   // Position ID to position size (can be positive for long, negative for short)
-  //positionSizes: Mapping<I256, I256> = new Mapping<I256, I256>();
+  positionSizes: Mapping<I256, I256> = new Mapping<I256, I256>();
 
   // Position ID to collateral amount
   positionCollateral: Mapping<I256, U256> = new Mapping<I256, U256>();
 
-  //positionMetadata: Mapping<I256, I256> = new Mapping<I256, I256>();
+  positionMetadata: Mapping<I256, I256> = new Mapping<I256, I256>();
   positionActive: Mapping<I256, boolean> = new Mapping<I256, boolean>();
+  positionNames: Mapping<I256, Str> = new Mapping<I256, Str>();
 
   constructor() {}
 
@@ -34,12 +25,14 @@ export class MappingInt256 {
     collateral: U256,
     metadata: I256,
     active: boolean,
+    name: Str,
   ): void {
     this.positionTraders.set(positionId, trader);
-    //this.positionSizes.set(positionId, size);
+    this.positionSizes.set(positionId, size);
     this.positionCollateral.set(positionId, collateral);
-    //this.positionMetadata.set(positionId, metadata);
+    this.positionMetadata.set(positionId, metadata);
     this.positionActive.set(positionId, active);
+    this.positionNames.set(positionId, name);
   }
 
   @View
@@ -48,24 +41,26 @@ export class MappingInt256 {
   }
 
   @View
-  getPositionSize(_positionId: I256): I256 {
-    //return this.positionSizes.get(positionId);
-    return I256Factory.fromString("-500");
+  getPositionSize(positionId: I256): I256 {
+    return this.positionSizes.get(positionId);
   }
 
   @View
   getPositionCollateral(positionId: I256): U256 {
     return this.positionCollateral.get(positionId);
-    return U256Factory.fromString("10000");
   }
 
   @View
   getPositionMetadata(_positionId: I256): I256 {
-    //return this.positionMetadata.get(positionId);
-    return I256Factory.fromString("10");
+    return this.positionMetadata.get(_positionId);
   }
   @View
   getPositionActive(positionId: I256): boolean {
     return this.positionActive.get(positionId);
+  }
+
+  @View
+  getPositionName(positionId: I256): Str {
+    return this.positionNames.get(positionId);
   }
 }

@@ -17,6 +17,8 @@ const { contract: contractPath, abi: abiPath } = CONTRACT_PATHS.MAPPING_ADDRESS;
 const TEST_ADDRESS = getAddress("0x1234567890123456789012345678901234567890");
 const OTHER_ADDRESS = getAddress("0xabcdefabcdefabcdefabcdefabcdefabcdefabcd");
 const ENABLED = true;
+const TEST_NAME = "Test Name";
+
 /**
  * Deploys the MappingAddress contract and initializes the test environment
  */
@@ -35,18 +37,40 @@ beforeAll(async () => {
 describe("MappingAddress — Happy Path", () => {
   it("should set all values and retrieve each field", async () => {
     // Set all values
-    await contract.write(ownerWallet, "set", [TEST_ADDRESS, 1000n, true, OTHER_ADDRESS, 100n]);
+    await contract.write(ownerWallet, "set", [
+      TEST_ADDRESS,
+      1000n,
+      true,
+      OTHER_ADDRESS,
+      100n,
+      TEST_NAME,
+    ]);
 
     // Get each field
     const id = (await contract.read("getIds", [TEST_ADDRESS])) as bigint;
     const balance = (await contract.read("getBalance", [TEST_ADDRESS])) as bigint;
     const enabled = (await contract.read("getEnabled", [TEST_ADDRESS])) as boolean;
     const otherAddress = (await contract.read("getOtherAddress", [TEST_ADDRESS])) as string;
-
+    const name = (await contract.read("getAddressName", [TEST_ADDRESS])) as string;
     // Verify all values
     expect(balance).toBe(1000n);
     expect(id).toBe(100n);
     expect(otherAddress.toLowerCase()).toBe(OTHER_ADDRESS.toLowerCase());
     expect(enabled).toBe(ENABLED);
+    expect(name).toBe(TEST_NAME);
+  });
+
+  it("should set address name longer than 32 bytes and retrieve it", async () => {
+    const longerName = "This is a test address name that is longer than 32 bytes";
+    await contract.write(ownerWallet, "set", [
+      TEST_ADDRESS,
+      1000n,
+      true,
+      OTHER_ADDRESS,
+      100n,
+      longerName,
+    ]);
+    const name = (await contract.read("getAddressName", [TEST_ADDRESS])) as string;
+    expect(name).toBe(longerName);
   });
 });

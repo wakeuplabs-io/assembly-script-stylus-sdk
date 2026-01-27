@@ -20,38 +20,35 @@ function getReturnType(valueType: string): SupportedType {
     case "boolean":
       return AbiType.Bool;
     default:
-      return AbiType.Unknown;
+      return AbiType.Struct;
   }
 }
 
 function getMappingTypes(types: string) {
   const typeDefinition = types.split("<")[1].split(">")[0];
   const [keyType, firstType, secondType] = typeDefinition.split(",");
-  return { keyType, firstType, secondType };
+  return {
+    keyType: keyType,
+    firstType: firstType,
+    secondType: secondType,
+  };
 }
 
-export function buildMappingIR(
-  variable: VariableSymbol,
-  call: CallExpression,
-  slot: number,
-): IRExpression | undefined {
+export function buildMappingIR(variable: VariableSymbol, call: CallExpression, slot: number): IRExpression | undefined {
   const { method: methodName } = parseNameWithMethod(call.getText());
-
   const args = call.getArguments().map((arg) => {
     const builder = new ExpressionIRBuilder(arg as Expression);
     return builder.validateAndBuildIR();
   });
-
   const { keyType, firstType, secondType } = getMappingTypes(variable.dynamicType || "");
-
   if (methodName === MethodName.Get && args.length === 1) {
     const returnType = getReturnType(firstType || "");
     return {
       kind: "map_get",
       slot,
       key: args[0],
-      keyType: keyType || AbiType.Address,
-      valueType: firstType || AbiType.Uint256,
+      keyType: keyType,
+      valueType: firstType,
       type: AbiType.Mapping,
       returnType,
     } as IRMapGet;

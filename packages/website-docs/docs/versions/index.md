@@ -6,12 +6,13 @@ We aim to keep the docs updated within major/minor versions, and do not publish 
 
 You can find an archive of previous major/minor versions below.
 
-**Latest version: v0.2.5**
+**Latest version: v0.3.0**
 
-- [v0.2.5 (October 2025)](./latest.md)
+- [v0.3.0 (Latest)](./latest.md)
 
-**Previous version: v0.1.0**
+**Previous versions:**
 
+- [v0.2.0 (October 2025)](./v0.2.md)
 - [v0.1.0 (August 2025)](./v0.1.md)
 
 ## Playground Demo
@@ -40,7 +41,7 @@ Experience the power of AS-Stylus through our CLI! Follow along with this demo s
 
 ## Previous Versions
 
-_No previous major/minor versions yet - this is our first release!_
+Previous versions are archived below for reference.
 
 ---
 

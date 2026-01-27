@@ -22,28 +22,37 @@ export function buildU256IR(
   call: CallExpression,
   symbolTable: SymbolTableStack,
 ): IRExpression {
-  const [varName, operation] = target.split(".");
+  // Parse target once at the beginning - handle multiple dots correctly
+  const parts = target.split(".");
+  const receiverName = parts.slice(0, -1).join(".");
+  const operation = parts.slice(-1)[0];
+
   const args = call.getArguments().map((arg) => {
     const builder = new ExpressionIRBuilder(arg as Expression);
     return builder.validateAndBuildIR();
   });
 
-  const targetSymbol = symbolTable.lookup(varName);
+  const targetSymbol = symbolTable.lookup(receiverName);
   const scope = targetSymbol?.scope ?? "memory";
 
-  const isComparisonOperation = Object.keys(operationConvertor).includes(operation);
-
-  if (isComparisonOperation) {
+  if (operation in operationConvertor) {
     return {
       kind: "condition",
-      left: { kind: "var", name: varName, type: AbiType.Uint256, scope, isConstant: false },
+      left: {
+        kind: "var",
+        name: receiverName,
+        type: AbiType.Uint256,
+        scope,
+        isConstant: false,
+      },
       right: args[0],
-      op: operationConvertor[operation as U256ComparisonOperation] as ComparisonOperator,
+      op: operationConvertor[operation as U256ComparisonOperation],
       type: AbiType.Bool,
     } satisfies IRCondition;
   }
 
-  if (varName === "U256Factory") {
+  // Handle U256Factory operations
+  if (receiverName === "U256Factory") {
     return {
       kind: "call" as const,
       target: operation,
@@ -61,34 +70,20 @@ export function buildU256IR(
     };
   }
 
-  // For all other U256 operations (like variable.add), parse receiver and method separately
-  const parts = target.split(".");
-  if (parts.length === 2) {
-    const receiverName = parts[0];
-    const methodName = parts[1];
-    return {
-      kind: "call",
-      target: methodName, // Just the method name
-      args,
-      type: AbiType.Function,
-      returnType: AbiType.Uint256,
-      scope,
-      receiver: {
-        kind: "var" as const,
-        name: receiverName,
-        type: AbiType.Uint256,
-        scope: scope as "memory" | "storage",
-        isConstant: false,
-      },
-    };
-  }
-  // Fallback for patterns we don't understand
+  // Handle regular U256 operations (like variable.add)
   return {
     kind: "call",
-    target: target,
+    target: operation,
     args,
     type: AbiType.Function,
     returnType: AbiType.Uint256,
     scope,
+    receiver: {
+      kind: "var" as const,
+      name: receiverName,
+      type: AbiType.Uint256,
+      scope: scope as "memory" | "storage",
+      isConstant: false,
+    },
   };
 }

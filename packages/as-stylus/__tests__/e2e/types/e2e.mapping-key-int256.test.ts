@@ -20,6 +20,7 @@ const POSITION_SIZE = -500n; // Negative for short position
 const COLLATERAL_AMOUNT = 10000n;
 const POSITION_METADATA = 10n;
 const POSITION_ACTIVE = true;
+const POSITION_NAME = "Test Position";
 
 /**
  * Deploys the MappingInt256 contract and initializes the test environment
@@ -46,6 +47,7 @@ describe("MappingInt256 — Happy Path", () => {
       COLLATERAL_AMOUNT,
       POSITION_METADATA,
       POSITION_ACTIVE,
+      POSITION_NAME,
     ]);
 
     // Get each field
@@ -54,6 +56,7 @@ describe("MappingInt256 — Happy Path", () => {
     const collateral = (await contract.read("getPositionCollateral", [POSITION_ID])) as bigint;
     const metadata = (await contract.read("getPositionMetadata", [POSITION_ID])) as bigint;
     const active = (await contract.read("getPositionActive", [POSITION_ID])) as boolean;
+    const name = (await contract.read("getPositionName", [POSITION_ID])) as string;
 
     // Verify all values
     expect(trader.toLowerCase()).toBe(TRADER_ADDRESS.toLowerCase());
@@ -61,5 +64,21 @@ describe("MappingInt256 — Happy Path", () => {
     expect(collateral).toBe(COLLATERAL_AMOUNT);
     expect(metadata).toBe(POSITION_METADATA);
     expect(active).toBe(POSITION_ACTIVE);
+    expect(name).toBe(POSITION_NAME);
+  });
+
+  it("should set position name longer than 32 bytes and retrieve it", async () => {
+    const longerName = "This is a test position name that is longer than 32 bytes";
+    await contract.write(ownerWallet, "setPosition", [
+      POSITION_ID,
+      TRADER_ADDRESS,
+      POSITION_SIZE,
+      COLLATERAL_AMOUNT,
+      POSITION_METADATA,
+      POSITION_ACTIVE,
+      longerName,
+    ]);
+    const name = (await contract.read("getPositionName", [POSITION_ID])) as string;
+    expect(name).toBe(longerName);
   });
 });

@@ -15,17 +15,36 @@ export function createStorageKey(slot: u64): usize {
 }
 
 export function createMappingKey(slot: u64, keyPtr: usize, keyLen: u32): usize {
-  const buf: usize = malloc(64);
-  for (let i = 0; i < 64; ++i) store<u8>(buf + i, 0);
-  const keyOff: u32 = 32 - keyLen;
-  for (let i: u32 = 0; i < keyLen; ++i) {
-    store<u8>(buf + keyOff + i, load<u8>(keyPtr + i));
+  // For keys <= 32 bytes, use the optimized 64-byte buffer approach
+  if (keyLen <= 32) {
+    const buf: usize = malloc(64);
+    for (let i = 0; i < 64; ++i) store<u8>(buf + i, 0);
+    const keyOff: u32 = 32 - keyLen;
+    for (let i: u32 = 0; i < keyLen; ++i) {
+      store<u8>(buf + keyOff + i, load<u8>(keyPtr + i));
+    }
+    for (let i: u32 = 0; i < 8; ++i) {
+      store<u8>(buf + 64 - 1 - i, <u8>(slot >> (8 * i)));
+    }
+    const out: usize = malloc(32);
+    native_keccak256(buf, 64, out);
+    return out;
   }
+
+  // For keys > 32 bytes, concatenate slot + key and hash the entire buffer
+  const slotBuf: usize = malloc(32);
+  for (let i = 0; i < 24; ++i) store<u8>(slotBuf + i, 0);
   for (let i: u32 = 0; i < 8; ++i) {
-    store<u8>(buf + 64 - 1 - i, <u8>(slot >> (8 * i)));
+    store<u8>(slotBuf + 31 - i, <u8>(slot >> (8 * i)));
   }
+
+  const totalLen: u32 = 32 + keyLen;
+  const buf: usize = malloc(totalLen);
+  memory.copy(buf, slotBuf, 32);
+  memory.copy(buf + 32, keyPtr, keyLen);
+
   const out: usize = malloc(32);
-  native_keccak256(buf, 64, out);
+  native_keccak256(buf, totalLen, out);
   return out;
 }
 
