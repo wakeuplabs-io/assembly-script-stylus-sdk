@@ -10,10 +10,9 @@ Before writing tests, ensure you have:
 
 - A compiled AssemblyScript Stylus contract (with generated ABI)
 - Jest installed and configured in your project
-- A running local Arbitrum node or access to Arbitrum Sepolia testnet
 - Environment variables configured for your test environment
 
-Projects initialized with `npx as-stylus init` come with a pre-configured test setup. If you're setting up manually, you'll need a configuration file.
+Projects initialized with `npx @wakeuplabs/as-stylus generate` come with a pre-configured test setup. If you're setting up manually, you'll need a configuration file.
 
 ### Test Configuration
 
