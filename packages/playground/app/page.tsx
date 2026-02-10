@@ -5,6 +5,7 @@ import { ContractSelector } from "@/components/contract-selector"
 import { FlowDiagram } from "@/components/flow-diagram"
 import { Playground } from "@/components/playground"
 import { ContractInteraction } from "@/components/contract-interaction"
+import { AbiExplorer } from "@/components/abi-explorer"
 import { UnderTheHood } from "@/components/under-the-hood"
 import { BottomCTA } from "@/components/bottom-cta"
 import { ContractProvider, useContract } from "@/contexts/contract-context"
@@ -18,6 +19,7 @@ function HomeContent() {
       <ContractSelector />
       <FlowDiagram />
       <Playground />
+      <AbiExplorer />
       <ContractInteraction />
       <UnderTheHood contractType={activeContract} />
       <BottomCTA />
