@@ -148,6 +148,17 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
+      label: "Guides",
+      items: [
+        {
+          type: "doc",
+          id: "guides/testing-contracts",
+          label: "Testing Contracts",
+        },
+      ],
+    },
+    {
+      type: "category",
       label: "Examples",
       items: ["examples/erc20", "examples/erc721", "examples/voting"],
     },

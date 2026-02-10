@@ -19,7 +19,6 @@ Projects initialized with `npx @wakeuplabs/as-stylus generate` come with a pre-c
 Your test configuration manages RPC endpoints, deployment settings, and project paths. Create a `config.ts` file in your tests directory:
 
 ```typescript
-
 import { config as loadConfig } from "dotenv";
 import { Hex } from "viem";
 import path from "path";
